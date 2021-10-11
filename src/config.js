@@ -14,4 +14,4 @@ export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS',symbol:"NULS"
 export const ETHNET = 'ropsten';
 
 // export const BRIDGE_API_URL = "/nabox-api";
-export const BRIDGE_API_URL = "https://nabox-swap-df0pzfcm-ishouted.4everland.app";
+export const BRIDGE_API_URL = "https://nabox-swap-df0pzfcm-ishouted.4everland.app/nabox-api";
