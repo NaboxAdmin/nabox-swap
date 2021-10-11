@@ -179,6 +179,7 @@ export default {
       this.$nextTick(() => {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0)
       });
+      this.searchVal = '';
       this.$emit('select', { coin, type: this.modalType });
     },
     // 点击nav
