@@ -1,0 +1,181 @@
+.header-cont {
+  z-index: 10;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: 33px 30px;
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  justify-content: space-between;
+  .logo-cont {
+    height: 68.3px;
+    width: 100px;
+    //border-radius: 50%;
+    //background-color: #FFFFFF;
+    img {
+      height: 100%;
+      width: 230%;
+    }
+  }
+  .l2-logo {
+    height: 50px;
+    width: 50px;
+    margin-left: 130px;
+    img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  .address-detail {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 200px;
+    height: 62px;
+    background: #F0F7F7;
+    border-radius: 31px;
+    color: #5fbdaf;
+    .icon-drop {
+      img {
+        width: 15px;
+        height: 10px;
+        transform: translateY(-2px);
+      }
+    }
+    .network-list {
+      position: absolute;
+      background-color: #FFFFFF;
+      min-width: 150px;
+      color: #333333;
+      font-weight: bold;
+      border-radius: 10px;
+      padding: 10px 30px;
+      top: 80px;
+      left: 20px;
+      z-index: 999;
+      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+      .active_chain {
+        color: #54b9aa;
+      }
+    }
+  }
+  .header-icon {
+    height: 28px;
+    width: 32px;
+    margin-left: 40px;
+    margin-bottom: 5px;
+    img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+}
+.position-cont {
+  height: 130px;
+}
+.main-cont {
+  height: calc(100vh - 130px);
+  background-color: #F9FAFC;
+}
+.customer-p {
+  padding: 40px 40px 0px 40px;
+}
+.address-detail_pop {
+  //padding: 40px 40px 60px 40px;
+  z-index: 120;
+  padding-bottom: 60px;
+  background-color: #FFFFFF;
+  width: 670px;
+  font-size: 32px;
+  border-radius: 20px;
+  overflow: scroll;
+  .icon-cont {
+    span {
+      height: 28px;
+      width: 28px;
+    }
+  }
+  .account-cont {
+    padding: 40px 30px;
+    //height: 119px;
+    border: 1px solid #AAB2C9;
+    border-radius: 20px;
+    .account-info_pop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      .coin-icon {
+        height: 52px;
+        width: 52px;
+        border-radius: 50%;
+        margin-right: 24px;
+        img {
+          height: 100%;
+          width: 100%;
+        }
+      }
+      .icon_pop {
+        height: 32px;
+        width: 32px;
+        &:last-child {
+          //margin-left: 66px;
+        }
+      }
+    }
+  }
+  .order-list {
+    max-height: 15vh;
+    overflow-y: auto;
+    .fix-cont {
+      .order-icon {
+        height: 34px;
+        width: 34px;
+      }
+    }
+  }
+}
+.tab_bar {
+  border-bottom: 1px solid #AAB2C9;
+  span {
+    box-sizing: border-box;
+    height: 60px;
+  }
+  .active {
+      border-bottom: 6px solid #333333;
+  }
+}
+.w-240 {
+  width: 240px;
+}
+.status-icon {
+  height: 31px;
+  width: 31px;
+  border-radius: 50%;
+  margin-left: 46px;
+}
+.header-icon_position {
+  height: 28px;
+  width: 32px;
+  margin-left: 40px;
+}
+.connect-cont {
+  min-width: 350px;
+  height: 62px;
+  background: #F0F7F7;
+  padding: 0 30px;
+  line-height: 62px;
+  border-radius: 31px;
+  color: #54b9aa;
+}
+.chain-icon {
+  height: 45px;
+  width: 45px;
+  border-radius: 50%;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}

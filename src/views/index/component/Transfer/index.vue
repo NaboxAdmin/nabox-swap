@@ -1,0 +1,1120 @@
+<template>
+<!--  :class="{'p-4': !isDapp}" -->
+  <div class="bg-white p-transfer">
+    <div @click.stop class="position-fixed_loading" @touchmove.prevent v-if="transferLoading" v-loading="transferLoading"/>
+    <!--:class="{'mt-2': !isDapp}"-->
+    <div class="transfer-cont d-flex align-items-center space-between">
+      <div class="sign-cont d-flex align-items-center space-between size-28 text-90 direction-column">
+        <div class="">{{ $t("transfer.transfer1") }}</div>
+        <span></span>
+        <span></span>
+        <span></span>
+        <div class="mt-1">{{ $t("transfer.transfer2") }}</div>
+      </div>
+      <div class="coin-cont d-flex direction-column space-between">
+        <template>
+          <div class="asset-cont" v-if="toNerve">
+            <div class="asset-icon flex-1 d-flex align-items-center">
+            <span class="icon-item">
+              <img :src="getPicture(fromNetwork)" alt="">
+            </span>
+              <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OKE' || fromNetwork }}</span>
+            </div>
+            <div class="size-30 font-bold">{{ superLong(fromAddress) }}</div>
+            <div class="drop_down">
+<!--              <img src="@/assets/image/drop_down.png" alt="">-->
+            </div>
+          </div>
+          <div class="asset-cont" v-else>
+            <div class="asset-icon flex-1 d-flex align-items-center">
+            <span class="icon-item">
+               <img :src="getPicture('NERVE')" alt="">
+            </span>
+              <span class="font-bold size-30 ml-12">NERVE</span>
+            </div>
+            <div class="size-28 font-bold ml-1">{{ superLong(nerveAddress) }}</div>
+            <div class="drop_down">
+<!--              <img src="@/assets/image/drop_down.png" alt="">-->
+            </div>
+          </div>
+        </template>
+        <div class="position-cont"></div>
+        <template>
+          <div class="asset-cont" v-if="!toNerve">
+            <div class="asset-icon flex-1 d-flex align-items-center">
+            <span class="icon-item">
+              <img :src="getPicture(fromNetwork)" alt="">
+            </span>
+              <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OKE' || fromNetwork }}</span>
+            </div>
+            <div class="size-30 font-bold">{{ superLong(fromAddress) }}</div>
+            <div class="drop_down">
+<!--              <img src="@/assets/image/drop_down.png" alt="">-->
+            </div>
+          </div>
+          <div class="asset-cont" v-else>
+            <div class="asset-icon flex-1 d-flex align-items-center">
+            <span class="icon-item">
+               <img :src="getPicture('NERVE')" alt="">
+            </span>
+              <span class="font-bold size-30 ml-12">NERVE</span>
+            </div>
+            <div class="size-30 font-bold ml-1">{{ superLong(nerveAddress) }}</div>
+            <div class="drop_down">
+<!--              <img src="@/assets/image/drop_down.png" alt="">-->
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="transfer-icon" @click="switchToNerve">
+        <svg t="1627381344617" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2109" width="23" height="23"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#6EB6A9" p-id="2110"></path><path d="M610.393043 743.958261a31.165217 31.165217 0 0 1-14.692173-3.561739A31.610435 31.610435 0 0 1 578.782609 712.347826V311.652174a31.833043 31.833043 0 0 1 63.443478 0v341.036522l49.864348-33.613913a31.610435 31.610435 0 1 1 35.394782 52.535652l-99.283478 66.782608a32.055652 32.055652 0 0 1-17.808696 5.565218zM413.606957 743.958261A31.610435 31.610435 0 0 1 381.773913 712.347826V371.311304l-49.864348 33.613913a31.610435 31.610435 0 1 1-35.394782-52.535652l99.283478-66.782608a32.055652 32.055652 0 0 1 32.500869-1.78087A31.610435 31.610435 0 0 1 445.217391 311.652174v400.695652a31.610435 31.610435 0 0 1-31.610434 31.610435z" fill="#FFFFFF" p-id="2111"></path></svg>
+      </div>
+    </div>
+    <div class="asset-cont mt-2">
+      <span class="size-28 text-90">{{ $t("transfer.transfer3") }}</span>
+      <div class="asset-info mt-2">
+        <div class="asset-icon">
+          <img :src="getPicture(currentCoin && currentCoin.symbol)" alt="">
+        </div>
+        <span class="font-bold size-30 ml-12">{{ currentCoin && currentCoin.symbol }}</span>
+      </div>
+    </div>
+    <div class="asset-cont mt-2">
+      <div class="size-28 text-90 d-flex space-between">
+        <span>{{ $t("transfer.transfer4") }}</span>
+        <template>
+          <div>
+            {{ $t("transfer.transfer5") }}：
+            <span v-if="availableLoading"><i class="el-icon-loading"/></span>
+            <span v-else-if="available">{{ available || 0 }}</span>
+            <span v-else>--</span>
+          </div>
+        </template>
+      </div>
+      <div class="asset-info d-flex space-between align-items-center mt-2 active-border">
+        <input class="font-bold size-38 ml-12"
+               v-model="transferCount"
+               @input="accountInput"
+               placeholder="0.0"/>
+        <span class="size-28 text-primary" @click="maxAmount">{{ $t("transfer.transfer6") }}</span>
+      </div>
+      <div class="text-red mt-2" v-if="amountMsg">{{ amountMsg }}</div>
+    </div>
+    <div class="d-flex align-items-center size-28 space-between mt-4">
+      <span class="text-90">{{ $t("transfer.transfer7") }}</span>
+      <template>
+        <span class="text-3a" v-if="showFeeLoading"><i class="el-icon-loading"/></span>
+        <span class="text-3a" v-else-if="transferFee">{{ transferFee }}</span>
+        <span class="text-3a" v-else>--</span>
+      </template>
+    </div>
+    <div class="btn size-30" :class="{opacity_btn: !canNext}" v-if="crossInAuth" @click="approveERC20">{{ $t("transfer.transfer8") }}</div>
+    <div class="btn size-30" :class="{opacity_btn: !canNext}" v-else @click="next">{{ $t("transfer.transfer9") }}</div>
+  </div>
+</template>
+
+<script>
+import {valideNetwork} from "../Swap";
+import {debounce, divisionDecimals, getAssetNerveInfo, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, genID} from "@/api/util";
+import {MAIN_INFO, NULS_INFO} from "@/config";
+import {crossFee, ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, NTransfer} from "@/api/api";
+import {getContractCallData} from "@/api/nulsContractValidate";
+import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
+import txs from "nerve-sdk-js/lib/model/txs";
+
+let chainToSymbol = {}
+supportChainList.map(v => {
+  chainToSymbol[v.value] = v.symbol
+})
+
+export default {
+  name: "Transfer",
+  props: {
+    // address: String,
+    // fromAddress: String,
+    // fromNetwork: String,
+    // isDapp: {
+    //   type: Boolean,
+    //   default: false
+    // },
+    // nerveTo: {
+    //   type: Boolean,
+    //   default: true
+    // },
+    // currentAccount: {
+    //   type: Object,
+    //   default: () => {
+    //     return null;
+    //   }
+    // }
+  },
+  watch: {
+    fromNetwork() {
+      this.getLiquidityInfo();
+    },
+    // nerveTo: {
+    //   handler(val) {
+    //     // this.getLiquidityInfo();
+    //     this.toNerve = val;
+    //   },
+    //   deep: true,
+    //   immediate: true
+    // },
+    transferCount: {
+      handler(newVal, oldVal) {
+        const decimals = this.currentCoin && this.currentCoin.decimals || 8;
+        const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+        if (patrn.exec(newVal) || newVal === "") {
+          this.transferCount = newVal;
+        } else {
+          this.transferCount = oldVal;
+        }
+      }
+    }
+  },
+  data() {
+    this.getFeeDebounce = debounce(this.checkTransferFee, 500);
+    this.getAllowanceTimer = null; // 查询授权额度定时器
+    return {
+      currentCoin: null, // 当前网络上面选择的USDT
+      toNerve: true, // 是否是转入NERVE
+      transferFee: 0,  // 交易手续费
+      transferCount: '', // 当前需要transfer的数量
+      storeAccountInfo: [], // 链上主资产信息
+      needExtraFee: false, // nvt不足，需要额外转入一笔手续费
+      withdrawalNVTFee: '', // 转出需要的NVT
+      NULSContract: false, // 是否是nuls的合约资产跨链
+      available: 0, // 当前资产可用
+      crossInAuth: false, // 异构链转入nerve是否需要授权
+      transferInfo: null, // 交易信息
+      stepList: [],
+      currentStep: 1,
+      showFeeLoading: false,
+      transferLoading: false,
+      amountMsg: '',
+      USDTasset: null, // 当前稳定比资产信息
+      availableLoading: false,
+      transactionInfo: null,
+      assetTimer: null
+    }
+  },
+  created() {
+    this.getLiquidityInfo();
+    if (this.$route.params.nerveTo) {
+      this.toNerve = !!!this.$route.params.nerveTo;
+    }
+  },
+  computed: {
+    canNext() {
+      return !this.showFeeLoading && this.transferFee && this.transferCount && !this.amountMsg && Number(this.transferCount);
+    },
+  },
+  methods: {
+    // 获取pool流动性信息
+    async getLiquidityInfo() {
+      const res = await this.$request({
+        method: "get",
+        url: '/swap/usdn/info'
+      });
+      if (res.code === 1000 && res.data) {
+        const tempData = res.data.lpCoinList;
+        this.USDTasset = tempData.find(item => item.chain === this.$store.state.network) || null;
+        await this.getCurrentAssetInfo();
+        if (this.assetTimer) {
+          clearInterval(this.assetTimer);
+          this.assetTimer = null;
+        }
+        this.assetTimer = setInterval(async () => {
+          await this.getCurrentAssetInfo(true);
+        }, 10000);
+      }
+    },
+    maxAmount() {
+      if (this.toNerve && this.$store.state.network === "NULS") {
+        this.transferCount = Minus(this.available, 0.01);
+      } else {
+        this.transferCount = this.available;
+      }
+      if (!this.transferFee) {
+        this.getTransferFee();
+      } else {
+        this.checkTransferFee();
+      }
+    },
+
+    async getCurrentAssetInfo(refresh = false) {
+      try {
+        if (!refresh) {
+          this.availableLoading = true;
+        }
+        const { chainId, assetId, heterogeneousChainId, contractAddress } = this.USDTasset;
+        const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
+        const address = this.currentAccount.address[tempNetwork];
+        // 关注当前资产
+        !refresh && await this.focusAsset(tempNetwork, this.USDTasset);
+        if (tempNetwork === "NERVE") {
+          const data = {
+            address,
+            assetId,
+            chainId,
+            chain: tempNetwork,
+            refresh: true,
+          }
+          const res = await this.$request({
+            url: "/wallet/address/asset",
+            data
+          });
+          if (res.code === 1000) {
+            this.currentCoin = res.data;
+            this.clearGetAllowanceTimer();
+            // assset.assetId为0 则为异构链上token资产
+            if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
+              await this.checkCrossInAuthStatus();
+            } else {
+              this.crossInAuth = false;
+            }
+            this.available = this.currentCoin && divisionDecimals(this.currentCoin.balance, this.currentCoin.decimals) || 0;
+            this.availableLoading = false;
+            !refresh && await this.getTransferFee();
+          }
+        } else {
+          const data = {
+            address,
+            assetId: 0,
+            chainId: heterogeneousChainId,
+            contractAddress,
+            chain: tempNetwork,
+            refresh: true,
+          }
+          const res = await this.$request({
+            url: "/wallet/address/asset",
+            data
+          });
+          if (res.code === 1000) {
+            this.currentCoin = res.data;
+            this.clearGetAllowanceTimer();
+            // assset.assetId为0 则为异构链上token资产
+            if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
+              await this.checkCrossInAuthStatus();
+            } else {
+              this.crossInAuth = false;
+            }
+            this.available = this.currentCoin && divisionDecimals(this.currentCoin.balance, this.currentCoin.decimals) || 0;
+            this.availableLoading = false;
+            !refresh && await this.getTransferFee();
+          }
+        }
+      } catch (e) {
+        this.availableLoading = false;
+        console.log(e);
+      }
+    },
+    // 关注资产
+    async focusAsset(network, asset) {
+      const tempNetwork = this.toNerve ? network : "NERVE";
+      let chainId, assetId;
+      if (tempNetwork==='NERVE') {
+        chainId = asset.chainId;
+        assetId = asset.assetId
+        // const infoParams = {
+        //   network: network,
+        //   assetsChainId: asset.chainId,
+        //   assetsId: asset.assetId,
+        //   contractAddress: asset.contractAddress || ""
+        // }
+        // const res = await getAssetNerveInfo(infoParams); // 查询nerve的usdt资产信息
+        // if (res) {
+        //
+        // }
+      } else { // 异构链关注资产
+        // const params = {
+        //   address: this.currentAccount['address'][network],
+        //   chain: network,
+        //   contractAddress: asset.contractAddress || "",
+        //   chainId: asset.heterogeneousChainId,
+        //   refresh: true
+        // }
+        // const tempRes = await this.$request({
+        //   url: '/wallet/address/asset',
+        //   data: params
+        // });
+        // if (tempRes.code===1000 && tempRes.data) {
+        //   chainId = tempRes.data.chainId;
+        //   assetId = tempRes.data.assetId;
+        // }
+      }
+      const focusParams = {
+        address: this.currentAccount['address'][network],
+        assetId,
+        chainId,
+        chain: network,
+        contractAddress: asset.contractAddress || "",
+        focus: true
+      };
+      await this.$request({ url: "/wallet/address/asset/focus", data: focusParams });
+    },
+    // nerve to
+    switchToNerve() {
+      this.toNerve = !this.toNerve;
+      this.transferCount = "";
+      this.transferFee = "";
+      this.available = 0;
+      this.amountMsg = "";
+      this.getCurrentAssetInfo();
+    },
+
+    // 获取转账的资产列表
+    async getCoins(network = '', address = '') {
+      const res = await this.$request({
+        url: "/wallet/address/assets",
+        data: {
+          chain: network || this.fromNetwork || '',
+          address: address || this.fromAddress
+        }
+      });
+      if (res.code === 1000) {
+        const tempFromNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
+        const coins = res.data.filter(v => valideNetwork.indexOf(v.registerChain) > -1);
+        this.clearGetAllowanceTimer();
+        this.currentCoin = coins && coins.find(coin => coin.symbol === "NVT") || null;
+        // assset.assetId为0 则为异构链上token资产
+        if (this.currentCoin && this.currentCoin.assetId === 0 && tempFromNetwork !== "NULS") {
+          await this.checkCrossInAuthStatus();
+        } else {
+          this.crossInAuth = false;
+        }
+        this.available = this.currentCoin && divisionDecimals(this.currentCoin.balance, this.currentCoin.decimals) || 0;
+        await this.getTransferFee();
+      }
+    },
+    // 输入转账
+    accountInput(e) {
+      if (this.transferCount === "" || (Number(this.transferCount) < 0)) {
+        this.transferCount = "";
+        // this.transferFee = "";
+        this.amountMsg = "";
+        return false
+      }
+      if (this.transferFee) {
+        this.checkTransferFee()
+      }
+    },
+
+    // 查询异构链token资产授权情况
+    async checkCrossInAuthStatus() {
+      const transfer = new ETransfer();
+      const heterogeneousInfo = this.currentCoin.heterogeneousList.filter(
+          (v) => v.chainName === this.fromNetwork
+      )[0];
+      const contractAddress = this.currentCoin.contractAddress;
+      const needAuth = await transfer.getERC20Allowance(
+          contractAddress,
+          heterogeneousInfo.heterogeneousChainMultySignAddress,
+          this.fromAddress
+      );
+      this.crossInAuth = needAuth;
+      if (!needAuth && this.getAllowanceTimer) {
+        this.clearGetAllowanceTimer();
+      }
+    },
+
+    // 获取跨链费用
+    async getTransferFee() {
+      if (!this.currentCoin) return;
+      this.showFeeLoading = true;
+      this.amountMsg = "";
+      const nerveToNulsFee = crossFee + "NVT" + "+" + crossFee + "NULS"; // nerve -> nuls的手续费
+      const nulsToNerveFee = crossFee + "NULS"; // nuls -> nerve的手续费
+      const pubKey = getCurrentAccount(this.fromAddress).pub;
+      const accountInfo = await this.$request({ // 获取主资产信息
+        url: "/wallet/chain/main",
+        data: { pubKey },
+      });
+      this.storeAccountInfo = accountInfo.data; // 主资产信息
+      // 从其他链跨链转账到nerve
+      if (this.toNerve) {
+        if (this.$store.state.network === "NULS") { // NULS跨链转入NERVE 为默认手续费
+          let crossInFee = nulsToNerveFee;
+          this.NULSContract = !!this.currentCoin.contractAddress;
+          if (this.currentCoin.contractAddress) {
+            this.NULSContract = true;
+            crossInFee = await this.getContractCallData();
+            if (crossInFee) {
+              crossInFee = crossInFee + "NULS";
+            } else {
+              return null;
+            }
+          }
+          this.transferFee = crossInFee;
+        } else { // 异构链跨链转入到NERVE
+          this.transferFee = await this.getCrossInFee();
+        }
+      } else { // NERVE转账到其他链
+        // NERVE跨链转出到NULS为默认手续费
+        if (this.$store.state.network === "NULS") {
+          this.transferFee = nerveToNulsFee;
+        } else { // NERVE跨链转出到异构链
+          this.transferFee = await this.getCrossOutFee();
+        }
+      }
+      this.showFeeLoading = false;
+      this.transferCount && await this.checkTransferFee();
+    },
+
+    // 检查手续费
+    async checkTransferFee() {
+      // console.log('checkTransferFee checkTransferFee')
+      let flag = true;
+      // 验证可用余额
+      if (Minus(this.transferFee, this.available) > 0) flag = false;
+      const tempFromNetwork = this.toNerve ? this.fromNetwork : "NERVE";
+      const temToNetwork = this.toNerve ? "NERVE" : this.fromNetwork;
+      const asset = this.currentCoin; // 当前需要转入的资产
+      const assetSymbol = asset.symbol;
+      const feeList = this.transferFee.split("+");
+      const config = JSON.parse(sessionStorage.getItem("config"));
+      const mainAssetInfo = config[tempFromNetwork]; // 发起链主资产
+      const isMainAsset = assetSymbol === mainAssetInfo.symbol; // 是否为主资产
+      if (tempFromNetwork === "NERVE") {
+        if (temToNetwork === "NULS") {
+          if (assetSymbol === "NULS") {
+            if (Minus(Plus(this.transferCount, crossFee), this.available) > 0) flag = false;
+          } else {
+            const nulsBalance = await this.getNulsInfo(this.nerveAddress);
+            if (nulsBalance - crossFee < 0) flag = false;
+          }
+          if (!this.checkFee(crossFee, isMainAsset)) {
+            flag = false
+          }
+        } else {
+          const { value } = this.splitFeeSymbol(this.transferFee);
+          if (!this.checkFee(value, isMainAsset)) {
+            flag = false
+          }
+        }
+      } else if (tempFromNetwork === "NULS") {
+        let nulsFee
+        feeList.map(v => {
+          const { symbol, value } = this.splitFeeSymbol(v);
+          if (symbol === "NULS") {
+            nulsFee = value;
+          }
+        })
+        if (!this.checkFee(nulsFee, isMainAsset)) {
+          flag = false
+        }
+      } else {
+        if (temToNetwork === "NERVE") {
+          const { value } = this.splitFeeSymbol(this.transferFee);
+          // flag = this.checkFee(value, isMainAsset)
+          if (!this.checkFee(value, isMainAsset)) {
+            flag = false
+          }
+        }
+      }
+      this.amountMsg = flag ? "" : this.$t("tips.tips8");
+    },
+
+    // 验证主资产是否够手续费/手续费+转账数量
+    checkFee(fee, isMainAsset) {
+      let flag = true;
+      const tempNetwork = this.toNerve ? this.fromNetwork : 'NERVE'
+      const fromChainInfo = this.storeAccountInfo.filter(v => v.chain === tempNetwork)[0];
+      const fromChainBalance = divisionDecimals(fromChainInfo.balance, fromChainInfo.decimals);
+      if (isMainAsset) {
+        if (Minus(Plus(this.transferCount, fee), this.available) > 0) flag = false;
+      } else {
+        if (Minus(fromChainBalance, fee) < 0 || Minus(this.transferCount, this.available) > 0) flag = false;
+      }
+      return flag
+    },
+
+    /**
+     * 查询nerve链上nuls余额
+     * @param address //nerveAddress
+     */
+    async getNulsInfo(address) {
+      const data = {
+        address,
+        assetId: NULS_INFO.assetId,
+        chainId: NULS_INFO.chainId,
+        chain: "NERVE",
+        refresh: true,
+      }
+      const res = await this.$request({
+        url: "/wallet/address/asset",
+        data
+      });
+      let balance = 0;
+      if (res.code === 1000) {
+        balance = divisionDecimals(res.data.balance, res.data.decimals);
+      }
+      return balance;
+    },
+
+    // 查询nerve链上nvt余额
+    getNvtBalanceInfo() {
+      const nvtInfo = this.storeAccountInfo.filter(v => v.chain === "NERVE")[0];
+      // nerve链上nvt余额
+      return divisionDecimals(nvtInfo.balance, nvtInfo.decimals);
+    },
+
+    // nerve转出到异构链手续费
+    async getCrossOutFee() { // toNerve=false
+      const tempFromNetwork = this.toNerve ? this.fromNetwork : "NERVE";
+      const temToNetwork = this.toNerve ? "NERVE" : this.fromNetwork;
+      const asset = this.currentCoin;
+      const assetHeterogeneousInfo = asset.heterogeneousList.filter(
+          (v) => v.chainName === temToNetwork
+      )[0];
+      const isToken = assetHeterogeneousInfo && assetHeterogeneousInfo.token;
+      const transfer = new ETransfer({chain: temToNetwork});
+      let nvtUSD = await getSymbolUSD("NERVE"); // 获取nvt稳定币价格
+      nvtUSD = nvtUSD + "";
+      let heterogeneousChainUSD = await getSymbolUSD(temToNetwork);
+      heterogeneousChainUSD = heterogeneousChainUSD + "";
+      const res = await transfer.calWithdrawalNVTFee(
+          nvtUSD,
+          heterogeneousChainUSD,
+          isToken
+      );
+      let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
+      this.withdrawalNVTFee = nvtFee;
+      // 获取nerve链上nvt余额
+      const nvtBalance = this.getNvtBalanceInfo();
+      let fee;
+      this.needExtraFee = false; // nvt不足，需要额外转入一笔手续费
+      if (tempFromNetwork === "NERVE") { // 如果当前为NERVE跨链到其他链上始终为NVT
+        fee = nvtFee + "NVT";
+      } else { // 如果为其他链跨链（NVT足够则使用NVT,否则需要异构手续费）
+        // debugger
+        if (nvtBalance && nvtBalance - nvtFee >= 0) { // nvt足够
+          fee = nvtFee + "NVT";
+        } else { // nvt不足
+          this.needExtraFee = true;
+          const hgcFee = await this.getSwapCost(nvtFee); // 获取需要消耗的主资产
+          fee = hgcFee + chainToSymbol[tempFromNetwork];
+        }
+      }
+      return fee;
+    },
+
+    // 异构链转入nerve手续费
+    async getCrossInFee() {
+      const tempFromNetwork = this.toNerve ? this.fromNetwork : "NERVE";
+      const assetHeterogeneousInfo = this.currentCoin && this.currentCoin.heterogeneousList.filter(
+          (v) => v.chainName === tempFromNetwork
+      )[0];
+      const isToken = assetHeterogeneousInfo && assetHeterogeneousInfo.token;
+      const gasLimit = isToken ? "150000" : "33594";
+      const transfer = new ETransfer();
+      let fee = await transfer.getGasPrice(gasLimit);
+      // if (this.speedUpFee) {
+      //   fee = await transfer.getSpeedUpFee(gasLimit);
+      // } else {
+      //   fee = await transfer.getGasPrice(gasLimit);
+      // }
+      return fee + chainToSymbol[tempFromNetwork];
+    },
+
+    // 查询兑换一定数量nvt需要花费的异构链主资产数量
+    async getSwapCost(amount) {
+      const tempFromNetwork = this.toNerve ? this.$store.state.network : "NERVE";
+      const tempToNetwork = this.toNerve ? "NERVE" : this.$store.state.network;
+      const config = JSON.parse(sessionStorage.getItem("config"));
+      const swapAssetInfo = config[tempFromNetwork]; // 需要兑换的资产信息
+      const nerveInfoParams = {
+        assetsChainId: swapAssetInfo.chainId,
+        assetsId: swapAssetInfo.assetId,
+      };
+      const { chainId, assetId } = await this.getAssetNerveInfo(nerveInfoParams);
+      // console.log(amount, 123465, swapScale, Times(amount, swapScale))
+      const swapAmount = timesDecimals(Times(amount, swapScale), 8).split(".")[0];
+      const nerveAddress = getCurrentAccount(this.fromAddress).address.NERVE;
+      const params = {
+        address: nerveAddress,
+        toAmount: swapAmount,
+        fromToken: {
+          symbol: swapSymbolConfig[swapAssetInfo.symbol],
+          chainId: chainId,
+          assetId: assetId
+        },
+        toToken: {
+          symbol: "NVT",
+          chainId: MAIN_INFO.chainId,
+          assetId: MAIN_INFO.assetId
+        }
+      }
+      const res = await this.$request({
+        url: "/tx/quantity",
+        data: params
+      });
+      if (res.code === 1000 && res.data.data) {
+        return res.data.data.quantityPlain
+      } else {
+        throw res.data
+      }
+    },
+
+    //nuls合约资产跨链 计算手续费&其他信息
+    async getContractCallData() {
+      const currentAccount = getCurrentAccount(this.fromAddress);
+      const NERVEAddress = currentAccount.address.NERVE;
+      const price = 25;
+      const res = await getContractCallData(
+          this.fromAddress,
+          NERVEAddress,
+          price,
+          this.currentCoin.contractAddress,
+          "transferCrossChain",
+          this.transferCount,
+          this.currentCoin.decimals
+      );
+      if (res.success) {
+        // console.log(res, 55);
+        // this.fee = res.data.fee;
+        this.NULSContractGas = res.data.gas;
+        this.NULSContractTxData = res.data.contractCallData;
+        return res.data.fee;
+      } else {
+        this.$message({
+          message: res.msg,
+          type: "warning",
+          duration: 2000,
+          offset: 30
+        });
+        return null;
+      }
+    },
+
+    splitFeeSymbol(str) {
+      return {
+        symbol: str.match(/[a-z|A-Z]+/gi)[0],
+        value: str.match(/[\d|.]+/gi)[0],
+      };
+    },
+
+    // 下一步
+    async next() {
+      if (!this.canNext) return false;
+      this.transferLoading = true;
+      const currentAccount = getCurrentAccount(this.fromAddress);
+      const asset = this.currentCoin;
+      const nerveInfoParams = {
+        contractAddress: asset.contractAddress,
+        assetsChainId: asset.chainId,
+        assetsId: asset.assetId,
+      }
+      const { chainId, assetId } = await this.getAssetNerveInfo(
+          nerveInfoParams
+      );
+      const tempFromNetwork = this.toNerve && this.$store.state.network || "NERVE";
+      const tempToNetwork = this.toNerve && "NERVE" || this.$store.state.network;
+      const config = JSON.parse(sessionStorage.getItem("config"));
+      const mainAssetInfo = config[tempFromNetwork];
+      const transferInfo = {
+        fromChain: tempFromNetwork,
+        toChain: tempToNetwork,
+        fromAddress: currentAccount.address[tempFromNetwork],
+        toAddress: currentAccount.address[tempToNetwork],
+        chainId: asset.chainId,
+        assetId: asset.assetId,
+        contractAddress: asset.contractAddress,
+        amount: this.transferCount,
+        symbol: asset.symbol,
+        pub: currentAccount.pub,
+        signAddress: currentAccount.address.Ethereum,
+        isTransferMainAsset: mainAssetInfo.symbol === asset.symbol,
+        asset,
+      };
+      const baseCrossFee = timesDecimals(crossFee, MAIN_INFO.decimal);
+      const from = transferInfo.fromAddress;
+      const to = transferInfo.toAddress;
+      const nerveAddress = currentAccount.address.NERVE;
+      const amount = timesDecimals(this.transferCount, asset.decimals);
+      const assetsId = assetId === 0 ? asset.assetId : assetId; // nuls上的token资产通过getAssetNerveInfo查出来assetId为0
+
+      // nerve nuls跨链
+      const crossInfo = {
+        from,
+        to,
+        assetsChainId: chainId,
+        assetsId,
+        amount,
+        fee: baseCrossFee,
+        // type: 10
+      }
+      // 跨链转入
+      // 提现
+      let crossOutInfo
+      if (this.withdrawalNVTFee) {
+        const proposalPrice = timesDecimals(
+            this.withdrawalNVTFee,
+            MAIN_INFO.decimal
+        );
+        const heterogeneousChain_Out = asset.heterogeneousList.filter(
+            (v) => v.chainName === tempToNetwork
+        )[0];
+        const txData = {
+          heterogeneousAddress: currentAccount.address[tempToNetwork],
+          heterogeneousChainId: heterogeneousChain_Out && heterogeneousChain_Out.heterogeneousChainId,
+        };
+        crossOutInfo = {
+          from: nerveAddress,
+          assetsChainId: chainId,
+          assetsId,
+          amount,
+          fee: 0,
+          proposalPrice,
+          txData,
+          // type: 43
+        }
+      }
+      if (tempFromNetwork === "NERVE") {
+        if (tempToNetwork === "NULS") {
+          transferInfo.crossInfo = crossInfo
+        } else {
+          transferInfo.crossOutInfo = crossOutInfo
+        }
+      } else if (tempFromNetwork === "NULS") {
+        if (this.NULSContract) {
+          // nuls合约资产跨链
+          const price = 25;
+          transferInfo.NULSContracInfo = {
+            from,
+            assetsChainId: NULS_INFO.chainId,
+            assetsId: NULS_INFO.assetId,
+            amount: Plus(20000000, Times(this.NULSContractGas, price)).toFixed(),
+            toContractValue: 10000000,
+            to: asset.contractAddress,
+            txData: this.NULSContractTxData,
+            fee: timesDecimals(0.1, MAIN_INFO.decimal),
+            // type: 16
+          }
+        } else {
+          crossInfo.to = nerveAddress
+          transferInfo.crossInfo = crossInfo
+        }
+        if (tempToNetwork !== "NERVE") {
+          transferInfo.crossOutInfo = crossOutInfo
+        }
+      } else {
+        // 异构链跨链转入nerve
+        const heterogeneousChain_In = asset.heterogeneousList.filter(
+            (v) => v.chainName === tempFromNetwork
+        )[0];
+        transferInfo.crossInInfo = {
+          multySignAddress: heterogeneousChain_In.heterogeneousChainMultySignAddress,
+          nerveAddress: nerveAddress,
+          numbers: this.transferCount,
+          fromAddress: from,
+          contractAddress: heterogeneousChain_In.contractAddress,
+          decimals: asset.decimals
+        };
+        if (tempToNetwork !== "NERVE") {
+          if (tempToNetwork !== "NULS") {
+            transferInfo.crossOutInfo = crossOutInfo
+          } else {
+            crossInfo.from = nerveAddress
+            transferInfo.crossInfo = crossInfo
+          }
+        }
+      }
+      this.transferInfo = transferInfo;
+      await this.initTransfer();
+    },
+    // 转账交易
+    async initTransfer() {
+      const {
+        fromChain,
+        toChain,
+        crossInfo, // 普通nerve nuls跨链信息
+        crossOutInfo, // 提现
+        crossInInfo, // 异构链转入
+      } = this.transferInfo;
+      if (fromChain === "NERVE") { // 转出
+        let type, transferInfo;
+        if (toChain === "NULS") {
+          type = 10; // 跨链交易
+          transferInfo = crossInfo;
+        } else {
+          type = 43; // 跨链转出异构连
+          transferInfo = crossOutInfo;
+        }
+        const txData = transferInfo.txData || {}
+        await this.constructTx(fromChain, type, transferInfo, txData, this.$t("transfer.transfer5"), true);
+      } else {
+        // 异构链转入
+        await this.constructCrossInTx(crossInInfo, this.$t("transfer.transfer2"));
+      }
+      await this.runTransfer();
+    },
+    /**
+     * @desc 组装nerve nuls普通跨链，token跨链交易
+     * @param chain
+     * @param type
+     * @param transferInfo
+     * @param txData
+     * @param label
+     * @param needBroadcast 是否需要自己先广播
+     */
+    async constructTx(chain, type, transferInfo, txData, label, needBroadcast) {
+      const fn = async () => {
+        const { pub, signAddress } = this.transferInfo;
+        const transfer = new NTransfer({ chain, type });
+        const inputOutput = await transfer.inputsOrOutputs(transferInfo);
+        const data = {
+          inputs: inputOutput.inputs,
+          outputs: inputOutput.outputs,
+          txData,
+          pub,
+          signAddress,
+        };
+        this.txHex = await transfer.getTxHex(data);
+        return this.txHex;
+      }
+      const step = {
+        label,
+        done: false,
+        fn,
+        needBroadcast
+      };
+      this.transactionInfo = {
+        label,
+        done: false,
+        fn,
+        needBroadcast
+      };
+      this.stepList.push(step);
+    },
+    // 组装异构链跨链转入交易
+    async constructCrossInTx(crossInInfo, label) {
+      const transfer = new ETransfer();
+      const fn = async () => await transfer.crossIn(crossInInfo);
+      const step = {
+        label,
+        done: false,
+        fn
+      };
+      this.transactionInfo = {
+        label,
+        done: false,
+        fn
+      };
+      this.stepList.push(step);
+    },
+    // 执行转账
+    async runTransfer() {
+      this.transferLoading = true;
+      const { fromChain, toChain, fromAddress, toAddress, chainId, assetId, contractAddress, amount, symbol } = this.transferInfo;
+      const broadcastData = {
+        fromChain,
+        toChain,
+        fromAddress,
+        toAddress,
+        chainId,
+        assetId,
+        contractAddress,
+        symbol,
+        amount,
+        txHash: "", // 第一条交易hash
+        feeTxHash: "", // 转入的手续费hash
+        convertTxHex: "", // 闪兑hex
+        crossTxHex: "", // nerve转出到其他网络hex
+        convertSymbol: this.stepList.length > 2
+      }
+      try {
+        // const step = this.stepList[this.stepList.length - 1];
+        //  调用metamask转账/签名hash
+        let res = await this.transactionInfo.fn();
+        if (!this.toNerve) {
+          await this.broadcastHex(broadcastData);
+        } else {
+          if (res) {
+            this.txHex = res.raw;
+            broadcastData.txHash = res.hash;
+            await this.broadcastToNerveHex(broadcastData);
+          }
+        }
+      } catch (e) {
+        console.error("error: " + e);
+        console.log(e)
+        this.transferLoading = false;
+        this.$message({
+          message: e.message || this.$t("tips.tips15"),
+          type: "warning",
+          duration: 2000,
+          offset: 30
+        });
+      }
+    },
+    // 广播nerve跨链转出交易
+    async broadcastHex(data) {
+      const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress } = data;
+      const params = {
+        fromChain,
+        toChain,
+        assetId,
+        chainId,
+        amount,
+        contractAddress,
+        fromAddress,
+        toAddress,
+        txHex: this.txHex
+      };
+      const res = await this.$request({
+        url: '/swap/cross',
+        data: params
+      });
+      if (res.code === 1000 && res.data) {
+        this.$message({
+          message: this.$t("tips.tips10"),
+          type: "success",
+          offset: 30
+        });
+        this.reset();
+      } else {
+        throw this.$t("tips.tips15");
+      }
+      this.transferLoading = false;
+    },
+    // 广播异构链跨链转入交易
+    async broadcastToNerveHex(data) {
+      const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress, txHash } = data;
+      const params = {
+        fromChain,
+        toChain,
+        assetId,
+        chainId,
+        amount,
+        contractAddress,
+        fromAddress,
+        toAddress,
+        txHash,
+        txHex: this.txHex
+      };
+      const res = await this.$request({
+        url: '/swap/cross/plugin',
+        data: params
+      });
+      if (res.code === 1000 && res.data) {
+        this.$message({
+          message: this.$t("tips.tips10"),
+          type: "success",
+          offset: 30
+        });
+        this.reset();
+      } else {
+        throw this.$t("tips.tips15");
+      }
+      this.transferLoading = false;
+    },
+    // 异构链token资产转入nerve授权
+    async approveERC20() {
+      if (!this.canNext) return false;
+      this.transferLoading = true;
+      try {
+        const transfer = new ETransfer();
+        const heterogeneousInfo = this.currentCoin.heterogeneousList.filter(
+            (v) => v.chainName === this.fromNetwork
+        )[0];
+        const contractAddress = this.currentCoin.contractAddress;
+        const res = await transfer.approveERC20(
+            contractAddress,
+            heterogeneousInfo.heterogeneousChainMultySignAddress,
+            this.fromAddress
+        );
+        if (res.hash) {
+          this.$message({
+            message: this.$t("tips.tips14"),
+            type: "success",
+            duration: 2000,
+            offset: 30
+          });
+          this.setGetAllowanceTimer();
+        } else {
+          this.$message({
+            message: JSON.stringify(res),
+            type: "warning",
+            duration: 2000,
+            offset: 30
+          });
+        }
+        this.transferLoading = false;
+      } catch (e) {
+        console.log(e);
+        this.$message.warning({ message: e.message, offset: 30 });
+        this.transferLoading = false;
+      }
+    },
+    setGetAllowanceTimer() {
+      this.getAllowanceTimer = setInterval(() => {
+        this.checkCrossInAuthStatus();
+      }, 3000)
+    },
+    clearGetAllowanceTimer() {
+      if (!this.getAllowanceTimer) return;
+      clearInterval(this.getAllowanceTimer);
+      this.getAllowanceTimer = null;
+    },
+    /**
+     * 获取资产在nerve链上的信息
+     * @param data.contractAddress //token资产合约地址
+     * @param data.assetsChainId //非token资产链id
+     * @param data.assetsId //非token资产资产id
+     */
+    async getAssetNerveInfo(data) {
+      const tempFromNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
+      const tempToNetwork = this.toNerve ? 'NERVE' : this.fromNetwork
+      if (tempFromNetwork === "NULS" || tempFromNetwork === "NERVE") {
+        return {
+          chainId: data.assetsChainId,
+          assetId: data.assetsId
+        }
+      }
+      let result = null;
+      let params = {};
+      if (data.contractAddress) {
+        const config = JSON.parse(sessionStorage.getItem("config"));
+        const mainAsset = config[this.fromNetwork]; // 来源链(eth,bnb,heco)主资产信息
+        params = {
+          chainId: mainAsset.chainId,
+          contractAddress: data.contractAddress,
+        };
+      } else {
+        params = { chainId: data.assetsChainId, assetId: data.assetsId };
+      }
+      //console.log(params);
+      try {
+        const res = await this.$request({
+          url: "/asset/nerve/chain/info",
+          data: params,
+        });
+        //console.log(res);
+        if (res.code === 1000) {
+          result = res.data;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      return result;
+    },
+    reset() {
+      this.transferCount = '';
+      this.transferFee = '';
+      // this.getCoins();
+      this.getCurrentAssetInfo();
+    }
+  },
+  beforeDestroy() {
+    if (this.assetTimer) {
+      clearInterval(this.assetTimer);
+      this.assetTimer = null;
+    }
+  }
+}
+</script>
+
+<style scoped lang="scss">
+@import "index";
+</style>

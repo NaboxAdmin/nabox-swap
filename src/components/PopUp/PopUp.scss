@@ -1,0 +1,37 @@
+.mask-cont {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, .45);
+  visibility: hidden;
+  z-index: 99;
+  opacity: 0;
+  &.defaultClass {
+    align-items: center;
+  }
+  &.show_pop {
+    visibility: visible;
+    opacity: 1;
+    transition: all linear .2s;
+  }
+  .show-main {
+    z-index: 100;
+    animation: showPop linear .2s;
+    &.customClass {
+      margin-top: 236px;
+    }
+  }
+}
+@keyframes showPop {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+

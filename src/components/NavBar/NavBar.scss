@@ -1,0 +1,29 @@
+.nav-bar {
+  --top: 40px;
+  position: fixed;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  //position: relative;
+  color: #FFFFFF;
+  font-weight: 500;
+  font-size: 36px;
+  z-index: 99;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding-top: var(--top) !important; /* 兼容非刘海屏 */
+  padding-top: calc(constant(safe-area-inset-top) + var(--top)) !important; /* 标准留海屏 */
+  padding-top: calc(env(safe-area-inset-top) + var(--top)) !important; /* 兼容 ios11 */
+  background-color: #6EB6A9;
+  .back-icon {
+    position: absolute;
+    left: 40px;
+    bottom: 30px;
+    //top: calc(50% + env(safe-area-inset-top));
+    width: 34px;
+    height: 30px;
+    transform: translateY(-50%);
+  }
+}
