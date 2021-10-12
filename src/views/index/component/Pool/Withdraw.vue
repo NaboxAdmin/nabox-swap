@@ -189,10 +189,11 @@ export default {
         url: '/swap/usdn/info'
       });
       if (res.code === 1000 && res.data) {
+        const currentNetwork = sessionStorage.getItem('network');
         this.liquidityInfo = res.data;
         this.liquidityInfo.total = res.data && divisionDecimals(res.data.total, res.data.decimals);
         if (!this.currentWithdrawAssetInfo) {
-          this.currentWithdrawAssetInfo = res.data.lpCoinList.length !== 0 && res.data.lpCoinList[0];
+          this.currentWithdrawAssetInfo = res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.filter(item => item.chain === currentNetwork) || res.data.lpCoinList[0]);
         }
         // await this.getAssetInfo(this.currentAsset);
         !refresh && await this.getAddedLiquidity();

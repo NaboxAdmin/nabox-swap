@@ -13,7 +13,9 @@
         <span class="image-cont">
           <img :src="getPicture(currentAsset && currentAsset.symbol)" alt="">
         </span>
-        <span class="font-bold ml-14 size-30">{{ currentAsset && currentAsset.symbol || "USDT" }}</span>
+        <div>
+          <span class="font-bold ml-14 size-30">{{ currentAsset && currentAsset.symbol || "USDT" }}</span>
+        </div>
         <div class="ml-2 drop_down">
           <img src="@/assets/image/drop_down.png" alt="">
         </div>
@@ -220,9 +222,17 @@ export default {
         url: '/swap/usdn/info'
       });
       if (res.code === 1000 && res.data) {
+        const currentNetwork = sessionStorage.getItem('network');
         this.liquidityInfo = res.data;
         this.liquidityInfo["total"] = res.data.total && divisionDecimals(res.data.total, res.data.decimals) || 0;
-        this.currentAsset = !this.currentAsset && res.data.lpCoinList.length !== 0 && res.data.lpCoinList[0] || this.currentAsset;
+        // this.currentAsset = !this.currentAsset && res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.filter(item => item.chain === this.$store.state.fromNetwork) || res.data.lpCoinList[0]) || this.currentAsset;
+        if (!this.currentAsset) {
+          if (res.data.lpCoinList.length !== 0) {
+            this.currentAsset = res.data.lpCoinList.find(item => item.chain === currentNetwork) || res.data.lpCoinList[0]
+          }
+        } else {
+          this.currentAsset = this.currentAsset;
+        }
         !refresh && await this.getAssetInfo(this.currentAsset);
         if (this.assetTimer) {
           clearInterval(this.assetTimer);

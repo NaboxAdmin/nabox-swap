@@ -59,7 +59,8 @@
             </span>
           </div>
         </div>
-        <div class="btn" @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
+        <div class="btn" v-if="crossInAuth" @click="approveERC20">{{ $t('transfer.transfer8') }}</div>
+        <div class="btn" v-else @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
       </div>
     </div>
   </div>
@@ -78,7 +79,9 @@ export default {
     return {
       orderInfo: null,
       confirmLoading: false,
-      platformAddress: '' // 平台地址
+      platformAddress: '', // 平台地址
+      getAllowanceTimer: null,
+      crossInAuth: false
     }
   },
   beforeCreate() {
@@ -92,14 +95,114 @@ export default {
     const storageNetwork = sessionStorage.getItem('network');
     if (Object.keys(this.$route.query).length > 0) {
       this.orderInfo = JSON.parse(decodeURIComponent(this.$route.query.orderInfo));
+      const assetInfo = {
+        chain: this.orderInfo.fromNetwork,
+        address: this.orderInfo.address,
+        chainId: this.orderInfo.fromAsset.chainId,
+        assetId: this.orderInfo.fromAsset.assetId,
+        contractAddress: this.orderInfo.fromAsset.contractAddress,
+      }
+      this.getAssetDetailInfo(assetInfo);
     } else {
       this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
+      const assetInfo = {
+        chain: this.orderInfo.fromNetwork,
+        address: this.orderInfo.address,
+        chainId: this.orderInfo.fromAsset.chainId,
+        assetId: this.orderInfo.fromAsset.assetId,
+        contractAddress: this.orderInfo.fromAsset.contractAddress,
+      }
+      this.getAssetDetailInfo(assetInfo);
     }
     if (orderInfo.fromNetwork !== storageNetwork) {
       this.$router.go(-1);
     }
   },
   methods: {
+    // 获取资产详情
+    async getAssetDetailInfo(assetInfo) {
+      const data = {
+        chain: assetInfo.chain,
+        address: assetInfo.address,
+        chainId: assetInfo.chainId,
+        assetId: assetInfo.assetId,
+        contractAddress: assetInfo.contractAddress,
+        refresh: true
+      }
+      const res = await this.$request({
+        url: '/wallet/address/asset',
+        data
+      });
+      if (res.data && res.code === 1000) {
+        this.currentAssetInfo = res.data;
+        if (res.data.assetId === 0 && this.orderInfo.fromNetwork !== "NULS") {
+          await this.checkCrossInAuthStatus();
+        } else {
+          this.crossInAuth = false;
+        }
+      }
+    },
+    // 查询异构链token资产授权情况
+    async checkCrossInAuthStatus() {
+      const transfer = new ETransfer();
+      const heterogeneousInfo = this.currentAssetInfo.heterogeneousList.filter(
+          (v) => v.chainName === this.orderInfo.fromNetwork
+      )[0];
+      const contractAddress = this.currentAssetInfo.contractAddress;
+      const needAuth = await transfer.getERC20Allowance(
+          contractAddress,
+          heterogeneousInfo.heterogeneousChainMultySignAddress,
+          this.fromAddress
+      );
+      this.crossInAuth = needAuth;
+      if (!needAuth && this.getAllowanceTimer) {
+        this.clearGetAllowanceTimer();
+      }
+    },
+
+    // 异构链token资产转入nerve授权
+    async approveERC20() {
+      this.confirmLoading = true;
+      try {
+        const transfer = new ETransfer();
+        const heterogeneousInfo = this.currentCoin.heterogeneousList.filter(
+            (v) => v.chainName === this.fromNetwork
+        )[0];
+        const contractAddress = this.currentCoin.contractAddress;
+        const res = await transfer.approveERC20(
+            contractAddress,
+            heterogeneousInfo.heterogeneousChainMultySignAddress,
+            this.fromAddress
+        );
+        if (res.hash) {
+          this.$message({
+            message: this.$t("tips.tips14"),
+            type: "success",
+            duration: 2000,
+            offset: 30
+          });
+          this.setGetAllowanceTimer();
+        } else {
+          this.$message({
+            message: JSON.stringify(res),
+            type: "warning",
+            duration: 2000,
+            offset: 30
+          });
+        }
+        this.confirmLoading = false;
+      } catch (e) {
+        console.log(e);
+        this.$message.warning({ message: e.message, offset: 30 });
+        this.confirmLoading = false;
+      }
+    },
+
+    clearGetAllowanceTimer() {
+      if (!this.getAllowanceTimer) return;
+      clearInterval(this.getAllowanceTimer);
+      this.getAllowanceTimer = null;
+    },
     // 确认订单
     async confirmOrder() {
       this.confirmLoading = true;

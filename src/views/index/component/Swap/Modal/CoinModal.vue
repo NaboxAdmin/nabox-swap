@@ -114,7 +114,6 @@ export default {
       deep: true
     },
     modalType(val) {
-      console.log(val, 'valval')
       if (val === 'receive') {
         // this.showCoinList = await this.getCoins(this.picList[this.currentIndex]);
         this.showCoinList = this.coinList.filter(coin => {
