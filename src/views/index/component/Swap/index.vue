@@ -113,7 +113,7 @@
             <span class="sign size-22 mr-1" v-if="currentPlatform && currentPlatform.isBest">{{ $t("swap.swap19") }}</span>
             <span class="d-flex align-items-center" @click="showPop=true">
               <span class="coin-icon_small">
-                <img v-if="currentPlatform && currentPlatform.platform === 'NaboxPool'" src="@/assets/image/nerve.png" alt="">
+                <img v-if="currentPlatform && currentPlatform.platform === 'NaboxPool'" src="@/assets/image/Nabox.png" alt="">
                 <img v-if="currentPlatform && currentPlatform.platform === 'swft'" src="@/assets/image/swft.png" alt="">
               </span>{{ currentPlatform.platform }}
             </span>
