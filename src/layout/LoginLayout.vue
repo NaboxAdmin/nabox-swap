@@ -1,5 +1,5 @@
 <template>
-    <div class="login-page">
+    <div class="layout-page">
         <keep-alive>
             <router-view/>
         </keep-alive>
@@ -27,7 +27,8 @@
 </script>
 
 <style scoped>
-.login-page {
-
+.layout-page {
+  max-width: 800px;
+  margin: 0 auto;
 }
 </style>

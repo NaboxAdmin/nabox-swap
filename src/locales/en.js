@@ -21,14 +21,15 @@ const en = {
          tips19: "Failed to synchronize",
          tips20: "Insufficient balance",
          tips21: "Please select the platform address",
-         tips22: "Failed to generate L2 address"
+         tips22: "Failed to generate L2 address",
+        tips23: "Receiving assets does not support cross-chain exchange"
     },
     swap: {
          swap1:'From',
          swap2:'To',
          swap3:'Max',
          swap4:'Available',
-         swap5:'Exchange Rate',
+         swap5:'Rate',
          swap6:'Fees',
          swap7:'Channel',
          swap8:'Next',
@@ -79,7 +80,7 @@ const en = {
          join10: "The available withdrawal balance is insufficient"
     },
     vaults: {
-         vaults1:'Total',
+         vaults1:'Total ',
          vaults2:'in progress',
          vaults3:'Ended',
          vaults4:'Stake',

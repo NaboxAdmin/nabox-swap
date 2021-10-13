@@ -15,6 +15,7 @@ export const NULS_INFO = { chainId: 1, assetId: 1, prefix: 'NULS',symbol:"NULS",
 //ETH 网络信息 测试网:ropsten, 主网:homestead
 export const ETHNET = 'homestead';
 
-export const BRIDGE_API_URL = "http://api.v2.nabox.io/nabox-api";
+export const BRIDGE_API_URL = "https://api.v2.nabox.io/nabox-api"; // Prod
+// export const BRIDGE_API_URL = "http://192.168.1.204:8083/nabox-api";
 // export const BRIDGE_API_URL = "/nabox-api";
 

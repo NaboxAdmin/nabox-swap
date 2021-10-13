@@ -18,7 +18,8 @@
   }
 }
 .modal-cont {
-  width: calc(100vw - 120px);
+  //width: calc(100vw - 120px);
+  width: 670px;
   height: 1072px;
   margin-top: 50px;
   padding: 40px;
@@ -48,7 +49,8 @@
   }
   .search-cont {
     margin-top: 30px;
-    width: calc(100vw - 220px);
+    //width: calc(100vw - 220px);
+    max-width: 580px;
     height: 88px;
     padding: 0 30px;
     //background: #F0F7F7;

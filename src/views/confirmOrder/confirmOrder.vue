@@ -59,8 +59,8 @@
             </span>
           </div>
         </div>
-        <div class="btn" v-if="crossInAuth" @click="approveERC20">{{ $t('transfer.transfer8') }}</div>
-        <div class="btn" v-else @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
+        <div class="btn cursor-pointer" v-if="crossInAuth" @click="approveERC20">{{ $t('transfer.transfer8') }}</div>
+        <div class="btn cursor-pointer" v-else @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
       </div>
     </div>
   </div>
@@ -165,10 +165,10 @@ export default {
       this.confirmLoading = true;
       try {
         const transfer = new ETransfer();
-        const heterogeneousInfo = this.currentCoin.heterogeneousList.filter(
-            (v) => v.chainName === this.fromNetwork
+        const heterogeneousInfo = this.currentAssetInfo.heterogeneousList.filter(
+            (v) => v.chainName === this.orderInfo.fromNetwork
         )[0];
-        const contractAddress = this.currentCoin.contractAddress;
+        const contractAddress = this.currentAssetInfo.contractAddress;
         const res = await transfer.approveERC20(
             contractAddress,
             heterogeneousInfo.heterogeneousChainMultySignAddress,
@@ -467,10 +467,14 @@ export default {
       }
     },
   },
-  // beforeDestroy() {
-  //   document.querySelector('body').removeAttribute('style');
-  //   document.querySelector('body').setAttribute('style', 'font-size:12px');
-  // }
+  beforeDestroy() {
+    // document.querySelector('body').removeAttribute('style');
+    // document.querySelector('body').setAttribute('style', 'font-size:12px');
+    if (this.getAllowanceTimer) {
+      clearTimeout(this.getAllowanceTimer);
+      this.getAllowanceTimer = null;
+    }
+  }
 }
 </script>
 

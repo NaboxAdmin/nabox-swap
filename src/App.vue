@@ -19,6 +19,8 @@ body, div, dl, dt, dd, ul, ol, li, p, h1, h2, h3, h4, h5, h6, pre, form, fieldse
   //word-break: break-all;
 }
 body {
+  //max-width: 1000px;
+  //margin: 0 auto !important;
   /* 适配齐刘海*/
   padding-top: constant(safe-area-inset-top);
   /* 适配底部黑条*/

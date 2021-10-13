@@ -1,22 +1,24 @@
 .header-cont {
+  max-width: 740px;
+  margin: 0 auto;
   z-index: 10;
   position: fixed;
   left: 0;
   right: 0;
   top: 0;
-  padding: 33px 30px;
+  padding: 31px 30px;
   display: flex;
   align-items: center;
   background-color: #FFFFFF;
   justify-content: space-between;
   .logo-cont {
     height: 68.3px;
-    width: 100px;
+    width: 90px;
     //border-radius: 50%;
     //background-color: #FFFFFF;
     img {
       height: 100%;
-      width: 230%;
+      width: 200%;
     }
   }
   .l2-logo {
@@ -136,6 +138,14 @@
       }
     }
   }
+  .order-list::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+  }
+}
+.address-detail_pop::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
 }
 .tab_bar {
   border-bottom: 1px solid #AAB2C9;
@@ -178,4 +188,10 @@
     height: 100%;
     width: 100%;
   }
+}
+.space-cont {
+  height: 26px;
+  width: 2px;
+  margin: 0 20px;
+  background-color: #C3C6CF;
 }

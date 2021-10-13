@@ -25,6 +25,10 @@
       margin-top: 236px;
     }
   }
+  .show-main::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+  }
 }
 @keyframes showPop {
   from {

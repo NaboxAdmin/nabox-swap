@@ -19,8 +19,9 @@
 }
 .order-cont {
   height: 1193px;
-  width: calc(100vw - 70px);
-  margin: 60px auto;
+  //width: calc(100vw - 70px);
+  max-width: 660px;
+  margin: 55px auto;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   position: relative;
@@ -106,7 +107,7 @@
     }
   }
   .dash_cont {
-    width: calc(100vw - 146px);
+    width: calc(800px - 146px - 70px);
     margin: 85px auto;
     height: 2px;
     border-bottom: 2px dashed #E9EBF3;

@@ -474,9 +474,14 @@ export default {
 
 <style scoped lang="scss">
 .main-cont {
+  //width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
   background-color: #FFFFFF;
   color: #333333;
   font-weight: 400;
+  border: 1px solid #ebf0f3;
+  box-shadow: 0 3px 29px 0 rgba(178, 199, 217, 29%);
 }
 .tab-cont {
   --top: 40px;

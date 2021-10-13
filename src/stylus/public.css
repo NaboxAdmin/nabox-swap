@@ -14,6 +14,10 @@
   background-color: #F7F7F7;
 }
 
+.cursor-pointer {
+  cursor: pointer;
+}
+
 .bg-active{
   background-color: #EDEDED;
 }
@@ -482,4 +486,5 @@
 
 .opacity_btn {
   opacity: .7;
+  cursor: not-allowed;
 }

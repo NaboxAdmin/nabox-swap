@@ -22,7 +22,7 @@
     </div>
     <div class="detail-cont">
       <div class="tab ml-3 d-flex align-items-center">
-        <span class="size-30 text-90"
+        <span class="size-30 text-90 cursor-pointer"
               @click="checkTab(index)"
               :class="{ 'active': index===currentIndex, 'ml-53': index===1 }"
               v-for="(item, index) in checkList"

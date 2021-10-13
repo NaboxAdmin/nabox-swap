@@ -15,7 +15,7 @@
       </div>
       <div class="search-result">
         <div class="coin-list" v-if="showList.length > 0">
-          <div class="list-item" v-for="(item, index) in showList" :key="index">
+          <div class="list-item cursor-pointer" v-for="(item, index) in showList" :key="index">
             <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectAsset(item)">
               <div class="coin-item">
                 <span class="coin-icon">

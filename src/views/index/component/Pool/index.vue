@@ -26,7 +26,7 @@
         <span v-for="(item, index) in poolList"
               :key="item"
               @click="switchPool(index)"
-              class="size-36 text-90 pool-item"
+              class="size-36 text-90 pool-item cursor-pointer"
               :class="{'active_color': index===currentIndex, 'ml-3': index===1}">{{ item }}</span>
       </div>
     </div>

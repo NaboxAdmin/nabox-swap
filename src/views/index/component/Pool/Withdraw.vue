@@ -25,7 +25,7 @@
     <div class="output-cont d-flex direction-column" @click="showModal=!showModal">
       <div class="size-28 text-90">{{ $t("pool.join1") }}</div>
       <div class="d-flex align-items-center space-between mt-3">
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center cursor-pointer">
           <span class="font-bold size-30">{{ currentWithdrawAssetInfo && currentWithdrawAssetInfo.symbol || "USDT" }}</span>
           <div class="ml-2 drop_down">
             <img src="@/assets/image/drop_down.png" alt="">
@@ -193,7 +193,7 @@ export default {
         this.liquidityInfo = res.data;
         this.liquidityInfo.total = res.data && divisionDecimals(res.data.total, res.data.decimals);
         if (!this.currentWithdrawAssetInfo) {
-          this.currentWithdrawAssetInfo = res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.filter(item => item.chain === currentNetwork) || res.data.lpCoinList[0]);
+          this.currentWithdrawAssetInfo = res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.find(item => item.chain === currentNetwork) || res.data.lpCoinList[0]);
         }
         // await this.getAssetInfo(this.currentAsset);
         !refresh && await this.getAddedLiquidity();
@@ -289,7 +289,7 @@ export default {
         const tempReceiveOrderIndex = this.lpCoinList.findIndex(item => {
           return item.chainId === this.currentWithdrawAssetInfo.chainId && item.assetId === this.currentWithdrawAssetInfo.assetId
         });
-        temIndex.unshift(tempReceiveOrderIndex);
+        tempReceiveOrderIndex !== -1 && temIndex.unshift(tempReceiveOrderIndex);
         // console.log(temIndex, "temIndex", Array.from(new Set(temIndex)));
         // temIndex.forEach(item => {
         //   if (item===tempReceiveOrderIndex) {
@@ -410,7 +410,7 @@ export default {
 }
 .btn {
   height: 98px;
-  width: calc(100vw - 80px);
+  //width: calc(100vw - 80px);
   margin: 88px auto;
   color: #FFFFFF;
   text-align: center;

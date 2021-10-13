@@ -9,7 +9,7 @@
       <span v-else>--</span>
     </div>
     <div class="input-cont mt-2 d-flex align-items-center">
-      <div class="d-flex align-items-center" @click="showModal=true">
+      <div class="d-flex align-items-center cursor-pointer" @click="showModal=true">
         <span class="image-cont">
           <img :src="getPicture(currentAsset && currentAsset.symbol)" alt="">
         </span>
@@ -63,7 +63,7 @@
 <!--        <span>{{ liquidityInfo && liquidityInfo.symbol || "USDTN" }}  |  {{ poolRate | rateFormat }}</span>-->
       </span>
     </div>
-    <div class="btn size-30" :class="{opacity_btn: canNext}" @click="submit">{{ $t("pool.join4") }}</div>
+    <div class="btn size-30 cursor-pointer" :class="{opacity_btn: canNext}" @click="submit">{{ $t("pool.join4") }}</div>
     <div class="tips size-26 text-center">{{ $t("pool.join5") }}</div>
     <keep-alive>
       <Modal :show-modal.sync="showModal"
@@ -442,7 +442,7 @@ export default {
 }
 .btn {
   height: 98px;
-  width: calc(100vw - 80px);
+  //width: calc(100vw - 80px);
   margin: 88px auto;
   color: #FFFFFF;
   text-align: center;

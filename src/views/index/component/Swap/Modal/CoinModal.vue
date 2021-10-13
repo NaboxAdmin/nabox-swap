@@ -23,7 +23,7 @@
         </div>
         <div v-loading="showLoading" class="flex-1">
           <div class="coin-list" ref="coinLisCont" :class="modalType==='receive' && 'pl-4'" v-if="showCoinList.length > 0">
-            <div class="list-item" v-for="item in showCoinList" :key="item.coinId">
+            <div class="list-item cursor-pointer" v-for="item in showCoinList" :key="item.coinId">
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
                 <div class="coin-item">
                   <span class="coin-icon">
@@ -94,48 +94,48 @@ export default {
   //   this.modalType == 'send' && this.getCoins(this.fromChain)
   // },
   watch: {
-    coinList: {
-      immediate: true,
-      handler(val) {
-        if (this.toAsset) {
-          this.showCoinList = val.filter(coin => {
-            if (this.toAsset.contractAddress) {
-              return coin.contractAddress !== this.toAsset.contractAddress;
-            } else {
-              return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
-            }
-          });
-          this.allList = this.showCoinList;
-        } else {
-          this.showCoinList = val;
-          this.allList = val;
-        }
-      },
-      deep: true
-    },
-    modalType(val) {
-      if (val === 'receive') {
-        // this.showCoinList = await this.getCoins(this.picList[this.currentIndex]);
-        this.showCoinList = this.coinList.filter(coin => {
-          if (this.fromAsset && this.fromAsset.contractAddress) {
-            return coin.mainNetwork === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
-          } else {
-            return coin.mainNetwork === this.picList[this.currentIndex] && coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId
-          }
-        });
-        // console.log(this.showCoinList, "this.showCoinList");
-      } else if (val === 'send') {
-        if (this.toAsset) {
-          this.showCoinList = this.coinList.filter(coin => {
-            if (this.toAsset.contractAddress) {
-              return coin.contractAddress !== this.toAsset.contractAddress;
-            } else {
-              return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
-            }
-          });
-        }
-      }
-    },
+    // coinList: {
+    //   immediate: true,
+    //   handler(val) {
+    //     if (this.toAsset) {
+    //       this.showCoinList = val.filter(coin => {
+    //         if (this.toAsset.contractAddress) {
+    //           return coin.contractAddress !== this.toAsset.contractAddress;
+    //         } else {
+    //           return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
+    //         }
+    //       });
+    //       this.allList = this.showCoinList;
+    //     } else {
+    //       this.showCoinList = val;
+    //       this.allList = val;
+    //     }
+    //   },
+    //   deep: true
+    // },
+    // modalType(val) {
+    //   if (val === 'receive') {
+    //     // this.showCoinList = await this.getCoins(this.picList[this.currentIndex]);
+    //     this.showCoinList = this.coinList.filter(coin => {
+    //       if (this.fromAsset && this.fromAsset.contractAddress) {
+    //         return coin.mainNetwork === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
+    //       } else {
+    //         return coin.mainNetwork === this.picList[this.currentIndex] && coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId
+    //       }
+    //     });
+    //     // console.log(this.showCoinList, "this.showCoinList");
+    //   } else if (val === 'send') {
+    //     if (this.toAsset) {
+    //       this.showCoinList = this.coinList.filter(coin => {
+    //         if (coin.contractAddress) {
+    //           return coin.contractAddress !== this.toAsset.contractAddress;
+    //         } else {
+    //           return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
+    //         }
+    //       });
+    //     }
+    //   }
+    // },
     searchVal(val) {
       if (val) {
         this.showCoinList = this.allList.filter(v => {
@@ -150,6 +150,7 @@ export default {
     },
     async showModal(val) {
       if (val) {
+        console.log('123123')
         if (this.modalType === 'receive') {
           await this.getCoins(this.picList[this.currentIndex]);
         } else {
@@ -186,6 +187,7 @@ export default {
       this.$nextTick(() => {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0)
       });
+      this.searchVal = '';
       this.currentIndex = i;
       this.showCoinList = [];
       await this.getCoins(item);
@@ -214,12 +216,10 @@ export default {
           v.contractAddress = v.contact
         });
         // 当前选择的资产是否支持跨链
-        if (this.modalType === 'send') {
-          tempCoins = coins;
-        } else if (this.supportAdvanced && this.modalType === 'receive') {
-          tempCoins = coins.filter(coin => coin.isSupportAdvanced === "Y");
-        } else {
+        if (!this.fromAsset && this.modalType === 'recieve') {
           tempCoins = [];
+        } else {
+          tempCoins = [ ...coins ];
         }
         const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
         if (this.modalType === "receive" && this.fromAsset) {
@@ -231,19 +231,22 @@ export default {
             }
           });
         } else if (this.modalType === "send" && this.toAsset) {
-          this.showCoinList = tempList.filter(coin => {
-            if (this.toAsset.contractAddress) {
+          const tempShowCoinList = tempList.filter(coin => {
+            return coin.isSupportAdvanced === 'Y'
+          });
+          this.showCoinList = tempShowCoinList.filter((coin, index) => {
+            if (coin.contractAddress) {
               return coin.contractAddress !== this.toAsset.contractAddress;
             } else {
-              return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
+              return (coin.chainId !== this.toAsset.chainId) && (coin.assetId !== this.toAsset.assetId)
             }
           });
-          this.allList = this.showCoinList;
+          this.allList = [...this.showCoinList];
         } else {
           if (this.modalType==='send') {
             this.showCoinList = tempList.filter(coin => {
               return coin.isSupportAdvanced === 'Y'
-            })
+            });
           } else {
             this.showCoinList = tempList;
           }
