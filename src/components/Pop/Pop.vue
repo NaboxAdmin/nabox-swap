@@ -105,7 +105,7 @@ export default {
     },
     poolClick() {
       this.showPop = false;
-      if (window.location.hash.split('/')[1] === 'pool') return false;
+      if (window.location.hash.split('/')[1] === 'liquidity') return false;
       this.$emit('poolClick');
     },
     vaultsClick() {

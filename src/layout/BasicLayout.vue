@@ -16,9 +16,9 @@
           <div class="connect-btn" v-if="showConnect" @click="connectMetamask">{{ $t("tips.tips12") }}</div>
           <div class="sign-btn" v-else-if="!showConnect && showSign" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
         </div>
-<!--        <keep-alive>-->
-          <router-view v-else />
-<!--        </keep-alive>-->
+        <keep-alive include="swap" v-else>
+          <router-view />
+        </keep-alive>
       </HeaderBar>
       <template v-else>
         <div class="tab-cont d-flex align-items-center space-between font-bold size-36"

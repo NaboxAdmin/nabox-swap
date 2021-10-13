@@ -150,7 +150,6 @@ export default {
     },
     async showModal(val) {
       if (val) {
-        console.log('123123')
         if (this.modalType === 'receive') {
           await this.getCoins(this.picList[this.currentIndex]);
         } else {

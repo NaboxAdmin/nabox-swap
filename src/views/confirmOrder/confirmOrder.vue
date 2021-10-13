@@ -203,9 +203,17 @@ export default {
       clearInterval(this.getAllowanceTimer);
       this.getAllowanceTimer = null;
     },
+
+    setGetAllowanceTimer() {
+      this.getAllowanceTimer = setInterval(() => {
+        this.checkCrossInAuthStatus();
+      }, 3000)
+    },
+
     // 确认订单
     async confirmOrder() {
       this.confirmLoading = true;
+      console.log(this.orderInfo.currentPlatform.platform);
       if (this.orderInfo.currentPlatform.platform === 'NaboxPool') { // 稳定币确认订单
         console.log('NaboxPool')
         // const params = {
@@ -325,7 +333,7 @@ export default {
           };
           const txHex = await transfer.getTxHex(data);
           if (txHex) {
-            await this.broadcastHex(txHex);
+            await this.broadcastHex(txHex, '');
           }
         } else {
           const transfer = new ETransfer();
@@ -337,11 +345,7 @@ export default {
           };
           const res = await transfer.commonTransfer(transferInfo);
           if (res && res.hash) {
-            this.$message({
-              message: this.$t("tips.tips6"),
-              type: "success",
-              offset: 30
-            });
+            await this.broadcastHex('', res.hash);
             setTimeout(() => {
               this.$router.go(-1)
             }, 1500);
@@ -393,7 +397,8 @@ export default {
         contractAddress: contractAddress,
         amount: timesDecimals(fromAmount, decimals),
         pairAddress,
-        auth: '1561ced6ef90f5d60ce669ba'
+        auth: '1561ced6ef90f5d60ce669ba',
+        swapAmount: this.orderInfo.currentPlatform.minReceive // 最低收到/预计收到
       }
       const res = await this.$request({
         url: '/swap/cross/swapTx',
@@ -417,12 +422,57 @@ export default {
       }
       this.confirmLoading = false
     },
-    //广播nerve nuls跨链转账交易
-    async broadcastHex(txHex) {
-      const url = this.$store.state.network === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;
-      const chainId = this.$store.state.network === "NERVE" ? MAIN_INFO.chainId : NULS_INFO.chainId;
-      const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-      if (res.result && res.result.hash) {
+    //广播其他跨链兑换转账交易
+    async broadcastHex(txHex, txHash) {
+      if (txHex) { // nerve
+        const url = this.$store.state.network === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;
+        const chainId = this.$store.state.network === "NERVE" ? MAIN_INFO.chainId : NULS_INFO.chainId;
+        const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+        if (res.result && res.result.hash) {
+          const depositCoin = {
+            chain: this.orderInfo && this.orderInfo.fromAsset.chain,
+            chainId: this.orderInfo && this.orderInfo.fromAsset.chainId,
+            assetId: this.orderInfo && this.orderInfo.fromAsset.assetId,
+            contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
+            symbol: this.orderInfo && this.orderInfo.fromAsset.symbol,
+            coinCode: this.orderInfo && this.orderInfo.fromAsset.coinCode,
+            amount: this.orderInfo && this.orderInfo.fromAmount,
+          };
+          const receiveCoin = {
+            chain: this.orderInfo && this.orderInfo.toAsset.chain,
+            chainId: this.orderInfo && this.orderInfo.toAsset.chainId,
+            assetId: this.orderInfo && this.orderInfo.toAsset.assetId,
+            contractAddress: this.orderInfo && this.orderInfo.toAsset.contractAddress,
+            symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
+            coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
+            amount: this.orderInfo && this.orderInfo.toAmount,
+          }
+          const params = {
+            // address: this.orderInfo && this.orderInfo.address,
+            txHash: res.result.hash,
+            depositCoin,
+            receiveCoin,
+            orderId: this.orderId
+          }
+          const res = this.$request({
+            url: '/swap/swft/exchange',
+            data: params
+          });
+          if (res.code === 1000 && res.data) {
+            this.$message({
+              message: this.$t("tips.tips10"),
+              type: "success",
+              offset: 30
+            })
+          }
+        } else {
+          this.$message({
+            message: this.$t("tips.tips7"),
+            type: "warning",
+            offset: 30,
+          });
+        }
+      } else { // 异构链
         const depositCoin = {
           chain: this.orderInfo && this.orderInfo.fromAsset.chain,
           chainId: this.orderInfo && this.orderInfo.fromAsset.chainId,
@@ -442,28 +492,29 @@ export default {
           amount: this.orderInfo && this.orderInfo.toAmount,
         }
         const params = {
-          address: this.orderInfo && this.orderInfo.address,
+          // address: this.orderInfo && this.orderInfo.address,
+          txHash: txHash,
           depositCoin,
           receiveCoin,
           orderId: this.orderId
         }
-        const res = this.$request({
+        const res = await this.$request({
           url: '/swap/swft/exchange',
           data: params
         });
         if (res.code === 1000 && res.data) {
           this.$message({
-            message: this.$t("tips.tips1"),
+            message: this.$t("tips.tips10"),
             type: "success",
             offset: 30
           })
+        } else {
+          this.$message({
+            message: this.$t("tips.tips7"),
+            type: "warning",
+            offset: 30,
+          })
         }
-      } else {
-        this.$message({
-          message: this.$t("tips.tips6"),
-          type: "warning",
-          offset: 30,
-        })
       }
     },
   },

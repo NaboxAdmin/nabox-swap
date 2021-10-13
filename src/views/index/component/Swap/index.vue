@@ -220,6 +220,7 @@ valideNetwork.map(v=> {
 const swftFeeRate = 0.001;
 export default {
   name: "Swap",
+  // keep-alive: true,
   components: {
     CoinModal,
     'pop-modal': PopUp
@@ -425,7 +426,7 @@ export default {
     async switchAssetClick() {
       if (!this.switchAsset) return false;
       if (this.chooseToAsset.isSupportAdvanced !== 'Y') {
-        this.$toast('接受资产暂不支持跨链兑换');
+        this.$toast('tips.tips23');
       }
       const tempFromAsset = { ...this.chooseFromAsset };
       const tempToAsset = { ...this.chooseToAsset };
@@ -506,7 +507,7 @@ export default {
     },
     // 下一步
     nextStep() {
-      if (!this.canNext) return false;
+      // if (!this.canNext) return false;
       const { currentPlatform, stableFromAsset, stableToAsset, chooseFromAsset, chooseToAsset, fromAmount, toAmount, swapRate, fromAddress, fromNetwork, amount, fee, withdrawFee, estimatedAmount, transferFee, stableFee } = this;
       const pairAddress = stableFromAsset && stableToAsset && this.chooseFromAsset && this.chooseFromAsset.pairAddress || '';
       const tempParams = {

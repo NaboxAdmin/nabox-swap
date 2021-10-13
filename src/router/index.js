@@ -22,7 +22,8 @@ const mainRoutes = [{
             name:'swap',
             component:() => import('../views/index/component/Swap'),
             meta: {
-                title:'Swap'
+                title:'Swap',
+                keepAlive: true,
             }
         },
         {

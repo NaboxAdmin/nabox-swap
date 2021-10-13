@@ -8,11 +8,11 @@
         <img v-if="detailInfo && detailInfo.status == 5" src="../../assets/image/error.png" alt="">
         <img v-if="detailInfo && detailInfo.status == 4" src="../../assets/image/success.png" alt="">
       </div>
-      <div class="pt-57 size-24 text-center"
+      <div class="status-cont size-24 text-center"
            :class="[detailInfo && detailInfo.status === 4 && 'text-18', detailInfo && detailInfo.status === 5 && 'text-danger', detailInfo && (detailInfo.status !== 5 && detailInfo.status !== 4) && 'text-ec',]">
         {{ detailInfo && stableOrderStatus(detailInfo.status) }}
       </div>
-      <div class="d-flex align-items-center justify-content-center">
+      <div class="pt-57 d-flex align-items-center justify-content-center">
         <div class="coin-icon" v-if="detailInfo">
           <img :src="getPicture(detailInfo && detailInfo.symbol)" @error="pictureError" alt="">
         </div>

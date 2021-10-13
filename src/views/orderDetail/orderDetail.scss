@@ -18,6 +18,7 @@
   height: 120px;
 }
 .order-cont {
+  position: relative;
   height: 1193px;
   //width: calc(100vw - 70px);
   max-width: 660px;
@@ -84,6 +85,13 @@
     //  width: 100px;
     //}
   }
+  .status-cont {
+    position: absolute;
+    top: 57px;
+    left: 50%;
+    width: 100%;
+    transform: translateX(-50%);
+  }
   .order-info {
     padding: 0 40px;
     font-size: 36px;
@@ -149,5 +157,5 @@
   color: #18CCB1;
 }
 .pt-57 {
-  padding-top: 57px;
+  padding-top: 87px;
 }
