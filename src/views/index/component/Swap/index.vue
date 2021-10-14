@@ -288,7 +288,7 @@ export default {
     if (!this.$store.state.isDapp) {
       this.orderTimer = setInterval(() => {
         this.getOrderList(this.$store.state.fromAddress);
-      }, 10000);
+      }, 20000);
     }
   },
   computed: {

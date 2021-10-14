@@ -240,7 +240,7 @@ export default {
         }
         this.assetTimer = setInterval(async () => {
           await this.getAssetInfo(this.currentAsset, true);
-        }, 10000);
+        }, 15000);
         await this.getAddedLiquidity();
         if (this.liquidityInfo.lpCoinList) {
           this.lpAssetsList = await Promise.all(this.liquidityInfo.lpCoinList.map(async (item) => {

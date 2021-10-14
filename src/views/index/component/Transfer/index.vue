@@ -226,7 +226,7 @@ export default {
         }
         this.assetTimer = setInterval(async () => {
           await this.getCurrentAssetInfo(true);
-        }, 10000);
+        }, 15000);
       }
     },
     maxAmount() {

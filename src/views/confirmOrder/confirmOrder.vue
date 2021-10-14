@@ -448,7 +448,7 @@ export default {
             amount: this.orderInfo && this.orderInfo.toAmount,
           }
           const params = {
-            // address: this.orderInfo && this.orderInfo.address,
+            address: this.orderInfo && this.orderInfo.address,
             txHash: res.result.hash,
             depositCoin,
             receiveCoin,

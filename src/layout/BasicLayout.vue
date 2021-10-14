@@ -1,5 +1,5 @@
 <template>
-    <div class="main-cont">
+    <div class="main-cont" :class="isDapp && 'cont_shadow'">
       <HeaderBar v-if="isDapp"
                  :address="fromAddress"
                  :current-account="currentAccount"
@@ -480,6 +480,8 @@ export default {
   background-color: #FFFFFF;
   color: #333333;
   font-weight: 400;
+}
+.cont_shadow {
   border: 1px solid #ebf0f3;
   box-shadow: 0 3px 29px 0 rgba(178, 199, 217, 29%);
 }
