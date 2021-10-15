@@ -251,7 +251,7 @@ export default {
         const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
         const address = this.currentAccount.address[tempNetwork];
         // 关注当前资产
-        !refresh && await this.focusAsset(tempNetwork, this.USDTasset);
+        // !refresh && await this.focusAsset(tempNetwork, this.USDTasset);
         if (tempNetwork === "NERVE") {
           const data = {
             address,

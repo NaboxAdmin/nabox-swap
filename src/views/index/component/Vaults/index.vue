@@ -130,6 +130,7 @@ export default {
     this.getFarmInfo(true);
     this.timer = setInterval(() => {
       this.getFarmInfo(this.currentIndex===0, true);
+      this.getTvlInfo();
     }, 15000);
     this.getTvlInfo();
   },

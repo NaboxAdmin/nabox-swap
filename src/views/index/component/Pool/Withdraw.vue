@@ -290,12 +290,6 @@ export default {
           return item.chainId === this.currentWithdrawAssetInfo.chainId && item.assetId === this.currentWithdrawAssetInfo.assetId
         });
         tempReceiveOrderIndex !== -1 && temIndex.unshift(tempReceiveOrderIndex);
-        // console.log(temIndex, "temIndex", Array.from(new Set(temIndex)));
-        // temIndex.forEach(item => {
-        //   if (item===tempReceiveOrderIndex) {
-        //     temIndex[0] = tempReceiveOrderIndex
-        //   }
-        // });
         const transferInfo = {
           from: this.nerveAddress,
           to: this.nerveAddress,

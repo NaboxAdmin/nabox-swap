@@ -83,7 +83,8 @@
       <template>
         <div class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap6") }}</span>
-          <span class="text-3a"  v-if="currentPlatform && currentPlatform.fee"><span v-if="!!Number(transferFee)">{{ transferFee | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span> {{ !!Number(transferFee) && '+' || '' }} {{ currentPlatform.fee }}{{chooseToAsset && chooseToAsset.symbol}}</span>
+          <span class="text-3a" v-if="currentPlatform && currentPlatform.fee">
+            <span v-if="!!Number(transferFee)">{{ transferFee | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span> {{ !!Number(transferFee) && '+' || '' }} {{ currentPlatform.fee }}{{currentPlatform && currentPlatform.platform === 'NaboxPool' && (chooseFromAsset && chooseFromAsset.symbol) || (chooseToAsset && chooseToAsset.symbol)}}</span>
           <span class="text-3a" v-else>--</span>
         </div>
       </template>
@@ -145,7 +146,7 @@
            :support-advanced="chooseFromAsset && chooseFromAsset.isSupportAdvanced === 'Y' || false"
            @select="selectCoin"
     />
-    <pop-modal :show="showPop" :custom-class="true">
+    <pop-modal :preventBoo="false" :show="showPop" :custom-class="true">
       <div class="route-cont">
         <div class="header-cont size-36 font-bold mt-2">
           {{ $t('swap.swap7') }}
@@ -153,32 +154,34 @@
             <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"></path></svg>
           </div>
         </div>
-        <div class="route-item cursor-pointer"
-             @click="routeClick(item)"
-             :class="{active_choose: item.isChoose}"
-             v-for="(item, index) in platformList">
-          <div class="d-flex h-86 direction-column flex-1">
-            <div class="size-28">
-              <span class="text-90">{{ $t('swap.swap17') }}</span>
-<!--              {{ this.chooseToAsset.symbol }}-->
-              <span class="text-3a ml-3">{{ item.minReceive }}{{ item.asset && item.asset.symbol }}</span>
-            </div>
-            <div class="d-flex size-28 mt-23">
-              <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
-              <div class="d-flex align-items-center">
-                <div class="route-icon" v-if="item.platform === 'NaboxPool'">
-                  <img src="@/assets/image/Nabox.png" alt="">
+        <div class="route-cont_main">
+          <div class="route-item cursor-pointer"
+               @click="routeClick(item)"
+               :class="{active_choose: item.isChoose}"
+               v-for="(item, index) in platformList">
+            <div class="d-flex h-86 direction-column flex-1">
+              <div class="size-28">
+                <span class="text-90">{{ $t('swap.swap17') }}</span>
+                <!--              {{ this.chooseToAsset.symbol }}-->
+                <span class="text-3a ml-3">{{ item.minReceive }}{{ item.asset && item.asset.symbol }}</span>
+              </div>
+              <div class="d-flex size-28 mt-23">
+                <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
+                <div class="d-flex align-items-center">
+                  <div class="route-icon" v-if="item.platform === 'NaboxPool'">
+                    <img src="@/assets/image/Nabox.png" alt="">
+                  </div>
+                  <div class="route-icon" v-if="item.platform === 'swft'">
+                    <img src="@/assets/image/swft.png" alt="">
+                  </div>
+                  <span class="size-26">{{ item.platform }}</span>
+                  <span class="sign size-22" v-if="item.isBest">{{ $t('swap.swap19') }}</span>
                 </div>
-                <div class="route-icon" v-if="item.platform === 'swft'">
-                  <img src="@/assets/image/swft.png" alt="">
-                </div>
-                <span class="size-26">{{ item.platform }}</span>
-                <span class="sign size-22" v-if="item.isBest">{{ $t('swap.swap19') }}</span>
               </div>
             </div>
-          </div>
-          <div class="success-icon" v-if="item.isChoose">
-            <img src="@/assets/image/choose.png" alt="">
+            <div class="success-icon" v-if="item.isChoose">
+              <img src="@/assets/image/choose.png" alt="">
+            </div>
           </div>
         </div>
       </div>
@@ -341,7 +344,7 @@ export default {
       handler(val) {
         if (val) {
           this.toAmount = '';
-          !this.stableFromAsset && !this.stableToAsset && this.getExchangeRate();
+          // !this.stableFromAsset && !this.stableToAsset && this.getExchangeRate();
         }
       },
       deep: true
@@ -828,6 +831,7 @@ export default {
                 Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) ), 8, true) : "";
           }
           this.platformList = ['swft'].map(item => ({
+            asset: this.chooseToAsset || '',
             platform: item,
             isBest: true,
             fee: this.withdrawFee,
@@ -1028,7 +1032,7 @@ export default {
     this.feeTimer = null;
     this.amountTimer = null;
     this.orderTimer = null;
-  }
+  },
 }
 </script>
 

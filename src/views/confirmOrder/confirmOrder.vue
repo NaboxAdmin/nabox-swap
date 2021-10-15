@@ -41,7 +41,7 @@
             <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
           <div class="d-flex align-items-center justify-content-end" v-else>
-            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
+            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span>
           </div>
         </div>
         <!--手续费-->
@@ -215,7 +215,7 @@ export default {
       this.confirmLoading = true;
       console.log(this.orderInfo.currentPlatform.platform);
       if (this.orderInfo.currentPlatform.platform === 'NaboxPool') { // 稳定币确认订单
-        console.log('NaboxPool')
+        // console.log('NaboxPool');
         // const params = {
         //   fromChain: this.orderInfo && this.orderInfo.fromNetwork,
         //   contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
@@ -492,11 +492,12 @@ export default {
           amount: this.orderInfo && this.orderInfo.toAmount,
         }
         const params = {
-          // address: this.orderInfo && this.orderInfo.address,
+          address: this.orderInfo && this.orderInfo.address,
           txHash: txHash,
           depositCoin,
           receiveCoin,
-          orderId: this.orderId
+          orderId: this.orderId,
+          fee: this.orderInfo && this.orderInfo.withdrawFee
         }
         const res = await this.$request({
           url: '/swap/swft/exchange',

@@ -40,7 +40,7 @@
     <div>
       <div class="d-flex mt-5 size-28 align-items-center space-between" @click="showDropList = !showDropList">
         <span class="text-90">{{ $t("pool.join2") }}</span>
-        <span class="text-3a d-flex align-items-center">
+        <span class="text-3a d-flex align-items-center cursor-pointer">
           <span>${{ liquidityInfo && liquidityInfo.total | numberFormatLetter }}</span>
           <span class="drop_down ml-1" :class="{'rotate_x': showDropList}">
             <img src="@/assets/image/drop_down_black.png" alt="">

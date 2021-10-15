@@ -44,8 +44,8 @@
           </div>
         </div>
         <div class="d-flex align-items-center space-between mt-5">
-          <span class="text-aa">{{ detailInfo && detailInfo.platform === 'swft' ? $t('order.order5') : $t('order.order8') }}</span>
-          <span>{{ detailInfo && detailInfo.platform === 'swft' ? detailInfo.orderId : superLong(detailInfo && detailInfo.txHash) }}</span>
+          <span class="text-aa">{{ detailInfo && detailInfo.platform === 'SWFT' ? $t('order.order5') : $t('order.order8') }}</span>
+          <span @click="copyOrderId(detailInfo && detailInfo.orderId || detailInfo.txHash)">{{ detailInfo && detailInfo.platform === 'SWFT' ? superLong(detailInfo.orderId) : superLong(detailInfo && detailInfo.txHash) }}</span>
         </div>
         <!--汇率-->
 <!--        <div class="d-flex align-items-center space-between mt-5">-->
@@ -67,7 +67,7 @@
           <div class="d-flex align-items-center justify-content-end">
             <span  class="ml-4 text-ec">
               <span class="text-3a">
-                {{ detailInfo && detailInfo.fee | numberFormat }}{{ detailInfo && detailInfo.symbol }}
+                {{ detailInfo && detailInfo.fee | numberFormat }}{{ (detailInfo && detailInfo.platform === 'nabox') && (detailInfo && detailInfo.symbol) || (detailInfo && detailInfo.swapSymbol) }}
               </span>
             </span>
           </div>
@@ -83,7 +83,7 @@
 
 <script>
 import { NavBar } from "@/components";
-import {divisionDecimals} from "../../api/util";
+import {divisionDecimals, copys} from "../../api/util";
 
 export default {
   name: "orderDetail",
@@ -174,6 +174,11 @@ export default {
         }
         this.detailInfo = tempData;
       }
+    },
+    copyOrderId(val) {
+      if (!val) return;
+      copys(val);
+      this.$toast(this.$t("tips.tips13"))
     }
   },
   beforeDestroy() {
