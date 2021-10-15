@@ -1,6 +1,4 @@
 .header-cont {
-  max-width: 740px;
-  margin: 0 auto;
   z-index: 10;
   position: fixed;
   left: 0;
@@ -194,4 +192,10 @@
   width: 2px;
   margin: 0 20px;
   background-color: #C3C6CF;
+}
+@media screen and (min-width: 1000px) {
+  .header-cont {
+    max-width: 740px;
+    margin: 0 auto;
+  }
 }

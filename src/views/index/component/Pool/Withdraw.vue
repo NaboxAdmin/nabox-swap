@@ -26,7 +26,10 @@
       <div class="size-28 text-90">{{ $t("pool.join1") }}</div>
       <div class="d-flex align-items-center space-between mt-3">
         <div class="d-flex align-items-center cursor-pointer">
-          <span class="font-bold size-30">{{ currentWithdrawAssetInfo && currentWithdrawAssetInfo.symbol || "USDT" }}</span>
+          <div class="d-flex align-items-center ml-14 direction-column">
+            <span class="font-bold size-30">{{ currentWithdrawAssetInfo && currentWithdrawAssetInfo.symbol || "USDT" }}</span>
+            <span v-if="currentWithdrawAssetInfo" class="sign">{{ (currentWithdrawAssetInfo && currentWithdrawAssetInfo.registerChain) || (currentWithdrawAssetInfo && currentWithdrawAssetInfo.chain) }}</span>
+          </div>
           <div class="ml-2 drop_down">
             <img src="@/assets/image/drop_down.png" alt="">
           </div>
@@ -430,6 +433,16 @@ export default {
     height: 100%;
     width: 100%;
   }
+}
+.sign {
+  margin-top: 5px;
+  padding: 5px 12px;
+  background: #E7F2F0;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
+  color: #6EB6A9;
 }
 .rotate_x {
   transform: rotateX(180deg);

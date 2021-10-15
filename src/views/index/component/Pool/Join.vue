@@ -13,8 +13,9 @@
         <span class="image-cont">
           <img :src="getPicture(currentAsset && currentAsset.symbol)" alt="">
         </span>
-        <div>
-          <span class="font-bold ml-14 size-30">{{ currentAsset && currentAsset.symbol || "USDT" }}</span>
+        <div class="d-flex align-items-center ml-14 direction-column">
+          <span class="font-bold size-30">{{ currentAsset && currentAsset.symbol || "USDT" }}</span>
+          <span v-if="currentAsset" class="sign">{{ (currentAsset && currentAsset.registerChain) || (currentAsset && currentAsset.chain) }}</span>
         </div>
         <div class="ml-2 drop_down">
           <img src="@/assets/image/drop_down.png" alt="">
@@ -233,6 +234,7 @@ export default {
         } else {
           this.currentAsset = this.currentAsset;
         }
+        console.log(this.currentAsset, "this.currentAsset")
         !refresh && await this.getAssetInfo(this.currentAsset);
         if (this.assetTimer) {
           clearInterval(this.assetTimer);
@@ -468,6 +470,16 @@ export default {
     height: 100%;
     width: 100%;
   }
+}
+.sign {
+  margin-top: 5px;
+  padding: 5px 12px;
+  background: #E7F2F0;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
+  color: #6EB6A9;
 }
 .rotate_x {
   transform: rotateX(180deg);

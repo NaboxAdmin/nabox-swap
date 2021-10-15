@@ -475,15 +475,20 @@ export default {
 <style scoped lang="scss">
 .main-cont {
   //width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
   background-color: #FFFFFF;
   color: #333333;
   font-weight: 400;
 }
 .cont_shadow {
-  border: 1px solid #ebf0f3;
-  box-shadow: 0 3px 29px 0 rgba(178, 199, 217, 29%);
+  border: 2px solid #ebf0f3;
+  height: 1560px;
+  box-shadow: 3px 3px 29px 3px rgba(178, 199, 217, 29%);
+}
+@media screen and (min-width: 1000px) {
+  .main-cont {
+    max-width: 800px;
+    margin: 0 auto;
+  }
 }
 .tab-cont {
   --top: 40px;
