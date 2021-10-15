@@ -29,6 +29,14 @@
   height: calc(100vh - 130px);
   transform: translate3d( 100%, 0, 0);
 }
+@media screen and (min-width: 1000px) {
+  .modal-container {
+    height: 100%;
+  }
+  .mask-cont {
+    position: absolute;
+  }
+}
 .nav-bar {
   font-size: 30px;
   color: #656A7D;

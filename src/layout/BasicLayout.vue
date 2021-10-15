@@ -479,15 +479,22 @@ export default {
   color: #333333;
   font-weight: 400;
 }
-.cont_shadow {
-  border: 2px solid #ebf0f3;
-  height: 1560px;
-  box-shadow: 3px 3px 29px 3px rgba(178, 199, 217, 29%);
-}
 @media screen and (min-width: 1000px) {
   .main-cont {
+    position: relative;
     max-width: 800px;
     margin: 0 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    &::-webkit-scrollbar {
+      width: 0px !important;
+      height: 0px !important;
+    }
+  }
+  .cont_shadow {
+    border: 2px solid #ebf0f3;
+    height: 1560px;
+    box-shadow: 3px 3px 29px 3px rgba(178, 199, 217, 29%);
   }
 }
 .tab-cont {

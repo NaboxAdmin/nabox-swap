@@ -30,6 +30,11 @@
     height: 0px !important;
   }
 }
+@media screen and (min-width: 1000px) {
+  .mask-cont {
+    position: absolute;
+  }
+}
 @keyframes showPop {
   from {
     transform: scale(1.1);

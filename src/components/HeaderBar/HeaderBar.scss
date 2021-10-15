@@ -80,6 +80,11 @@
   height: calc(100vh - 130px);
   background-color: #F9FAFC;
 }
+@media screen and (min-width: 1000px) {
+  .main-cont {
+    height: 100%;
+  }
+}
 .customer-p {
   padding: 40px 40px 0px 40px;
 }
