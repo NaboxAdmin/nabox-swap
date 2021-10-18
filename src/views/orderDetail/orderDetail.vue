@@ -130,7 +130,8 @@ export default {
     }
   },
   beforeCreate() {
-    document.querySelector('body').setAttribute('style', 'background-color:#6EB6A9;font-size:12px');
+    // background-color:#6EB6A9;
+    document.querySelector('body').setAttribute('style', 'font-size:12px');
   },
   created() {
     if (this.$route.query.txHash) {

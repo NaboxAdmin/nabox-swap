@@ -3,7 +3,7 @@
     <!-- :style="{'background-color': headerColor}"-->
     <div class="header-cont">
       <div class="logo-cont">
-        <img src="@/assets/image/Nabox.svg" alt="">
+        <img src="@/assets/image/NaboxBeta.svg" alt="">
       </div>
       <div class="address-cont d-flex align-items-center">
         <div class="address-detail pl-2 pr-2" v-if="!showConnect && !showSign && address">

@@ -957,7 +957,7 @@ export default {
     checkAmount() {
       if (!this.min || !this.max) return;
       let msg = "";
-      if (this.chooseFromAsset && Minus(Plus(this.fromAmount, this.transferFee), this.available || 0) > 0) {
+      if (this.chooseFromAsset && Minus(Plus(this.fromAmount, this.transferFee || 0), this.available || 0) > 0) {
         msg = `${this.chooseFromAsset.symbol}${this.$t("tips.tips9")}`;
       } else if (Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee) < 0) {
         msg = `${this.$t('swap.swap29')}${this.numberFormat(this.formatFloat(Division(this.withdrawFee, this.swapRate), 2), 2)}${this.chooseFromAsset.symbol}${this.$t('swap.swap30')}`;

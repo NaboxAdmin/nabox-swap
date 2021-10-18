@@ -253,6 +253,7 @@ export default {
           contractAddress: this.orderInfo && this.orderInfo.toAsset.contractAddress,
           symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
           coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
+          // amount: this.orderInfo && this.orderInfo.toAmount && timesDecimals(this.orderInfo.toAmount, this.orderInfo.toAsset.decimals),
           amount: this.orderInfo && this.orderInfo.toAmount,
         }
         const params = {
@@ -398,7 +399,7 @@ export default {
         amount: timesDecimals(fromAmount, decimals),
         pairAddress,
         auth: '1561ced6ef90f5d60ce669ba',
-        swapAmount: this.orderInfo.currentPlatform.minReceive // 最低收到/预计收到
+        swapAmount: timesDecimals(this.orderInfo.currentPlatform.minReceive, toAsset.decimals) // 最低收到/预计收到
       }
       const res = await this.$request({
         url: '/swap/cross/swapTx',

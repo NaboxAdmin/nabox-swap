@@ -1,5 +1,5 @@
 <template>
-    <div class="layout-page">
+    <div class="layout-page" :class="isDapp && 'cont_shadow'">
         <keep-alive>
             <router-view/>
         </keep-alive>
@@ -26,9 +26,24 @@
     }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .layout-page {
-  max-width: 800px;
+  //max-width: 800px;
   margin: 0 auto;
+}
+@media screen and (min-width: 1000px) {
+  .layout-page {
+    overflow: auto;
+    max-width: 800px;
+    &::-webkit-scrollbar {
+      width: 0px !important;
+      height: 0px !important;
+    }
+  }
+  .cont_shadow {
+    border: 2px solid #6eb6a9;
+    height: 1560px;
+    box-shadow: 3px 3px 29px 3px rgba(178, 199, 217, 29%);
+  }
 }
 </style>

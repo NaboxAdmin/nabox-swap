@@ -49,7 +49,7 @@ const en = {
         swap22:'swap cross-chain transaction confirmed',
         swap23:'swap cross-chain transaction, swap transaction has been broadcast',
         swap24:'swap cross-chain transaction, cross-chain out transaction has been broadcasted',
-        swap25:'swap cross-chain transaction, the target chain has been confirmed',
+        swap25:'Confirmed',
         swap26:'swap cross-chain transaction failed',
         swap27: "Insufficient trading liquidity",
         swap28: "ID",
@@ -68,7 +68,7 @@ const en = {
         transfer9:'Next',
     },
     pool: {
-        join1: "will get",
+        join1: "Receive",
         join2: "Full network pool",
         join3: "Your share",
         join4: "Confirm",
