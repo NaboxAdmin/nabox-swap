@@ -231,10 +231,7 @@ export default {
           if (res.data.lpCoinList.length !== 0) {
             this.currentAsset = res.data.lpCoinList.find(item => item.chain === currentNetwork) || res.data.lpCoinList[0]
           }
-        } else {
-          this.currentAsset = this.currentAsset;
         }
-        console.log(this.currentAsset, "this.currentAsset")
         !refresh && await this.getAssetInfo(this.currentAsset);
         if (this.assetTimer) {
           clearInterval(this.assetTimer);

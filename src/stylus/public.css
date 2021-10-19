@@ -325,6 +325,10 @@
   overflow: hidden;
 }
 
+.text-90 {
+  color: #9095A6 !important;
+}
+
 .text-truncate_two {
   display: -webkit-box;
   -webkit-box-orient: vertical;

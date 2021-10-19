@@ -20,7 +20,7 @@
             </span>
               <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OKE' || fromNetwork }}</span>
             </div>
-            <div class="size-30 font-bold">{{ superLong(fromAddress) }}</div>
+            <div class="size-30 font-bold text-90">{{ superLong(fromAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -32,7 +32,7 @@
             </span>
               <span class="font-bold size-30 ml-12">NERVE</span>
             </div>
-            <div class="size-28 font-bold ml-1">{{ superLong(nerveAddress) }}</div>
+            <div class="size-28 font-bold ml-1 text-90">{{ superLong(nerveAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -47,7 +47,7 @@
             </span>
               <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OKE' || fromNetwork }}</span>
             </div>
-            <div class="size-30 font-bold">{{ superLong(fromAddress) }}</div>
+            <div class="size-30 font-bold text-90">{{ superLong(fromAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -59,7 +59,7 @@
             </span>
               <span class="font-bold size-30 ml-12">NERVE</span>
             </div>
-            <div class="size-30 font-bold ml-1">{{ superLong(nerveAddress) }}</div>
+            <div class="size-30 font-bold ml-1 text-90">{{ superLong(nerveAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -72,11 +72,15 @@
     </div>
     <div class="asset-cont mt-2">
       <span class="size-28 text-90">{{ $t("transfer.transfer3") }}</span>
-      <div class="asset-info mt-2">
+      <div class="asset-info mt-2" @click="showModal=true">
         <div class="asset-icon">
           <img :src="getPicture(currentCoin && currentCoin.symbol)" alt="">
         </div>
         <span class="font-bold size-30 ml-12">{{ currentCoin && currentCoin.symbol }}</span>
+        <div class="size-30 font-bold ml-1 text-90 flex-1">{{ toNerve ? superLong(fromAddress) : superLong(nerveAddress) }}</div>
+        <div class="drop_down">
+          <img src="@/assets/image/drop_down.png" alt="">
+        </div>
       </div>
     </div>
     <div class="asset-cont mt-2">
@@ -110,6 +114,9 @@
     </div>
     <div class="btn size-30 cursor-pointer" :class="{opacity_btn: !canNext}" v-if="crossInAuth" @click="approveERC20">{{ $t("transfer.transfer8") }}</div>
     <div class="btn size-30 cursor-pointer" :class="{opacity_btn: !canNext}" v-else @click="next">{{ $t("transfer.transfer9") }}</div>
+    <transfer-modal :show-modal.sync="showModal"
+                    :asset-list="transferAssets"
+                    @selectAsset="selectAsset"/>
   </div>
 </template>
 
@@ -119,8 +126,8 @@ import {debounce, divisionDecimals, getAssetNerveInfo, getCurrentAccount, suppor
 import {MAIN_INFO, NULS_INFO} from "@/config";
 import {crossFee, ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, NTransfer} from "@/api/api";
 import {getContractCallData} from "@/api/nulsContractValidate";
-import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
-import txs from "nerve-sdk-js/lib/model/txs";
+import Modal from "./Modal/Modal";
+import {tofix} from "../../../../api/util";
 
 let chainToSymbol = {}
 supportChainList.map(v => {
@@ -129,37 +136,10 @@ supportChainList.map(v => {
 
 export default {
   name: "Transfer",
-  props: {
-    // address: String,
-    // fromAddress: String,
-    // fromNetwork: String,
-    // isDapp: {
-    //   type: Boolean,
-    //   default: false
-    // },
-    // nerveTo: {
-    //   type: Boolean,
-    //   default: true
-    // },
-    // currentAccount: {
-    //   type: Object,
-    //   default: () => {
-    //     return null;
-    //   }
-    // }
-  },
   watch: {
     fromNetwork() {
       this.getLiquidityInfo();
     },
-    // nerveTo: {
-    //   handler(val) {
-    //     // this.getLiquidityInfo();
-    //     this.toNerve = val;
-    //   },
-    //   deep: true,
-    //   immediate: true
-    // },
     transferCount: {
       handler(newVal, oldVal) {
         const decimals = this.currentCoin && this.currentCoin.decimals || 8;
@@ -168,6 +148,18 @@ export default {
           this.transferCount = newVal;
         } else {
           this.transferCount = oldVal;
+        }
+      }
+    },
+    transferFee: {
+      handler(newVal) {
+        if (newVal) {
+          const { value } = this.splitFeeSymbol(newVal);
+          if (this.transferCount && this.maxClick && this.isMainAsset) {
+            this.transferCount = Minus(this.available, value);
+            this.amount = Minus(this.available, value);
+            this.checkTransferFee();
+          }
         }
       }
     }
@@ -195,14 +187,19 @@ export default {
       USDTasset: null, // 当前稳定比资产信息
       availableLoading: false,
       transactionInfo: null,
-      assetTimer: null
+      assetTimer: null,
+      showModal: false,
+      transferAssets: [],
+      isMainAsset: false, // 是否为主资产
+      maxClick: false // 点击最大
     }
   },
+  components: {
+    TransferModal: Modal
+  },
   created() {
-    this.getLiquidityInfo();
-    if (this.$route.params.nerveTo) {
-      this.toNerve = !!!this.$route.params.nerveTo;
-    }
+    this.getTransferAsset();
+    // this.getLiquidityInfo();
   },
   computed: {
     canNext() {
@@ -210,6 +207,58 @@ export default {
     },
   },
   methods: {
+    // 选择资产
+    async selectAsset(asset) {
+      this.showModal = false;
+      if (this.currentCoin.symbol === asset.symbol) return;
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
+      this.isMainAsset = !this.toNerve && config['NERVE'].assetId === asset.assetId && config['NERVE'].chainId === asset.chainId;
+      this.transferCount = '';
+      this.transferFee = '';
+      this.currentCoin = asset;
+      this.available = asset.userBalance;
+      await this.getTransferFee();
+      if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
+        await this.checkCrossInAuthStatus();
+      } else {
+        this.crossInAuth = false;
+      }
+    },
+    // 获取当前支持的coinList
+    async getTransferAsset() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      this.availableLoading = true;
+      const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
+      const data = {
+        fromChain: this.toNerve ? this.fromNetwork : 'NERVE',
+        toChain: this.toNerve ? 'NERVE' : this.fromNetwork,
+        address: this.toNerve ? this.fromAddress : this.nerveAddress
+      }
+      const res = await this.$request({
+        url: '/swap/cross/assets',
+        data,
+      });
+      if (res.code === 1000 && res.data) {
+        this.transferAssets = res.data.map(asset => ({
+          ...asset,
+          userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
+        }));
+        this.currentCoin = this.transferAssets.find(asset => asset.symbol === 'USDT');
+        this.isMainAsset = !this.toNerve && config['NERVE'].assetId === this.currentCoin.assetId && config['NERVE'].chainId === this.currentCoin.chainId;
+        this.available = this.currentCoin.userBalance;
+        if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
+          await this.checkCrossInAuthStatus();
+        } else {
+          this.crossInAuth = false;
+        }
+        this.availableLoading = false;
+        await this.getTransferFee();
+      } else {
+        this.transferAssets = [];
+        this.availableLoading = false;
+      }
+    },
     // 获取pool流动性信息
     async getLiquidityInfo() {
       const res = await this.$request({
@@ -230,6 +279,8 @@ export default {
       }
     },
     maxAmount() {
+      if (!this.available) return;
+      this.maxClick = true;
       if (this.toNerve && this.$store.state.network === "NULS") {
         this.transferCount = Minus(this.available, 0.01);
       } else {
@@ -238,6 +289,10 @@ export default {
       if (!this.transferFee) {
         this.getTransferFee();
       } else {
+        if (!this.toNerve && this.isMainAsset) {
+          const { value } = this.splitFeeSymbol(this.transferFee);
+          this.transferCount = Minus(this.available, value);
+        }
         this.checkTransferFee();
       }
     },
@@ -360,7 +415,8 @@ export default {
       this.transferFee = "";
       this.available = 0;
       this.amountMsg = "";
-      this.getCurrentAssetInfo();
+      // this.getCurrentAssetInfo();
+      this.getTransferAsset();
     },
 
     // 获取转账的资产列表
@@ -389,6 +445,7 @@ export default {
     },
     // 输入转账
     accountInput(e) {
+      this.maxClick = false;
       if (this.transferCount === "" || (Number(this.transferCount) < 0)) {
         this.transferCount = "";
         // this.transferFee = "";
@@ -420,45 +477,50 @@ export default {
 
     // 获取跨链费用
     async getTransferFee() {
-      if (!this.currentCoin) return;
-      this.showFeeLoading = true;
-      this.amountMsg = "";
-      const nerveToNulsFee = crossFee + "NVT" + "+" + crossFee + "NULS"; // nerve -> nuls的手续费
-      const nulsToNerveFee = crossFee + "NULS"; // nuls -> nerve的手续费
-      const pubKey = getCurrentAccount(this.fromAddress).pub;
-      const accountInfo = await this.$request({ // 获取主资产信息
-        url: "/wallet/chain/main",
-        data: { pubKey },
-      });
-      this.storeAccountInfo = accountInfo.data; // 主资产信息
-      // 从其他链跨链转账到nerve
-      if (this.toNerve) {
-        if (this.$store.state.network === "NULS") { // NULS跨链转入NERVE 为默认手续费
-          let crossInFee = nulsToNerveFee;
-          this.NULSContract = !!this.currentCoin.contractAddress;
-          if (this.currentCoin.contractAddress) {
-            this.NULSContract = true;
-            crossInFee = await this.getContractCallData();
-            if (crossInFee) {
-              crossInFee = crossInFee + "NULS";
-            } else {
-              return null;
+      try {
+        if (!this.currentCoin) return;
+        this.showFeeLoading = true;
+        this.amountMsg = "";
+        const nerveToNulsFee = crossFee + "NVT" + "+" + crossFee + "NULS"; // nerve -> nuls的手续费
+        const nulsToNerveFee = crossFee + "NULS"; // nuls -> nerve的手续费
+        const pubKey = getCurrentAccount(this.fromAddress).pub;
+        const accountInfo = await this.$request({ // 获取主资产信息
+          url: "/wallet/chain/main",
+          data: { pubKey },
+        });
+        this.storeAccountInfo = accountInfo.data; // 主资产信息
+        // 从其他链跨链转账到nerve
+        if (this.toNerve) {
+          if (this.$store.state.network === "NULS") { // NULS跨链转入NERVE 为默认手续费
+            let crossInFee = nulsToNerveFee;
+            this.NULSContract = !!this.currentCoin.contractAddress;
+            if (this.currentCoin.contractAddress) {
+              this.NULSContract = true;
+              crossInFee = await this.getContractCallData();
+              if (crossInFee) {
+                crossInFee = crossInFee + "NULS";
+              } else {
+                return null;
+              }
             }
+            this.transferFee = crossInFee;
+          } else { // 异构链跨链转入到NERVE
+            this.transferFee = await this.getCrossInFee();
           }
-          this.transferFee = crossInFee;
-        } else { // 异构链跨链转入到NERVE
-          this.transferFee = await this.getCrossInFee();
+        } else { // NERVE转账到其他链
+          // NERVE跨链转出到NULS为默认手续费
+          if (this.$store.state.network === "NULS") {
+            this.transferFee = nerveToNulsFee;
+          } else { // NERVE跨链转出到异构链
+            this.transferFee = await this.getCrossOutFee();
+          }
         }
-      } else { // NERVE转账到其他链
-        // NERVE跨链转出到NULS为默认手续费
-        if (this.$store.state.network === "NULS") {
-          this.transferFee = nerveToNulsFee;
-        } else { // NERVE跨链转出到异构链
-          this.transferFee = await this.getCrossOutFee();
-        }
+        this.showFeeLoading = false;
+        this.transferCount && await this.checkTransferFee();
+      } catch (e) {
+        this.showFeeLoading = false;
+        console.log(e);
       }
-      this.showFeeLoading = false;
-      this.transferCount && await this.checkTransferFee();
     },
 
     // 检查手续费
@@ -583,18 +645,9 @@ export default {
       // 获取nerve链上nvt余额
       const nvtBalance = this.getNvtBalanceInfo();
       let fee;
-      this.needExtraFee = false; // nvt不足，需要额外转入一笔手续费
+      // this.needExtraFee = false; // nvt不足，需要额外转入一笔手续费
       if (tempFromNetwork === "NERVE") { // 如果当前为NERVE跨链到其他链上始终为NVT
         fee = nvtFee + "NVT";
-      } else { // 如果为其他链跨链（NVT足够则使用NVT,否则需要异构手续费）
-        // debugger
-        if (nvtBalance && nvtBalance - nvtFee >= 0) { // nvt足够
-          fee = nvtFee + "NVT";
-        } else { // nvt不足
-          this.needExtraFee = true;
-          const hgcFee = await this.getSwapCost(nvtFee); // 获取需要消耗的主资产
-          fee = hgcFee + chainToSymbol[tempFromNetwork];
-        }
       }
       return fee;
     },
@@ -1103,7 +1156,8 @@ export default {
       this.transferCount = '';
       this.transferFee = '';
       // this.getCoins();
-      this.getCurrentAssetInfo();
+      // this.getCurrentAssetInfo();
+      this.getTransferAsset();
     }
   },
   beforeDestroy() {

@@ -835,7 +835,7 @@ export default {
             platform: item,
             isBest: true,
             fee: this.withdrawFee,
-            minReceive: Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee),
+            minReceive: this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)),
             swapRate: this.swapRate,
             isChoose: true
           }));

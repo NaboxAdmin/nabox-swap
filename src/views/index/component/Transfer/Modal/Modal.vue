@@ -93,6 +93,7 @@ export default {
       this.$emit('update:showModal', false)
     },
     selectAsset(asset) {
+      this.searchVal = '';
       this.$emit('selectAsset', asset)
     }
   }

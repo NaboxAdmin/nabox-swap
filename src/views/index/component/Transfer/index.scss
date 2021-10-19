@@ -31,8 +31,8 @@
         }
       }
       .drop_down {
-        height: 10px;
-        width: 16px;
+        height: 8px;
+        width: 14px;
         margin-left: 20px;
         img {
           height: 100%;
@@ -98,4 +98,14 @@ input::placeholder {
   line-height: 98px;
   background: #53b8a9;
   border-radius: 20px;
+}
+.drop_down {
+  height: 12px;
+  width: 18px;
+  margin-left: 20px;
+  img {
+    height: 100%;
+    width: 100%;
+    vertical-align: 20px;
+  }
 }
