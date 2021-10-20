@@ -18,18 +18,18 @@
           <div class="space-cont"/>
           <span class="text-90 size-30 cursor-pointer" @click="addressClick">{{ superLong(address) }}</span>
           <div class="network-list size-28 d-flex direction-column" v-if="showDropList">
-            <span class="mt-2"
+            <span class="mt-2 cursor-pointer"
                   v-for="(item, index) in l1ChainList"
                   @click="chainClick(item)"
-                  :class="{'active_chain': item.label === currentChain}"
+                  :class="{'active_chain': item.chainName === currentChain}"
                   :key="index">
-              {{ item.label }}
+              {{ item.chainName }}
             </span>
           </div>
         </div>
         <template>
           <div class="header-icon_position" v-if="!address"/>
-          <div class="header-icon" v-else @click="showClick">
+          <div class="header-icon cursor-pointer" v-else @click="showClick">
             <svg t="1626839125971" class="icon" viewBox="0 0 1170 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1764" width="16" height="16"><path d="M1097.142857 146.285714H73.142857a73.142857 73.142857 0 0 1 0-146.285714h1024a73.142857 73.142857 0 0 1 0 146.285714zM1097.142857 585.142857H73.142857a73.142857 73.142857 0 0 1 0-146.285714h1024a73.142857 73.142857 0 0 1 0 146.285714zM1097.142857 1024H73.142857a73.142857 73.142857 0 0 1 0-146.285714h1024a73.142857 73.142857 0 0 1 0 146.285714z" fill="#333333" p-id="1765"></path></svg>
           </div>
         </template>
@@ -129,9 +129,8 @@
 <script>
 import Pop from "../Pop/Pop";
 import PopUp from "../PopUp/PopUp";
-import { ETHNET } from "@/config";
-import {supportChainList, divisionDecimals, copys, addressNetworkOrigin, hashLinkList, tofix} from "../../api/util";
-import moment from "moment";
+import {ETHNET} from "@/config";
+import {addressNetworkOrigin, copys, divisionDecimals, hashLinkList, supportChainList, tofix} from "../../api/util";
 
 const lang = localStorage.getItem("locale") || 'cn'
 
@@ -230,7 +229,18 @@ export default {
       return window.location.hash.indexOf('transfer') > -1;
     },
     l1ChainList() {
-      return supportChainList.filter(chain => chain.label !== "NULS" && chain.label !== "NERVE");
+      const tempList = supportChainList.filter(chain => chain.label !== "NULS" && chain.label !== "NERVE");
+      return tempList.map(chain => ({
+        chainId: chain[ETHNET],
+        rpcUrls: chain.rpcUrl ? [chain.rpcUrl[ETHNET]] : [],
+        chainName: chain.value,
+        nativeCurrency: {
+          name: chain.value,
+          symbol: chain.symbol,
+          decimals: chain.decimals,
+        },
+        blockExplorerUrls: [chain.origin]
+      }));
     }
   },
   methods: {
@@ -259,18 +269,18 @@ export default {
       this.getTxOrderList(this.fromAddress);
     },
     chainClick(chain) {
+      if (this.currentChain === chain.chainName) return;
       this.showDropList = false;
-      this.$emit('loading', true);
       window.ethereum && window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [
           {
-            chainId: chain[ETHNET]
+            chainId: chain.chainId
           }
         ]
-      }).then(res => {
-        this.currentChain = chain.label;
-        this.$store.commit('changeNetwork', chain.label);
+      }).then(() => {
+        this.currentChain = chain.chainName;
+        this.$store.commit('changeNetwork', chain.chainName);
       }).catch(err => {
         this.$message({
           message: err.message,
@@ -278,6 +288,39 @@ export default {
           type: "warning"
         })
       });
+      // if (chain.chainName !== 'Ethereum') {
+      //   window.ethereum && window.ethereum.request({
+      //     method: "wallet_addEthereumChain",
+      //     params: [chain]
+      //   }).then((res) => {
+      //     this.currentChain = chain.chainName;
+      //     this.$store.commit('changeNetwork', chain.chainName);
+      //   }).catch(err => {
+      //     this.$message({
+      //       message: err.message,
+      //       offset: 30,
+      //       type: "warning"
+      //     })
+      //   });
+      // } else {
+      //   window.ethereum && window.ethereum.request({
+      //     method: "wallet_switchEthereumChain",
+      //     params: [
+      //       {
+      //         chainId: chain.chainId
+      //       }
+      //     ]
+      //   }).then(() => {
+      //     this.currentChain = chain.chainName;
+      //     this.$store.commit('changeNetwork', chain.chainName);
+      //   }).catch(err => {
+      //     this.$message({
+      //       message: err.message,
+      //       offset: 30,
+      //       type: "warning"
+      //     })
+      //   });
+      // }
     },
     // 获取异构链交易信息
     async getTxOrderList(val) {

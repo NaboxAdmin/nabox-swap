@@ -581,9 +581,9 @@ export const supportChainList = [
   { label: "NERVE", value: "NERVE", symbol: "NVT", SwftChain: "NERVE", chainId: MAIN_INFO.chainId, assetId: MAIN_INFO.assetId },
   { label: "NULS", value: "NULS", symbol:"NULS", SwftChain: "NULS", chainId: NULS_INFO.chainId, assetId: NULS_INFO.assetId },
   { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "Ethereum", homestead: "0x1", chainId: 101, assetId: 1 },
-  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1 },
-  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1 },
-  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, assetId: 1 }
+  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1, origin: networkOrigin.BSC, rpcUrl: {ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/", homestead: "https://bsc-dataseed.binance.org/"}},
+  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1, origin: networkOrigin.Heco, rpcUrl: {ropsten: "https://http-testnet.hecochain.com",homestead: "https://http-mainnet.hecochain.com"}},
+  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, origin: networkOrigin.OKExChain, assetId: 1, rpcUrl: {ropsten: "https://exchaintestrpc.okex.org",homestead: "https://exchainrpc.okex.org"}}
 ];
 
 export function debounce(fn, delay) {

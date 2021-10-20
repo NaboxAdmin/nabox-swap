@@ -70,7 +70,7 @@
         <svg t="1627381344617" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2109" width="23" height="23"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#6EB6A9" p-id="2110"></path><path d="M610.393043 743.958261a31.165217 31.165217 0 0 1-14.692173-3.561739A31.610435 31.610435 0 0 1 578.782609 712.347826V311.652174a31.833043 31.833043 0 0 1 63.443478 0v341.036522l49.864348-33.613913a31.610435 31.610435 0 1 1 35.394782 52.535652l-99.283478 66.782608a32.055652 32.055652 0 0 1-17.808696 5.565218zM413.606957 743.958261A31.610435 31.610435 0 0 1 381.773913 712.347826V371.311304l-49.864348 33.613913a31.610435 31.610435 0 1 1-35.394782-52.535652l99.283478-66.782608a32.055652 32.055652 0 0 1 32.500869-1.78087A31.610435 31.610435 0 0 1 445.217391 311.652174v400.695652a31.610435 31.610435 0 0 1-31.610434 31.610435z" fill="#FFFFFF" p-id="2111"></path></svg>
       </div>
     </div>
-    <div class="asset-cont mt-2">
+    <div class="asset-cont mt-2 cursor-pointer">
       <span class="size-28 text-90">{{ $t("transfer.transfer3") }}</span>
       <div class="asset-info mt-2" @click="showModal=true">
         <div class="asset-icon">
@@ -227,36 +227,41 @@ export default {
     },
     // 获取当前支持的coinList
     async getTransferAsset() {
-      const config = JSON.parse(sessionStorage.getItem('config'));
-      this.availableLoading = true;
-      const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
-      const data = {
-        fromChain: this.toNerve ? this.fromNetwork : 'NERVE',
-        toChain: this.toNerve ? 'NERVE' : this.fromNetwork,
-        address: this.toNerve ? this.fromAddress : this.nerveAddress
-      }
-      const res = await this.$request({
-        url: '/swap/cross/assets',
-        data,
-      });
-      if (res.code === 1000 && res.data) {
-        this.transferAssets = res.data.map(asset => ({
-          ...asset,
-          userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
-        }));
-        this.currentCoin = this.transferAssets.find(asset => asset.symbol === 'USDT');
-        this.isMainAsset = !this.toNerve && config['NERVE'].assetId === this.currentCoin.assetId && config['NERVE'].chainId === this.currentCoin.chainId;
-        this.available = this.currentCoin.userBalance;
-        if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
-          await this.checkCrossInAuthStatus();
-        } else {
-          this.crossInAuth = false;
+      try {
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        this.availableLoading = true;
+        const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
+        const data = {
+          fromChain: this.toNerve ? this.fromNetwork : 'NERVE',
+          toChain: this.toNerve ? 'NERVE' : this.fromNetwork,
+          address: this.toNerve ? this.fromAddress : this.nerveAddress
         }
+        const res = await this.$request({
+          url: '/swap/cross/assets',
+          data,
+        });
+        if (res.code === 1000 && res.data) {
+          this.transferAssets = res.data.map(asset => ({
+            ...asset,
+            userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
+          }));
+          this.currentCoin = this.transferAssets.find(asset => asset.symbol === 'USDT');
+          this.isMainAsset = !this.toNerve && config['NERVE'].assetId === this.currentCoin.assetId && config['NERVE'].chainId === this.currentCoin.chainId;
+          this.available = this.currentCoin.userBalance;
+          if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
+            await this.checkCrossInAuthStatus();
+          } else {
+            this.crossInAuth = false;
+          }
+          this.availableLoading = false;
+          await this.getTransferFee();
+        } else {
+          this.transferAssets = [];
+          this.availableLoading = false;
+        }
+      } catch (e) {
         this.availableLoading = false;
-        await this.getTransferFee();
-      } else {
-        this.transferAssets = [];
-        this.availableLoading = false;
+        console.log(e);
       }
     },
     // 获取pool流动性信息
@@ -519,7 +524,7 @@ export default {
         this.transferCount && await this.checkTransferFee();
       } catch (e) {
         this.showFeeLoading = false;
-        console.log(e);
+        console.log(e, '计算手续费失败');
       }
     },
 
