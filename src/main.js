@@ -14,6 +14,12 @@ import 'element-ui/lib/theme-chalk/index.css';
 import globalMixin from './mixin';
 import './plugins/vant';
 
+const development = process.env.NODE_ENV === "development"
+Vue.config.devtools = development;
+if (!development) {
+    console.log = () => {};
+}
+
 Vue.prototype.$request = request; // 网络请求
 Vue.prototype.$post = post;
 Vue.config.productionTip = false; // 开发环境提示
@@ -56,7 +62,7 @@ async function getConfig(network) {
                     assetId: mainInfo ? mainInfo.assetId : "",
                     prefix: v.prefix,
                     symbol: mainInfo ? mainInfo.symbol : "",
-                    decimal: mainInfo ? mainInfo.decimals : "",
+                    decimals: mainInfo ? mainInfo.decimals : "",
                     assets: v.assets,
                     config: v.configs,
                     apiUrl: v.apiUrl

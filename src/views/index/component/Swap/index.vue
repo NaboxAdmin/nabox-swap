@@ -82,7 +82,14 @@
       </template>
       <template>
         <div class="d-flex space-between size-28 mt-3">
-          <span class="text-90">{{ $t("swap.swap6") }}</span>
+          <div class="d-flex align-items-center">
+            <span class="text-90">{{ $t("swap.swap6") }}</span>
+            <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="$t('swap.swap31')" placement="top">
+              <span class="info-icon">
+                <img src="@/assets/image/info.png"/>
+              </span>
+            </el-tooltip>
+          </div>
           <span class="text-3a" v-if="currentPlatform && currentPlatform.fee">
             <span v-if="!!Number(transferFee)">{{ transferFee | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span> {{ !!Number(transferFee) && '+' || '' }} {{ currentPlatform.fee }}{{currentPlatform && currentPlatform.platform === 'NaboxPool' && (chooseFromAsset && chooseFromAsset.symbol) || (chooseToAsset && chooseToAsset.symbol)}}</span>
           <span class="text-3a" v-else>--</span>

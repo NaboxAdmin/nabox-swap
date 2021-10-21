@@ -227,3 +227,14 @@
     width: 100%;
   }
 }
+ /deep/ .el-tooltip__popper {
+  max-width: 75vw !important;
+}
+ .info-icon {
+   height: 25px;
+   width: 25px;
+   img {
+     height: 100%;
+     width: 100%;
+   }
+ }

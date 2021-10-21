@@ -54,7 +54,8 @@ const cn = {
         swap27: "交易流动性不足",
         swap28: "地址",
         swap29: "你至少需要",
-        swap30: "用作手续费"
+        swap30: "用作手续费",
+        swap31: "【费用为交易金额的0.02%，若不满1U则按照1U收取】"
     },
     transfer: {
         transfer1: '从',
@@ -66,6 +67,7 @@ const cn = {
         transfer7: '手续费',
         transfer8: '授权',
         transfer9: '下一步',
+        transfer10: '使用其他资产'
     },
     pool: {
         join1: "将获得",

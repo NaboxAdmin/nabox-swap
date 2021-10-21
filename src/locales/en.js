@@ -54,18 +54,20 @@ const en = {
         swap27: "Insufficient trading liquidity",
         swap28: "ID",
         swap29: "You need at least ",
-        swap30: " as a handling fee"
+        swap30: " as a handling fee",
+        swap31: "【The fee is 0.02% of the transaction amount, it will be charged as 1U if less than 1U】"
     },
     transfer: {
-        transfer1:'From',
-        transfer2:'to',
-        transfer3:'assets',
-        transfer4:'amount',
-        transfer5:'available',
-        transfer6:'Max',
-        transfer7:'Fees',
-        transfer8:'Authorization',
-        transfer9:'Next',
+        transfer1: 'From',
+        transfer2: 'to',
+        transfer3: 'assets',
+        transfer4: 'amount',
+        transfer5: 'available',
+        transfer6: 'Max',
+        transfer7: 'Fees',
+        transfer8: 'Authorization',
+        transfer9: 'Next',
+        transfer10: 'Use other asset'
     },
     pool: {
         join1: "Receive",

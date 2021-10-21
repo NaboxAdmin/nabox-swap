@@ -260,16 +260,12 @@ export class NTransfer {
       nonce = await this.getNonce(transferInfo);
     }
     // const nonce = await this.getNonce(transferInfo);
-    const mainAssetNonce = await this.getNonce({
-      from: transferInfo.from,
-      assetsChainId: mainAsset.chainId,
-      assetsId: mainAsset.assetId
-    });
     let inputs = [];
     const totalFee = Number(Plus(transferInfo.proposalPrice, transferInfo.fee));
+    const { feeAsset, from } = transferInfo;
     if (
-      mainAsset.chainId === transferInfo.assetsChainId &&
-      mainAsset.assetId === transferInfo.assetsId
+        feeAsset.chainId === transferInfo.assetsChainId &&
+        feeAsset.assetId === transferInfo.assetsId
     ) {
       const newAmount = Number(Plus(transferInfo.amount, totalFee));
       inputs.push({
@@ -281,9 +277,14 @@ export class NTransfer {
         locked: 0
       });
     } else {
+      const feeAssetNonce = await this.getNonce({
+        from,
+        assetsChainId: feeAsset.chainId,
+        assetsId: feeAsset.assetId
+      });
       inputs = [
         {
-          address: transferInfo.from,
+          address: from,
           amount: transferInfo.amount,
           assetsChainId: transferInfo.assetsChainId,
           assetsId: transferInfo.assetsId,
@@ -291,11 +292,11 @@ export class NTransfer {
           locked: 0
         },
         {
-          address: transferInfo.from,
+          address: from,
           amount: totalFee,
-          assetsChainId: mainAsset.chainId,
-          assetsId: mainAsset.assetId,
-          nonce: mainAssetNonce,
+          assetsChainId: feeAsset.chainId,
+          assetsId: feeAsset.assetId,
+          nonce: feeAssetNonce,
           locked: 0
         }
       ];
@@ -314,8 +315,8 @@ export class NTransfer {
       {
         address: feeAddress, //提现费用地址
         amount: transferInfo.proposalPrice,
-        assetsChainId: mainAsset.chainId,
-        assetsId: mainAsset.assetId,
+        assetsChainId: feeAsset.chainId,
+        assetsId: feeAsset.assetId,
         locked: 0
       }
     ];
@@ -654,9 +655,14 @@ export class ETransfer {
   }
 
   /**
-   * 计算提现手续费  eth/bnb
-   */
-  async calWithdrawFee(isToken) {
+   * @param mainAssetUSD 提现网络主资产USD
+   * @param feeUSD 手续费USD
+   * @param isToken 提现资产是否是token
+   * @param feeDecimals 手续费精度
+   * @param isMainAsset 手续费是否是提现网络主资产
+   * @param isNVT 手续费是否是NVT
+   * */
+  async calWithdrawFee(mainAssetUSD, feeUSD, isToken, feeDecimals, isMainAsset, isNVT) {
     const gasPrice = await this.getWithdrawGas();
     let gasLimit;
     if (isToken) {
@@ -664,12 +670,28 @@ export class ETransfer {
     } else {
       gasLimit = new ethers.utils.BigNumber("190000");
     }
-    // console.log(gasPrice);
-    // console.log(gasLimit);
-    const result = gasLimit.mul(gasPrice);
-    const finalResult = ethers.utils.formatEther(result);
-    // console.log('finalResult: ' + finalResult);
-    return finalResult.toString();
+    if (isMainAsset) {
+      return this.formatEthers(gasLimit.mul(gasPrice), feeDecimals);
+    }
+    const feeUSDBig = ethers.utils.parseUnits(feeUSD.toString(), 6);
+    const mainAssetUSDBig = ethers.utils.parseUnits(mainAssetUSD.toString(), 6);
+    let result = mainAssetUSDBig
+        .mul(gasPrice)
+        .mul(gasLimit)
+        .mul(ethers.utils.parseUnits("1", feeDecimals))
+        .div(ethers.utils.parseUnits("1", 18))
+        .div(feeUSDBig);
+    if (isNVT) {
+      // 如果是nvt，向上取整
+      const numberStr = ethers.utils.formatUnits(result, feeDecimals);
+      const ceil = Math.ceil(numberStr);
+      result = ethers.utils.parseUnits(ceil.toString(), feeDecimals).toString();
+    }
+    return this.formatEthers(result, feeDecimals);
+  }
+
+  formatEthers(amount, decimals) {
+    return ethers.utils.formatUnits(amount, decimals).toString();
   }
 
   /**
