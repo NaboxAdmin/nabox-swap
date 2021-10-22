@@ -17,15 +17,15 @@
           </div>
           <div class="space-cont"/>
           <span class="text-90 size-30 cursor-pointer" @click="addressClick">{{ superLong(address) }}</span>
-          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">
-            <span class="mt-2 cursor-pointer"
-                  v-for="(item, index) in l1ChainList"
-                  @click="chainClick(item)"
-                  :class="{'active_chain': item.chainName === currentChain}"
-                  :key="index">
-              {{ item.chainName }}
-            </span>
-          </div>
+<!--          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">-->
+<!--            <span class="mt-2 cursor-pointer"-->
+<!--                  v-for="(item, index) in l1ChainList"-->
+<!--                  @click="chainClick(item)"-->
+<!--                  :class="{'active_chain': item.chainName === currentChain}"-->
+<!--                  :key="index">-->
+<!--              {{ item.chainName }}-->
+<!--            </span>-->
+<!--          </div>-->
         </div>
         <template>
           <div class="header-icon_position" v-if="!address"/>
@@ -271,56 +271,59 @@ export default {
     chainClick(chain) {
       if (this.currentChain === chain.chainName) return;
       this.showDropList = false;
-      window.ethereum && window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [
-          {
-            chainId: chain.chainId
-          }
-        ]
-      }).then(() => {
-        this.currentChain = chain.chainName;
-        this.$store.commit('changeNetwork', chain.chainName);
-      }).catch(err => {
-        this.$message({
-          message: err.message,
-          offset: 30,
-          type: "warning"
-        })
-      });
-      // if (chain.chainName !== 'Ethereum') {
-      //   window.ethereum && window.ethereum.request({
-      //     method: "wallet_addEthereumChain",
-      //     params: [chain]
-      //   }).then((res) => {
-      //     this.currentChain = chain.chainName;
-      //     this.$store.commit('changeNetwork', chain.chainName);
-      //   }).catch(err => {
-      //     this.$message({
-      //       message: err.message,
-      //       offset: 30,
-      //       type: "warning"
-      //     })
-      //   });
-      // } else {
-      //   window.ethereum && window.ethereum.request({
-      //     method: "wallet_switchEthereumChain",
-      //     params: [
-      //       {
-      //         chainId: chain.chainId
-      //       }
-      //     ]
-      //   }).then(() => {
-      //     this.currentChain = chain.chainName;
-      //     this.$store.commit('changeNetwork', chain.chainName);
-      //   }).catch(err => {
-      //     this.$message({
-      //       message: err.message,
-      //       offset: 30,
-      //       type: "warning"
-      //     })
-      //   });
-      // }
+      // window.ethereum && window.ethereum.request({
+      //   method: "wallet_switchEthereumChain",
+      //   params: [
+      //     {
+      //       chainId: chain.chainId
+      //     }
+      //   ]
+      // }).then(() => {
+      //   this.currentChain = chain.chainName;
+      //   this.$store.commit('changeNetwork', chain.chainName);
+      // }).catch(err => {
+      //   this.$message({
+      //     message: err.message,
+      //     offset: 30,
+      //     type: "warning"
+      //   })
+      // });
+      if (chain.chainName !== 'Ethereum') {
+        window.ethereum && window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [chain]
+        }).then((res) => {
+          console.log(res, 'res')
+          this.currentChain = chain.chainName;
+          window.location.reload();
+          this.$store.commit('changeNetwork', chain.chainName);
+        }).catch(err => {
+          console.log(err)
+          this.$message({
+            message: err.message,
+            offset: 30,
+            type: "warning"
+          })
+        });
+      } else {
+        window.ethereum && window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [
+            {
+              chainId: chain.chainId
+            }
+          ]
+        }).then(() => {
+          this.currentChain = chain.chainName;
+          this.$store.commit('changeNetwork', chain.chainName);
+        }).catch(err => {
+          this.$message({
+            message: err.message,
+            offset: 30,
+            type: "warning"
+          })
+        });
+      }
     },
     // 获取异构链交易信息
     async getTxOrderList(val) {

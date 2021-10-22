@@ -115,7 +115,7 @@ export default {
         }, 300000);
       }
     } else {
-      this.$store.commit('changeDapp', false);
+      this.$store.commit('changeDapp', true);
       this.$store.commit('changeNetwork', tempData.chain);
       const accountList = [
         {
@@ -245,6 +245,7 @@ export default {
       // console.log(this.wallet.chainId, 'this.wallet.chainId');
       this.fromChainId = this.wallet.chainId
       this.address = this.wallet.selectedAddress;
+      // console.log(this.wallet.selectedAddress);
       if (!this.address) {
         await this.requestAccounts();
       }
@@ -307,6 +308,7 @@ export default {
         try {
           this.walletType = "metamask";
           sessionStorage.setItem("walletType", "metamask");
+          console.log('connectMetamask')
           await this.initMetamask();
         } catch (e) {
           this.$message({

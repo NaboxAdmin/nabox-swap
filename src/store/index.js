@@ -9,7 +9,7 @@ export default new Vuex.Store({
         network: sessionStorage.getItem('network') || 'Ethereum',
         fromNetwork: '',
         fromAddress: '',
-        showConnect: false,
+        showConnect: true,
         showSign: false,
         isDapp: true,
         lang: 'en'
