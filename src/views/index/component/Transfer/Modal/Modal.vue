@@ -1,5 +1,5 @@
 <template>
-  <div class="mask-cont"  @touchmove.prevent :class="{'show_modal': showModal}">
+  <div class="mask-cont" :class="{'show_modal': showModal}">
     <div class="modal-cont" :class="{'show_modal-cont': showModal}">
       <div class="header-cont size-36 font-bold mt-2">
           {{ $t('modal.modal1') }}

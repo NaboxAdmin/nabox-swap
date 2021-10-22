@@ -247,7 +247,11 @@ export default {
     // 选择资产
     async selectAsset(asset) {
       this.showModal = false;
-      if (this.currentCoin.symbol === asset.symbol) return;
+      if (asset.contractAddress && this.currentCoin.contractAddress === asset.contractAddress) {
+        return false;
+      } else if (!asset.contractAddress && this.currentCoin.chainId === asset.chainId && this.currentCoin.assetId === asset.assetId) {
+        return false;
+      }
       const config = JSON.parse(sessionStorage.getItem('config'));
       const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
       this.isMainAsset = config[tempNetwork].assetId === asset.assetId && config[tempNetwork].chainId === asset.chainId;
@@ -283,7 +287,7 @@ export default {
           }));
         // .filter(item => item.nulsCross && item.heterogeneousList)
           if (!this.currentCoin) {
-            this.currentCoin = !this.currentCoin && this.transferAssets.find(asset => asset.symbol === 'USDT') || this.currentCoin;
+            this.currentCoin = !this.currentCoin && (this.transferAssets.find(asset => asset.symbol === 'USDT' && asset.registerChain === this.fromNetwork) || this.transferAssets[0]) || this.currentCoin;
           }
           this.isMainAsset = config[tempNetwork].assetId === this.currentCoin.assetId && config[tempNetwork].chainId === this.currentCoin.chainId;
           await this.getCurrentAssetInfo(false, this.currentCoin);
@@ -367,7 +371,7 @@ export default {
             // this.currentCoin = res.data;
             this.clearGetAllowanceTimer();
             // assset.assetId为0 则为异构链上token资产
-            if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
+            if (res.data && res.data.assetId === 0 && tempNetwork !== "NULS") {
               await this.checkCrossInAuthStatus();
             } else {
               this.crossInAuth = false;
@@ -393,7 +397,7 @@ export default {
             // this.currentCoin = res.data;
             this.clearGetAllowanceTimer();
             // assset.assetId为0 则为异构链上token资产
-            if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== "NULS") {
+            if (res.data && res.data.assetId === 0 && tempNetwork !== "NULS") {
               await this.checkCrossInAuthStatus();
             } else {
               this.crossInAuth = false;
@@ -401,6 +405,8 @@ export default {
             this.available = res.data && divisionDecimals(res.data.balance, res.data.decimals) || 0;
             this.availableLoading = false;
             !refresh && await this.getTransferFee();
+          } else {
+            this.availableLoading = false;
           }
         }
       } catch (e) {
@@ -535,13 +541,11 @@ export default {
         const nerveToNulsFee = crossFee + "NVT" + "+" + crossFee + "NULS"; // nerve -> nuls的手续费
         const nulsToNerveFee = crossFee + "NULS"; // nuls -> nerve的手续费
         const pubKey = getCurrentAccount(this.fromAddress).pub;
-        if (this.storeAccountInfo.length === 0) {
-          const accountInfo = await this.$request({ // 获取主资产信息
-            url: "/wallet/chain/main",
-            data: { pubKey },
-          });
-          this.storeAccountInfo = accountInfo.data; // 主资产信息
-        }
+        const accountInfo = await this.$request({ // 获取主资产信息
+          url: "/wallet/chain/main",
+          data: { pubKey },
+        });
+        this.storeAccountInfo = accountInfo.data; // 主资产信息
         // 从其他链跨链转账到nerve
         if (this.toNerve) {
           if (this.$store.state.network === "NULS") { // NULS跨链转入NERVE 为默认手续费
@@ -1003,8 +1007,6 @@ export default {
           }
         }
         const inputOutput = await transfer.WithdrawalTransaction(transferInfo);
-        console.log(transferInfo, 'transferInfo');
-        console.log(inputOutput, 'inputOutput');
         // return false;
         const data = {
           inputs: inputOutput.inputs,

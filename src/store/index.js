@@ -12,7 +12,7 @@ export default new Vuex.Store({
         showConnect: false,
         showSign: false,
         isDapp: true,
-        lang: 'cn'
+        lang: 'en'
     },
     mutations: {
         changeNetwork(state, data) {
