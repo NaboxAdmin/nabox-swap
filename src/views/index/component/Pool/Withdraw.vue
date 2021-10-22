@@ -59,7 +59,7 @@
     <div class="d-flex mt-4 size-28 align-items-center space-between">
       <span class="text-90 w-85">{{ $t("pool.join3") }}</span>
       <span class="text-3a d-flex direction-column text-right">
-        <span>${{ addedLiquidityInfo && addedLiquidityInfo.balance | numFormat }}({{ poolRate | rateFormat }})</span>
+        <span>${{ addedBalance || 0 }}({{ poolRate | rateFormat }})</span>
 <!--        <span>{{ liquidityInfo && liquidityInfo.symbol || "USDTN" }}  |  {{ poolRate | rateFormat }}</span>-->
       </span>
     </div>
@@ -106,7 +106,8 @@ export default {
       amountMsg: '', // 金额错误提示
       withDrawLoading: false,
       availableLoading: false,
-      lpAssetsList: []
+      lpAssetsList: [],
+      addedBalance: ''
     }
   },
   created() {
@@ -249,9 +250,9 @@ export default {
       });
       if (res.code === 1000) {
         this.addedLiquidityInfo = res.data;
-        this.addedLiquidityInfo["balance"] = this.numberFormat(divisionDecimals(res.data.balance, res.data.decimals));
+        this.addedLiquidityInfo["balance"] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
+        this.addedBalance = this.numberFormat(tofix(res.data.balance, 4, -1), 4);
         this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo["balance"], this.liquidityInfo.total), 100), 2, -1) || 0;
-        // console.log(this.poolRate);
       }
       this.availableLoading = false;
     },
