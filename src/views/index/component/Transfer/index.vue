@@ -18,7 +18,7 @@
             <span class="icon-item">
               <img :src="getPicture(fromNetwork)" alt="">
             </span>
-              <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OKE' || fromNetwork }}</span>
+              <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
             </div>
             <div class="size-30 font-bold text-90">{{ superLong(fromAddress) }}</div>
             <div class="drop_down">

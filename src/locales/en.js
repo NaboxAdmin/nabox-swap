@@ -119,7 +119,7 @@ const en = {
     navBar: {
         navBar1:'Order Confirmation',
         navBar2:'Liquidity',
-        navBar3:'Mining Pool',
+        navBar3:'Vaults',
         navBar4:'Transaction Details',
         navBar5:'Exchange',
     },

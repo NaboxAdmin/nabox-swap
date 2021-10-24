@@ -41,7 +41,7 @@
 import {HeaderBar} from "../components";
 import {ETHNET, MAIN_INFO, NULS_INFO} from "@/config";
 import nerve from "nerve-sdk-js";
-import {supportChainList} from "@/api/util";
+import {supportChainList, getCurrentAccount} from "@/api/util";
 
 const ethers = require("ethers");
 
@@ -49,13 +49,13 @@ function getAccountList() {
   return JSON.parse(localStorage.getItem("accountList")) || [];
 }
 
-function getCurrentAccount(address) {
-  const accountList = getAccountList();
-  const currentAccount = accountList.filter((item) => {
-    return item.address.Ethereum === address;
-  });
-  return currentAccount[0] || null;
-}
+// function getCurrentAccount(address) {
+//   const accountList = getAccountList();
+//   const currentAccount = accountList.filter((item) => {
+//     return item.address.Ethereum === address;
+//   });
+//   return currentAccount[0] || null;
+// }
 
 export default {
   name: "BasicLayout",
@@ -158,6 +158,7 @@ export default {
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
         // this.showSign = !chainLength || chainLength !== addressListLength;
         this.$store.commit('changeFromAddress', val);
+        this.$store.commit('changeShowConnect', false);
         this.$store.commit('changeShowSign', !chainLength || chainLength !== addressListLength);
       },
     },
@@ -165,11 +166,17 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return;
-        const sessionNetwork = sessionStorage.getItem("network");
-        const NChains = ["NERVE", "NULS"];
-        if (NChains.indexOf(sessionNetwork) > -1) return;
         const chain = supportChainList.filter(v => v[ETHNET] === val)[0];
-        chain && this.$store.commit("changeNetwork", chain.value);
+        if (chain) {
+          this.$store.commit("changeNetwork", chain.value);
+        } else {
+          const tempAddress = this.address.toUpperCase();
+          if (tempAddress.startsWith('TNULS') || tempAddress.startsWith('NULS')) {
+            this.$store.commit("changeNetwork", 'NULS');
+          } else {
+            this.$store.commit("changeNetwork", 'NERVE');
+          }
+        }
       }
     }
   },
@@ -270,6 +277,9 @@ export default {
         console.log(accounts, "===accounts-changed===")
         if (accounts.length && this.walletType) {
           this.address = accounts[0];
+          if (this.address && !this.address.startsWith("0x")) {
+            this.switchNetwork(this.address)
+          }
           window.location.reload();
           // this.getBalance();
         } else {
@@ -308,7 +318,6 @@ export default {
         try {
           this.walletType = "metamask";
           sessionStorage.setItem("walletType", "metamask");
-          console.log('connectMetamask')
           await this.initMetamask();
         } catch (e) {
           this.$message({
@@ -340,80 +349,101 @@ export default {
         if (!this.address) {
           await this.requestAccounts();
         }
-        const jsonRpcSigner = this.provider.getSigner();
-        let message = "Generate L2 Address";
-        const signature = await jsonRpcSigner.signMessage(message);
-        const msgHash = ethers.utils.hashMessage(message);
-        const msgHashBytes = ethers.utils.arrayify(msgHash);
-        const recoveredPubKey = ethers.utils.recoverPublicKey(
-            msgHashBytes,
-            signature
-        );
-
-        const account = {
-          address: {
-            Ethereum: this.address,
-            BSC: this.address,
-            Heco: this.address,
-            OKExChain: this.address
-          },
-        };
-        if (recoveredPubKey.startsWith("0x04")) {
-          const compressPub = ethers.utils.computePublicKey(
-              recoveredPubKey,
-              true
-          );
-          const pub = compressPub.slice(2);
-          account.pub = pub;
-          const { chainId, assetId, prefix } = MAIN_INFO;
-          const {
-            chainId: NULSChainId,
-            assetId: NULSAssetId,
-            prefix: NULSPrefix,
-          } = NULS_INFO;
-          // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
-          // 根据公钥获取NERVE和NULS的地址
-          account.address.NERVE = nerve.getAddressByPub(
-              chainId,
-              assetId,
-              pub,
-              prefix
-          );
-          account.address.NULS = nerve.getAddressByPub(
-              NULSChainId,
-              NULSAssetId,
-              pub,
-              NULSPrefix
-          );
-          const accountList = getAccountList();
-          const existIndex = accountList.findIndex(v => v.pub === account.pub);
-          // 原来存在就替换，找不到就push
-          if (existIndex > -1) {
-            accountList[existIndex] = account
-          } else {
-            accountList.push(account);
+        let account, pub;
+        if (!this.address.startsWith("0x")) {
+          if (!window.nabox) {
+            throw "Nabox not found"
           }
-          const syncRes = await this.syncAccount(pub, account.address);
-          if (syncRes) {
-            localStorage.setItem("accountList", JSON.stringify(accountList));
-            // 重新计算fromAddress
-            const address = this.address;
-            this.address = "";
-            // this.showSign = true;
-            this.$store.commit('changeShowSign', true);
-            setTimeout(()=> {
-              this.address = address;
-            }, 16)
+          pub = await window.nabox.getPub({
+            address: this.address
+          })
+          const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
+          account = {
+            address: {
+              Ethereum: address,
+              BSC: address,
+              Heco: address,
+              OKExChain: address
+            }
+          };
+        } else {
+          const jsonRpcSigner = this.provider.getSigner();
+          const message = "Generate L2 Address";
+          const signature = await jsonRpcSigner.signMessage(message);
+          const msgHash = ethers.utils.hashMessage(message);
+          const msgHashBytes = ethers.utils.arrayify(msgHash);
+          const recoveredPubKey = ethers.utils.recoverPublicKey(
+              msgHashBytes,
+              signature
+          );
+
+          account = {
+            address: {
+              Ethereum: this.address,
+              BSC: this.address,
+              Heco: this.address,
+              OKExChain: this.address
+            },
+          };
+          if (recoveredPubKey.startsWith("0x04")) {
+            const compressPub = ethers.utils.computePublicKey(
+                recoveredPubKey,
+                true
+            );
+            pub = compressPub.slice(2);
           } else {
-            this.$message({
-              type: "warning",
-              message: this.$t("tips.tips22"),
-              offset: 30,
-            });
+            throw "sign error"
           }
         }
+        account.pub = pub;
+        const { chainId, assetId, prefix } = MAIN_INFO;
+        const {
+          chainId: NULSChainId,
+          assetId: NULSAssetId,
+          prefix: NULSPrefix,
+        } = NULS_INFO;
+        // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
+        // 根据公钥获取NERVE和NULS的地址
+        account.address.NERVE = nerve.getAddressByPub(
+            chainId,
+            assetId,
+            pub,
+            prefix
+        );
+        account.address.NULS = nerve.getAddressByPub(
+            NULSChainId,
+            NULSAssetId,
+            pub,
+            NULSPrefix
+        );
+        const accountList = getAccountList();
+        const existIndex = accountList.findIndex(v => v.pub === account.pub);
+        // 原来存在就替换，找不到就push
+        if (existIndex > -1) {
+          accountList[existIndex] = account
+        } else {
+          accountList.push(account);
+        }
+        const syncRes = await this.syncAccount(pub, account.address);
+        if (syncRes) {
+          localStorage.setItem("accountList", JSON.stringify(accountList));
+          // 重新计算fromAddress
+          const address = this.address;
+          this.switchNetwork(address);
+          this.address = "";
+          // this.showSign = true;
+          this.$store.commit('changeShowSign', true);
+          setTimeout(()=> {
+            this.address = address;
+          }, 16)
+        } else {
+          this.$message({
+            type: "warning",
+            message: this.$t("tips.tips22"),
+            offset: 30,
+          });
+        }
       } catch (e) {
-        // console.log(e, 556)
         this.address = "";
         this.$message({
           message: this.$t("tips.tips19"),
@@ -461,6 +491,18 @@ export default {
       } else {
         this.currentIndex = 1;
         this.nerveTo = true;
+      }
+    },
+    switchNetwork(address) {
+      // 连接插件时如果是nuls、nerve设置network为nuls/nerve
+      if (!address.startsWith("0x")) {
+        let network
+        if (address.startsWith("tNULS") || address.startsWith("NULS")) {
+          network = "NULS"
+        } else {
+          network = "NERVE"
+        }
+        this.$store.commit("changeNetwork", network)
       }
     }
   },

@@ -11,9 +11,9 @@
             <span class="chain-icon">
               <img :src="getPicture(currentChain)" @error="pictureError" alt="">
             </span>
-            <div class="icon-drop ml-2">
-              <img src="../../assets/image/drop_down_active.png" alt="">
-            </div>
+<!--            <div class="icon-drop ml-2">-->
+<!--              <img src="../../assets/image/drop_down_active.png" alt="">-->
+<!--            </div>-->
           </div>
           <div class="space-cont"/>
           <span class="text-90 size-30 cursor-pointer" @click="addressClick">{{ superLong(address) }}</span>
@@ -85,9 +85,9 @@
             </div>
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
-            <span class="cursor-pointer" :class="{'active': orderType === 1}" @click="getTxOrderList(fromAddress)">L1{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
+            <span class="cursor-pointer" :class="{'active': orderType === 3}"  @click="getOrderList(fromAddress)">Swap{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
+            <span class="ml-3 cursor-pointer" :class="{'active': orderType === 1}" @click="getTxOrderList(fromAddress)">L1{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
             <span class="ml-3 cursor-pointer" :class="{'active': orderType === 2}"  @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
-            <span class="ml-3 cursor-pointer" :class="{'active': orderType === 3}"  @click="getOrderList(fromAddress)">Swap{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
           </div>
           <div class="customer-p pt-1">
             <div class="order-list mt-3" v-loading="orderLoading">
@@ -169,7 +169,7 @@ export default {
       currentChain: this.$store.state.network, // 当前所选则的链
       showDropList: false, // 下拉菜单
       orderList: [], // 订单列表
-      orderType: 1, // 当前选择的订单类型
+      orderType: 3, // 当前选择的订单类型
       // fromAddress: '',
       currentChainAsset: null, // 当前选择的链上的主资产信息
       nerveChainAsset: null, // nerve链上的主资产信息/L2
@@ -230,6 +230,7 @@ export default {
     },
     l1ChainList() {
       const tempList = supportChainList.filter(chain => chain.label !== "NULS" && chain.label !== "NERVE");
+      // const tempList = supportChainList;
       return tempList.map(chain => ({
         chainId: chain[ETHNET],
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl[ETHNET]] : [],
@@ -266,10 +267,16 @@ export default {
     },
     addressClick() {
       this.showAccount = true;
-      this.getTxOrderList(this.fromAddress);
+      // this.getTxOrderList(this.fromAddress);
+      this.getOrderList(this.fromAddress);
     },
     chainClick(chain) {
       if (this.currentChain === chain.chainName) return;
+      // if (chain.chainName === "NULS" || chain.chainName === "NERVE") {
+      //   this.currentChain = chain.chainName;
+      //   this.$store.commit('changeNetwork', chain.chainName);
+      //   return;
+      // }
       this.showDropList = false;
       // window.ethereum && window.ethereum.request({
       //   method: "wallet_switchEthereumChain",
