@@ -3,7 +3,7 @@
     <!-- :style="{'background-color': headerColor}"-->
     <div class="header-cont">
       <div class="logo-cont">
-        <img src="@/assets/image/NaboxBeta.svg" alt="">
+        <img src="@/assets/image/SwapBoxBeta.svg" alt="">
       </div>
       <div class="address-cont d-flex align-items-center">
         <div class="address-detail pl-2 pr-2" v-if="!showConnect && !showSign && address">
@@ -16,8 +16,10 @@
 <!--            </div>-->
           </div>
           <div class="space-cont"/>
-          <span class="text-90 size-30 cursor-pointer mr-1" @click="addressClick">{{ superLong(address) }}</span>
-          <i v-if="showLoading" class="el-icon-loading" style="color: #6EB6A9"/>
+          <span class="text-90 size-30 cursor-pointer mr-1 text-primary" @click="addressClick">{{ superLong(address) }}</span>
+          <span v-if="showLoading" class="box_loading">
+            <img src="@/assets/image/loading.svg" alt="">
+          </span>
 <!--          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">-->
 <!--            <span class="mt-2 cursor-pointer"-->
 <!--                  v-for="(item, index) in l1ChainList"-->
@@ -233,6 +235,9 @@ export default {
     isSwap() {
       return window.location.hash.indexOf('swap') > -1;
     },
+    isMobile() {
+      return /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
+    },
     isNerveTo() {
       return window.location.hash.indexOf('transfer') > -1;
     },
@@ -254,7 +259,7 @@ export default {
   },
   methods: {
     toBrowser(network, address) {
-      window.open(addressNetworkOrigin[network || this.fromNetwork] + address || this.address);
+      this.isMobile ? window.location.href = addressNetworkOrigin[network || this.fromNetwork] + address || this.address : window.open(addressNetworkOrigin[network || this.fromNetwork] + address || this.address);
     },
     copy(val) {
       if (!val) return;
@@ -431,7 +436,7 @@ export default {
     linkToUrl(hash, item) {
       if (this.orderType===2 || this.orderType === 1) {
         const chain = this.orderType === 2 ? 'NERVE' : this.currentChain;
-        window.location.href = `${hashLinkList[chain]}${hash}`;
+        this.isMobile ? window.location.href = `${hashLinkList[chain]}${hash}` : window.open(`${hashLinkList[chain]}${hash}`);
       } else {
         this.toOrderDetail(item);
       }

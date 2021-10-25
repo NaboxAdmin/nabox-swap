@@ -169,6 +169,7 @@ export default {
         if (!val) return;
         const chain = supportChainList.filter(v => v[ETHNET] === val)[0];
         // console.log(chain, ETHNET, val, this.address, 'val val')
+        // console.log(this.address, 'this.address');
         if (chain) {
           this.$store.commit("changeNetwork", chain.value);
         } else {
@@ -492,6 +493,7 @@ export default {
       }
     },
     switchNetwork(address) {
+      console.log(address, 'address ')
       // 连接插件时如果是nuls、nerve设置network为nuls/nerve
       if (!address.startsWith("0x")) {
         let network
