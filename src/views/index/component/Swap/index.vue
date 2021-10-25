@@ -823,7 +823,7 @@ export default {
           this.currentPlatform = null;
         }
       } else {
-        if (this.chooseFromAsset && !isNaN(Number(this.fromAmount)) && Number(this.fromAmount)) {
+        if (this.chooseToAsset && this.chooseFromAsset && !isNaN(Number(this.fromAmount)) && Number(this.fromAmount)) {
           // await this.getExchangeRate(true);
           // if (this.chooseFromAsset && Minus(Plus(this.fromAmount, this.transferFee), this.available) > 0) {
           //   this.amountMsg = `${this.chooseFromAsset.symbol}${this.$t("tips.tips20")}`;

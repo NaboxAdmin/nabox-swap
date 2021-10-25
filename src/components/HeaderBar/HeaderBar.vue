@@ -16,7 +16,8 @@
 <!--            </div>-->
           </div>
           <div class="space-cont"/>
-          <span class="text-90 size-30 cursor-pointer" @click="addressClick">{{ superLong(address) }}</span>
+          <span class="text-90 size-30 cursor-pointer mr-1" @click="addressClick">{{ superLong(address) }}</span>
+          <i v-if="showLoading" class="el-icon-loading" style="color: #6EB6A9"/>
 <!--          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">-->
 <!--            <span class="mt-2 cursor-pointer"-->
 <!--                  v-for="(item, index) in l1ChainList"-->
@@ -174,11 +175,18 @@ export default {
       currentChainAsset: null, // 当前选择的链上的主资产信息
       nerveChainAsset: null, // nerve链上的主资产信息/L2
       orderLoading: false,
-      lang: ''
+      lang: '',
+      showLoading: false,
+      statusTimer: null
     }
   },
   created() {
+    if (this.statusTimer) clearInterval(this.statusTimer);
     this.currentAccount && this.initAssetInfo();
+    this.getOrderStatus(this.fromAddress);
+    this.statusTimer = setInterval(() => {
+      this.getOrderStatus(this.fromAddress);
+    }, 15000);
   },
   watch: {
     '$store.state.network': {
@@ -379,6 +387,25 @@ export default {
       }
       this.orderLoading = false;
     },
+    async getOrderStatus(val) {
+      this.flag = true;
+      const params = {
+        address: val
+      }
+      let res = await this.$request({
+        url: '/swap/get/list',
+        data: params
+      });
+      if (res.code === 1000 && res.data) {
+        if (res.data.length > 0) {
+          this.showLoading = res.data.some(item => item.status < 4);
+        } else {
+          this.showLoading = false;
+        }
+      } else {
+        this.showLoading = false;
+      }
+    },
     // 获取L2订单列表
     async getL2OrderList() {
       this.orderType = 2;
@@ -472,6 +499,12 @@ export default {
     window.addEventListener("click", () => {
       if (this.showDropList) this.showDropList = false
     }, false);
+  },
+  beforeDestroy() {
+    if (this.statusTimer) {
+      clearInterval(this.statusTimer);
+      this.statusTimer = null;
+    }
   }
 }
 </script>

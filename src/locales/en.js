@@ -22,7 +22,8 @@ const en = {
         tips20: "Insufficient balance",
         tips21: "Please select the platform address",
         tips22: "Failed to generate L2 address",
-        tips23: "Receiving assets does not support cross-chain exchange"
+        tips23: "Receiving assets does not support cross-chain exchange",
+        tips24: "Transaction confirmation in progress"
     },
     swap: {
         swap1:'From',

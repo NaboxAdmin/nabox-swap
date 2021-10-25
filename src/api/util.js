@@ -557,7 +557,7 @@ export const hashLinkList = {
   Ethereum: isBeta ? 'https://ropsten.etherscan.io/tx/' : 'https://etherscan.io/tx/',
   BSC: isBeta ? 'https://testnet.bscscan.com/tx/' : 'https://bscscan.com/tx/',
   Heco: isBeta ? 'https://testnet.hecoinfo.com/tx/' : 'https://hecoinfo.com/tx/',
-  OKEcChain: isBeta ? "https://www.oklink.com/okexchain-test/tx/" : 'https://www.oklink.com/okexchain/tx/',
+  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/tx/" : 'https://www.oklink.com/okexchain/tx/',
   NULS: isBeta ? 'http://beta.nulscan.io/transaction/info?hash=' : 'https://nulscan.io/transaction/info?hash=',
   NERVE: isBeta ? 'http://beta.scan.nerve.network/transaction/info?hash=' : 'https://scan.nerve.network/transaction/info?hash='
 }
@@ -569,7 +569,7 @@ export const addressNetworkOrigin = {
   BSC: isBeta ? 'https://testnet.bscscan.com/address/' : 'https://bscscan.com/address/',
   // HTOrigin: isBeta ? 'https://scan-testnet.hecochain.com' : 'https://scan.hecochain.com'
   Heco: isBeta ? 'https://testnet.hecoinfo.com/address/' : 'https://hecoinfo.com/address/',
-  OKExChain: isBeta ? "https://www.oklink.com/okexchain-testt/address/" : "https://www.oklink.com/okexchaint/address/"
+  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/address/" : "https://www.oklink.com/okexchaint/address/"
 }
 
 export function getLogoSrc(symbol) {

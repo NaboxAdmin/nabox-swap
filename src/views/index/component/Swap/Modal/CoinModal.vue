@@ -31,7 +31,7 @@
                   </span>
                   <span class="text-3a font-bold">{{ item.symbol }}</span>
                 </div>
-                <span class="text-3a font-bold size-30">{{ item.balance | numberFormat }}</span>
+                <span class="text-3a font-bold size-30">{{ item.balance }}</span>
               </div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default {
         coins.map(v => {
           const chain = networkToChain[v.mainNetwork]
           v.chain = chain.chain
-          v.balance = tofix(divisionDecimals(v.balance, v.decimals), 6, -1)
+          v.balance = this.numberFormat(tofix(divisionDecimals(v.balance, v.decimals), 6, -1), 6)
           v.symbol = v.coinCode; // .split("(")[0]
           v.symbolImg = v.coinCode.split("(")[0]
           v.contractAddress = v.contact

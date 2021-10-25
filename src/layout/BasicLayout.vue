@@ -109,6 +109,7 @@ export default {
       this.initConnect();
       if (this.address && getCurrentAccount(this.address)) {
         this.refreshWallet();
+        // this.getOrderList()
         if (this.timer) clearInterval(this.timer);
         this.timer = setInterval(() => {
           this.refreshWallet()
@@ -167,6 +168,7 @@ export default {
       handler(val) {
         if (!val) return;
         const chain = supportChainList.filter(v => v[ETHNET] === val)[0];
+        // console.log(chain, ETHNET, val, this.address, 'val val')
         if (chain) {
           this.$store.commit("changeNetwork", chain.value);
         } else {
@@ -432,7 +434,7 @@ export default {
           this.switchNetwork(address);
           this.address = "";
           // this.showSign = true;
-          this.$store.commit('changeShowSign', true);
+          this.$store.commit('changeShowSign', false);
           setTimeout(()=> {
             this.address = address;
           }, 16)
@@ -458,15 +460,11 @@ export default {
       this.$router.push({ path: '/swap' })
     },
     transferClick() {
-      // this.currentIndex = 1;
-      // this.showType = "Transfer";
-      // this.isDapp = false;
+      this.showType = "Transfer";
       this.$router.push({ path: '/transfer' })
     },
     poolClick() {
-      // this.currentIndex = 2;
       this.showType = "Pool";
-      // this.isDapp = false;
       this.$router.push({ path: '/liquidity' })
     },
     vaultsClick() {
