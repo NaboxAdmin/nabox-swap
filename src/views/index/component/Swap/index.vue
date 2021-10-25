@@ -199,8 +199,6 @@
 <script>
 import CoinModal from "./Modal/CoinModal";
 import PopUp from "../../../../components/PopUp/PopUp";
-// import CoinModal from "@/components/Modal/Modal";
-// import Modal from "../Pool/Modal/Modal";
 import {
   debounce,
   Division,
@@ -842,7 +840,7 @@ export default {
             platform: item,
             isBest: true,
             fee: this.withdrawFee,
-            minReceive: this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)),
+            minReceive: Minus(this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)), this.getPlatformFee('swft')) < 0 ? '0' : this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)),
             swapRate: this.swapRate,
             isChoose: true
           }));
