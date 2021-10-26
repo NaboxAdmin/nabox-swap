@@ -169,3 +169,8 @@
     transform: scale(1);
   }
 }
+@media screen and (min-width: 1000px) {
+  .mask-cont {
+    position: absolute;
+  }
+}

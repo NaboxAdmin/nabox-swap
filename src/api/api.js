@@ -128,7 +128,7 @@ export class NTransfer {
     const inputs = [], outputs = [];
     //转账资产nonce
     const nonce = await this.getNonce(transferInfo);
-    if (!nonce) throw "获取nonce值失败";
+    if (!nonce) throw localStorage.getItem('locale') === 'en' ? 'Failed to get the nonce value' : "获取nonce值失败";
     const config = JSON.parse(sessionStorage.getItem("config"));
     const mainAsset = config[this.chain];
     if (mainAsset.chainId === transferInfo.assetsChainId && mainAsset.assetId === transferInfo.assetsId) {

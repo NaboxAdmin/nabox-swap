@@ -74,6 +74,7 @@ import {divisionDecimals, getAssetNerveInfo, Minus, timesDecimals} from "@/api/u
 import {ETransfer, NTransfer} from "@/api/api";
 import {ethers} from "ethers";
 import {txAbi} from "@/api/contractConfig";
+import {tofix} from "../../../../api/util";
 
 const nerve = require('nerve-sdk-js');
 const transfer = new NTransfer({
@@ -302,7 +303,7 @@ export default {
         url: '/swap/tvl/all'
       });
       if (res.code === 1000) {
-        this.allTvl = res.data;
+        this.allTvl = tofix(res.data, 0, -1);
       }
     },
     // 正在进行领取奖励

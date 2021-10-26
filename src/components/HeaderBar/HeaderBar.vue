@@ -16,10 +16,12 @@
 <!--            </div>-->
           </div>
           <div class="space-cont"/>
-          <span class="text-90 size-30 cursor-pointer mr-1 text-primary" @click="addressClick">{{ superLong(address) }}</span>
-          <span v-if="showLoading" class="box_loading">
-            <img src="@/assets/image/loading.svg" alt="">
-          </span>
+          <div class="d-flex" @click="addressClick">
+            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(address) }}</span>
+            <span v-if="showLoading" class="box_loading">
+              <img src="@/assets/image/loading.svg" alt="">
+            </span>
+          </div>
 <!--          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">-->
 <!--            <span class="mt-2 cursor-pointer"-->
 <!--                  v-for="(item, index) in l1ChainList"-->
@@ -108,15 +110,18 @@
                   </template>
                   <span>{{ item.createTime }}</span>
                   <span class="status-icon">
-                  <!--L2网络订单-->
-                  <i class="el-icon-error" v-if="orderType === 2 && item.status === -1"/>
-                  <!--L2网络订单-->
-                  <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 0"/>
-                  <i class="el-icon-success" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 1"/>
-                  <!--swap订单-->
-                  <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 3 && item.status !== 5 && item.status !== 4"/>
-                  <i class="el-icon-success" style="color: #6EB6A9" v-else-if="orderType === 3 && item.status === 4"/>
-                  <i class="el-icon-error" style="color: #eb7d62" v-else-if="orderType === 3 && item.status === 5"/>
+                    <!--L2网络订单-->
+                    <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 2 && item.status === 0"/>
+                    <i class="el-icon-success" style="color: #6EB6A9" v-if="orderType === 2 && item.status === 1"/>
+                    <i class="el-icon-error" style="color: #eb7d62" v-if="orderType === 2 && item.status === -1"/>
+                    <!--L1网络订单-->
+                    <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 0"/>
+                    <i class="el-icon-success" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 1"/>
+                    <i class="el-icon-error" style="color: #eb7d62" v-if="orderType === 1 && item.status === -1"/>
+                    <!--swap订单-->
+                    <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 3 && item.status !== 5 && item.status !== 4"/>
+                    <i class="el-icon-success" style="color: #6EB6A9" v-else-if="orderType === 3 && item.status === 4"/>
+                    <i class="el-icon-error" style="color: #eb7d62" v-else-if="orderType === 3 && item.status === 5"/>
                 </span>
                 </div>
                 <div class="text-center size-28 mb-3" v-if="orderList.length === 0">No Data</div>

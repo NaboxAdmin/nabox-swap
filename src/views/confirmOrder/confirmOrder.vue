@@ -408,7 +408,7 @@ export default {
       if (res.code === 1000) {
         this.$message({
           type: 'success',
-          message: this.$t('tips.tips10'),
+          message: this.$t('tips.tips24'),
           offset: 30
         });
         setTimeout(() => {
@@ -461,7 +461,7 @@ export default {
           });
           if (res.code === 1000 && res.data) {
             this.$message({
-              message: this.$t("tips.tips10"),
+              message: this.$t("tips.tips24"),
               type: "success",
               offset: 30
             })
@@ -506,7 +506,7 @@ export default {
         });
         if (res.code === 1000 && res.data) {
           this.$message({
-            message: this.$t("tips.tips10"),
+            message: this.$t("tips.tips24"),
             type: "success",
             offset: 30
           })

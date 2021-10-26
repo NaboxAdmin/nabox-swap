@@ -96,7 +96,7 @@
         </div>
       </template>
       <div class="d-flex space-between size-28 mt-3">
-        <span class="text-90">{{ $t("swap.swap20") }}</span>
+        <span class="text-90">{{ (currentPlatform && currentPlatform.platform === 'swft' ? $t("swap.swap32") : $t("swap.swap20")) || $t("swap.swap20") }}</span>
         <span class="text-3a" v-if="currentPlatform && currentPlatform.minReceive">
           {{ currentPlatform.minReceive | numberFormat }}{{ chooseToAsset && chooseToAsset.symbol }}
         </span>

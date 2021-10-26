@@ -58,7 +58,7 @@ export default {
     this.getFarmInfo(false);
     this.farmTimer = setInterval(() => {
       this.getFarmInfo(false, true);
-    }, 10000);
+    }, 20000);
   },
   methods: {
     // 领取

@@ -265,4 +265,7 @@ export default {
 
 <style scoped lang="scss">
 @import "Modal";
+@media screen and (min-width: 1000px) {
+
+}
 </style>

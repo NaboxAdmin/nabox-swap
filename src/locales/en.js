@@ -56,7 +56,8 @@ const en = {
         swap28: "ID",
         swap29: "You need at least ",
         swap30: " as a handling fee",
-        swap31: "【The fee is 0.02% of the transaction amount, it will be charged as 1U if less than 1U】"
+        swap31: "【The fee is 0.02% of the transaction amount, it will be charged as 1U if less than 1U】",
+        swap32: "Expected"
     },
     transfer: {
         transfer1: 'From',
@@ -96,7 +97,7 @@ const en = {
         over2: "Earned",
         over3: "Receive",
         over4: "Amount",
-        over5: "Get",
+        over5: "Get ",
         over6: "Asset authorization"
     },
     modal: {
