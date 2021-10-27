@@ -85,7 +85,7 @@ const en = {
     },
     vaults: {
         vaults1:'Total ',
-        vaults2:'in progress',
+        vaults2:'Live',
         vaults3:'Ended',
         vaults4:'Stake ',
         vaults5:'Available',
