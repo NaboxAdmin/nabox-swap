@@ -45,7 +45,7 @@
     </div>
     <PopUp :show="showPop">
       <div class="pop-cont">
-        <div class="size-36 font-bold">{{ $t("vaults.vaults4") }}{{ this.stakedAsset && this.stakedAsset.symbol }}</div>
+        <div class="size-36 font-bold">{{ $t("vaults.vaults4") }}</div>
         <div class="text-right mt-2 text-90 size-26" v-if="vaultsType==='increase'">{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.balance || 0 }}</div>
         <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.amount || 0 }}</div>
         <div class="input-cont">

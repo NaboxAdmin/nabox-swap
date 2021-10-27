@@ -55,13 +55,13 @@
           </div>
         </div>
         <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.vaults4") }}{{ item.stakedAsset && item.stakedAsset.symbol }}{{ $t("vaults.over4") }}</div>
+          <div class="text-90 size-28">{{ $t("vaults.vaults4") }}{{ item.stakedAsset && item.stakedAsset.symbol }}</div>
           <div class="d-flex align-items-center space-between mt-34">
             <span class="font-bold size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
                 <div class="btn-item"
-                     :class="{ disabled_btn: !item.amount || item.amount == 0 }"
+                     :class="{ disabled_btn: !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0 }"
                      @click="showClick('decrease', item.farmKey, item)">-</div>
                 <div class="btn-item ml-3"
                      @click="showClick('increase', item.farmKey, item)">+</div>
@@ -100,7 +100,8 @@ export default {
   },
   methods: {
     showClick(type, farmHash, item) {
-      if (type === 'decrease' && !Number(item.amount)) return false;
+      // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
+      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0)) return false;
       this.$emit('showClick', { type, farmHash: item.farmKey, item });
     },
     // 领取
