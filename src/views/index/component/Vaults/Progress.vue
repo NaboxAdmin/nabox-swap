@@ -6,7 +6,7 @@
     <div class="detail-item mt-3"
          v-for="(item, index) in farmList"
          v-else-if="farmList.length !== 0"
-         :key="item.farmHash">
+         :key="item.farmKey">
       <div class="d-flex align-items-center pl-3">
         <span class="icon"></span>
         <span class="size-30 font-bold ml-1">{{ item.farmName || '' }}</span>
@@ -47,11 +47,11 @@
                 class="item-btn size-30"
                 :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
                 v-if="!item.needReceiveAuth"
-                @click="receiveClick(item.farmHash, item)">{{ $t("vaults.over3") }}</span>
+                @click="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
             <span
                 class="item-btn size-30"
                 v-else
-                @click="receiveApprove(item.farmHash, item)">{{ $t("vaults.over6") }}</span>
+                @click="receiveApprove(item.farmKey, item)">{{ $t("vaults.over6") }}</span>
           </div>
         </div>
         <div class="vaults-item">
@@ -62,14 +62,14 @@
               <template v-if="!item.needStakeAuth">
                 <div class="btn-item"
                      :class="{ disabled_btn: !item.amount || item.amount == 0 }"
-                     @click="showClick('decrease', item.farmHash, item)">-</div>
+                     @click="showClick('decrease', item.farmKey, item)">-</div>
                 <div class="btn-item ml-3"
-                     @click="showClick('increase', item.farmHash, item)">+</div>
+                     @click="showClick('increase', item.farmKey, item)">+</div>
               </template>
               <div
                   class="item-btn size-30"
                   v-else
-                  @click="stakeApprove(item.farmHash, item)">{{ $t("vaults.over6") }}</div>
+                  @click="stakeApprove(item.farmKey, item)">{{ $t("vaults.over6") }}</div>
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default {
   methods: {
     showClick(type, farmHash, item) {
       if (type === 'decrease' && !Number(item.amount)) return false;
-      this.$emit('showClick', { type, farmHash: item.farmHash, item });
+      this.$emit('showClick', { type, farmHash: item.farmKey, item });
     },
     // 领取
     receiveClick(farmHash, farm) {

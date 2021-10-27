@@ -309,7 +309,7 @@ export default {
     // 正在进行领取奖励
     async progressReceive({ farmHash, farm }) {
       // console.log(farm, 'farm')
-      // this.vaultsType = "decrease";
+      this.vaultsType = "decrease";
       if (farm.chain !== "NERVE") {
         this.currentFarm = farm;
         this.currentFarmHash = farmHash;
@@ -320,6 +320,7 @@ export default {
           this.showLoading = true;
           this.assetsItem = farm;
           this.currentFarm = farm;
+          await this.focusAsset(farm.syrupAsset);
           const { syrupTokenChainId: chainId, syrupTokenAssetId: assetId } = farm;
           const transferInfo = {
             from: this.nerveAddress,
@@ -332,7 +333,7 @@ export default {
           const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
           const fromAddress = this.nerveAddress;
           const token = nerve.swap.token(chainId, assetId);
-          const farmHash = farm.farmHash || '';
+          const farmHash = farm.farmKey || '';
           const amount = 0;
           const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
           const tAssemble = nerve.deserializationTx(tempTxData.hex);
@@ -378,7 +379,7 @@ export default {
         const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
         const fromAddress = this.nerveAddress;
         const token = nerve.swap.token(chainId, assetId);
-        const farmHash = asset.farmHash || '';
+        const farmHash = asset.farmKey || '';
         const amount = 0;
         const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
         const tAssemble = nerve.deserializationTx(tempTxData.hex);
@@ -417,7 +418,6 @@ export default {
         }
       }
     },
-    // 质押数量
     lpInput() {
       if (this.vaultsType==="increase") {
         if (Minus(this.assetsItem.balance, this.lpCount) < 0) {
@@ -488,14 +488,14 @@ export default {
           item.needStakeAuth = false;
         } else {
           item.needReceiveAuth = false;
-          item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmHash);
+          item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         }
         const res = await this.$request({
           methods: 'post',
           url: '/swap/stake/account',
           data: {
             chain: item.chain,
-            farmHash: item.farmHash,
+            farmHash: item.farmKey,
             address: this.currentAccount["address"][item.chain]
           }
         });
@@ -671,7 +671,7 @@ export default {
       this.showLoading = true;
       try {
         // this.stakedAsset = await this.getAssetInfo({ chainId: 5, assetId: 37 }); // 获取当前可退出质押的资产
-        const { chainId, assetId, decimals } = this.assetsItem.syrupAsset;
+        const { chainId, assetId, decimals } = this.assetsItem.stakedAsset;
         const transferInfo = {
           from: this.nerveAddress,
           to: this.nerveAddress,

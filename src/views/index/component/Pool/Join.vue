@@ -285,7 +285,8 @@ export default {
       });
       if (res.code === 1000) {
         this.currentAssetInfo = res.data;
-        this.currentAvailable = divisionDecimals(res.data.balance, res.data.decimals);
+        // this.currentAvailable = divisionDecimals(res.data.balance, res.data.decimals);
+        this.currentAvailable = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
       }
       this.availableLoading = false;
     },

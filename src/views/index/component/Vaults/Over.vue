@@ -1,7 +1,7 @@
 <template>
   <div class="p-3">
     <div class="loading-cont" v-if="farmLoading" element-loading-background="rgba(255, 255, 255, 0.1)" v-loading="farmLoading"/>
-    <div class="detail-item mt-3" v-else-if="farmList.length !== 0" v-for="(item, index) in farmList" :key="item.farmHash">
+    <div class="detail-item mt-3" v-else-if="farmList.length !== 0" v-for="(item, index) in farmList" :key="item.farmKey">
       <div class="d-flex align-items-center pl-3">
         <span class="icon"></span>
         <span class="size-30 font-bold ml-1">{{ item.name || '' }}</span>
@@ -44,6 +44,8 @@
 </template>
 
 <script>
+import {divisionDecimals} from "@/api/util";
+
 export default {
   name: "Over",
   data() {
@@ -106,14 +108,14 @@ export default {
           item.needStakeAuth = false;
         } else {
           item.needReceiveAuth = false;
-          item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmHash);
+          item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         }
         const res = await this.$request({
           methods: 'post',
           url: '/swap/stake/account',
           data: {
             chain: item.chain,
-            farmHash: item.farmHash,
+            farmHash: item.farmKey,
             address: this.currentAccount["address"][item.chain]
           }
         });
