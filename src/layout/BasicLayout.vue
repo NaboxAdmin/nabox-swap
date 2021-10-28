@@ -348,6 +348,8 @@ export default {
     // 通过调用metamask签名，派生多链地址
     async derivedAddress() {
       this.loading = true;
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const networkList = Object.values(config).filter(item => item.chainType !== 1).map(item => item.chain);
       try {
         if (!this.address) {
           await this.requestAccounts();
@@ -359,15 +361,14 @@ export default {
           }
           pub = await window.nabox.getPub({
             address: this.address
-          })
+          });
           const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
+          const addressMap = {};
+          for (let item of networkList) {
+            addressMap[item] = address
+          }
           account = {
-            address: {
-              Ethereum: address,
-              BSC: address,
-              Heco: address,
-              OKExChain: address
-            }
+            address: addressMap
           };
         } else {
           const jsonRpcSigner = this.provider.getSigner();
@@ -379,14 +380,13 @@ export default {
               msgHashBytes,
               signature
           );
-
+          const addressMap = {};
+          for (let item of networkList) {
+            addressMap[item] = this.address
+          }
+          console.log(addressMap, 'addressMap')
           account = {
-            address: {
-              Ethereum: this.address,
-              BSC: this.address,
-              Heco: this.address,
-              OKExChain: this.address
-            },
+            address: addressMap,
           };
           if (recoveredPubKey.startsWith("0x04")) {
             const compressPub = ethers.utils.computePublicKey(

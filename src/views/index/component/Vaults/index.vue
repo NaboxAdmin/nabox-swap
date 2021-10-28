@@ -16,7 +16,7 @@
       <div class="bg-f0">
         <div class="main-cont pb-3 pt-3">
           <div class="font-bold size-32 text-white text-center">$ {{ (allTvl || 0) | numFormat }}</div>
-          <div class="text-center size-24 mt-1 text-e9">{{ $t("vaults.vaults1") }}TVL</div>
+          <div class="text-center size-24 mt-1 text-e9">TVL</div>
         </div>
       </div>
     </div>
@@ -505,7 +505,7 @@ export default {
             ...item,
             ...res.data,
             amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
-            reward: divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals),
+            reward: tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1),
             stakedAsset,
             syrupAsset
           }

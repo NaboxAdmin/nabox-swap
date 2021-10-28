@@ -1,5 +1,5 @@
 <template>
-  <div class="main-cont">
+  <div class="main-cont_info">
     <div class="coin-info">
 <!--      <div class="d-flex justify-content-end">-->
 <!--        <div class="detail-info">-->

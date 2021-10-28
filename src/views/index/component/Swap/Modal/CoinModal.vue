@@ -90,9 +90,9 @@ export default {
       showLoading: false
     }
   },
-  // created() {
-  //   this.modalType == 'send' && this.getCoins(this.fromChain)
-  // },
+  created() {
+    // this.modalType == 'send' && this.getCoins(this.fromChain)
+  },
   watch: {
     // coinList: {
     //   immediate: true,
@@ -148,14 +148,23 @@ export default {
         this.showCoinList = this.allList;
       }
     },
-    async showModal(val) {
-      if (val) {
-        if (this.modalType === 'receive') {
-          await this.getCoins(this.picList[this.currentIndex]);
-        } else {
-          await this.getCoins(this.fromNetwork);
+    showModal: {
+      handler(val) {
+        if (val) {
+          if (this.modalType === 'receive') {
+            this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
+            setTimeout(() => {
+              this.getCoins(this.picList[this.currentIndex]);
+            }, 0);
+          } else {
+            setTimeout(() => {
+              this.getCoins(this.fromNetwork);
+            }, 0);
+          }
         }
-      }
+      },
+      immediate: true,
+      deep: true
     }
   },
   methods: {
@@ -193,7 +202,9 @@ export default {
     },
     // 获取swft支持的闪兑列表
     async getCoins(val) {
-      this.showLoading = true;
+      this.$nextTick(() => {
+        this.showLoading = true;
+      });
       this.showCoinList = [];
       const res = await this.$request({
         url: "/swap/exchange/coins",
@@ -251,8 +262,10 @@ export default {
           }
         }
         this.allList = [...this.showCoinList];
+        this.showLoading = false;
+      } else {
+        this.showLoading = false;
       }
-      this.showLoading = false;
     },
   },
   mounted() {

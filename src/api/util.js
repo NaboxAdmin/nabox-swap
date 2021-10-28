@@ -585,6 +585,9 @@ export function getLogoSrc(symbol) {
 //   { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1, origin: networkOrigin.Heco, rpcUrl: {ropsten: "https://http-testnet.hecochain.com",homestead: "https://http-mainnet.hecochain.com"}},
 //   { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, origin: networkOrigin.OKExChain, assetId: 1, rpcUrl: {ropsten: "https://exchaintestrpc.okex.org",homestead: "https://exchainrpc.okex.org"}}
 // ];
+
+// export const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
+
 export const supportChainList = [
   {
     label: "Ethereum",

@@ -3,8 +3,10 @@
     <div class="loading-cont" v-if="farmLoading" element-loading-background="rgba(255, 255, 255, 0.1)" v-loading="farmLoading"/>
     <div class="detail-item mt-3" v-else-if="farmList.length !== 0" v-for="(item, index) in farmList" :key="item.farmKey">
       <div class="d-flex align-items-center pl-3">
-        <span class="icon"></span>
-        <span class="size-30 font-bold ml-1">{{ item.name || '' }}</span>
+        <span class="icon">
+          <img :src="getPicture(item.icon)" @error="pictureError" alt="">
+        </span>
+        <span class="size-30 ml-1">{{ item.name || '' }}</span>
       </div>
       <div class="d-flex direction-column pt-3 pb-3 border-bottom">
         <span class="text-center size-48 font-bold">{{ item.profit || '0%' }}</span>
@@ -14,22 +16,22 @@
         <div class="size-28 d-flex space-between align-items-center pl-3 pr-3">
           <span class="text-90 size-28">TVL</span>
           <div class="d-flex align-items-center size-28">
-            <span class="text-3a font-bold">${{ item.tvl }}</span>
+            <span class="text-3a">${{ item.tvl }}</span>
           </div>
         </div>
         <div class="vaults-item">
           <div class="text-90 size-28">{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</div>
           <div class="d-flex align-items-center space-between mt-34">
-            <span class="font-bold size-40 w-330 word-break">{{ (item.reward || 0) | numFormat }}</span>
+            <span class="size-40 w-330 word-break">{{ (item.reward || 0) | numFormat }}</span>
             <span class="item-btn size-30"
                   :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
                   @click="receiveClick(item)">{{ $t("vaults.over3") }}</span>
           </div>
         </div>
         <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.vaults4") }}{{ item.stakedAsset && item.stakedAsset.symbol }}{{ $t("vaults.over4") }}</div>
+          <div class="text-90 size-28">{{ $t("vaults.vaults4") }}</div>
           <div class="d-flex align-items-center space-between mt-34">
-            <span class="font-bold size-40 w-330 word-break">{{ (item.amount || 0) | numFormat }}</span>
+            <span class="size-40 w-330 word-break">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
               <div class="btn-item disabled_btn">-</div>
               <div class="btn-item disabled_btn ml-3">+</div>
