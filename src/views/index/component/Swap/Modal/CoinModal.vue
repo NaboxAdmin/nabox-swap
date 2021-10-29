@@ -166,6 +166,7 @@ export default {
               this.getCoins(this.picList[this.currentIndex]);
             }, 0);
           } else {
+            this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
             this.timer = setTimeout(() => {
               this.getCoins(this.fromNetwork);
             }, 0);
