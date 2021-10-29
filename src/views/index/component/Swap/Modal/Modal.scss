@@ -174,3 +174,34 @@
     position: absolute;
   }
 }
+.loading-contain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  background-color: rgba(255, 255, 255, .5);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.h-800 {
+  height: 800px;
+}
+.box_loading {
+  height: 30px;
+  width: 30px;
+  animation: rotate_loading 1.5s linear infinite;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+@keyframes rotate_loading {
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}

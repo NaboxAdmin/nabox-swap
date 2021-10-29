@@ -4,7 +4,7 @@
 <!--      <div class="btn size-30" @click="derivedAddress" v-else-if="showSign">派发多链地址</div>-->
 <!--      <template v-if="!isDapp && !showConnect && !showSign">-->
       <template v-if="!isDapp">
-        <div class="tab-cont d-flex align-items-center space-between font-bold size-36"
+        <div class="tab-cont d-flex align-items-center space-between font-500 size-36"
              :class="{'vaults-color': currentIndex === 2 || currentIndex === 3}">
           <div v-for="(item, index) in tabList"
                class="tab-item"
@@ -22,7 +22,7 @@
                   @derivedAddress="derivedAddress"/>
             <div class="order-list">
               <div class="list-item">
-                <div class="size-36 font-bold">{{ $t('swap.swap11') }}</div>
+                <div class="size-36 font-500">{{ $t('swap.swap11') }}</div>
                 <div class="size-28 mt-5 d-flex align-items-center space-between"
                      v-if="orderList.length > 0"
                      v-for="(item, index) in orderList"

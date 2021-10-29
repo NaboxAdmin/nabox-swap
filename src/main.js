@@ -13,6 +13,7 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import globalMixin from './mixin';
 import './plugins/vant';
+import { Loading } from 'vant';
 
 const development = process.env.NODE_ENV === "development"
 Vue.config.devtools = development;
@@ -26,6 +27,7 @@ Vue.config.productionTip = false; // 开发环境提示
 Vue.mixin(globalMixin);
 Vue.use(VueI18n);
 Vue.use(ElementUI);
+Vue.use(Loading);
 // window.localStorage.clear();
 let tempData, locale;
 if (typeof window._naboxAccount === 'string') {

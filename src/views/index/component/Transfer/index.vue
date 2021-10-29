@@ -18,9 +18,9 @@
             <span class="icon-item">
               <img :src="getPicture(fromNetwork)" alt="">
             </span>
-              <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
+              <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
             </div>
-            <div class="size-30 font-bold text-90">{{ superLong(fromAddress) }}</div>
+            <div class="size-30 text-90">{{ superLong(fromAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -30,9 +30,9 @@
             <span class="icon-item">
                <img :src="getPicture('NERVE')" alt="">
             </span>
-              <span class="font-bold size-30 ml-12">NERVE</span>
+              <span class="size-30 ml-12">NERVE</span>
             </div>
-            <div class="size-28 font-bold ml-1 text-90">{{ superLong(nerveAddress) }}</div>
+            <div class="size-28 ml-1 text-90">{{ superLong(nerveAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -45,9 +45,9 @@
             <span class="icon-item">
               <img :src="getPicture(fromNetwork)" alt="">
             </span>
-              <span class="font-bold size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OKE' || fromNetwork }}</span>
+              <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
             </div>
-            <div class="size-30 font-bold text-90">{{ superLong(fromAddress) }}</div>
+            <div class="size-30 text-90">{{ superLong(fromAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -57,9 +57,9 @@
             <span class="icon-item">
                <img :src="getPicture('NERVE')" alt="">
             </span>
-              <span class="font-bold size-30 ml-12">NERVE</span>
+              <span class="size-30 ml-12">NERVE</span>
             </div>
-            <div class="size-30 font-bold ml-1 text-90">{{ superLong(nerveAddress) }}</div>
+            <div class="size-30 ml-1 text-90">{{ superLong(nerveAddress) }}</div>
             <div class="drop_down">
 <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -70,36 +70,36 @@
         <svg t="1627381344617" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2109" width="23" height="23"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#6EB6A9" p-id="2110"></path><path d="M610.393043 743.958261a31.165217 31.165217 0 0 1-14.692173-3.561739A31.610435 31.610435 0 0 1 578.782609 712.347826V311.652174a31.833043 31.833043 0 0 1 63.443478 0v341.036522l49.864348-33.613913a31.610435 31.610435 0 1 1 35.394782 52.535652l-99.283478 66.782608a32.055652 32.055652 0 0 1-17.808696 5.565218zM413.606957 743.958261A31.610435 31.610435 0 0 1 381.773913 712.347826V371.311304l-49.864348 33.613913a31.610435 31.610435 0 1 1-35.394782-52.535652l99.283478-66.782608a32.055652 32.055652 0 0 1 32.500869-1.78087A31.610435 31.610435 0 0 1 445.217391 311.652174v400.695652a31.610435 31.610435 0 0 1-31.610434 31.610435z" fill="#FFFFFF" p-id="2111"></path></svg>
       </div>
     </div>
-    <div class="asset-cont mt-2 cursor-pointer">
+    <div class="asset-cont mt-5 cursor-pointer">
       <span class="size-28 text-90">{{ $t("transfer.transfer3") }}</span>
-      <div class="asset-info mt-2" @click="showModal=true">
+      <div class="asset-info mt-1" @click="showModal=true">
         <div class="asset-icon">
           <img :src="getPicture(currentCoin && currentCoin.symbol)" @error="pictureError" alt="">
         </div>
-        <span class="font-bold size-30 ml-12">{{ currentCoin && currentCoin.symbol }}</span>
-        <div class="size-30 font-bold ml-1 text-90 flex-1">{{ toNerve ? superLong(fromAddress) : superLong(nerveAddress) }}</div>
+        <span class="size-30 ml-12">{{ currentCoin && currentCoin.symbol }}</span>
+        <div class="size-30 ml-1 text-90 flex-1">{{ toNerve ? superLong(fromAddress) : superLong(nerveAddress) }}</div>
         <div class="drop_down">
           <img src="@/assets/image/drop_down.png" alt="">
         </div>
       </div>
     </div>
-    <div class="asset-cont mt-2">
+    <div class="asset-cont mt-5">
       <div class="size-28 text-90 d-flex space-between">
         <span>{{ $t("transfer.transfer4") }}</span>
         <template>
           <div>
             {{ $t("transfer.transfer5") }}：
             <span v-if="availableLoading"><i class="el-icon-loading"/></span>
-            <span v-else-if="available">{{ available || 0 }}</span>
+            <span v-else-if="userAvailable">{{ (userAvailable || 0) | numberFormat }}</span>
             <span v-else>--</span>
           </div>
         </template>
       </div>
-      <div class="asset-info d-flex space-between align-items-center mt-2 active-border">
-        <input class="font-bold size-38 ml-12"
+      <div class="asset-info d-flex space-between align-items-center mt-1 active-border">
+        <input class="font-500 size-38 ml-12"
                v-model="transferCount"
                @input="accountInput"
-               placeholder="0.0"/>
+               placeholder="0"/>
         <span class="size-28 text-primary" @click="maxAmount">{{ $t("transfer.transfer6") }}</span>
       </div>
       <div class="text-red mt-2" v-if="amountMsg">{{ amountMsg }}</div>
@@ -202,7 +202,8 @@ export default {
       showFeeModal: false,
       transferFeeAssets: [],
       currentFeeChain: 'NERVE',
-      currentFeeAsset: {}
+      currentFeeAsset: {},
+      userAvailable: 0
     }
   },
   components: {
@@ -242,7 +243,9 @@ export default {
       this.currentFeeAsset = asset;
       this.transferFeeAssets = this.allTransferFeeAssets.filter(item => item.registerChain !== this.currentFeeChain && item.registerChain !== 'NULS');
       this.showFeeModal = false;
-      this.transferFee = await this.getCrossOutFee(true);
+      if (this.currentCoin) {
+        this.transferFee = await this.getCrossOutFee(true);
+      }
       this.transferCount && await this.checkTransferFee();
     },
     // 选择资产
@@ -378,6 +381,7 @@ export default {
               this.crossInAuth = false;
             }
             this.available = res.data && divisionDecimals(res.data.balance, res.data.decimals) || 0;
+            this.userAvailable = res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1) || 0;
             this.availableLoading = false;
             !this.toNerve && !refresh && await this.getTransferFee();
           }
@@ -404,6 +408,7 @@ export default {
               this.crossInAuth = false;
             }
             this.available = res.data && divisionDecimals(res.data.balance, res.data.decimals) || 0;
+            this.userAvailable = res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1);
             this.availableLoading = false;
             !this.toNerve && !refresh && await this.getTransferFee();
           } else {
@@ -1083,7 +1088,18 @@ export default {
           if (res) {
             this.txHex = res.raw;
             broadcastData.txHash = res.hash;
-            await this.broadcastToNerveHex(broadcastData);
+            if (res.hash) {
+              this.$message({
+                message: this.$t("tips.tips10"),
+                type: "success",
+                offset: 30
+              });
+              this.transferLoading = false;
+              this.reset();
+              await this.broadcastToNerveHex(broadcastData);
+            } else {
+              throw this.$t("tips.tips15");
+            }
           }
         }
       } catch (e) {
@@ -1153,11 +1169,7 @@ export default {
           type: "success",
           offset: 30
         });
-        this.reset();
-      } else {
-        throw this.$t("tips.tips15");
       }
-      this.transferLoading = false;
     },
     // 异构链token资产转入nerve授权
     async approveERC20() {

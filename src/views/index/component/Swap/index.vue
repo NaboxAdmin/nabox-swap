@@ -12,15 +12,15 @@
       </div>
       <div class="input-cont mt-2">
         <template>
-          <div class="size-28 cursor-pointer text-90 font-bold"
+          <div class="coin-cont size-28 cursor-pointer text-90"
                v-if="!chooseFromAsset"
-               @click.stop="openModal('send')">{{ $t('swap.swap12') }}（{{ $t('swap.swap13') }}）</div>
-          <div class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('send')" v-else>
+               @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
+          <div class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')" v-else>
             <div class="image-cont">
               <img :src="getPicture(chooseFromAsset.symbolImg)" @error="pictureError" alt="">
             </div>
-            <div class="d-flex align-items-center space-between direction-column size-30 ml-1">
-              <span class="font-bold">{{ chooseFromAsset.symbolImg }}</span>
+            <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
+              {{ chooseFromAsset.symbolImg }}
             </div>
           </div>
         </template>
@@ -30,7 +30,7 @@
         <div class="space-cont"/>
         <div class="input-item align-items-center d-flex flex-1">
           <input class="flex-1"
-                 placeholder="0.00"
+                 placeholder="0"
                  @input="fromAmountInput"
                  @focus="amountFocus('from')"
                  v-model="fromAmount">
@@ -47,15 +47,15 @@
       </div>
       <div class="input-cont mt-2">
         <template>
-          <div class="size-28 cursor-pointer text-90 font-bold"
+          <div class="coin-cont size-28 cursor-pointer text-90 text-truncate text-truncate_one"
                @click.stop="openModal('receive')"
-               v-if="!chooseToAsset">{{ $t('swap.swap12') }}（{{ $t('swap.swap13') }}）</div>
+               v-if="!chooseToAsset">{{ $t('swap.swap12') }}</div>
           <div class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')" v-else>
             <div class="image-cont">
               <img :src="getPicture(chooseToAsset.symbolImg)" @error="pictureError">
             </div>
-            <div class="d-flex align-items-center space-between direction-column size-30 ml-1">
-              <span class="font-bold">{{ chooseToAsset.symbolImg }}</span>
+            <div class="w-90 text-truncate direction-column size-30 ml-1 text-3a">
+              {{ chooseToAsset.symbolImg }}
             </div>
           </div>
         <div class="icon-cont" @click.stop="openModal('receive')">
@@ -65,7 +65,7 @@
         <div class="space-cont"/>
         <div class="input-item align-items-center d-flex flex-1">
           <input class="flex-1"
-                 placeholder="0.00"
+                 placeholder="0"
                  @input="toAmountInput"
                  @focus="amountFocus('to')"
                  v-model="toAmount">
@@ -76,7 +76,7 @@
       <template>
         <div class="d-flex space-between size-28">
           <span class="text-90">{{ $t("swap.swap5") }}</span>
-          <span class="text-3a" v-if="currentPlatform">1{{ chooseFromAsset && chooseFromAsset.symbol }} ≈ {{ currentPlatform && currentPlatform.swapRate }} {{ chooseToAsset && chooseToAsset.symbol }}</span>
+          <span class="text-3a w-75" v-if="currentPlatform">1{{ chooseFromAsset && chooseFromAsset.symbol }} ≈ {{ currentPlatform && currentPlatform.swapRate }} {{ chooseToAsset && chooseToAsset.symbol }}</span>
           <span v-else>--</span>
         </div>
       </template>
@@ -155,7 +155,7 @@
     />
     <pop-modal :preventBoo="false" :show="showPop" :custom-class="true">
       <div class="route-cont">
-        <div class="header-cont size-36 font-bold mt-2">
+        <div class="header-cont size-36 font-500 mt-2">
           {{ $t('swap.swap7') }}
           <div class="back-icon cursor-pointer" @click="showPop=false">
             <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"></path></svg>
@@ -716,7 +716,9 @@ export default {
         await this.getAssetInfo(params);
       } else {
         try {
-          const transfer = new ETransfer();
+          const transfer = new ETransfer({
+            chain: this.fromNetwork
+          });
           if (asset.contractAddress) {
             const tempAvailable = await transfer.getERC20Balance(asset.contractAddress, asset.decimals, this.fromAddress);
             this.available = tempAvailable && tofix(tempAvailable, 6, -1);
@@ -1043,4 +1045,8 @@ export default {
 
 <style lang="scss" scoped>
 @import "./index";
+.w-75 {
+  width: 75%;
+  text-align: right;
+}
 </style>

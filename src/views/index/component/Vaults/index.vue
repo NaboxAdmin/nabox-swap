@@ -15,7 +15,7 @@
       </div>
       <div class="bg-f0">
         <div class="main-cont pb-3 pt-3">
-          <div class="font-bold size-32 text-white text-center">$ {{ (allTvl || 0) | numFormat }}</div>
+          <div class="font-500 size-38 text-white text-center">${{ (allTvl || 0) | numFormat }}</div>
           <div class="text-center size-24 mt-1 text-e9">TVL</div>
         </div>
       </div>
@@ -45,7 +45,7 @@
     </div>
     <PopUp :show="showPop">
       <div class="pop-cont">
-        <div class="size-36 font-bold">{{ $t("vaults.vaults4") }}</div>
+        <div class="size-36 font-500">{{ $t("vaults.vaults4") }}</div>
         <div class="text-right mt-2 text-90 size-26" v-if="vaultsType==='increase'">{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.balance || 0 }}</div>
         <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.amount || 0 }}</div>
         <div class="input-cont">
@@ -505,7 +505,7 @@ export default {
             ...item,
             ...res.data,
             amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
-            reward: tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1),
+            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             stakedAsset,
             syrupAsset
           }

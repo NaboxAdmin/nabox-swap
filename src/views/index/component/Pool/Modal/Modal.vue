@@ -1,7 +1,7 @@
 <template>
   <div class="mask-cont"  @touchmove.prevent :class="{'show_modal': showModal}">
     <div class="modal-cont" :class="{'show_modal-cont': showModal}">
-      <div class="header-cont size-36 font-bold mt-2">
+      <div class="header-cont size-36 font-500 mt-2">
           {{ $t('modal.modal1') }}
         <div class="back-icon" @click="back">
           <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"></path></svg>
@@ -22,7 +22,7 @@
                   <img :src="getPicture(item.symbol)" @error="pictureError">
                 </span>
                 <span class="d-flex direction-column space-between h-40">
-                  <span class="text-3a font-bold">{{ item.symbol }}</span>
+                  <span class="text-3a font-500">{{ item.symbol }}</span>
                   <span class="sign size-16">{{ item.registerChain }}</span>
                 </span>
               </div>

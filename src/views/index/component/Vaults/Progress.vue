@@ -14,10 +14,10 @@
         <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
       </div>
       <div class="d-flex direction-column pt-3 pb-3 border-bottom">
-        <span class="text-center size-48 font-bold">{{ item.profit || '0%' }}</span>
+        <span class="text-center size-48 font-500">{{ item.profit || '0%' }}</span>
         <span class="text-center size-24 text-90 mt-1">{{ $t("vaults.over1") }}</span>
       </div>
-      <div class="mt-5">
+      <div class="mt-3">
         <div class="size-28 d-flex space-between align-items-center pl-3 pr-3">
           <span class="text-90 size-28">TVL</span>
           <div class="d-flex align-items-center size-28">
@@ -43,7 +43,7 @@
 <!--        </div>-->
         <div class="vaults-item">
           <div class="text-90 size-28">{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</div>
-          <div class="d-flex align-items-center space-between mt-34">
+          <div class="d-flex align-items-center space-between mt-1">
             <span class="size-40 word-break w-330">{{ (item.reward || 0) | numFormat }}</span>
             <span
                 class="item-btn size-30"
@@ -58,7 +58,7 @@
         </div>
         <div class="vaults-item">
           <div class="text-90 size-28">{{ $t("vaults.vaults4") }}</div>
-          <div class="d-flex align-items-center space-between mt-34">
+          <div class="d-flex align-items-center space-between mt-1">
             <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">

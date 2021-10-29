@@ -1,7 +1,7 @@
 <template>
   <div class="mask-cont" @touchmove.prevent :class="{'show_modal': showModal}">
     <div class="modal-cont" @touchmove.stop :class="{'show_modal-cont': showModal}">
-      <div class="header-cont size-36 font-bold mt-2">
+      <div class="header-cont size-36 font-500 mt-2">
           {{ $t('modal.modal1') }}
         <div class="back-icon" @click="back">
           <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"></path></svg>
@@ -21,7 +21,10 @@
                 :key="item">
           </span>
         </div>
-        <div v-loading="showLoading" class="flex-1">
+        <div class="flex-1 position-relative">
+          <div v-if="showLoading" class="text-center loading-contain">
+            <van-loading size="40px" v-if="showLoading" color="#49a3ff" />
+          </div>
           <div class="coin-list" ref="coinLisCont" :class="modalType==='receive' && 'pl-4'" v-if="showCoinList.length > 0">
             <div class="list-item cursor-pointer" v-for="item in showCoinList" :key="item.coinId">
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
@@ -29,13 +32,17 @@
                   <span class="coin-icon">
                     <img :src="getPicture(item.symbolImg)" @error="pictureError" alt="">
                   </span>
-                  <span class="text-3a font-bold">{{ item.symbol }}</span>
+                  <span class="text-3a font-500">{{ item.symbol }}</span>
                 </div>
-                <span class="text-3a font-bold size-30">{{ item.balance }}</span>
+                <span v-if="item.showBalanceLoading" class="box_loading">
+                  <img src="@/assets/image/loading.svg" alt="">
+                </span>
+<!--                <span v-if="item.showBalanceLoading">loading...</span>-->
+                <span v-else class="text-3a font-500 size-30">{{ item.balance | numberFormat }}</span>
               </div>
             </div>
           </div>
-          <div class="text-center size-28 text-90 flex-1 pt-4" v-else>{{ $t('modal.modal3') }}</div>
+          <div class="text-center size-28 text-90 flex-1 pt-4 h-800" v-else>{{ $t('modal.modal3') }}</div>
         </div>
       </div>
     </div>
@@ -46,6 +53,7 @@
 import {networkToChain, valideNetwork} from "@/views/index/component/Swap";
 import {divisionDecimals} from "@/api/util";
 import {tofix} from "../../../../../api/util";
+import {ETransfer} from "@/api/api";
 
 export default {
   name: "CoinModal",
@@ -76,7 +84,7 @@ export default {
     toAsset: {
       type: Object,
       default: () => null
-    }
+    },
     // fromNetwork: String,
     // fromAddress: String
   },
@@ -87,7 +95,8 @@ export default {
       showCoinList: [],
       searchVal: '',
       allList: [],
-      showLoading: false
+      showLoading: false,
+      timer: null
     }
   },
   created() {
@@ -153,11 +162,11 @@ export default {
         if (val) {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
-            setTimeout(() => {
+            this.timer = setTimeout(() => {
               this.getCoins(this.picList[this.currentIndex]);
             }, 0);
           } else {
-            setTimeout(() => {
+            this.timer = setTimeout(() => {
               this.getCoins(this.fromNetwork);
             }, 0);
           }
@@ -202,9 +211,11 @@ export default {
     },
     // 获取swft支持的闪兑列表
     async getCoins(val) {
-      this.$nextTick(() => {
-        this.showLoading = true;
-      });
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      this.showLoading = true;
       this.showCoinList = [];
       const res = await this.$request({
         url: "/swap/exchange/coins",
@@ -222,8 +233,9 @@ export default {
           v.chain = chain.chain
           v.balance = this.numberFormat(tofix(divisionDecimals(v.balance, v.decimals), 6, -1), 6)
           v.symbol = v.coinCode; // .split("(")[0]
-          v.symbolImg = v.coinCode.split("(")[0]
-          v.contractAddress = v.contact
+          v.symbolImg = v.coinCode.split("(")[0];
+          v.contractAddress = v.contact;
+          v.showBalanceLoading = true;
         });
         // 当前选择的资产是否支持跨链
         if (!this.fromAsset && this.modalType === 'recieve') {
@@ -261,10 +273,59 @@ export default {
             this.showCoinList = tempList;
           }
         }
-        this.allList = [...this.showCoinList];
         this.showLoading = false;
+        this.allList = [...this.showCoinList];
+        for (let i = 0; i < this.allList.length; i++) {
+          const asset = this.allList[i];
+          if (asset.showBalanceLoading) {
+            this.allList[i].balance = await this.getBalance(asset);
+            this.allList[i].showBalanceLoading = false;
+          }
+        }
+        // this.allList = Promise.all(this.showCoinList.map(async (item, index, array) => {
+        //   if (item.showBalanceLoading) {
+        //     this.allList[index].balance = await this.getBalance(item);
+        //     this.allList[index].showBalanceLoading = false;
+        //   }
+        // }));
       } else {
         this.showLoading = false;
+      }
+    },
+    // 获取钱包余额
+    async getBalance(asset) {
+      if (this.$store.state.network === "NERVE" || this.$store.state.network === "NULS") {
+        const params = {
+          chain: this.fromNetwork,
+          address: this.fromAddress,
+          chainId: asset.chainId,
+          assetId: asset.assetId,
+          contractAddress: asset.contractAddress
+        };
+        // 关注资产
+        await this.$request({
+          url: "/wallet/address/asset/focus",
+          data: {
+            focus: true,
+            ...params,
+          },
+        });
+        await this.getAssetInfo(params);
+      } else {
+        try {
+          const transfer = new ETransfer({
+            chain: this.picList[this.currentIndex] || ''
+          });
+          if (asset.contractAddress) {
+            const tempAvailable = await transfer.getERC20Balance(asset.contractAddress, asset.decimals, this.fromAddress);
+            return tempAvailable && tofix(tempAvailable, 6, -1);
+          } else {
+            const tempAvailable = await transfer.getEthBalance(this.fromAddress);
+            return tempAvailable && tofix(tempAvailable, 6, -1);
+          }
+        } catch (e) {
+          return 0;
+        }
       }
     },
   },

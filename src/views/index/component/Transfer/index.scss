@@ -4,7 +4,7 @@
 .transfer-cont {
   border: 2px solid #6EB6A9;
   border-radius: 20px;
-  padding: 30px 38px 42px 38px;
+  padding: 30px 38px 30px 38px;
   .sign-cont {
     span {
       height: 7px;
@@ -55,7 +55,7 @@
 }
 .asset-cont {
   .asset-info {
-    padding: 50px 30px;
+    padding: 44px 30px;
     border: 2px solid #AAB2C9;
     border-radius: 20px;
     display: flex;
@@ -79,8 +79,8 @@
 }
 input {
   border: none;
-  height: 60px;
-  font-weight: bold;
+  height: 48px;
+  //font-weight: bold;
   font-size: 36px;
   outline: none;
   flex: 1;
@@ -89,7 +89,8 @@ input {
 
 input::placeholder {
   color: #ABB1BA;
-  line-height: 60px;
+  line-height: 48px;
+  font-weight: normal;
 }
 
 .btn {

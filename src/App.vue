@@ -15,8 +15,11 @@
 <style lang="scss">
 @import "stylus/public.css"; // 公共的样式
 body, div, dl, dt, dd, ul, ol, li, p, h1, h2, h3, h4, h5, h6, pre, form, fieldset, input, textarea {
-  font-family: Robot, Helvetica, Arial, sans-serif, serif !important;
+  //font-family: Robot, Helvetica, Arial, sans-serif, serif !important;
+  //font-family: Kanit, sans-serif,Helvetica,Arial !important;
   //word-break: break-all;
+  //font-family: "Ginto Nord","Whitney","Helvetica Neue","Helvetica","Arial",sans-serif !important;
+  font-family: poppins,inter,PingFangSC-Regular,microsoft yahei,sans-serif !important;
 }
 body {
   //max-width: 1000px;

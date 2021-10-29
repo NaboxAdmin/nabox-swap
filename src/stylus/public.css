@@ -79,6 +79,10 @@
   font-weight: bold;
 }
 
+.font-500 {
+  font-weight: 500;
+}
+
 .font-normal {
   font-weight: normal !important;
 }
@@ -315,7 +319,7 @@
 .text-truncate {
   overflow: hidden;
   text-overflow: ellipsis !important;
-  /* white-space: nowrap; */
+   white-space: nowrap;
 }
 
 .text-truncate_one {

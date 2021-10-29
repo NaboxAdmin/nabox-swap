@@ -6,13 +6,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 148px;
+  height: 132px;
   padding: 0 30px;
   //background-color: #F0F3F3;
   border: 1px solid #6EB6A9;
   border-radius: 20px;
   .coin-cont {
-    width: 191px;
+    width: 176px;
     .image-cont {
       height: 64px;
       width: 64px;
@@ -43,7 +43,7 @@
 .icon-cont {
   height: 10px;
   width: 16px;
-  margin-left: 40px;
+  //margin-left: 40px;
   img {
     height: 100%;
     width: 100%;
@@ -54,7 +54,7 @@
   input {
     border: none;
     height: 60px;
-    font-weight: bold;
+    //font-weight: bold;
     font-size: 36px;
     outline:none;
     background-color: transparent;
@@ -237,4 +237,7 @@
      height: 100%;
      width: 100%;
    }
+ }
+ .w-90 {
+   width: 100px;
  }

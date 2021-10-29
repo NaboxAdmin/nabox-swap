@@ -14,7 +14,7 @@
           <img :src="getPicture(currentAsset && currentAsset.symbol)" alt="">
         </span>
         <div class="d-flex align-items-center ml-14 direction-column">
-          <span class="font-bold size-30">{{ currentAsset && currentAsset.symbol || "USDT" }}</span>
+          <span class="font-500 size-30">{{ currentAsset && currentAsset.symbol || "USDT" }}</span>
           <span v-if="currentAsset" class="sign">{{ (currentAsset && currentAsset.registerChain) || (currentAsset && currentAsset.chain) }}</span>
         </div>
         <div class="ml-2 drop_down">
@@ -26,16 +26,16 @@
                @focus.stop
                @input="countInput"
                v-model="joinCount"
-               placeholder="0.00">
+               placeholder="0">
         <span class="text-primary size-28" @click.stop="maxCount">{{ $t("swap.swap3") }}</span>
       </div>
     </div>
     <div class="text-red mt-2" v-if="amountMsg">{{ amountMsg }}</div>
     <div class="output-cont d-flex direction-column">
       <div class="size-28 text-90">{{ $t("pool.join1") }}</div>
-      <div class="d-flex align-items-center space-between mt-3">
-        <span class="font-bold size-30">{{ liquidityInfo && liquidityInfo.symbol || 'USDTN' }}</span>
-        <span class="font-bold size-36 m-w180 word-break">{{ joinCount || "0.00" }}</span>
+      <div class="d-flex align-items-center space-between mt-2">
+        <span class="font-500 size-30">{{ liquidityInfo && liquidityInfo.symbol || 'USDTN' }}</span>
+        <span class="font-500 size-36 m-w180 word-break">{{ joinCount || "0" }}</span>
       </div>
     </div>
     <div>
@@ -411,7 +411,7 @@ export default {
 <style scoped lang="scss">
 .input-cont {
   padding: 0 30px;
-  height: 148px;
+  height: 136px;
   border-radius: 20px;
   border: 1px solid #6EB6A9;
   .image-cont {
@@ -425,7 +425,7 @@ export default {
   }
 }
 .output-cont {
-  padding: 40px 30px 50px 35px;
+  padding: 30px 30px 30px 35px;
   border-radius: 20px;
   margin-top: 50px;
   border: 1px solid #AAB2C9;
@@ -435,7 +435,7 @@ export default {
     border: none;
     height: 60px;
     line-height: 60px;
-    font-weight: bold;
+    //font-weight: bold;
     font-size: 36px;
     outline:none;
   }
