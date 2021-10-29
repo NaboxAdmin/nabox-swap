@@ -1159,17 +1159,10 @@ export default {
         txHash,
         txHex: this.txHex
       };
-      const res = await this.$request({
+      await this.$request({
         url: '/swap/cross/plugin',
         data: params
       });
-      if (res.code === 1000 && res.data) {
-        this.$message({
-          message: this.$t("tips.tips10"),
-          type: "success",
-          offset: 30
-        });
-      }
     },
     // 异构链token资产转入nerve授权
     async approveERC20() {
