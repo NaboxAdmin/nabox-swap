@@ -9,7 +9,7 @@
          :key="item.farmKey">
       <div class="d-flex align-items-center pl-3">
         <span class="icon">
-          <img :src="getPicture(item.icon)" @error="pictureError" alt="">
+          <img :src="item.icon || pictureError" @error="pictureError" alt="">
         </span>
         <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
       </div>

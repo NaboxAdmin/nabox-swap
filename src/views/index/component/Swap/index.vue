@@ -1046,7 +1046,7 @@ export default {
 <style lang="scss" scoped>
 @import "./index";
 .w-75 {
-  width: 75%;
+  width: 85%;
   text-align: right;
 }
 </style>

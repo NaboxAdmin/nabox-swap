@@ -1086,6 +1086,7 @@ export default {
           await this.broadcastHex(broadcastData);
         } else {
           if (res) {
+            console.log(res, 'res')
             this.txHex = res.raw;
             broadcastData.txHash = res.hash;
             if (res.hash) {
