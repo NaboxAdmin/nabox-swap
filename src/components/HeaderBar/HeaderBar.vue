@@ -22,15 +22,15 @@
               <img src="@/assets/image/loading.svg" alt="">
             </span>
           </div>
-          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">
-            <span class="mt-2 cursor-pointer"
-                  v-for="(item, index) in l1ChainList"
-                  @click="chainClick(item)"
-                  :class="{'active_chain': item.chainName === currentChain}"
-                  :key="index">
-              {{ item.chainName }}
-            </span>
-          </div>
+<!--          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">-->
+<!--            <span class="mt-2 cursor-pointer"-->
+<!--                  v-for="(item, index) in l1ChainList"-->
+<!--                  @click="chainClick(item)"-->
+<!--                  :class="{'active_chain': item.chainName === currentChain}"-->
+<!--                  :key="index">-->
+<!--              {{ item.chainName }}-->
+<!--            </span>-->
+<!--          </div>-->
         </div>
         <template>
           <div class="header-icon_position" v-if="!address"/>
