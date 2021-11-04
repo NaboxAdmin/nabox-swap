@@ -8,6 +8,9 @@ const mainRoutes = [{
     name:'index',
     redirect: '/swap',
     component: BasicLayout,
+    meta: {
+      keepAlive: true
+    },
     children:[
         // {
         //     path:'/index',
@@ -23,7 +26,7 @@ const mainRoutes = [{
             component:() => import('../views/index/component/Swap'),
             meta: {
                 title:'Swap',
-                keepAlive: true
+                // keepAlive: true
             }
         },
         {

@@ -154,15 +154,7 @@ const linkList = {
 export default {
   name: "HeaderBar",
   props: {
-    // showConnect: {
-    //   type: Boolean,
-    //   default: false
-    // },
     address: String,
-    // currentAccount: {
-    //   type: Object,
-    //   default: () => null
-    // },
     headerColor: {
       type: String,
       default: "#ffffff"
@@ -184,12 +176,12 @@ export default {
       orderLoading: false,
       lang: '',
       showLoading: false,
-      statusTimer: null
+      statusTimer: null,
+      isSwap: false
     }
   },
   created() {
     if (this.statusTimer) clearInterval(this.statusTimer);
-    this.currentAccount && this.initAssetInfo();
     this.fromAddress && this.getOrderStatus(this.fromAddress);
     this.statusTimer = setInterval(() => {
       this.fromAddress && this.getOrderStatus(this.fromAddress);
@@ -208,10 +200,16 @@ export default {
       immediate: true,
       deep: true
     },
+    "$route.fullPath": {
+      handler(val) {
+        this.isSwap = window.location.hash.indexOf('swap') > -1;
+      },
+      immediate: true,
+      deep: true
+    },
     currentChain(val) {
       if (val) {
         this.$store.commit("changeNetwork", val);
-        this.initAssetInfo();
       }
     },
     orderType(val) {
@@ -229,7 +227,6 @@ export default {
       deep: true,
       handler(val) {
         if (val) {
-          // this.fromAddress = val;
           this.$store.commit('changeFromAddress', val);
           this.initAssetInfo();
         }
@@ -237,11 +234,8 @@ export default {
     }
   },
   computed: {
-    isSwap() {
-      return window.location.hash.indexOf('swap') > -1;
-    },
     isMobile() {
-      return /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     },
     isNerveTo() {
       return window.location.hash.indexOf('transfer') > -1;
@@ -253,6 +247,7 @@ export default {
       return tempList.map(chain => ({
         chainId: chain[ETHNET],
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl[ETHNET]] : [],
+        // rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         chainName: chain.value,
         nativeCurrency: {
           name: chain.value,
@@ -319,7 +314,6 @@ export default {
           method: "wallet_addEthereumChain",
           params: [chain]
         }).then((res) => {
-          console.log(res, 'res')
           this.currentChain = chain.chainName;
           window.location.reload();
           this.$store.commit('changeNetwork', chain.chainName);
@@ -482,7 +476,7 @@ export default {
         data,
       });
       if (res.code === 1000) {
-        res.data.balance = res.data && this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6 -1), 6, false);
+        res.data.balance = res.data && this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1), 6, false);
         return res.data;
       }
     },

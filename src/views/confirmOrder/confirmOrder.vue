@@ -23,14 +23,14 @@
         <div class="d-flex align-items-center space-between">
           <span class="text-aa">From</span>
           <div class="d-flex align-items-center justify-content-end">
-            <span class="size-20 sign">{{ orderInfo &&  orderInfo.fromAsset && orderInfo.fromAsset.mainNetwork }}</span>
+            <span class="size-20 sign">{{ orderInfo &&  orderInfo.fromAsset && orderInfo.fromAsset.chain }}</span>
             <span  class="ml-4">{{ superLong(orderInfo && orderInfo.address) }}</span>
           </div>
         </div>
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">To</span>
           <div class="d-flex align-items-center justify-content-end">
-            <span class="size-20 sign">{{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.mainNetwork }}</span>
+            <span class="size-20 sign">{{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.chain }}</span>
             <span  class="ml-4">{{ superLong(orderInfo && orderInfo.address) }}</span>
           </div>
         </div>
@@ -41,20 +41,27 @@
             <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
           <div class="d-flex align-items-center justify-content-end" v-else>
-            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span>
+            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
         </div>
         <!--手续费-->
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
-          <div class="d-flex align-items-center justify-content-end" v-if="!orderInfo.stableFee">
+          <div class="d-flex align-items-center justify-content-end" v-if="orderInfo.withdrawFee">
             <span  class="ml-4 text-ec"><span class="text-3a" v-if="orderInfo.withdrawFee">
               <span v-if="orderInfo.transferFee">{{ orderInfo.transferFee | numberFormat }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span> {{ orderInfo.withdrawFee }}{{orderInfo.toAsset && orderInfo.toAsset.symbol}}</span></span>
+          </div>
+          <div class="d-flex align-items-center justify-content-end" v-else-if="orderInfo.stableFee">
+            <span  class="ml-4 text-ec">
+              <span class="text-3a">
+                {{ orderInfo.stableFee }}{{orderInfo.fromAsset && orderInfo.fromAsset.symbol}}
+              </span>
+            </span>
           </div>
           <div class="d-flex align-items-center justify-content-end" v-else>
             <span  class="ml-4 text-ec">
               <span class="text-3a">
-                {{ orderInfo.stableFee }}{{orderInfo.fromAsset && orderInfo.fromAsset.symbol}}
+                {{ orderInfo.usdtnFee }}{{orderInfo.fromAsset && orderInfo.fromAsset.symbol}}
               </span>
             </span>
           </div>
@@ -213,8 +220,23 @@ export default {
     // 确认订单
     async confirmOrder() {
       this.confirmLoading = true;
-      console.log(this.orderInfo.currentPlatform.platform);
-      if (this.orderInfo.currentPlatform.platform === 'NaboxPool') { // 稳定币确认订单
+      console.log(this.orderInfo, "this.orderInfo")
+      console.log(this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset), 'this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.usdtnToAsset)')
+      if (this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset)) {
+        console.log(this.orderInfo.usdtnFee, this.orderInfo.usdtnFromAsset, '1231231')
+        const params = {
+          fromChain: this.orderInfo.fromNetwork
+        }
+        const res = await this.$request({
+          url: '/swap/conf',
+          data: params
+        });
+        if (res.code === 1000 && res.data) {
+          const tempData = res.data;
+          await this.stableTransfer(tempData, true);
+        }
+        this.confirmLoading = false;
+      } else if (this.orderInfo.currentPlatform.platform === 'NaboxPool') { // 稳定币确认订单
         // console.log('NaboxPool');
         // const params = {
         //   fromChain: this.orderInfo && this.orderInfo.fromNetwork,
@@ -296,7 +318,7 @@ export default {
         const { fromNetwork, fromAsset, amount, address, fromAmount } = this.orderInfo;
         if (fromNetwork === "NERVE" || fromNetwork === "NULS") {
           let checkAssetSupport = true;
-          const { chainId, assetId } = fromAsset
+          const { chainId, assetId } = fromAsset;
           if (fromNetwork === "NERVE") {
             checkAssetSupport = chainId === MAIN_INFO.chainId && assetId === MAIN_INFO.assetId
           } else {
@@ -361,7 +383,7 @@ export default {
       }
     },
     // 稳定币转账
-    async stableTransfer(txData) {
+    async stableTransfer(txData, usdtnTransfer = false) {
       try {
         const { contractAddress, fromAmount, address, decimals } = this.orderInfo;
         const transfer = new ETransfer();
@@ -375,7 +397,11 @@ export default {
         }
         const res = await transfer.crossIn(params);
         if (res && res.hash) {
-          await this.broadcastNaboxTx(res.hash)
+          if (usdtnTransfer) {
+            await this.broadcastUsdtnTransfer(res.hash);
+          } else {
+            await this.broadcastNaboxTx(res.hash);
+          }
         }
       } catch (e) {
         this.$message({
@@ -423,7 +449,52 @@ export default {
       }
       this.confirmLoading = false
     },
-    //广播其他跨链兑换转账交易
+    // 同链usdtn兑换
+    async broadcastUsdtnTransfer(txHash) {
+      const { fromAsset, toAsset, decimals, fromAmount, address, fromNetwork, currentPlatform } = this.orderInfo;
+      const fromCoin = {
+        chainId: fromAsset.chainId,
+        assetId: fromAsset.assetId,
+        contractAddress: fromAsset.contractAddress
+      };
+      const toCoin = {
+        chainId: toAsset.chainId,
+        assetId: toAsset.assetId,
+        contractAddress: toAsset.contractAddress
+      };
+      const data = {
+        platform: currentPlatform.platform,
+        channel: "nabox",
+        chain: fromNetwork,
+        address,
+        fromCoin,
+        toCoin,
+        amount: timesDecimals(fromAmount, decimals),
+        txHash
+      };
+      const res = await this.$request({
+        url: '/swap/usdtn/exchange',
+        data
+      });
+      if (res.code === 1000) {
+        this.$message({
+          type: 'success',
+          message: this.$t('tips.tips24'),
+          offset: 30
+        });
+        setTimeout(() => {
+          this.$router.go(-1)
+        }, 1500)
+      } else {
+        this.$message({
+          type: 'warning',
+          message: this.$t('tips.tips15'),
+          offset: 30
+        })
+      }
+      this.confirmLoading = false
+    },
+    // 广播其他跨链兑换转账交易
     async broadcastHex(txHex, txHash) {
       if (txHex) { // nerve
         const url = this.$store.state.network === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;

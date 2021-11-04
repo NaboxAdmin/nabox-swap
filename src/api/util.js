@@ -550,7 +550,10 @@ export const networkOrigin = {
   BSC: isBeta ? 'https://testnet.bscscan.com' : 'https://bscscan.com',
   // HTOrigin: isBeta ? 'https://scan-testnet.hecochain.com' : 'https://scan.hecochain.com'
   Heco: isBeta ? 'https://testnet.hecoinfo.com' : 'https://hecoinfo.com',
-  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test" : "https://www.oklink.com/okexchain"
+  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test" : "https://www.oklink.com/okexchain",
+  Harmony: isBeta ?  "https://explorer.harmony.one/" : "https://explorer.pops.one/",
+  Polygon: isBeta ?  "https://mumbai.polygonscan.com/" : "https://explorer.matic.network/",
+  KCC:  isBeta ?  "https://scan-testnet.kcc.network" : "https://explorer.kcc.io/",
 }
 
 export const hashLinkList = {
@@ -570,6 +573,16 @@ export const addressNetworkOrigin = {
   // HTOrigin: isBeta ? 'https://scan-testnet.hecochain.com' : 'https://scan.hecochain.com'
   Heco: isBeta ? 'https://testnet.hecoinfo.com/address/' : 'https://hecoinfo.com/address/',
   OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/address/" : "https://www.oklink.com/okexchaint/address/"
+}
+
+export const networkRpc = {
+  // Ethereum: isBeta ? 'https://ropsten.etherscan.io' : 'https://etherscan.io',
+  BSC: isBeta ? 'https://data-seed-prebsc-1-s1.binance.org:8545/' : 'https://bsc-dataseed.binance.org/',
+  Heco: isBeta ? 'https://http-testnet.hecochain.com' : 'https://http-mainnet.hecochain.com',
+  OKExChain: isBeta ? "https://exchaintestrpc.okex.org" : "https://exchainrpc.okex.org",
+  Harmony: isBeta ? "https://api.s0.b.hmny.io" : "https://api.harmony.one",
+  Polygon: isBeta ? "https://exchaintestrpc.okex.org" : "https://rpc-mainnet.maticvigil.com/",
+  KCC: isBeta ? "https://rpc-testnet.kcc.network" : "https://rpc-mainnet.kcc.network",
 }
 
 export function getLogoSrc(symbol) {
