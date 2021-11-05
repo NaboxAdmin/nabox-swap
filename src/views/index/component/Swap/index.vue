@@ -627,7 +627,7 @@ export default {
       this.stableFeeLoading = true;
       const params = {
         fromChain: this.fromNetwork,
-        toChain: this.chooseToAsset && this.chooseToAsset.mainNetwork,
+        toChain: this.chooseToAsset && this.chooseToAsset.chain,
         pairAddress: this.chooseFromAsset && this.chooseFromAsset.pairAddress,
         contractAddress: this.chooseFromAsset && this.chooseFromAsset.contractAddress,
         amount: this.fromAmount && timesDecimals(this.fromAmount, this.chooseFromAsset.decimals),
@@ -790,7 +790,7 @@ export default {
                 :
                 Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) ), 8, true) : "";
           }
-          this.platformList = ['swft'].map(item => ({
+          this.platformList = this.withdrawFee && ['swft'].map(item => ({
             asset: this.chooseToAsset || '',
             platform: item,
             isBest: true,
