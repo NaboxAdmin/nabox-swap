@@ -556,7 +556,7 @@ export default {
           ...item.swftInfo
         }));
         this.supportList = tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1);
-        this.chooseFromAsset = this.supportList.find(item => item.symbolImg === mainAssetSymbol);
+        this.chooseFromAsset = this.supportList.find(item => item.symbolImg === 'USDT') || this.supportList.find(item => item.symbolImg === mainAssetSymbol);
         this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
       }
     },

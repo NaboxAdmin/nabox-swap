@@ -201,6 +201,7 @@ export default {
     },
     // 点击nav
     async navClick(item, i) {
+      if (this.currentIndex === i) return false;
       this.$nextTick(() => {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0)
       });
@@ -238,7 +239,6 @@ export default {
         if (!this.fromAsset && this.modalType === 'recieve') {
           tempCoins = [];
         }
-        console.log(tempCoins, 'tempList')
         const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
         const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
         const { chainId: usdtChainId, assetId: usdtAssetId, contractAddress: usdtContractAddress } = this.usdtInfo[this.fromNetwork] || {};
@@ -246,13 +246,15 @@ export default {
         const { chainId: fromChainId, assetId: fromAssetId, contractAddress: fromContractAddress } = this.fromAsset || {};
         const { chainId: toChainId, assetId: toAssetId, contractAddress: toContractAddress } = this.toAsset || {};
         const currentNetwork = this.picList[this.currentIndex];
-        console.log(currentNetwork, 'currentNetwork')
         if (this.modalType === "receive" && this.fromAsset) {
-          console.log(fromChainId, usdtnChainId, fromContractAddress, usdtnContractAddress)
+          console.log(fromChainId, usdtnChainId, fromContractAddress, usdtnContractAddress);
+          const tempCoinList = tempList.filter(item => {
+            return this.fromAsset.noSupportCoin && this.fromAsset.noSupportCoin.indexOf(item.symbol === -1) || true;
+          });
           if (fromChainId === usdtnChainId && ((fromContractAddress && usdtnContractAddress && fromContractAddress === usdtnContractAddress))) { // from资产为usdtn
             console.log('usdtn资产')
             if (this.fromNetwork === this.picList[this.currentIndex]) {
-              this.showCoinList = tempList.filter(item => {
+              this.showCoinList = tempCoinList.filter(item => {
                 if (item.contractAddress) {
                   return this.fromNetwork === this.picList[this.currentIndex] && item.contractAddress === usdtContractAddress
                 } else {
@@ -266,15 +268,15 @@ export default {
             console.log('usdt资产')
             if (this.fromNetwork !== this.picList[this.currentIndex]) {
               console.log('usdt资产1234')
-              this.showCoinList = tempList.filter(coin => {
+              this.showCoinList = tempCoinList.filter(coin => {
                 if (coin.contractAddress) {
-                  return coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== usdtnContractAddress;
+                  return (coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== usdtnContractAddress) || coin.symbol !== 'USDTN';
                 } else {
-                  return coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtnChainId && coin.assetId !== usdtnAssetId)
+                  return (coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtnChainId && coin.assetId !== usdtnAssetId)) || coin.symbol !== 'USDTN'
                 }
               });
             } else {
-              this.showCoinList = tempList.filter(coin => {
+              this.showCoinList = tempCoinList.filter(coin => {
                 if (coin.contractAddress) {
                   return coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
                 } else {
@@ -284,7 +286,7 @@ export default {
             }
           } else {
             console.log('233333', tempList, currentNetwork)
-            this.showCoinList = tempList.filter(coin => {
+            this.showCoinList = tempCoinList.filter(coin => {
               if (coin.contractAddress) {
                 return coin.chain === currentNetwork && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== this.usdtnInfo[currentNetwork].contractAddress;
               } else {
@@ -295,9 +297,8 @@ export default {
             });
           }
         } else if (this.modalType === "send" && this.toAsset) {
-          console.log('12312312')
           const tempShowCoinList = tempList.filter(coin => {
-            return coin.isSupportAdvanced === 'Y'
+            return coin.isSupportAdvanced === 'Y' && (this.toAsset.noSupportCoin && this.toAsset.noSupportCoin.indexOf(item.symbol === -1) || true);
           });
           if (toChainId === usdtnChainId && toContractAddress && usdtnContractAddress && toContractAddress === usdtnContractAddress) {
             console.log('usdtn资产')
@@ -399,7 +400,7 @@ export default {
 
 <style scoped lang="scss">
 @import "Modal";
-@media screen and (min-width: 1000px) {
-
-}
+//@media screen and (min-width: 1000px) {
+//
+//}
 </style>
