@@ -16,9 +16,9 @@ module.exports = {
         open: true, // 配置自动启动浏览器
         proxy: { // 配置跨域处理
             "/nabox-api": {
-                // target: "http://192.168.1.204:8083", // 周维
+                target: "http://192.168.1.204:8083", // 周维
                 // target: "http://nabox_api.zhoulijun.top", // 测试环境
-                target: "https://api.v2.nabox.io/", // 主网环境
+                // target: "https://api.v2.nabox.io/", // 主网环境
                 changeOrigin: true,  // 是否跨域
             },
         }

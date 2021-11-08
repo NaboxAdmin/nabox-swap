@@ -570,7 +570,6 @@ export const addressNetworkOrigin = {
   NULS: isBeta ? 'http://beta.nulscan.io/address/info?address=' : 'https://nulscan.io/address/info?address=',
   Ethereum: isBeta ? 'https://ropsten.etherscan.io/address/' : 'https://etherscan.io/address/',
   BSC: isBeta ? 'https://testnet.bscscan.com/address/' : 'https://bscscan.com/address/',
-  // HTOrigin: isBeta ? 'https://scan-testnet.hecochain.com' : 'https://scan.hecochain.com'
   Heco: isBeta ? 'https://testnet.hecoinfo.com/address/' : 'https://hecoinfo.com/address/',
   OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/address/" : "https://www.oklink.com/okexchaint/address/"
 }
@@ -581,7 +580,7 @@ export const networkRpc = {
   Heco: isBeta ? 'https://http-testnet.hecochain.com' : 'https://http-mainnet.hecochain.com',
   OKExChain: isBeta ? "https://exchaintestrpc.okex.org" : "https://exchainrpc.okex.org",
   Harmony: isBeta ? "https://api.s0.b.hmny.io" : "https://api.harmony.one",
-  Polygon: isBeta ? "https://exchaintestrpc.okex.org" : "https://rpc-mainnet.maticvigil.com/",
+  Polygon: isBeta ? "https://rpc-mumbai.maticvigil.com/" : "https://rpc-mainnet.maticvigil.com/",
   KCC: isBeta ? "https://rpc-testnet.kcc.network" : "https://rpc-mainnet.kcc.network",
 }
 
@@ -599,7 +598,8 @@ export function getLogoSrc(symbol) {
 //   { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, origin: networkOrigin.OKExChain, assetId: 1, rpcUrl: {ropsten: "https://exchaintestrpc.okex.org",homestead: "https://exchainrpc.okex.org"}}
 // ];
 
-// export const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
+export const supportChainListTest = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
+console.log(supportChainListTest, '==supportChainListTest==')
 
 export const supportChainList = [
   {

@@ -463,7 +463,7 @@ export default {
         contractAddress: toAsset.contractAddress
       };
       const data = {
-        platform: currentPlatform.platform,
+        platform: "nabox",
         channel: "nabox",
         chain: fromNetwork,
         address,

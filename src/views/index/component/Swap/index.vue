@@ -344,6 +344,7 @@ export default {
         if (val) {
           this.fromAmount = '';
           this.toAmount = '';
+          this.stableFromAsset = val.supportMemo;
           // this.stableFromAsset && this.getBalance(val);
         }
         // this.getExchangeRate();
@@ -597,7 +598,7 @@ export default {
           }
           this.chooseToAsset = coin;
           this.stableToAsset = coin.supportMemo;
-          this.usdtnToAsset = coin.chainId === this.USDTN_info[this.fromNetwork].chainId && coin.contractAddress === this.USDTN_info[this.fromNetwork].contractAddress;
+          this.usdtnToAsset = this.USDTN_info[this.fromNetwork] && (coin.chainId === this.USDTN_info[this.fromNetwork].chainId && coin.contractAddress === this.USDTN_info[this.fromNetwork].contractAddress);
           if (this.stableToAsset && this.stableFromAsset && this.fromAmount) { // 稳定币获取手续费
             this.$nextTick(() => {
               this.toAmount = this.fromAmount;

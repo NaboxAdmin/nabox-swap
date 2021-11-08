@@ -116,9 +116,11 @@
     <div class="btn size-30 cursor-pointer" :class="{opacity_btn: !canNext}" v-if="crossInAuth" @click="approveERC20">{{ $t("transfer.transfer8") }}</div>
     <div class="btn size-30 cursor-pointer" :class="{opacity_btn: !canNext}" v-else @click="next">{{ $t("transfer.transfer9") }}</div>
     <transfer-modal :show-modal.sync="showModal"
+                    v-if="showModal"
                     :asset-list="transferAssets"
                     @selectAsset="selectAsset"/>
     <transfer-modal :show-modal.sync="showFeeModal"
+                    v-if="showFeeModal"
                     type="feeAssets"
                     :asset-list="transferFeeAssets"
                     @selectAsset="selectFeeAsset"/>
@@ -1028,35 +1030,22 @@ export default {
         console.log(this.txHex, "==this.txHex==")
         return this.txHex;
       }
-      const step = {
-        label,
-        done: false,
-        fn,
-        needBroadcast
-      };
       this.transactionInfo = {
         label,
         done: false,
         fn,
         needBroadcast
       };
-      this.stepList.push(step);
     },
     // 组装异构链跨链转入交易
     async constructCrossInTx(crossInInfo, label) {
       const transfer = new ETransfer();
       const fn = async () => await transfer.crossIn(crossInInfo);
-      const step = {
-        label,
-        done: false,
-        fn
-      };
       this.transactionInfo = {
         label,
         done: false,
         fn
       };
-      this.stepList.push(step);
     },
     // 执行转账
     async runTransfer() {
