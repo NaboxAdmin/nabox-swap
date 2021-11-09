@@ -49,7 +49,7 @@ const cn = {
         swap21: 'swap跨链交易未确认',
         swap22: 'swap跨链交易已确认',
         swap23: 'swap跨链交易,swap交易已广播',
-        swap24: 'swap跨链交易，链跨出交易已广播',
+        swap24: 'swap跨链交易，链跨交易已广播',
         swap25: '已确认',
         swap26: 'swap跨链交易失败',
         swap27: "交易流动性不足",

@@ -369,9 +369,6 @@ export default {
           const res = await transfer.commonTransfer(transferInfo);
           if (res && res.hash) {
             await this.broadcastHex('', res.hash);
-            setTimeout(() => {
-              this.$router.go(-1)
-            }, 1500);
           }
         }
       } catch (e) {
@@ -435,7 +432,8 @@ export default {
         this.$message({
           type: 'success',
           message: this.$t('tips.tips24'),
-          offset: 30
+          offset: 30,
+          duration: 1500
         });
         setTimeout(() => {
           this.$router.go(-1)
@@ -480,7 +478,8 @@ export default {
         this.$message({
           type: 'success',
           message: this.$t('tips.tips24'),
-          offset: 30
+          offset: 30,
+          duration: 1500
         });
         setTimeout(() => {
           this.$router.go(-1)
@@ -534,8 +533,12 @@ export default {
             this.$message({
               message: this.$t("tips.tips24"),
               type: "success",
-              offset: 30
-            })
+              offset: 30,
+              duration: 1500
+            });
+            setTimeout(() => {
+              this.$router.go(-1)
+            }, 1500);
           }
         } else {
           this.$message({
@@ -579,8 +582,12 @@ export default {
           this.$message({
             message: this.$t("tips.tips24"),
             type: "success",
-            offset: 30
-          })
+            offset: 30,
+            duration: 1500
+          });
+          setTimeout(() => {
+            this.$router.go(-1)
+          }, 1500);
         } else {
           this.$message({
             message: this.$t("tips.tips7"),

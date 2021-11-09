@@ -49,7 +49,7 @@ const en = {
         swap21:'swap cross-chain transaction not confirmed',
         swap22:'swap cross-chain transaction confirmed',
         swap23:'swap cross-chain transaction, swap transaction has been broadcast',
-        swap24:'swap cross-chain transaction, cross-chain out transaction has been broadcasted',
+        swap24:'swap cross-chain transaction, cross-chain transaction has been broadcasted',
         swap25:'Confirmed',
         swap26:'swap cross-chain transaction failed',
         swap27: "Insufficient trading liquidity",
