@@ -368,20 +368,32 @@ export class NTransfer {
 
 }
 
-const RPC_URL = {
-  BSC: {
-    ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-    homestead: "https://bsc-dataseed.binance.org/"
-  },
-  Heco: {
-    ropsten: "https://http-testnet.hecochain.com",
-    homestead: "https://http-mainnet.hecochain.com"
-  },
-  OKExChain: {
-    ropsten: "https://exchaintestrpc.okex.org",
-    homestead: "https://exchainrpc.okex.org"
+// TODO:多链待做
+let RPC_URL = {};
+const supportChainList = JSON.parse(sessionStorage.getItem('supportChainList'));
+supportChainList.forEach(chain => {
+  if (chain.chainType === 2) {
+    RPC_URL[chain.chain] = {
+      ropsten: chain.rpcUrl,
+      homestead: chain.rpcUrl
+    }
   }
-};
+});
+
+// const RPC_URL = {
+//   BSC: {
+//     ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+//     homestead: "https://bsc-dataseed.binance.org/"
+//   },
+//   Heco: {
+//     ropsten: "https://http-testnet.hecochain.com",
+//     homestead: "https://http-mainnet.hecochain.com"
+//   },
+//   OKExChain: {
+//     ropsten: "https://exchaintestrpc.okex.org",
+//     homestead: "https://exchainrpc.okex.org"
+//   }
+// };
 
 const CROSS_OUT_ABI = [
   "function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)"

@@ -27,7 +27,8 @@ export default {
         },
         showSign() {
             return this.$store.state.showSign;
-        }
+        },
+
     },
     filters: {
       numFormat(val) {

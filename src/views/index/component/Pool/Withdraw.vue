@@ -34,7 +34,7 @@
             <img src="@/assets/image/drop_down.png" alt="">
           </div>
         </div>
-        <span class="font-500 size-36">{{ withdrawCount || "0" }}</span>
+        <span class="font-500 size-36 m-w180 word-break">{{ withdrawCount || "0" }}</span>
       </div>
     </div>
     <div>
@@ -107,7 +107,8 @@ export default {
       withDrawLoading: false,
       availableLoading: false,
       lpAssetsList: [],
-      addedBalance: ''
+      addedBalance: 0,
+      // userAvailable: 0 // 用户可用的流动性
     }
   },
   created() {
@@ -250,6 +251,7 @@ export default {
       });
       if (res.code === 1000) {
         this.addedLiquidityInfo = res.data;
+        // this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
         this.addedLiquidityInfo["balance"] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
         this.addedBalance = this.numberFormat(tofix(res.data.balance, 4, -1), 4);
         this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo["balance"], this.liquidityInfo.total), 100), 2, -1) || 0;
@@ -348,8 +350,8 @@ export default {
           offset: 30,
         });
         this.withDrawLoading = false;
-        await this.getLiquidityInfo();
         this.reset();
+        await this.getLiquidityInfo();
       } else {
         this.withDrawLoading = false;
         this.$message({

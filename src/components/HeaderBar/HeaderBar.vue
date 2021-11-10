@@ -110,18 +110,18 @@
                   </template>
                   <span>{{ item.createTime }}</span>
                   <span class="status-icon">
-                    <!--L2网络订单-->
-                    <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 2 && item.status === 0"/>
-                    <i class="el-icon-success" style="color: #6EB6A9" v-if="orderType === 2 && item.status === 1"/>
-                    <i class="el-icon-error" style="color: #eb7d62" v-if="orderType === 2 && item.status === -1"/>
-                    <!--L1网络订单-->
-                    <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 0"/>
-                    <i class="el-icon-success" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 1"/>
-                    <i class="el-icon-error" style="color: #eb7d62" v-if="orderType === 1 && item.status === -1"/>
                     <!--swap订单-->
                     <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 3 && item.status !== 5 && item.status !== 4"/>
                     <i class="el-icon-success" style="color: #6EB6A9" v-else-if="orderType === 3 && item.status === 4"/>
                     <i class="el-icon-error" style="color: #eb7d62" v-else-if="orderType === 3 && item.status === 5"/>
+                    <!--L1网络订单-->
+                    <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 0"/>
+                    <i class="el-icon-success" style="color: #6EB6A9" v-if="orderType === 1 && item.status === 1"/>
+                    <i class="el-icon-error" style="color: #eb7d62" v-if="orderType === 1 && item.status === -1"/>
+                    <!--L2网络订单-->
+                    <i class="el-icon-loading" style="color: #6EB6A9" v-if="orderType === 2 && item.status === 0"/>
+                    <i class="el-icon-success" style="color: #6EB6A9" v-if="orderType === 2 && item.status === 1"/>
+                    <i class="el-icon-error" style="color: #eb7d62" v-if="orderType === 2 && item.status === -1"/>
                 </span>
                 </div>
                 <div class="text-center size-28 mb-3" v-if="orderList.length === 0">No Data</div>
@@ -138,7 +138,7 @@
 import Pop from "../Pop/Pop";
 import PopUp from "../PopUp/PopUp";
 import {ETHNET} from "@/config";
-import {addressNetworkOrigin, copys, divisionDecimals, hashLinkList, supportChainList, tofix} from "../../api/util";
+import {copys, divisionDecimals, supportChainList, tofix} from "../../api/util";
 
 const lang = localStorage.getItem("locale") || 'cn'
 
@@ -166,7 +166,7 @@ export default {
       showPop: false,
       showAccount: false,
       supportChainList: supportChainList,
-      currentChain: this.$store.state.network, // 当前所选则的链
+      currentChain: this.$store.state.network, // 当前所选择的链
       showDropList: false, // 下拉菜单
       orderList: [], // 订单列表
       orderType: 3, // 当前选择的订单类型
@@ -237,9 +237,6 @@ export default {
     isMobile() {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     },
-    isNerveTo() {
-      return window.location.hash.indexOf('transfer') > -1;
-    },
     l1ChainList() {
       const tempList = supportChainList.filter(chain => chain.label !== "NULS" && chain.label !== "NERVE");
       // const tempList = supportChainList;
@@ -256,11 +253,25 @@ export default {
         },
         blockExplorerUrls: [chain.origin]
       }));
+    },
+    hashLinkList() {
+      const hashLinkList = {};
+      supportChainList.forEach(item => {
+        hashLinkList[item.chain] = item.hashLink;
+      });
+      return hashLinkList;
+    },
+    addressNetworkOrigin() {
+      const addressNetworkOrigin = {};
+      supportChainList.forEach(chain => {
+        addressNetworkOrigin[chain.chain] = chain.addressLink;
+      });
+      return addressNetworkOrigin;
     }
   },
   methods: {
     toBrowser(network, address) {
-      this.isMobile ? window.location.href = addressNetworkOrigin[network || this.fromNetwork] + address || this.address : window.open(addressNetworkOrigin[network || this.fromNetwork] + address || this.address);
+      this.isMobile ? window.location.href = this.addressNetworkOrigin[network || this.fromNetwork] + address || this.address : window.open(this.addressNetworkOrigin[network || this.fromNetwork] + address || this.address);
     },
     copy(val) {
       if (!val) return;
@@ -269,7 +280,6 @@ export default {
     },
     showDropClick() {
       this.showDropList = !this.showDropList;
-      // console.log(this.showDropList);
     },
     // 断开连接
     disConnect() {
@@ -436,7 +446,7 @@ export default {
     linkToUrl(hash, item) {
       if (this.orderType===2 || this.orderType === 1) {
         const chain = this.orderType === 2 ? 'NERVE' : this.currentChain;
-        this.isMobile ? window.location.href = `${hashLinkList[chain]}${hash}` : window.open(`${hashLinkList[chain]}${hash}`);
+        this.isMobile ? window.location.href = `${this.hashLinkList[chain]}${hash}` : window.open(`${this.hashLinkList[chain]}${hash}`);
       } else {
         this.toOrderDetail(item);
       }

@@ -8,13 +8,13 @@ import {post, request} from './api/https'
 import './api/rem';
 import 'normalize.css'; // 初始化css
 import messages from './locales';
-import {isBeta} from "./api/util";
+import {hashLinkList, isBeta} from "./api/util";
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import globalMixin from './mixin';
 import './plugins/vant';
 import { Loading } from 'vant';
-import {networkOrigin, networkRpc} from "./api/util";
+import {networkOrigin, networkRpc, addressNetworkOrigin} from "./api/util";
 
 const development = process.env.NODE_ENV === "development"
 Vue.config.devtools = development;
@@ -84,11 +84,16 @@ async function getConfig(network) {
                         chainId: item.mainAsset.chainId || "",
                         assetId: item.mainAsset.assetId || "",
                         decimals: item.mainAsset.decimals || "",
+                        hashLink: item.txUrl,
+                        addressLink: addressNetworkOrigin[item.chain],
+                        symbol: item.mainAsset.symbol || "",
                     };
                 } else if (item.chainType === 2) {
                     return {
                         label: item.chain,
                         value: item.chain,
+                        chain: item.chain,
+                        chainType: item.chainType,
                         symbol: item.mainAsset.symbol || "",
                         ropsten: `0x${Number(item.nativeId).toString(16)}`,
                         SwftChain: item.chain,
@@ -97,7 +102,9 @@ async function getConfig(network) {
                         assetId: item.mainAsset.assetId || "",
                         decimals: item.mainAsset.decimals || "",
                         rpcUrl: networkRpc[item.chain],
-                        origin: networkOrigin[item.chain]
+                        origin: networkOrigin[item.chain],
+                        hashLink: item.txUrl,
+                        addressLink: addressNetworkOrigin[item.chain]
                     }
                 }
             });

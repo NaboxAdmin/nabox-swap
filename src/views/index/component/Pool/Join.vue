@@ -107,7 +107,8 @@ export default {
       liquidityInfo: null, // 流动性信息
       currentAsset: null, // 当前选择的资产
       currentAssetInfo: null, // 当前资产的详细信息
-      currentAvailable: 0, // 当前选择的资产的余额
+      currentAvailable: 0, // 当前选择的资产的余额-6位小数
+      userAvailable: 0, // 当前选择的资产的余额
       addedLiquidityInfo: null, // 已添加流动性的资产信息
       confirmLoading: false,
       showModal: false,
@@ -285,8 +286,8 @@ export default {
       });
       if (res.code === 1000) {
         this.currentAssetInfo = res.data;
-        // this.currentAvailable = divisionDecimals(res.data.balance, res.data.decimals);
         this.currentAvailable = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
+        // this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
       }
       this.availableLoading = false;
     },
@@ -348,6 +349,7 @@ export default {
         }
         const txHex = await transfer.getTxHex(txData);
         if (txHex) {
+          console.log(txHex, '==txHex==');
           await this.broadcastHex(txHex);
         }
       } catch (e) {

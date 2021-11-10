@@ -41,7 +41,7 @@
               </div>
             </div>
           </div>
-          <div class="text-center size-28 text-90 flex-1 pt-4 h-800" v-else>{{ $t('modal.modal3') }}</div>
+          <div class="text-center size-28 text-90 flex-1 pt-4 h-800" v-else>{{ $t('tips.tips25') }}</div>
         </div>
       </div>
     </div>
