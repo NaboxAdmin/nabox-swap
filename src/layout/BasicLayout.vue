@@ -80,7 +80,7 @@ export default {
           name: 'vaults',
           disabled: false
         }
-      ], // 'Swap', 'Transfer', 'Pool', 'Vaults'
+      ],
       currentIndex: 0,
       address: '', // 合约地址
       // showConnect: true, // 显示可连接钱包
@@ -167,9 +167,8 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return;
-        const chain = supportChainList.filter(v => v[ETHNET] === val)[0];
-        // console.log(chain, ETHNET, val, this.address, 'val val')
-        // console.log(this.address, 'this.address');
+        const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+        const chain = tempSupportChainList.find(v => v[ETHNET] === val);
         if (chain) {
           this.$store.commit("changeNetwork", chain.value);
         } else {

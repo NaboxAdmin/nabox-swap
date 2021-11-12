@@ -195,12 +195,14 @@
         </div>
       </div>
     </pop-modal>
+<!--    <ConfirmOrder/>-->
   </div>
 </template>
 
 <script>
 import CoinModal from "./Modal/CoinModal";
 import PopUp from "../../../../components/PopUp/PopUp";
+import ConfirmOrder from '@/views/confirmOrder/confirmOrder';
 import {
   debounce,
   Division,
@@ -233,7 +235,8 @@ export default {
   // keep-alive: true,
   components: {
     CoinModal,
-    'pop-modal': PopUp
+    'pop-modal': PopUp,
+    ConfirmOrder
   },
   data() {
     this.getFeeDebounce = debounce(this.getStableTransferFee, 500);
@@ -539,6 +542,8 @@ export default {
     // 获取swft支持的闪兑列表
     async getCoins() {
       const assetConfig = JSON.parse(sessionStorage.getItem('config'));
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      const tempValideNetwork = valideNetwork.length === 0 && tempSupportChainList.map(item => item.SwftChain) || valideNetwork;
       const mainAssetSymbol = assetConfig[this.fromNetwork].symbol;
       const res = await this.$request({
         url: "/swap/exchange/coins",
@@ -548,7 +553,7 @@ export default {
         }
       });
       if (res.code === 1000) {
-        const coins = res.data.filter(v => valideNetwork.indexOf(v.chain) > -1);
+        const coins = res.data.filter(v => tempValideNetwork.indexOf(v.chain) > -1);
         let tempCoins = coins.map(item => ({
           ...item,
           balance: divisionDecimals(item.balance, item.decimals),
@@ -578,7 +583,7 @@ export default {
           this.balanceRequest = true;
           this.chooseFromAsset = coin;
           this.stableFromAsset = coin.supportMemo;
-          this.usdtnFromAsset = coin.chainId === this.USDTN_info[this.fromNetwork].chainId && coin.contractAddress === this.USDTN_info[this.fromNetwork].contractAddress;
+          this.usdtnFromAsset = coin.chainId === (this.USDTN_info[this.fromNetwork] && this.USDTN_info[this.fromNetwork].chainId) && coin.contractAddress === (this.USDTN_info[this.fromNetwork] && this.USDTN_info[this.fromNetwork].contractAddress);
           await this.getBalance(coin);
           // await this.getTransferFee();
           if (this.chooseToAsset) {

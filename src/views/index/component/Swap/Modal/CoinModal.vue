@@ -30,7 +30,7 @@
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
                 <div class="coin-item">
                   <span class="coin-icon">
-                    <img :src="item.icon" @error="pictureError" alt="">
+                    <img :src="item.icon || getPicture(item.symbol) || pictureError" @error="pictureError" alt="">
                   </span>
                   <span class="text-3a font-500">{{ item.symbol }}</span>
                 </div>
@@ -251,7 +251,7 @@ export default {
           const tempCoinList = tempList.filter(item => {
             return this.fromAsset.noSupportCoin && this.fromAsset.noSupportCoin.indexOf(item.symbol === -1) || true;
           });
-          if (fromChainId === usdtnChainId && ((fromContractAddress && usdtnContractAddress && fromContractAddress === usdtnContractAddress))) { // from资产为usdtn
+          if (fromChainId === usdtnChainId && (fromContractAddress && usdtnContractAddress && fromContractAddress === usdtnContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtnAssetId)) { // from资产为usdtn
             if (this.fromNetwork === this.picList[this.currentIndex]) {
               this.showCoinList = tempCoinList.filter(item => {
                 if (item.contractAddress) {
@@ -263,7 +263,7 @@ export default {
             } else {
               this.showCoinList = []
             }
-          } else if (fromChainId === usdtChainId && (fromContractAddress && usdtContractAddress && fromContractAddress === usdtContractAddress)) { // from资产为usdt
+          } else if (fromChainId === usdtChainId && (fromContractAddress && usdtContractAddress && fromContractAddress === usdtContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtAssetId)) { // from资产为usdt
             if (this.fromNetwork !== this.picList[this.currentIndex]) {
               this.showCoinList = tempCoinList.filter(coin => {
                 if (coin.contractAddress) {
@@ -285,7 +285,7 @@ export default {
             // console.log('233333', tempList, currentNetwork)
             this.showCoinList = tempCoinList.filter(coin => {
               if (coin.contractAddress) {
-                return coin.chain === currentNetwork && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== this.usdtnInfo[currentNetwork].contractAddress;
+                return coin.chain === currentNetwork && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== (this.usdtnInfo[currentNetwork] && this.usdtnInfo[currentNetwork].contractAddress);
               } else {
                 // console.log('123', coin.chain === currentNetwork, coin.chainId !== this.fromAsset.chainId, coin.assetId !== this.fromAsset.assetId)
                 return coin.chain === currentNetwork  && (coin.chainId !== this.fromAsset.chainId) && coin.symbol !== "USDTN"
@@ -297,8 +297,7 @@ export default {
           const tempShowCoinList = tempList.filter(coin => {
             return coin.isSupportAdvanced === 'Y' && (this.toAsset.noSupportCoin && this.toAsset.noSupportCoin.indexOf(coin.symbol) === -1 || true);
           });
-          if (toChainId === usdtnChainId && toContractAddress && usdtnContractAddress && toContractAddress === usdtnContractAddress) {
-            console.log('usdtn资产')
+          if (toChainId === usdtnChainId && (toContractAddress && usdtnContractAddress && toContractAddress === usdtnContractAddress || this.fromNetwork === 'NERVE' && toAssetId === usdtnAssetId)) {
             this.showCoinList = tempShowCoinList.filter(coin => {
               if (coin.contractAddress) {
                 return this.fromNetwork === this.picList[this.currentIndex] && coin.contractAddress === usdtContractAddress
@@ -306,8 +305,7 @@ export default {
                 return this.fromNetwork === this.picList[this.currentIndex] && (coin.chain === usdtChainId && coin.assetId === usdtAssetId)
               }
             });
-          } else if (toChainId === usdtChainId && toContractAddress && usdtContractAddress && toContractAddress === usdtContractAddress) {
-            console.log('usdt资产')
+          } else if (toChainId === usdtChainId && (toContractAddress && usdtContractAddress && toContractAddress === usdtContractAddress || this.fromNetwork === 'NERVE' && toAssetId === usdtAssetId)) {
             this.showCoinList = tempShowCoinList.filter((coin, index) => {
               if (coin.contractAddress) {
                 return coin.contractAddress !== this.toAsset.contractAddress || coin.contractAddress === usdtContractAddress ;
@@ -330,7 +328,7 @@ export default {
               return coin.isSupportAdvanced === 'Y'
             });
           } else {
-            this.showCoinList = tempList;
+            this.showCoinList = [];
           }
         }
         this.showLoading = false;

@@ -74,7 +74,7 @@
       <span class="size-28 text-90">{{ $t("transfer.transfer3") }}</span>
       <div class="asset-info mt-1" @click="showModal=true">
         <div class="asset-icon">
-          <img :src="getPicture(currentCoin && currentCoin.symbol)" @error="pictureError" alt="">
+          <img :src="currentCoin && currentCoin.icon || getPicture(currentCoin && currentCoin.symbol) || pictureError" @error="pictureError" alt="">
         </div>
         <span class="size-30 ml-12">{{ currentCoin && currentCoin.symbol }}</span>
         <div class="size-30 ml-1 text-90 flex-1">{{ toNerve ? superLong(fromAddress) : superLong(nerveAddress) }}</div>
@@ -128,18 +128,12 @@
 </template>
 
 <script>
-import {valideNetwork} from "../Swap";
-import {debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, genID} from "@/api/util";
+import {debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus} from "@/api/util";
 import {MAIN_INFO, NULS_INFO} from "@/config";
 import {crossFee, ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, NTransfer} from "@/api/api";
 import {getContractCallData} from "@/api/nulsContractValidate";
 import Modal from "./Modal/Modal";
 import {tofix} from "../../../../api/util";
-
-let chainToSymbol = {}
-supportChainList.map(v => {
-  chainToSymbol[v.value] = v.symbol
-});
 
 export default {
   name: "Transfer",
@@ -361,8 +355,6 @@ export default {
         const { chainId, assetId, contractAddress } = assetInfo;
         const tempNetwork = this.toNerve ? this.fromNetwork : "NERVE";
         const address = this.currentAccount.address[tempNetwork];
-        // 关注当前资产
-        // !refresh && await this.focusAsset(tempNetwork, this.USDTasset);
         if (tempNetwork === "NERVE") {
           const data = {
             address,
@@ -424,50 +416,6 @@ export default {
         console.log(e);
       }
     },
-    // 关注资产
-    async focusAsset(network, asset) {
-      const tempNetwork = this.toNerve ? network : "NERVE";
-      let chainId, assetId;
-      if (tempNetwork==='NERVE') {
-        chainId = asset.chainId;
-        assetId = asset.assetId
-        // const infoParams = {
-        //   network: network,
-        //   assetsChainId: asset.chainId,
-        //   assetsId: asset.assetId,
-        //   contractAddress: asset.contractAddress || ""
-        // }
-        // const res = await getAssetNerveInfo(infoParams); // 查询nerve的usdt资产信息
-        // if (res) {
-        //
-        // }
-      } else { // 异构链关注资产
-        // const params = {
-        //   address: this.currentAccount['address'][network],
-        //   chain: network,
-        //   contractAddress: asset.contractAddress || "",
-        //   chainId: asset.heterogeneousChainId,
-        //   refresh: true
-        // }
-        // const tempRes = await this.$request({
-        //   url: '/wallet/address/asset',
-        //   data: params
-        // });
-        // if (tempRes.code===1000 && tempRes.data) {
-        //   chainId = tempRes.data.chainId;
-        //   assetId = tempRes.data.assetId;
-        // }
-      }
-      const focusParams = {
-        address: this.currentAccount['address'][network],
-        assetId,
-        chainId,
-        chain: network,
-        contractAddress: asset.contractAddress || "",
-        focus: true
-      };
-      await this.$request({ url: "/wallet/address/asset/focus", data: focusParams });
-    },
     // nerve to
     switchToNerve() {
       this.toNerve = !this.toNerve;
@@ -480,31 +428,6 @@ export default {
       // this.getCurrentAssetInfo();
       this.getTransferAsset();
       !this.toNerve && this.getMainAssetInfo();
-    },
-
-    // 获取转账的资产列表
-    async getCoins(network = '', address = '') {
-      const res = await this.$request({
-        url: "/wallet/address/assets",
-        data: {
-          chain: network || this.fromNetwork || '',
-          address: address || this.fromAddress
-        }
-      });
-      if (res.code === 1000) {
-        const tempFromNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
-        const coins = res.data.filter(v => valideNetwork.indexOf(v.registerChain) > -1);
-        this.clearGetAllowanceTimer();
-        this.currentCoin = coins && coins.find(coin => coin.symbol === "NVT") || null;
-        // assset.assetId为0 则为异构链上token资产
-        if (this.currentCoin && this.currentCoin.assetId === 0 && tempFromNetwork !== "NULS") {
-          await this.checkCrossInAuthStatus();
-        } else {
-          this.crossInAuth = false;
-        }
-        this.available = this.currentCoin && divisionDecimals(this.currentCoin.balance, this.currentCoin.decimals) || 0;
-        !this.toNerve && await this.getTransferFee();
-      }
     },
     // 输入转账
     accountInput(e) {
@@ -707,6 +630,11 @@ export default {
       if (boo) {
         this.showFeeLoading = true;
       }
+      const chainToSymbol = {};
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      tempSupportChainList.map(v => {
+        chainToSymbol[v.value] = v.symbol
+      });
       const tempFromNetwork = this.toNerve ? this.fromNetwork : "NERVE";
       const temToNetwork = this.toNerve ? "NERVE" : this.fromNetwork;
       const asset = this.currentCoin;

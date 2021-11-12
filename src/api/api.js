@@ -368,17 +368,6 @@ export class NTransfer {
 
 }
 
-// TODO:多链待做
-let RPC_URL = {};
-const supportChainList = JSON.parse(sessionStorage.getItem('supportChainList'));
-supportChainList.forEach(chain => {
-  if (chain.chainType === 2) {
-    RPC_URL[chain.chain] = {
-      ropsten: chain.rpcUrl,
-      homestead: chain.rpcUrl
-    }
-  }
-});
 
 // const RPC_URL = {
 //   BSC: {
@@ -431,6 +420,16 @@ export class ETransfer {
   }
 
   getProvider(chain) {
+    let RPC_URL = {};
+    const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
+    supportChainList.forEach(chain => {
+      if (chain.chainType === 2) {
+        RPC_URL[chain.chain] = {
+          ropsten: chain.rpcUrl,
+          homestead: chain.rpcUrl
+        }
+      }
+    });
     if (!chain) {
       this.provider = new ethers.providers.Web3Provider(window.ethereum);
     } else {

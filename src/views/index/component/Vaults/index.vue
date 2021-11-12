@@ -86,16 +86,6 @@ currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
   name: "Vaults",
-  props: {
-    // currentAccount: {
-    //   type: Object,
-    //   default: () => null
-    // },
-    // fromNetwork: {
-    //   type: String,
-    //   default: ""
-    // }
-  },
   components: { PopUp, Progress, Over },
   data() {
     return {

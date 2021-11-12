@@ -34,7 +34,12 @@
     <div class="output-cont d-flex direction-column">
       <div class="size-28 text-90">{{ $t("pool.join1") }}</div>
       <div class="d-flex align-items-center space-between mt-2">
-        <span class="font-500 size-30">{{ liquidityInfo && liquidityInfo.symbol || 'USDTN' }}</span>
+        <div class="d-flex align-items-center">
+          <span class="image-cont mr-14">
+            <img :src="getPicture(liquidityInfo && liquidityInfo.symbol || 'USDTN')" alt="">
+          </span>
+          <span class="font-500 size-30">{{ liquidityInfo && liquidityInfo.symbol || 'USDTN' }}</span>
+        </div>
         <span class="font-500 size-36 m-w180 word-break">{{ joinCount || "0" }}</span>
       </div>
     </div>
@@ -75,10 +80,9 @@
 </template>
 
 <script>
-import { valideNetwork } from "../Swap";
 import { NTransfer } from "@/api/api";
 import { currentNet } from "@/config";
-import { divisionDecimals, timesDecimals, getAssetNerveInfo, Minus, Division, tofix } from "@/api/util";
+import { divisionDecimals, timesDecimals, Minus, Division, tofix } from "@/api/util";
 import Modal from "./Modal/Modal";
 import {Times} from "../../../../api/util";
 
@@ -88,17 +92,6 @@ currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
   name: "Join",
-  props: {
-    // nerveAddress: String,
-    // currentAccount: {
-    //   type: Object,
-    //   default: () => null
-    // },
-    // fromNetwork: {
-    //   type: String,
-    //   default: ""
-    // }
-  },
   data() {
     return {
       joinCount: '',
@@ -123,7 +116,6 @@ export default {
   },
   components: { Modal },
   async created() {
-    // await this.getCoins();
     await this.getLiquidityInfo();
     this.infoTimer = setInterval(async () => {
       await this.getLiquidityInfo(true);
@@ -201,21 +193,6 @@ export default {
       this.getAssetInfo(asset);
       // this.getCoins(asset.symbol);
       this.showModal = false;
-    },
-    // 获取当前链上的资产
-    async getCoins(symbol) {
-      const res = await this.$request({
-        url: "/wallet/address/assets",
-        data: {
-          chain: "NERVE",
-          address: this.nerveAddress
-        }
-      });
-      if (res.code === 1000) {
-        const coins = res.data.filter(v => valideNetwork.indexOf(v.registerChain) > -1);
-        this.currentCoin = coins && coins.find(coin => coin.symbol === (symbol || "USDT")) || null;
-        this.available = this.currentCoin && divisionDecimals(this.currentCoin.balance, this.currentCoin.decimals) || 0;
-      }
     },
     // 获取pool流动性信息
     async getLiquidityInfo(refresh=false) {
@@ -365,14 +342,6 @@ export default {
     },
     //广播nerve nuls跨链转账交易
     async broadcastHex(txHex) {
-      // const url = MAIN_INFO.rpc;
-      // const chainId = MAIN_INFO.chainId;
-      // const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-      // if (res.result && res.result.hash) {
-      //   this.$message({ message: this.$t("交易成功"), type: "success", duration: 2000 })
-      // } else {
-      //   this.$message({ message: this.$t("交易失败"), type: "warning", duration: 2000 })
-      // }
       const res = await this.$request({
         url: '/swap/lp/add',
         data: { txHex }
@@ -480,6 +449,18 @@ export default {
   line-height: 20px;
   font-size: 12px;
   color: #6EB6A9;
+}
+.image-cont {
+  height: 51px;
+  width: 51px;
+  background-color: #FFFFFF;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+.mr-14 {
+  margin-right: 14px;
 }
 .rotate_x {
   transform: rotateX(180deg);

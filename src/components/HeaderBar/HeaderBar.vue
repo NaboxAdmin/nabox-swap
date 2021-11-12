@@ -11,9 +11,9 @@
             <span class="chain-icon">
               <img :src="getPicture(currentChain)" @error="pictureError" alt="">
             </span>
-<!--            <div class="icon-drop ml-2">-->
-<!--              <img src="../../assets/image/drop_down_active.png" alt="">-->
-<!--            </div>-->
+            <div class="icon-drop ml-2">
+              <img src="../../assets/image/drop_down_active.png" alt="">
+            </div>
           </div>
           <div class="space-cont"/>
           <div class="d-flex" @click="addressClick">
@@ -22,15 +22,15 @@
               <img src="@/assets/image/loading.svg" alt="">
             </span>
           </div>
-<!--          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">-->
-<!--            <span class="mt-2 cursor-pointer"-->
-<!--                  v-for="(item, index) in l1ChainList"-->
-<!--                  @click="chainClick(item)"-->
-<!--                  :class="{'active_chain': item.chainName === currentChain}"-->
-<!--                  :key="index">-->
-<!--              {{ item.chainName }}-->
-<!--            </span>-->
-<!--          </div>-->
+          <div class="network-list size-28 d-flex direction-column" v-if="showDropList">
+            <span class="mt-2 cursor-pointer"
+                  v-for="(item, index) in l1ChainList"
+                  @click="chainClick(item)"
+                  :class="{'active_chain': item.chainName === currentChain}"
+                  :key="index">
+              {{ item.chainName }}
+            </span>
+          </div>
         </div>
         <template>
           <div class="header-icon_position" v-if="!address"/>
@@ -140,16 +140,7 @@ import PopUp from "../PopUp/PopUp";
 import {ETHNET} from "@/config";
 import {copys, divisionDecimals, supportChainList, tofix} from "../../api/util";
 
-const lang = localStorage.getItem("locale") || 'cn'
-
-const linkList = {
-  Ethereum: 'https://etherscan.io/tx/',
-  BSC: 'https://bscscan.com/tx/',
-  Heco: 'https://hecoinfo.com/tx/',
-  OKEcChain: 'https://www.oklink.com/okexchain/tx/',
-  NULS: 'https://nulscan.io/transaction/info?hash=',
-  Nerve: 'https://scan.nerve.network/transaction/info?hash='
-}
+const lang = localStorage.getItem("locale") || 'cn';
 
 export default {
   name: "HeaderBar",
@@ -238,13 +229,14 @@ export default {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     },
     l1ChainList() {
-      const tempList = supportChainList.filter(chain => chain.label !== "NULS" && chain.label !== "NERVE");
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      const tempList = tempSupportChainList.filter(chain => chain.label !== "NULS" && chain.label !== "NERVE");
       // const tempList = supportChainList;
       console.log(tempList, 'tempList')
       return tempList.map(chain => ({
         chainId: chain[ETHNET],
-        rpcUrls: chain.rpcUrl ? [chain.rpcUrl[ETHNET]] : [],
-        // rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
+        // rpcUrls: chain.rpcUrl ? [chain.rpcUrl[ETHNET]] : [],
+        rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         chainName: chain.value,
         nativeCurrency: {
           name: chain.value,
@@ -256,14 +248,16 @@ export default {
     },
     hashLinkList() {
       const hashLinkList = {};
-      supportChainList.forEach(item => {
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      tempSupportChainList.forEach(item => {
         hashLinkList[item.chain] = item.hashLink;
       });
       return hashLinkList;
     },
     addressNetworkOrigin() {
       const addressNetworkOrigin = {};
-      supportChainList.forEach(chain => {
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      tempSupportChainList.forEach(chain => {
         addressNetworkOrigin[chain.chain] = chain.addressLink;
       });
       return addressNetworkOrigin;
@@ -330,7 +324,7 @@ export default {
         }).catch(err => {
           console.log(err)
           this.$message({
-            message: err.message,
+            message: err.message || err,
             offset: 30,
             type: "warning"
           })
@@ -348,7 +342,7 @@ export default {
           this.$store.commit('changeNetwork', chain.chainName);
         }).catch(err => {
           this.$message({
-            message: err.message,
+            message: err.message || err,
             offset: 30,
             type: "warning"
           })
