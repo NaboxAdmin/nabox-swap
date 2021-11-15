@@ -1,201 +1,203 @@
 <template>
-  <div class="swap-cont" :class="!isDapp && 'p-4'" v-loading="showLoading">
-    <div :class="!isDapp && 'swap-info'">
-      <div class="d-flex align-items-center space-between text-90 size-28">
-        <div>{{ $t("swap.swap1") }}<span class="size-20 sign" v-if="chooseFromAsset">{{ chooseFromAsset.chain }}</span></div>
-        <div>{{ $t("swap.swap4") }}：
-          <span class="text-3a" v-if="balanceLoading"><i class="el-icon-loading"/></span>
-          <span class="text-3a" v-else-if="available">{{ available | numberFormat }}</span>
-          <span class="text-3a" v-else>--</span>
-<!--          <span class="word-break">{{ (available || 0.0) | numberFormat }}</span>-->
+  <div>
+    <div class="swap-cont" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" v-loading="showLoading">
+      <div :class="!isDapp && 'swap-info'">
+        <div class="d-flex align-items-center space-between text-90 size-28">
+          <div>{{ $t("swap.swap1") }}<span class="size-20 sign" v-if="chooseFromAsset">{{ chooseFromAsset.chain }}</span></div>
+          <div>{{ $t("swap.swap4") }}：
+            <span class="text-3a" v-if="balanceLoading"><i class="el-icon-loading"/></span>
+            <span class="text-3a" v-else-if="available">{{ available | numberFormat }}</span>
+            <span class="text-3a" v-else>--</span>
+            <!--          <span class="word-break">{{ (available || 0.0) | numberFormat }}</span>-->
+          </div>
+        </div>
+        <div class="input-cont mt-2">
+          <template>
+            <div class="coin-cont size-28 cursor-pointer text-90"
+                 v-if="!chooseFromAsset"
+                 @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
+            <div class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')" v-else>
+              <div class="image-cont">
+                <img :src="chooseFromAsset.icon || pictureError" @error="pictureError" alt="">
+              </div>
+              <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
+                {{ chooseFromAsset.symbolImg }}
+              </div>
+            </div>
+          </template>
+          <div class="icon-cont" @click.stop="openModal('receive')">
+            <img src="../../../../assets/image/drop_down.png" alt="">
+          </div>
+          <div class="space-cont"/>
+          <div class="input-item align-items-center d-flex flex-1">
+            <input class="flex-1"
+                   placeholder="0"
+                   @input="fromAmountInput"
+                   @focus="amountFocus('from')"
+                   v-model="fromAmount">
+            <span class="text-primary size-28 cursor-pointer" @click="maxAmount">{{ $t("swap.swap3") }}</span>
+          </div>
+        </div>
+        <div class="text-red mt-2 ml-2 size-28" v-if="amountMsg">{{ amountMsg }}</div>
+        <div class="down-icon" @click="switchAssetClick">
+          <img v-if="switchAsset" src="@/assets/image/switch.png" alt="">
+          <img v-else src="@/assets/image/swap.png" alt="">
+        </div>
+        <div class="d-flex mt-05 align-items-center space-between text-90 size-28">
+          <div>{{ $t("swap.swap2") }}<span class="size-20 sign" v-if="chooseToAsset">{{ chooseToAsset.chain }}</span></div>
+        </div>
+        <div class="input-cont mt-2">
+          <template>
+            <div class="coin-cont size-28 cursor-pointer text-90 text-truncate text-truncate_one"
+                 @click.stop="openModal('receive')"
+                 v-if="!chooseToAsset">{{ $t('swap.swap12') }}</div>
+            <div class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')" v-else>
+              <div class="image-cont">
+                <img :src="chooseToAsset.icon || pictureError" @error="pictureError">
+              </div>
+              <div class="w-90 text-truncate direction-column size-30 ml-1 text-3a">
+                {{ chooseToAsset.symbolImg }}
+              </div>
+            </div>
+            <div class="icon-cont" @click.stop="openModal('receive')">
+              <img src="../../../../assets/image/drop_down.png" alt="">
+            </div>
+          </template>
+          <div class="space-cont"/>
+          <div class="input-item align-items-center d-flex flex-1">
+            <input class="flex-1"
+                   placeholder="0"
+                   @input="toAmountInput"
+                   @focus="amountFocus('to')"
+                   v-model="toAmount">
+          </div>
         </div>
       </div>
-      <div class="input-cont mt-2">
+      <div class="swap-info d-flex direction-column">
         <template>
-          <div class="coin-cont size-28 cursor-pointer text-90"
-               v-if="!chooseFromAsset"
-               @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
-          <div class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')" v-else>
-            <div class="image-cont">
-              <img :src="chooseFromAsset.icon || pictureError" @error="pictureError" alt="">
-            </div>
-            <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
-              {{ chooseFromAsset.symbolImg }}
-            </div>
+          <div class="d-flex space-between size-28">
+            <span class="text-90">{{ $t("swap.swap5") }}</span>
+            <span class="text-3a w-75" v-if="currentPlatform">1{{ chooseFromAsset && chooseFromAsset.symbol }} ≈ {{ currentPlatform && currentPlatform.swapRate }} {{ chooseToAsset && chooseToAsset.symbol }}</span>
+            <span v-else>--</span>
           </div>
         </template>
-        <div class="icon-cont" @click.stop="openModal('receive')">
-          <img src="../../../../assets/image/drop_down.png" alt="">
-        </div>
-        <div class="space-cont"/>
-        <div class="input-item align-items-center d-flex flex-1">
-          <input class="flex-1"
-                 placeholder="0"
-                 @input="fromAmountInput"
-                 @focus="amountFocus('from')"
-                 v-model="fromAmount">
-          <span class="text-primary size-28 cursor-pointer" @click="maxAmount">{{ $t("swap.swap3") }}</span>
-        </div>
-      </div>
-      <div class="text-red mt-2 ml-2 size-28" v-if="amountMsg">{{ amountMsg }}</div>
-      <div class="down-icon" @click="switchAssetClick">
-        <img v-if="switchAsset" src="@/assets/image/switch.png" alt="">
-        <img v-else src="@/assets/image/swap.png" alt="">
-      </div>
-      <div class="d-flex mt-05 align-items-center space-between text-90 size-28">
-        <div>{{ $t("swap.swap2") }}<span class="size-20 sign" v-if="chooseToAsset">{{ chooseToAsset.chain }}</span></div>
-      </div>
-      <div class="input-cont mt-2">
         <template>
-          <div class="coin-cont size-28 cursor-pointer text-90 text-truncate text-truncate_one"
-               @click.stop="openModal('receive')"
-               v-if="!chooseToAsset">{{ $t('swap.swap12') }}</div>
-          <div class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')" v-else>
-            <div class="image-cont">
-              <img :src="chooseToAsset.icon || pictureError" @error="pictureError">
+          <div class="d-flex space-between size-28 mt-3">
+            <div class="d-flex align-items-center">
+              <span class="text-90">{{ $t("swap.swap6") }}</span>
+              <!--            <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="$t('swap.swap31')" placement="top">-->
+              <!--              <span class="info-icon">-->
+              <!--                <img src="@/assets/image/info.png"/>-->
+              <!--              </span>-->
+              <!--            </el-tooltip>-->
             </div>
-            <div class="w-90 text-truncate direction-column size-30 ml-1 text-3a">
-              {{ chooseToAsset.symbolImg }}
-            </div>
+            <span class="text-3a" v-if="currentPlatform && currentPlatform.fee">
+            <span v-if="!!Number(transferFee)">{{ transferFee | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span> {{ !!Number(transferFee) && '+' || '' }} {{ currentPlatform.fee }}{{currentPlatform && currentPlatform.platform === 'SwapBox' && (chooseFromAsset && chooseFromAsset.symbol) || (chooseToAsset && chooseToAsset.symbol)}}</span>
+            <span class="text-3a" v-else>--</span>
           </div>
-        <div class="icon-cont" @click.stop="openModal('receive')">
-          <img src="../../../../assets/image/drop_down.png" alt="">
-        </div>
         </template>
-        <div class="space-cont"/>
-        <div class="input-item align-items-center d-flex flex-1">
-          <input class="flex-1"
-                 placeholder="0"
-                 @input="toAmountInput"
-                 @focus="amountFocus('to')"
-                 v-model="toAmount">
-        </div>
-      </div>
-    </div>
-    <div class="swap-info d-flex direction-column">
-      <template>
-        <div class="d-flex space-between size-28">
-          <span class="text-90">{{ $t("swap.swap5") }}</span>
-          <span class="text-3a w-75" v-if="currentPlatform">1{{ chooseFromAsset && chooseFromAsset.symbol }} ≈ {{ currentPlatform && currentPlatform.swapRate }} {{ chooseToAsset && chooseToAsset.symbol }}</span>
-          <span v-else>--</span>
-        </div>
-      </template>
-      <template>
         <div class="d-flex space-between size-28 mt-3">
-          <div class="d-flex align-items-center">
-            <span class="text-90">{{ $t("swap.swap6") }}</span>
-<!--            <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="$t('swap.swap31')" placement="top">-->
-<!--              <span class="info-icon">-->
-<!--                <img src="@/assets/image/info.png"/>-->
-<!--              </span>-->
-<!--            </el-tooltip>-->
-          </div>
-          <span class="text-3a" v-if="currentPlatform && currentPlatform.fee">
-            <span v-if="!!Number(transferFee)">{{ transferFee | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span> {{ !!Number(transferFee) && '+' || '' }} {{ currentPlatform.fee }}{{currentPlatform && currentPlatform.platform === 'NaboxPool' && (chooseFromAsset && chooseFromAsset.symbol) || (chooseToAsset && chooseToAsset.symbol)}}</span>
-          <span class="text-3a" v-else>--</span>
-        </div>
-      </template>
-      <div class="d-flex space-between size-28 mt-3">
-        <span class="text-90">{{ (currentPlatform && currentPlatform.platform === 'swft' ? $t("swap.swap32") : $t("swap.swap20")) || $t("swap.swap20") }}</span>
-        <span class="text-3a" v-if="currentPlatform && currentPlatform.minReceive">
+          <span class="text-90">{{ (currentPlatform && currentPlatform.platform === 'swft' ? $t("swap.swap32") : $t("swap.swap20")) || $t("swap.swap20") }}</span>
+          <span class="text-3a" v-if="currentPlatform && currentPlatform.minReceive">
           {{ currentPlatform.minReceive | numberFormat }}{{ chooseToAsset && chooseToAsset.symbol }}
         </span>
-        <span class="text-3a" v-else>--</span>
-      </div>
-      <div class="d-flex space-between size-28 mt-3">
-        <span class="text-90">{{ $t("swap.swap7") }}</span>
-        <span class="text-3a d-flex">
+          <span class="text-3a" v-else>--</span>
+        </div>
+        <div class="d-flex space-between size-28 mt-3">
+          <span class="text-90">{{ $t("swap.swap7") }}</span>
+          <span class="text-3a d-flex">
           <span class="d-flex" v-if="currentPlatform && currentPlatform.platform">
             <span class="sign size-22 mr-1" v-if="currentPlatform && currentPlatform.isBest">{{ $t("swap.swap19") }}</span>
             <span class="d-flex align-items-center cursor-pointer" @click="showPop=true">
               <span class="coin-icon_small">
-                <img v-if="currentPlatform && currentPlatform.platform === 'NaboxPool'" src="@/assets/image/Nabox.png" alt="">
+                <img v-if="currentPlatform && currentPlatform.platform === 'SwapBox'" src="@/assets/image/SwapBox.png" alt="">
                 <img v-if="currentPlatform && currentPlatform.platform === 'swft'" src="@/assets/image/swft.png" alt="">
               </span>{{ currentPlatform.platform }}
             </span>
           </span>
           <span v-else>--</span>
           </span>
+        </div>
+        <div class="btn size-30 cursor-pointer" :class="!canNext && 'opacity_btn'" @click="nextStep">{{ $t("swap.swap8") }}</div>
+        <!--      <button @click="test">test</button>-->
       </div>
-      <div class="btn size-30 cursor-pointer" :class="!canNext && 'opacity_btn'" @click="nextStep">{{ $t("swap.swap8") }}</div>
-<!--      <button @click="test">test</button>-->
-    </div>
-    <div class="order-list" v-if="!isDapp">
-      <div class="list-item">
-        <div class="size-36 font-bold">{{ $t('swap.swap11') }}</div>
-        <div class="size-28 mt-5 d-flex align-items-center space-between"
-             v-if="orderList.length > 0"
-             v-for="(item, index) in orderList"
-             @click="toOrderDetail(item)"
-             :key="item.id">
-          <span>{{ item.amount }} {{ item.symbol  }} {{ $t('swap.swap14') }} {{ item.swapSuccAmount }} {{ item.swapSymbol }}</span>
-          <span>{{ item.createTime }}</span>
-          <template>
-            <i class="el-icon-loading" style="color: #6EB6A9" v-if="item.status !== 5 && item.status !== 4"/>
-            <i class="el-icon-success" style="color: #6EB6A9" v-else-if="item.status === 4"/>
-            <i class="el-icon-error" style="color: #eb7d62" v-else-if="item.status === 5"/>
-          </template>
-<!--          <span v-if="index===0" class="order-icon">-->
-<!--                  <svg t="1626399518824" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1288" width="17" height="17"><path d="M709.570095 118.362074a37.044619 37.044619 0 0 1-16.865843-3.614109A424.657824 424.657824 0 0 0 630.059694 90.352729 37.64697 37.64697 0 0 1 650.539646 18.974073a543.923426 543.923426 0 0 1 74.992765 27.406994 37.64697 37.64697 0 0 1-15.962316 71.981007zM870.699128 859.8568a38.550498 38.550498 0 0 1-24.696413-9.035273 37.948146 37.948146 0 0 1-2.710582-53.308109 426.163703 426.163703 0 0 0 63.24691-96.376244 37.64697 37.64697 0 1 1 67.764547 32.828158 518.624662 518.624662 0 0 1-74.089238 112.940911 37.345794 37.345794 0 0 1-29.515224 12.950557z m113.543262-265.03467h-3.614109a37.64697 37.64697 0 0 1-33.731685-40.959904q1.807055-20.781128 1.807054-41.562255a430.68134 430.68134 0 0 0-6.324691-73.788062 37.64697 37.64697 0 1 1 74.390413-12.649382A517.721135 517.721135 0 0 1 1023.997591 511.998795c0 16.263491 0 32.526982-2.409407 48.489298a37.64697 37.64697 0 0 1-37.345794 34.334037z m-60.235152-282.201689a37.345794 37.345794 0 0 1-32.526983-18.672897 451.763643 451.763643 0 0 0-70.475128-90.352729A37.64697 37.64697 0 1 1 873.40971 150.587881a508.685862 508.685862 0 0 1 82.522158 107.218571 37.345794 37.345794 0 0 1-13.854085 51.19988 34.936388 34.936388 0 0 1-18.974073 3.614109zM673.429004 995.687069a37.64697 37.64697 0 0 1-12.649382-72.884534 473.448298 473.448298 0 0 0 60.235152-28.009346 37.64697 37.64697 0 1 1 36.442267 65.656316A493.024722 493.024722 0 0 1 686.379561 993.880014a38.851673 38.851673 0 0 1-12.950557 1.807055zM511.998795 1023.997591a511.998795 511.998795 0 0 1 0-1023.997591 37.64697 37.64697 0 0 1 0 75.29394 436.704855 436.704855 0 0 0-69.872776 867.687371l-9.938801-16.263492a37.64697 37.64697 0 0 1 64.752789-38.851673l47.284595 79.209226A37.345794 37.345794 0 0 1 511.998795 1023.997591z" fill="#333333" p-id="1289"></path><path d="M680.356046 667.405488a37.044619 37.044619 0 0 1-21.383479-6.927042L490.31414 542.116371a38.249322 38.249322 0 0 1-15.962315-30.117576V227.3877a37.64697 37.64697 0 0 1 75.293941 0v264.733495l152.394935 106.61622a37.64697 37.64697 0 0 1-21.684655 68.668073z" fill="#333333" p-id="1290"></path></svg>-->
-<!--                </span>-->
+      <div class="order-list" v-if="!isDapp">
+        <div class="list-item">
+          <div class="size-36 font-bold">{{ $t('swap.swap11') }}</div>
+          <div class="size-28 mt-5 d-flex align-items-center space-between"
+               v-if="orderList.length > 0"
+               v-for="(item, index) in orderList"
+               @click="toOrderDetail(item)"
+               :key="item.id">
+            <span>{{ item.amount }} {{ item.symbol  }} {{ $t('swap.swap14') }} {{ item.swapSuccAmount }} {{ item.swapSymbol }}</span>
+            <span>{{ item.createTime }}</span>
+            <template>
+              <i class="el-icon-loading" style="color: #6EB6A9" v-if="item.status !== 5 && item.status !== 4"/>
+              <i class="el-icon-success" style="color: #6EB6A9" v-else-if="item.status === 4"/>
+              <i class="el-icon-error" style="color: #eb7d62" v-else-if="item.status === 5"/>
+            </template>
+            <!--          <span v-if="index===0" class="order-icon">-->
+            <!--                  <svg t="1626399518824" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1288" width="17" height="17"><path d="M709.570095 118.362074a37.044619 37.044619 0 0 1-16.865843-3.614109A424.657824 424.657824 0 0 0 630.059694 90.352729 37.64697 37.64697 0 0 1 650.539646 18.974073a543.923426 543.923426 0 0 1 74.992765 27.406994 37.64697 37.64697 0 0 1-15.962316 71.981007zM870.699128 859.8568a38.550498 38.550498 0 0 1-24.696413-9.035273 37.948146 37.948146 0 0 1-2.710582-53.308109 426.163703 426.163703 0 0 0 63.24691-96.376244 37.64697 37.64697 0 1 1 67.764547 32.828158 518.624662 518.624662 0 0 1-74.089238 112.940911 37.345794 37.345794 0 0 1-29.515224 12.950557z m113.543262-265.03467h-3.614109a37.64697 37.64697 0 0 1-33.731685-40.959904q1.807055-20.781128 1.807054-41.562255a430.68134 430.68134 0 0 0-6.324691-73.788062 37.64697 37.64697 0 1 1 74.390413-12.649382A517.721135 517.721135 0 0 1 1023.997591 511.998795c0 16.263491 0 32.526982-2.409407 48.489298a37.64697 37.64697 0 0 1-37.345794 34.334037z m-60.235152-282.201689a37.345794 37.345794 0 0 1-32.526983-18.672897 451.763643 451.763643 0 0 0-70.475128-90.352729A37.64697 37.64697 0 1 1 873.40971 150.587881a508.685862 508.685862 0 0 1 82.522158 107.218571 37.345794 37.345794 0 0 1-13.854085 51.19988 34.936388 34.936388 0 0 1-18.974073 3.614109zM673.429004 995.687069a37.64697 37.64697 0 0 1-12.649382-72.884534 473.448298 473.448298 0 0 0 60.235152-28.009346 37.64697 37.64697 0 1 1 36.442267 65.656316A493.024722 493.024722 0 0 1 686.379561 993.880014a38.851673 38.851673 0 0 1-12.950557 1.807055zM511.998795 1023.997591a511.998795 511.998795 0 0 1 0-1023.997591 37.64697 37.64697 0 0 1 0 75.29394 436.704855 436.704855 0 0 0-69.872776 867.687371l-9.938801-16.263492a37.64697 37.64697 0 0 1 64.752789-38.851673l47.284595 79.209226A37.345794 37.345794 0 0 1 511.998795 1023.997591z" fill="#333333" p-id="1289"></path><path d="M680.356046 667.405488a37.044619 37.044619 0 0 1-21.383479-6.927042L490.31414 542.116371a38.249322 38.249322 0 0 1-15.962315-30.117576V227.3877a37.64697 37.64697 0 0 1 75.293941 0v264.733495l152.394935 106.61622a37.64697 37.64697 0 0 1-21.684655 68.668073z" fill="#333333" p-id="1290"></path></svg>-->
+            <!--                </span>-->
           </div>
           <div class="text-center mt-3 size-28" v-if="orderList.length === 0">{{ $t('swap.swap15') }}</div>
         </div>
       </div>
-    <CoinModal v-if="showModal"
-               :show-modal.sync="showModal"
-               :modal-type="modalType"
-               :coin-list="dialogCoinList"
-               :from-chain="chooseFromAsset && chooseFromAsset.symbol || ''"
-               :from-asset="chooseFromAsset"
-               :to-asset="chooseToAsset"
-               :from-address="fromAddress"
-               :from-network="fromNetwork"
-               :support-advanced="chooseFromAsset && chooseFromAsset.isSupportAdvanced === 'Y' || false"
-               :usdt-info="USDT_info"
-               :usdtn-info="USDTN_info"
-               @select="selectCoin"/>
-    <pop-modal :preventBoo="false" :show="showPop" :custom-class="true">
-      <div class="route-cont">
-        <div class="header-cont size-36 font-500 mt-2">
-          {{ $t('swap.swap7') }}
-          <div class="back-icon cursor-pointer" @click="showPop=false">
-            <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"></path></svg>
+      <CoinModal v-if="showModal"
+                 :show-modal.sync="showModal"
+                 :modal-type="modalType"
+                 :coin-list="dialogCoinList"
+                 :from-chain="chooseFromAsset && chooseFromAsset.symbol || ''"
+                 :from-asset="chooseFromAsset"
+                 :to-asset="chooseToAsset"
+                 :from-address="fromAddress"
+                 :from-network="fromNetwork"
+                 :support-advanced="chooseFromAsset && chooseFromAsset.isSupportAdvanced === 'Y' || false"
+                 :usdt-info="USDT_info"
+                 :usdtn-info="USDTN_info"
+                 @select="selectCoin"/>
+      <pop-modal :preventBoo="false" :show="showPop" :custom-class="true">
+        <div class="route-cont">
+          <div class="header-cont size-36 font-500 mt-2">
+            {{ $t('swap.swap7') }}
+            <div class="back-icon cursor-pointer" @click="showPop=false">
+              <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"></path></svg>
+            </div>
           </div>
-        </div>
-        <div class="route-cont_main">
-          <div class="route-item cursor-pointer"
-               @click="routeClick(item)"
-               :class="{active_choose: item.isChoose}"
-               v-for="(item, index) in platformList">
-            <div class="d-flex h-86 direction-column flex-1">
-              <div class="size-28">
-                <span class="text-90">{{ $t('swap.swap17') }}</span>
-                <!--              {{ this.chooseToAsset.symbol }}-->
-                <span class="text-3a ml-3">{{ item.minReceive }}{{ item.asset && item.asset.symbol }}</span>
-              </div>
-              <div class="d-flex size-28 mt-23">
-                <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
-                <div class="d-flex align-items-center">
-                  <div class="route-icon" v-if="item.platform === 'NaboxPool'">
-                    <img src="@/assets/image/Nabox.png" alt="">
+          <div class="route-cont_main">
+            <div class="route-item cursor-pointer"
+                 @click="routeClick(item)"
+                 :class="{active_choose: item.isChoose}"
+                 v-for="(item, index) in platformList">
+              <div class="d-flex h-86 direction-column flex-1">
+                <div class="size-28">
+                  <span class="text-90">{{ $t('swap.swap17') }}</span>
+                  <!--              {{ this.chooseToAsset.symbol }}-->
+                  <span class="text-3a ml-3">{{ item.minReceive }}{{ item.asset && item.asset.symbol }}</span>
+                </div>
+                <div class="d-flex size-28 mt-23">
+                  <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
+                  <div class="d-flex align-items-center">
+                    <div class="route-icon" v-if="item.platform === 'SwapBox'">
+                      <img src="@/assets/image/SwapBox.png" alt="">
+                    </div>
+                    <div class="route-icon" v-if="item.platform === 'swft'">
+                      <img src="@/assets/image/swft.png" alt="">
+                    </div>
+                    <span class="size-26">{{ item.platform }}</span>
+                    <span class="sign size-22" v-if="item.isBest">{{ $t('swap.swap19') }}</span>
                   </div>
-                  <div class="route-icon" v-if="item.platform === 'swft'">
-                    <img src="@/assets/image/swft.png" alt="">
-                  </div>
-                  <span class="size-26">{{ item.platform }}</span>
-                  <span class="sign size-22" v-if="item.isBest">{{ $t('swap.swap19') }}</span>
                 </div>
               </div>
-            </div>
-            <div class="success-icon" v-if="item.isChoose">
-              <img src="@/assets/image/choose.png" alt="">
+              <div class="success-icon" v-if="item.isChoose">
+                <img src="@/assets/image/choose.png" alt="">
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </pop-modal>
-<!--    <ConfirmOrder/>-->
+      </pop-modal>
+    </div>
+    <ConfirmOrder v-if="showOrderDetail" @back="changeShowDetail" @confirm="confirmChange"/>
   </div>
 </template>
 
@@ -286,7 +288,7 @@ export default {
       checkLpStableFeeBoo: true,
       currentPlatform: null, // 当前最优平台
       platformList: [], // 当前可选择的swapPlatform
-      platformConfig: ['NaboxPool', 'swft'], // 当前支持的通道
+      platformConfig: ['SwapBox', 'swft'], // 当前支持的通道
       lpCountFull: true, // 流动性是否足够
       switchAsset: false, // 同链切换
       usdtnFromAsset: null, // usdtn from资产
@@ -294,6 +296,8 @@ export default {
       USDTN_info: {}, // 当前支持的USDTN资产
       USDT_info: {}, // 当前的USDT资产
       currentNetwork: '', // 当前兑换资产选择的网络
+      showOrderDetail: false,
+      swftError: false
     }
   },
   created() {
@@ -358,7 +362,7 @@ export default {
       handler(val) {
         if (val && val.platform === 'swft') {
           this.checkAmount();
-        } else if (val && val.platform === 'NaboxPool' && !this.usdtnToAsset && !this.usdtnFromAsset) {
+        } else if (val && val.platform === 'SwapBox' && !this.usdtnToAsset && !this.usdtnFromAsset) {
           this.amountMsg = val.errorMsg || '';
           !val.errorMsg && this.checkStableFee();
         }
@@ -420,7 +424,7 @@ export default {
     },
     stableFee: {
       handler(val) {
-        if (this.stableFromAsset && this.stableToAsset && this.toAmount && this.fromAmount && this.currentPlatform && this.currentPlatform.platform === 'NaboxPool') {
+        if (this.stableFromAsset && this.stableToAsset && this.toAmount && this.fromAmount && this.currentPlatform && this.currentPlatform.platform === 'SwapBox') {
           // this.currentPlatform.fee = val;
           if (this.focusType==='from') {
             this.toAmount = Minus(this.fromAmount, val);
@@ -440,7 +444,7 @@ export default {
     },
     swapRate: {
       handler(val) {
-        if (this.currentPlatform && this.currentPlatform.platform !== 'NaboxPool') {
+        if (this.currentPlatform && this.currentPlatform.platform !== 'SwapBox') {
           if (this.focusType === 'from') {
             this.toAmount = this.numberFormat(this.formatFloat(Times(val, this.fromAmount)), 8, true);
           } else if (this.focusType === 'to') {
@@ -537,7 +541,9 @@ export default {
       }
       const params = encodeURIComponent(JSON.stringify(tempParams));
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
-      this.$router.push({path: '/confirmOrder', query: { orderInfo: params }});
+      // this.$router.push({path: '/confirmOrder', query: { orderInfo: params }});
+      this.showOrderDetail = true;
+      this.$store.commit('changeSwap', false);
     },
     // 获取swft支持的闪兑列表
     async getCoins() {
@@ -653,10 +659,10 @@ export default {
         this.platformList = this.platformConfig.map(item => ({
           asset: this.chooseToAsset || '',
           platform: item,
-          isBest: item === 'NaboxPool',
+          isBest: item === 'SwapBox',
           fee: this.getPlatformFee(item, this.stableFee),
           minReceive: (Minus(this.fromAmount, this.getPlatformFee(item, this.stableFee)) < 0) ? '0' : Minus(this.fromAmount, this.getPlatformFee(item, this.stableFee)),
-          swapRate: item === 'NaboxPool' ? 1 : this.swapRate
+          swapRate: item === 'SwapBox' ? 1 : this.swapRate
         }));
         if (this.lpCountFull) {
           this.currentPlatform = this.getBestPlatform(this.platformList)
@@ -745,11 +751,9 @@ export default {
       // debugger
       this.amount = this.fromAmount;
       if (this.$store.state.network === this.currentNetwork && ((this.usdtnFromAsset && this.stableToAsset) || (this.stableFromAsset && this.usdtnToAsset))) { // usdtn <=> usdt
-        console.log("同链 usdtn <=> usdt 兑换");
         if (this.fromAmount) {
           this.checkUsdtnFee();
-          console.log(Minus(this.numberFormat(tofix(this.fromAmount, 6, -1)), this.usdtnFee || 0).toFixed())
-          this.platformList = ['NaboxPool'].map(item => ({
+          this.platformList = ['SwapBox'].map(item => ({
             asset: this.chooseToAsset || '',
             platform: item,
             isBest: true,
@@ -770,9 +774,9 @@ export default {
         if (this.fromAmount) {
           await this.getFeeDebounce();
           this.stableFeeLoading = false;
-          if (this.stableFee && this.currentPlatform && this.currentPlatform.platform === 'NaboxPool') {
+          if (this.stableFee && this.currentPlatform && this.currentPlatform.platform === 'SwapBox') {
             this.toAmount = Minus(this.fromAmount, this.stableFee);
-          } else if(this.stableFee && this.currentPlatform && this.currentPlatform.platform !== 'NaboxPool') {
+          } else if(this.stableFee && this.currentPlatform && this.currentPlatform.platform !== 'SwapBox') {
             this.toAmount = Minus(this.fromAmount, this.withdrawFee);
           } else {
             this.toAmount = this.fromAmount;
@@ -930,7 +934,7 @@ export default {
     getPlatformFee(platform, stableFee = 0) {
       let tempFee;
       switch (platform) {
-        case 'NaboxPool':
+        case 'SwapBox':
           tempFee = stableFee;
           break;
         case 'swft':
@@ -953,7 +957,7 @@ export default {
     // 切换当前选择的平台
     getBestPlatform(platformList, isFull = true) {
       if (platformList.length === 0) return false;
-      if (isFull) {
+      if (isFull || this.swftError) {
         const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
         this.platformList.forEach(item => {
           if (item.platform === tempList.platform) {
@@ -966,8 +970,8 @@ export default {
         });
         return platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p)
       } else {
-        const tempList = platformList.filter(item => item.platform !== 'NaboxPool');
-        const tempPlatform = platformList.find(item => item.platform !== 'NaboxPool');
+        const tempList = platformList.filter(item => item.platform !== 'SwapBox');
+        const tempPlatform = platformList.find(item => item.platform !== 'SwapBox');
         this.platformList.forEach(item => {
           if (item.platform === tempPlatform.platform) {
             item.isBest = true;
@@ -1094,11 +1098,13 @@ export default {
           this.checkAmount();
         }
       } else {
-        this.$message({
-          type: 'warning',
-          message: res.msg,
-          offset: 30
-        });
+        this.platformConfig = ['SwapBox'];
+        this.swftError = true;
+        // this.$message({
+        //   type: 'warning',
+        //   message: res.msg,
+        //   offset: 30
+        // });
       }
       this.isFirstRequest = false;
       this.rateLoading = false;
@@ -1154,7 +1160,19 @@ export default {
       this.available = '';
       this.transferFee = '';
       this.withdrawFee = '';
+      this.currentPlatform = null;
+      this.swftError = false;
+      this.platformConfig = ['SwapBox', 'swft'];
     },
+    changeShowDetail() {
+      this.showOrderDetail = false;
+      this.$store.commit('changeSwap', true);
+    },
+    async confirmChange() {
+      this.showOrderDetail = false;
+      this.reset();
+      await this.getCoins();
+    }
   },
   beforeDestroy() {
     if (this.rateTimer) clearInterval(this.rateTimer);
@@ -1174,5 +1192,8 @@ export default {
 .w-75 {
   width: 85%;
   text-align: right;
+}
+.m-3 {
+  margin: 30px;
 }
 </style>

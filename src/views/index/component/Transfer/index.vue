@@ -888,7 +888,7 @@ export default {
         transferInfo.crossInInfo = {
           multySignAddress: heterogeneousChain_In.heterogeneousChainMultySignAddress,
           nerveAddress: nerveAddress,
-          numbers: this.transferCount,
+          numbers: this.transferCount.toString(),
           fromAddress: from,
           contractAddress: heterogeneousChain_In.contractAddress,
           decimals: asset.decimals
@@ -1004,7 +1004,6 @@ export default {
           await this.broadcastHex(broadcastData);
         } else {
           if (res) {
-            console.log(res, 'res')
             this.txHex = res.raw;
             broadcastData.txHash = res.hash;
             if (res.hash) {

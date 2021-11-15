@@ -51,7 +51,12 @@
         <div class="d-flex size-28 align-items-center text-90 space-between justify-content-end mt-2"
              :key="item.assetId"
              v-for="(item, index) in lpCoinList">
-          <span class="ml-4">{{ item.chain }}</span>
+          <span class="d-flex align-items-center ml-4">
+            <span class="icon-cont mr-2">
+              <img :src="getPicture(item.chain)" @error="pictureError" alt="">
+            </span>
+            <span>{{ item.chain }}</span>
+          </span>
           <span class="text-3a mr-3">${{ item.balance | numberFormatLetter }}</span>
         </div>
       </template>
@@ -459,5 +464,15 @@ export default {
 }
 .m-w180 {
   max-width: 360px;
+}
+.icon-cont {
+  height: 30px;
+  width: 30px;
+  //margin-left: 40px;
+  img {
+    height: 100%;
+    width: 100%;
+    vertical-align: 20px;
+  }
 }
 </style>

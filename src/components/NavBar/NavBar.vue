@@ -14,6 +14,10 @@ export default {
     navTitle: {
      type: String,
      default: '订单确认'
+    },
+    backChange: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -21,7 +25,11 @@ export default {
   },
   methods: {
     back() {
-      this.$router.go(-1);
+      if (this.backChange) {
+        this.$emit('back');
+      } else {
+        this.$router.go(-1);
+      }
     }
   }
 }

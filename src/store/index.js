@@ -12,7 +12,8 @@ export default new Vuex.Store({
         showConnect: true,
         showSign: false,
         isDapp: true,
-        lang: 'en'
+        lang: 'en',
+        isSwap: false
     },
     mutations: {
         changeNetwork(state, data) {
@@ -37,6 +38,9 @@ export default new Vuex.Store({
         changeLang(state, data) {
             state.lang = data;
             localStorage.setItem('locale', data);
+        },
+        changeSwap(state, data) {
+            state.isSwap = data;
         }
     },
     getters: {

@@ -255,9 +255,9 @@ export default {
             if (this.fromNetwork === this.picList[this.currentIndex]) {
               this.showCoinList = tempCoinList.filter(item => {
                 if (item.contractAddress) {
-                  return this.fromNetwork === this.picList[this.currentIndex] && item.contractAddress === usdtContractAddress
+                  return item.contractAddress === usdtContractAddress
                 } else {
-                  return this.fromNetwork === this.picList[this.currentIndex] && (item.chainId === usdtChainId && item.assetId === usdtAssetId)
+                  return (item.chainId === usdtChainId && item.assetId === usdtAssetId)
                 }
               });
             } else {
@@ -308,7 +308,7 @@ export default {
           } else if (toChainId === usdtChainId && (toContractAddress && usdtContractAddress && toContractAddress === usdtContractAddress || this.fromNetwork === 'NERVE' && toAssetId === usdtAssetId)) {
             this.showCoinList = tempShowCoinList.filter((coin, index) => {
               if (coin.contractAddress) {
-                return coin.contractAddress !== this.toAsset.contractAddress || coin.contractAddress === usdtContractAddress ;
+                return coin.contractAddress !== this.toAsset.contractAddress || coin.contractAddress !== usdtContractAddress;
               } else {
                 return (coin.chainId === this.toAsset.chainId) && (coin.assetId !== this.toAsset.assetId)
               }
@@ -408,7 +408,4 @@ export default {
 
 <style scoped lang="scss">
 @import "Modal";
-//@media screen and (min-width: 1000px) {
-//
-//}
 </style>

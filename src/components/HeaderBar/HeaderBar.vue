@@ -9,25 +9,28 @@
         <div class="address-detail pl-2 pr-2" v-if="!showConnect && !showSign && address">
           <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
             <span class="chain-icon">
-              <img :src="getPicture(currentChain)" @error="pictureError" alt="">
+              <img :src="getPicture(!isLiquidity && currentChain || 'NERVE')" @error="pictureError" alt="">
             </span>
-            <div class="icon-drop ml-2">
+            <div class="icon-drop ml-2" v-if="!isLiquidity">
               <img src="../../assets/image/drop_down_active.png" alt="">
             </div>
           </div>
           <div class="space-cont"/>
           <div class="d-flex" @click="addressClick">
-            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(address) }}</span>
+            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isLiquidity && address || nerveAddress) }}</span>
             <span v-if="showLoading" class="box_loading">
               <img src="@/assets/image/loading.svg" alt="">
             </span>
           </div>
           <div class="network-list size-28 d-flex direction-column" v-if="showDropList">
-            <span class="mt-2 cursor-pointer"
+            <span class="mt-2 cursor-pointer d-flex align-items-center"
                   v-for="(item, index) in l1ChainList"
                   @click="chainClick(item)"
                   :class="{'active_chain': item.chainName === currentChain}"
                   :key="index">
+              <span class="chain-icon mr-2">
+                <img :src="getPicture(item.chainName)" @error="pictureError" alt="">
+              </span>
               {{ item.chainName }}
             </span>
           </div>
@@ -168,7 +171,8 @@ export default {
       lang: '',
       showLoading: false,
       statusTimer: null,
-      isSwap: false
+      isSwap: false,
+      isLiquidity: false
     }
   },
   created() {
@@ -191,9 +195,18 @@ export default {
       immediate: true,
       deep: true
     },
+    "$store.state.isSwap": {
+      handler(val) {
+        this.isSwap = val
+      },
+      immediate: true,
+      deep: true
+    },
     "$route.fullPath": {
       handler(val) {
         this.isSwap = window.location.hash.indexOf('swap') > -1;
+        this.isLiquidity = window.location.hash.indexOf('liquidity') > -1;
+        this.$store.commit('changeSwap', this.isSwap);
       },
       immediate: true,
       deep: true
@@ -273,7 +286,7 @@ export default {
       this.$toast(this.$t("tips.tips13"))
     },
     showDropClick() {
-      this.showDropList = !this.showDropList;
+      !this.isLiquidity && (this.showDropList = !this.showDropList);
     },
     // 断开连接
     disConnect() {

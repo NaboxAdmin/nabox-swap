@@ -26,6 +26,12 @@
         </span>
         <span>{{ $t('navBar.navBar3') }}</span>
       </div>
+      <div class="nav-bar cursor-pointer" @click="toUrl('nerveBridge')">
+        <span class="icon-cont">
+          <svg t="1636954940240" class="icon" viewBox="0 0 1588 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2304" width="18" height="18"><path d="M1578.286157 23.823187A55.98449 55.98449 0 0 0 1532.625048 0h-277.937184a128.248158 128.248158 0 0 0-119.115937 82.587049l-129.836371 340.274525L771.474215 15.882125A26.602559 26.602559 0 0 0 754.400931 3.176425a19.852656 19.852656 0 0 0-8.338116 0 53.205118 53.205118 0 0 0-15.882125-2.779372h-277.937185a129.042264 129.042264 0 0 0-119.115936 82.587049L3.573478 948.95696a55.190384 55.190384 0 0 0 6.35285 50.8228 55.587437 55.587437 0 0 0 45.661109 24.22024h277.937185a128.645211 128.645211 0 0 0 119.115936-82.587049l129.439318-339.083366 231.48197 397.053121a31.76425 31.76425 0 0 0 5.16169 5.161691 54.793331 54.793331 0 0 0 39.705312 17.867391h277.937185a129.439318 129.439318 0 0 0 119.115937-82.58705l329.157037-864.781698A55.98449 55.98449 0 0 0 1578.286157 23.823187zM961.265607 541.977511l-37.322994 97.675068-215.202791-372.435828 37.322993-97.675068z m-335.112835-57.969756l37.322994-97.675068 215.202792 372.435828-37.322994 97.675068z m-277.937185 418.096937a18.264444 18.264444 0 0 1-16.279178 11.117487H135.792168L436.758434 121.895308a17.073284 17.073284 0 0 1 16.279177-11.117487h198.526561z m802.444359 0a17.86739 17.86739 0 0 1-16.279178 11.117487h-196.144242l301.363319-791.326871a17.470337 17.470337 0 0 1 16.279178-11.117487h196.541295z" fill="#666A7B" p-id="2305"></path></svg>
+        </span>
+        <span>{{ 'Bridge' }}</span>
+      </div>
       <div class="bottom-cont">
         <div class="info-cont">
           <span class="icon mr-3 cursor-pointer" @click.stop="toUrl('twitter')">
@@ -82,12 +88,11 @@ export default {
   },
   computed: {
     isMobile() {
-      return /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     },
   },
   methods: {
     toUrl(type) {
-      console.log(this.isMobile);
       switch (type) {
         case 'twitter':
           this.isMobile ? window.location.href = 'https://twitter.com/naboxwallet' : window.open('https://twitter.com/naboxwallet');
@@ -97,6 +102,9 @@ export default {
           break;
         case 'Discord':
           this.isMobile ? window.location.href = 'https://discord.gg/mQVXZJXMkn' : window.open('https://discord.gg/mQVXZJXMkn');
+          break;
+        case 'nerveBridge':
+          this.isMobile ? window.location.href = 'https://bridge.nerve.network/' : window.open('https://bridge.nerve.network/');
           break;
       }
     },

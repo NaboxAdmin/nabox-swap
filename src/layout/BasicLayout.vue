@@ -49,14 +49,6 @@ function getAccountList() {
   return JSON.parse(localStorage.getItem("accountList")) || [];
 }
 
-// function getCurrentAccount(address) {
-//   const accountList = getAccountList();
-//   const currentAccount = accountList.filter((item) => {
-//     return item.address.Ethereum === address;
-//   });
-//   return currentAccount[0] || null;
-// }
-
 export default {
   name: "BasicLayout",
   components: { HeaderBar },

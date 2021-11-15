@@ -71,8 +71,10 @@
       width = 540 * dpr;
     } else if (width / dpr > 1000) {
       width = 375 * dpr;
-    } else {
+    } else if (width / dpr < 540 && width / dpr > 360) {
       width = 360 * dpr;
+    } else {
+      width = width * dpr;
     }
     // if (width / dpr > 400) {
     //   width = 400 * dpr;

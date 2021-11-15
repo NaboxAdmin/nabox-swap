@@ -88,6 +88,10 @@
 }
 
 /* margin padding */
+.m-3 {
+ margin: 30px;
+}
+
 .mt-1 {
   margin-top: 10px !important;
 }

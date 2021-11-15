@@ -1,7 +1,7 @@
 .mask-cont {
   position: fixed;
   left: 0;
-  top: 130px;
+  top: 118px;
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, .45);
@@ -26,7 +26,7 @@
   border-top: 1px solid #c9c9c9;
   width: 280px;
   background-color: #FFFFFF;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 118px);
   transform: translate3d( 100%, 0, 0);
 }
 @media screen and (min-width: 1000px) {

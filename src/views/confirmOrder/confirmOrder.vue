@@ -1,7 +1,7 @@
 <template>
   <div class="main-cont">
-    <NavBar :nav-title="$t('navBar.navBar1')"/>
-    <div class="position-cont_nav"/>
+    <NavBar :back-change="true" @back="$emit('back')" :nav-title="$t('navBar.navBar1')"/>
+<!--    <div class="position-cont_nav"/>-->
     <div class="order-cont" v-loading="confirmLoading">
       <div class="d-flex align-items-center justify-content-center">
         <div class="coin-icon" v-if="orderInfo">
@@ -37,10 +37,10 @@
         <!--汇率-->
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap5') }}</span>
-          <div class="d-flex align-items-center justify-content-end" v-if="orderInfo.swapRate">
+          <div class="d-flex align-items-center justify-content-end w-75" v-if="orderInfo.swapRate">
             <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
-          <div class="d-flex align-items-center justify-content-end" v-else>
+          <div class="d-flex align-items-center justify-content-end w-75" v-else>
             <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default {
       console.log(this.orderInfo, "this.orderInfo")
       console.log(this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset), 'this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.usdtnToAsset)')
       if (this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset)) {
-        console.log(this.orderInfo.usdtnFee, this.orderInfo.usdtnFromAsset, '1231231')
+        // console.log(this.orderInfo.usdtnFee, this.orderInfo.usdtnFromAsset, '1231231')
         const params = {
           fromChain: this.orderInfo.fromNetwork
         }
@@ -236,7 +236,7 @@ export default {
           await this.stableTransfer(tempData, true);
         }
         this.confirmLoading = false;
-      } else if (this.orderInfo.currentPlatform.platform === 'NaboxPool') { // 稳定币确认订单
+      } else if (this.orderInfo.currentPlatform.platform === 'SwapBox') { // 稳定币确认订单
         // console.log('NaboxPool');
         // const params = {
         //   fromChain: this.orderInfo && this.orderInfo.fromNetwork,
@@ -436,8 +436,9 @@ export default {
           duration: 1500
         });
         setTimeout(() => {
-          this.$router.go(-1)
-        }, 1500)
+          // this.$router.go(-1)
+          this.$emit('confirm');
+        }, 1500);
       } else {
         this.$message({
           type: 'warning',
@@ -482,8 +483,9 @@ export default {
           duration: 1500
         });
         setTimeout(() => {
-          this.$router.go(-1)
-        }, 1500)
+          // this.$router.go(-1)
+          this.$emit('confirm');
+        }, 1500);
       } else {
         this.$message({
           type: 'warning',
@@ -537,7 +539,8 @@ export default {
               duration: 1500
             });
             setTimeout(() => {
-              this.$router.go(-1)
+              // this.$router.go(-1)
+              this.$emit('confirm');
             }, 1500);
           }
         } else {
@@ -586,7 +589,8 @@ export default {
             duration: 1500
           });
           setTimeout(() => {
-            this.$router.go(-1)
+            // this.$router.go(-1)
+            this.$emit('confirm');
           }, 1500);
         } else {
           this.$message({
@@ -596,7 +600,7 @@ export default {
           })
         }
       }
-    },
+    }
   },
   beforeDestroy() {
     // document.querySelector('body').removeAttribute('style');
@@ -611,4 +615,8 @@ export default {
 
 <style scoped lang="scss">
 @import "confirmOrder.scss";
+.w-75 {
+  width: 85%;
+  text-align: right;
+}
 </style>

@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   top: 0;
-  padding: 31px 30px;
+  padding: 25px 30px;
   display: flex;
   align-items: center;
   background-color: #FFFFFF;
@@ -75,10 +75,10 @@
   }
 }
 .position-cont {
-  height: 130px;
+  height: 118px;
 }
 .main-cont {
-  height: calc(100vh - 130px);
+  height: calc(100vh - 118px);
   background-color: #F9FAFC;
 }
 @media screen and (min-width: 1000px) {
@@ -188,6 +188,7 @@
   height: 45px;
   width: 45px;
   border-radius: 50%;
+  overflow: hidden;
   img {
     height: 100%;
     width: 100%;
