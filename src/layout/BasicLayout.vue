@@ -11,7 +11,8 @@
                  @swapClick="swapClick"
                  @transferClick="transferClick"
                  @vaultsClick="vaultsClick"
-                 @poolClick="poolClick">
+                 @poolClick="poolClick"
+                 @airdropClick="airdropClick">
         <div class="connect-item" v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)">
           <div class="connect-btn" v-if="showConnect" @click="connectMetamask">{{ $t("tips.tips12") }}</div>
           <div class="sign-btn" v-else-if="!showConnect && showSign" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
@@ -460,10 +461,12 @@ export default {
       this.$router.push({ path: '/liquidity' })
     },
     vaultsClick() {
-      // this.currentIndex = 3;
       this.showType = "Vaults";
-      this.$router.push({ path: '/vaults' })
-      // this.isDapp = false;
+      this.$router.push({ path: '/vaults' });
+    },
+    airdropClick() {
+      this.showType = "Airdrop";
+      this.$router.push({ path: '/airdrop' });
     },
     crossOut() {
       if (this.isDapp) {

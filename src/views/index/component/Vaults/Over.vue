@@ -2,15 +2,17 @@
   <div class="p-3">
     <div class="loading-cont" v-if="farmLoading" element-loading-background="rgba(255, 255, 255, 0.1)" v-loading="farmLoading"/>
     <div class="detail-item mt-3" v-else-if="farmList.length !== 0" v-for="(item, index) in farmList" :key="item.farmKey">
-      <div class="d-flex align-items-center pl-3">
-        <span class="icon">
-          <img :src="item.icon || pictureError" @error="pictureError" alt="">
-        </span>
-        <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
-      </div>
-      <div class="d-flex direction-column pt-3 pb-3 border-bottom">
-        <span class="text-center size-48 font-500">{{ item.profit || '0%' }}</span>
-        <span class="text-center size-24 text-90 mt-1">{{ $t("vaults.over1") }}</span>
+      <div class="d-flex align-items-center space-between border-bottom">
+        <div class="d-flex align-items-center pl-3">
+          <span class="icon">
+            <img :src="item.icon || pictureError" @error="pictureError" alt="">
+          </span>
+          <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
+        </div>
+        <div class="d-flex direction-column pt-3 pb-4 pr-3">
+          <span class="text-center size-34 font-500">{{ item.profit || '0%' }}</span>
+          <!--          <span class="text-center size-24 text-90 mt-1">{{ $t("vaults.over1") }}</span>-->
+        </div>
       </div>
       <div class="mt-3">
         <div class="size-28 d-flex space-between align-items-center pl-3 pr-3">
@@ -18,6 +20,10 @@
           <div class="d-flex align-items-center size-28">
             <span class="text-3a">${{ item.tvl }}</span>
           </div>
+        </div>
+        <div class="d-flex pl-3 mt-3 align-items-center">
+          <span class="tips-icon mr-2"></span>
+          <span>领取的收益将在XXX天内处于锁定状态</span>
         </div>
         <div class="vaults-item">
           <div class="text-90 size-28">{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</div>
@@ -39,6 +45,29 @@
           </div>
         </div>
         <div class="pl-72 size-28 text-right text-6e">{{ $t("vaults.over5") }}{{ item.stakedAsset && item.stakedAsset.symbol }}</div>
+        <template>
+          <div class="px-cont w-80 mt-3"></div>
+          <div class="size-28 mt-3 d-flex space-between align-items-center pl-3 pr-3">
+            <span class="text-90 size-28">锁定中的Nabox</span>
+            <div class="d-flex align-items-center size-28">
+              <span class="text-3a">2345874</span>
+            </div>
+          </div>
+          <div class="vaults-item">
+            <div class="text-90 size-28">{{ '已解锁未领取的' }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
+            <div class="d-flex align-items-center space-between mt-1">
+              <span class="size-40 word-break w-330">{{ (item.reward || 0) | numFormat }}</span>
+              <span
+                  class="item-btn size-30"
+                  v-if="!item.needReceiveAuth"
+                  @click="receiveClick(item.farmKey, item)">{{ $t("完成解锁") }}</span>
+              <span
+                  class="item-btn size-30"
+                  v-else
+                  @click="receiveApprove(item.farmKey, item)">{{ $t("vaults.over6") }}</span>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
     <div v-else class="text-center mt-4 text-grey">No Data</div>
@@ -138,6 +167,27 @@ export default {
       // const tempList = resList.filter(item => item);
       console.log(this.farmList, '==over farmList==');
     },
+    // 获取资产信息
+    async getAssetInfo(currentAsset) {
+      if (!currentAsset) return '';
+      const { chainId, assetId, contractAddress, chain } = currentAsset;
+      const params = {
+        chain,
+        address: this.currentAccount && this.currentAccount.address[chain],
+        chainId,
+        assetId,
+        refresh: true,
+        contractAddress: contractAddress || ''
+      };
+      const res = await this.$request({
+        url: '/wallet/address/asset',
+        data: params
+      });
+      if (res.code === 1000) {
+        res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
+        return res.data;
+      }
+    },
   },
   beforeDestroy() {
     if (this.farmTimer) {
@@ -152,5 +202,37 @@ export default {
 @import "index";
 .active_btn {
   background-color: #ABB1BA;
+}
+.border-bottom {
+  border-bottom: 1px solid #DBDEE8;
+}
+.pb-4 {
+  padding-bottom: 40px;
+}
+.tips-icon {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  background-color: #25BA37;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+.arrow-icon {
+  width: 30px;
+  height: 28px;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+.px-cont {
+  height: 1px;
+  background: #DBDEE8;
+}
+.w-80 {
+  width: 90%;
+  margin: 0 auto;
 }
 </style>

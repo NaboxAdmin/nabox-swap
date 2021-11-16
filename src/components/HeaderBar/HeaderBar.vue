@@ -51,7 +51,8 @@
            @swapClick="swapClick"
            @transferClick="transferClick"
            @poolClick="poolClick"
-           @vaultsClick="vaultsClick"/>
+           @vaultsClick="vaultsClick"
+           @airdropClick="airdropClick"/>
       <pop-up :prevent-boo="false" :show="showAccount">
         <div class="address-detail_pop">
           <div class="customer-p">
@@ -476,6 +477,10 @@ export default {
     },
     vaultsClick() {
       this.$emit('vaultsClick');
+      this.showPop = false;
+    },
+    airdropClick() {
+      this.$emit('airdropClick');
       this.showPop = false;
     },
     async getMainAssetInfo(assetInfo) {

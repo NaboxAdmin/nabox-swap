@@ -1,7 +1,7 @@
 <template>
-  <div class="main-cont">
+  <div class="main-cont" :class="isMobile && 'main-cont_mobile' || ''">
     <NavBar :back-change="true" @back="$emit('back')" :nav-title="$t('navBar.navBar1')"/>
-<!--    <div class="position-cont_nav"/>-->
+<!--    <div class="position-cont_nav" v-if="isMobile"/>-->
     <div class="order-cont" v-loading="confirmLoading">
       <div class="d-flex align-items-center justify-content-center">
         <div class="coin-icon" v-if="orderInfo">
@@ -124,6 +124,11 @@ export default {
     if (orderInfo.fromNetwork !== storageNetwork) {
       this.$router.go(-1);
     }
+  },
+  computed: {
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    },
   },
   methods: {
     // 获取资产详情
@@ -326,7 +331,7 @@ export default {
           }
           if (!checkAssetSupport) {
             this.$message({
-              message: "暂未支持非主资产转账",
+              message: this.$t("tips.tips26"),
               type: "warning",
               offset: 30,
               duration: 3000

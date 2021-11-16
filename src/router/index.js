@@ -52,6 +52,14 @@ const mainRoutes = [{
             meta: {
                 title:'Vaults'
             }
+        },
+        {
+            path:'/airdrop',
+            name:'airdrop',
+            component:() => import('../views/airdrop'),
+            meta: {
+                title:'Airdrop'
+            }
         }
     ]
 }, {

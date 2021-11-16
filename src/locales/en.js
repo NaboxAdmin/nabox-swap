@@ -24,7 +24,8 @@ const en = {
         tips22: "Failed to generate L2 address",
         tips23: "Receiving assets does not support cross-chain exchange",
         tips24: "Transaction confirmation in progress",
-        tips25: "No trading pairs available"
+        tips25: "No trading pairs available",
+        tips26: "No support for transfer of non-primary assets"
     },
     swap: {
         swap1:'From',
@@ -125,6 +126,7 @@ const en = {
         navBar3:'Vaults',
         navBar4:'Transaction Details',
         navBar5:'Exchange',
+        navBar6: "Airdrop"
     },
     order: {
         order1:'Order Information',

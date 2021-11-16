@@ -24,7 +24,8 @@ const cn = {
         tips22: "生成L2地址失败",
         tips23: "接收资产暂不支持跨链兑换",
         tips24: "交易确认中",
-        tips25: "暂无可用交易对"
+        tips25: "暂无可用交易对",
+        tips26: "暂未支持非主资产转账"
     },
     swap: {
         swap1: '从',
@@ -125,6 +126,7 @@ const cn = {
         navBar3: '矿池',
         navBar4: '交易详情',
         navBar5: '兑换',
+        navBar6: '空投'
     },
     order: {
         order1: '订单信息',
