@@ -33,7 +33,7 @@
           <span class="tips-icon mr-2">
             <img src="@/assets/image/tips_icon.png" alt="">
           </span>
-          <span>领取的收益将在XXX天内处于锁定状态</span>
+          <span>{{ $t("vaults.vaults10") }}XXX{{ $t("vaults.vaults11") }}</span>
         </div>
 <!--        <div class="drop_info" v-if="showDropList">-->
 <!--          <div class="size-28 mt-3 d-flex space-between align-items-center">-->
@@ -92,19 +92,19 @@
         <template>
           <div class="px-cont w-80 mt-3"></div>
           <div class="size-28 mt-3 d-flex space-between align-items-center pl-3 pr-3">
-            <span class="text-90 size-28">锁定中的Nabox</span>
+            <span class="text-90 size-28">{{ $t("vaults.vaults12") }}Nabox</span>
             <div class="d-flex align-items-center size-28">
-              <span class="text-3a">2345874</span>
+              <span class="text-3a">{{ 20000 | numFormat }}</span>
             </div>
           </div>
           <div class="vaults-item">
-            <div class="text-90 size-28">{{ '已解锁未领取的' }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
+            <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
               <span class="size-40 word-break w-330">{{ (item.reward || 0) | numFormat }}</span>
               <span
                   class="item-btn size-30"
                   v-if="!item.needReceiveAuth"
-                  @click="receiveClick(item.farmKey, item)">{{ $t("完成解锁") }}</span>
+                  @click="receiveClick(item.farmKey, item)">{{ $t("vaults.vaults14") }}</span>
               <span
                   class="item-btn size-30"
                   v-else
@@ -180,7 +180,6 @@ export default {
   height: 30px;
   width: 30px;
   border-radius: 50%;
-  background-color: #25BA37;
   img {
     height: 100%;
     width: 100%;

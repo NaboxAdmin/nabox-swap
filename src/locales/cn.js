@@ -50,7 +50,7 @@ const cn = {
         swap20: '最低收到',
         swap21: 'swap跨链交易未确认',
         swap22: 'swap跨链交易已确认',
-        swap23: 'swap跨链交易,swap交易已广播',
+        swap23: 'swap跨链交易，swap交易已广播',
         swap24: 'swap跨链交易，链跨交易已广播',
         swap25: '已确认',
         swap26: 'swap跨链交易失败',
@@ -95,6 +95,11 @@ const cn = {
         vaults7: "取消",
         vaults8: "确认",
         vaults9: "输入质押数量",
+        vaults10: "领取的收益将在",
+        vaults11: "天内处于锁定状态",
+        vaults12: "锁定中的",
+        vaults13: "已解锁未领取的",
+        vaults14: "完成解锁",
         over1: "年化收益",
         over2: "已赚取",
         over3: "领取",
@@ -137,6 +142,21 @@ const cn = {
         order6: '手续费',
         order7: '时间',
         order8: '交易hash'
+    },
+    airdrop: {
+        airdrop1: "剩余总数",
+        airdrop2: "锁定",
+        airdrop3: "已质押",
+        airdrop4: "质押解锁",
+        airdrop5: "已解锁",
+        airdrop6: "领取",
+        airdrop7: "质押",
+        airdrop8: "退出质押",
+        airdrop9: "剩余已解锁",
+        airdrop10: "获取 LP",
+        airdrop11: "解锁速度",
+        airdrop12: "解锁时间",
+        airdrop13: "小时"
     }
 };
 

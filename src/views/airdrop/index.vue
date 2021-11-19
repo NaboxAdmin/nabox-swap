@@ -4,41 +4,41 @@
 
     </div>
     <div class="farm-total p-2 mt-2">
-      <div class="text-left size-22 text-d5">Total remaining</div>
+      <div class="text-left size-22 text-d5">{{ $t("airdrop.airdrop1") }}</div>
       <div class="d-flex direction-column align-items-center mt-12">
-        <span class="size-34 font-500 text-white">2,600,000,500</span>
+        <span class="size-34 font-500 text-white">{{ 26500000 | numFormat }}</span>
         <span class="font-500 text-d5 size-26">≈$200</span>
       </div>
     </div>
     <div class="stake-cont mt-2">
       <div class="d-flex align-items-center space-between">
-        <span class="size-28 text-90">Locked Nabox</span>
+        <span class="size-28 text-90">{{ $t("airdrop.airdrop2") }} Nabox</span>
         <p class="d-flex align-items-center">
-          <span class="text-primary size-28">GetLP</span>
+          <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
           <span class="icon-cont">
             <img src="@/assets/image/link_to.png" alt="">
           </span>
         </p>
       </div>
-      <div class="size-34 text-3a font-500 mt-3">600,000,500</div>
+      <div class="size-34 text-3a font-500 mt-3">{{ 6000000 | numFormat }}</div>
       <div class="mt-12 text-90 size-26">≈50.00</div>
       <div class="mt-3 d-flex align-items-center">
-        <span>Nabox-BUSD LP Staked</span>
-        <span class="calculate-icon" @click="showCalculate=true">
+        <span>Nabox-BUSD LP {{ $t("airdrop.airdrop3") }}</span>
+        <span class="calculate-icon cursor-pointer" @click="showCalculate=true">
           <img src="@/assets/image/calculator.png" alt="">
         </span>
       </div>
       <div class="size-34 mt-23 text-3a">16.8</div>
       <div class="btn-cont d-flex align-items-center space-between">
-        <div class="btn-item" @click="stakeClick('stake')">Stake To Unlock</div>
-        <div class="btn-item" @click="stakeClick('withdraw')">Unstake</div>
+        <div class="btn-item cursor-pointer" @click="stakeClick('stake')">{{ $t("airdrop.airdrop4") }}</div>
+        <div class="btn-item cursor-pointer" @click="stakeClick('withdraw')">{{ $t("airdrop.airdrop8") }}</div>
       </div>
     </div>
     <div class="claim-cont mt-2">
-      <div class="size-28 text-90">Unlocked Nabox</div>
-      <div class="mt-3 text-3a size-34 font-500">46,200</div>
+      <div class="size-28 text-90">{{ $t("airdrop.airdrop5") }} Nabox</div>
+      <div class="mt-3 text-3a size-34 font-500">{{ 46200 | numFormat }}</div>
       <div class="size-26 text-90 mt-12">≈18.76</div>
-      <div class="btn">Claim</div>
+      <div class="btn cursor-pointer" @click="claimClick">{{ $t("airdrop.airdrop6") }}</div>
     </div>
     <pop-up :show="showCalculate">
       <div class="calculate-cont">
@@ -47,14 +47,16 @@
             <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"></path></svg>
           </span>
         </div>
-        <div class="text-left font-500 text-3a size-36">Stake</div>
-        <div class="text-90 size-28 mt-6">Remaining Locked Nabox</div>
-        <div class="mt-23 size-34 font-500 text-3a">26,378,876</div>
+        <div class="text-left font-500 text-3a size-36">{{ $t("airdrop.airdrop7") }}</div>
+        <div class="text-90 size-28 mt-6">{{ $t("airdrop.airdrop9") }} Nabox</div>
+        <div class="mt-23 size-34 font-500 text-3a">{{ 2000000 | numFormat }}</div>
         <div class="mt-6 d-flex space-between">
           <span class="size-26 text-90">Nabox-BUSD LP</span>
           <p class="d-flex align-items-center">
-            <span class="text-primary size-28">GetLP</span>
-            <span class="icon-cont"></span>
+            <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
+            <span class="icon-cont">
+              <img src="@/assets/image/link_to.png" alt="">
+            </span>
           </p>
         </div>
         <div class="input-cont mt-2">
@@ -75,12 +77,12 @@
           <span class="text-90">{{ $t("BUSD") }}</span>
         </div>
         <div class="d-flex mt-4 space-between">
-          <span class="text-90 size-28">Unlock Speed</span>
+          <span class="text-90 size-28">{{ $t("airdrop.airdrop11") }}</span>
           <span class="text-3a">4759 Nabox/Block</span>
         </div>
         <div class="d-flex mt-3 space-between">
-          <span class="text-90 size-28">Unlock Time</span>
-          <span class="text-3a">6.78 Hours</span>
+          <span class="text-90 size-28">{{ $t("airdrop.airdrop12") }}</span>
+          <span class="text-3a">6.78 {{ $t("airdrop.airdrop13") }}</span>
         </div>
       </div>
     </pop-up>
@@ -88,7 +90,7 @@
       <div class="pop-cont">
         <div class="size-36 font-500">{{ stakeType === 'stake' && $t("vaults.vaults4") || $t("vaults.vaults4") }}</div>
         <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='increase'">{{ $t("vaults.vaults5") }}：{{ 0 }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{  0 }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ 0 }}</div>
         <div class="input-cont">
           <input :placeholder="$t('vaults.vaults9')"
                  @input="lpInput"
@@ -123,7 +125,9 @@ export default {
     lpInput() {},
     maxCount() {},
     confirm() {},
+    claimClick() {},
     stakeClick(type) {
+      this.showStake = true;
       this.stakeType = type;
     }
   }

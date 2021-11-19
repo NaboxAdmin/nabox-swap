@@ -95,6 +95,11 @@ const en = {
         vaults7: "Cancel",
         vaults8: "Confirm",
         vaults9: "Enter the staking amount",
+        vaults10: "The received proceeds will be locked in ",
+        vaults11: " day",
+        vaults12: "Locked ",
+        vaults13: "Unlocked unclaimed ",
+        vaults14: "Complete",
         over1: "APR",
         over2: "Earned",
         over3: "Claim",
@@ -118,7 +123,7 @@ const en = {
         popUp8: "L2 transfer"
      },
     confirmOrder: {
-        confirmOrder1: 'Confim'
+        confirmOrder1: 'Confirm'
     },
     navBar: {
         navBar1:'Order Confirmation',
@@ -137,6 +142,21 @@ const en = {
         order6:'Fees',
         order7:'Date',
         order8:'TXID'
+    },
+    airdrop: {
+        airdrop1: "Total remaining",
+        airdrop2: "Locked",
+        airdrop3: "Staked",
+        airdrop4: "Stake To Unlock",
+        airdrop5: "Unlocked",
+        airdrop6: "Claim",
+        airdrop7: "Stake",
+        airdrop8: "Unstake",
+        airdrop9: "Remaining Locked",
+        airdrop10: "Get LP",
+        airdrop11: "Unlock Speed",
+        airdrop12: "Unlock Time",
+        airdrop13: "Hours"
     }
 };
 

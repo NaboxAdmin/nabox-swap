@@ -5,11 +5,62 @@ import sdk from "nerve-sdk-js/lib/api/sdk";
 import {Plus, htmlEncode, timesDecimals, Minus} from "./util";
 import {request} from "./https";
 import { ETHNET } from "@/config"
-const Signature = require("elliptic/lib/elliptic/ec/signature");
-const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
+import { MultiCall } from "eth-multicall";
+import Web3 from "web3";
 
+console.log(Web3);
+const Signature = require("elliptic/lib/elliptic/ec/signature");
+const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+const web3 = new Web3(provider);
+console.log(web3.eth.Contract, "Web3")
+const multiCallContract = "0x5Eb3fa2DFECdDe21C950813C665E9364fa609bD2"; // 0xBf69f8353Ac6eB9C1A794AEE9C869B3dFC511ea2
+const multicall = new MultiCall(web3, multiCallContract);
+// console.log(multicall.all(), "multicall")
+// 查询余额
+const erc20BalanceAbiFragment = [{
+  "constant": true,
+  "inputs": [{"name": "", "type": "address"}],
+  "name": "balanceOf",
+  "outputs": [{"name": "", "type": "uint256"}],
+  "type": "function"
+}]
+
+const symbolAbi = [
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
+
+// const userAddress = '0x4e1d1124406f3609cc9afb71baf87288c70c662f';
+// async function testFunc() {
+//   const addresses = ['0x379dc136068c18a02fa968a78da0022db02f50df', '0xd0a347e0ebea8f8efc26d539e17853c8e7a721c4'];
+//   const tokens = addresses.map(address => {
+//     const token = new web3.eth.Contract(symbolAbi, address);
+//     console.log(token.methods, 'token')
+//     return {
+//       balance: token.methods.symbol()
+//     }
+//   });
+//   console.log(tokens, 'tokens')
+//   console.log(tokens, "tokens")
+//   const [tokensRes] = await multicall.all([tokens]);
+//   console.log(tokensRes, 'tokensRes');
+// }
+// testFunc()
 // NULS NERVE跨链手续费
 export const crossFee = 0.01;
 const nSdk = {NERVE: nerve, NULS: nuls};
@@ -368,22 +419,6 @@ export class NTransfer {
 
 }
 
-
-// const RPC_URL = {
-//   BSC: {
-//     ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-//     homestead: "https://bsc-dataseed.binance.org/"
-//   },
-//   Heco: {
-//     ropsten: "https://http-testnet.hecochain.com",
-//     homestead: "https://http-mainnet.hecochain.com"
-//   },
-//   OKExChain: {
-//     ropsten: "https://exchaintestrpc.okex.org",
-//     homestead: "https://exchainrpc.okex.org"
-//   }
-// };
-
 const CROSS_OUT_ABI = [
   "function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)"
 ];
@@ -393,14 +428,6 @@ const ERC20_ABI = [
   "function approve(address spender, uint256 amount) external returns (bool)"
 ];
 
-// 查询余额
-const erc20BalanceAbiFragment = [{
-  "constant": true,
-  "inputs": [{"name": "", "type": "address"}],
-  "name": "balanceOf",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "type": "function"
-}]
 
 // token转账
 const erc20TransferAbiFragment = [{
@@ -555,6 +582,16 @@ export class ETransfer {
       throw new Error("获取余额失败" + e)
     });
   }
+
+  /**
+   * 批量获取余额信息
+   * @param tx
+   * @returns {Promise<boolean|*>}
+   */
+  // getBatchERC20Balance(contractAddress, tokenDecimals, address) {
+  //   const addresses = [];
+  //   const tokens =
+  // }
 
   //验证交易参数
   async validate(tx) {

@@ -292,6 +292,7 @@ export default {
     // 断开连接
     disConnect() {
       this.showAccount = false;
+      this.showPop = true;
       this.$emit('disConnect')
     },
     showClick() {
