@@ -51,7 +51,7 @@
 <script>
 import {divisionDecimals} from "@/api/util";
 import {getCurrentAccount, tofix} from "../../../../../api/util";
-import {ETransfer} from "@/api/api";
+import {ETransfer, getBatchERC20Balance} from "@/api/api";
 
 export default {
   name: "CoinModal",
@@ -101,48 +101,6 @@ export default {
     }
   },
   watch: {
-    // coinList: {
-    //   immediate: true,
-    //   handler(val) {
-    //     if (this.toAsset) {
-    //       this.showCoinList = val.filter(coin => {
-    //         if (this.toAsset.contractAddress) {
-    //           return coin.contractAddress !== this.toAsset.contractAddress;
-    //         } else {
-    //           return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
-    //         }
-    //       });
-    //       this.allList = this.showCoinList;
-    //     } else {
-    //       this.showCoinList = val;
-    //       this.allList = val;
-    //     }
-    //   },
-    //   deep: true
-    // },
-    // modalType(val) {
-    //   if (val === 'receive') {
-    //     // this.showCoinList = await this.getCoins(this.picList[this.currentIndex]);
-    //     this.showCoinList = this.coinList.filter(coin => {
-    //       if (this.fromAsset && this.fromAsset.contractAddress) {
-    //         return coin.mainNetwork === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
-    //       } else {
-    //         return coin.mainNetwork === this.picList[this.currentIndex] && coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId
-    //       }
-    //     });
-    //     // console.log(this.showCoinList, "this.showCoinList");
-    //   } else if (val === 'send') {
-    //     if (this.toAsset) {
-    //       this.showCoinList = this.coinList.filter(coin => {
-    //         if (coin.contractAddress) {
-    //           return coin.contractAddress !== this.toAsset.contractAddress;
-    //         } else {
-    //           return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
-    //         }
-    //       });
-    //     }
-    //   }
-    // },
     searchVal(val) {
       if (val) {
         this.showCoinList = this.allList.filter(v => {
@@ -234,6 +192,7 @@ export default {
           symbol: v.swftInfo && v.swftInfo.coinCode || v.symbol,
           symbolImg: v.swftInfo && v.swftInfo.coinCode.split("(")[0] ||  v.symbol,
           showBalanceLoading: true,
+          showBatchBalanceLoading: true,
           ...v.swftInfo
         }));
         // 当前选择的资产是否支持跨链
@@ -333,11 +292,25 @@ export default {
         }
         this.showLoading = false;
         this.allList = [...this.showCoinList];
-        // console.log(this.showCoinList, 'showCoinList')
+        const addresses = this.allList.map(asset => asset.contractAddress).filter(item => item);
+        const balanceData = await getBatchERC20Balance(addresses, this.fromAddress, '0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B');
+        this.allList.forEach((item, index) => {
+          balanceData.forEach(data => {
+            if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
+              this.allList[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
+              this.allList[index].showBatchBalanceLoading = false;
+            }
+          });
+        });
         for (let i = 0; i < this.allList.length; i++) {
           const asset = this.allList[i];
-          if (asset.showBalanceLoading) {
+          if (!asset.contractAddress && asset.showBatchBalanceLoading) {
             this.allList[i].balance = await this.getBalance(asset);
+            this.allList[i].showBatchBalanceLoading = false;
+          }
+        }
+        if (this.allList.every(asset => !asset.showBatchBalanceLoading)) {
+          for (let i = 0; i < this.allList.length; i++) {
             this.allList[i].showBalanceLoading = false;
           }
         }

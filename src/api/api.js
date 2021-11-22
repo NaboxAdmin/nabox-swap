@@ -7,26 +7,51 @@ import {request} from "./https";
 import { ETHNET } from "@/config"
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
-import { MultiCall } from "eth-multicall";
+// import { MultiCall } from "eth-multicall";
+import { MultiCall } from "./Multicall";
 import Web3 from "web3";
-
-console.log(Web3);
 const Signature = require("elliptic/lib/elliptic/ec/signature");
 const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
 const provider = new ethers.providers.Web3Provider(window.ethereum);
-const web3 = new Web3(provider);
-console.log(web3.eth.Contract, "Web3")
-const multiCallContract = "0x5Eb3fa2DFECdDe21C950813C665E9364fa609bD2"; // 0xBf69f8353Ac6eB9C1A794AEE9C869B3dFC511ea2
-const multicall = new MultiCall(web3, multiCallContract);
-// console.log(multicall.all(), "multicall")
+
 // 查询余额
-const erc20BalanceAbiFragment = [{
-  "constant": true,
-  "inputs": [{"name": "", "type": "address"}],
-  "name": "balanceOf",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "type": "function"
-}]
+const erc20BalanceAbiFragment = [
+  {
+    "constant": true,
+    "inputs": [{"name": "", "type": "address"}],
+    "name": "balanceOf",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "decimal",
+    "outputs": [
+      {
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
 
 const symbolAbi = [
   {
@@ -45,22 +70,25 @@ const symbolAbi = [
   }
 ]
 
-// const userAddress = '0x4e1d1124406f3609cc9afb71baf87288c70c662f';
-// async function testFunc() {
-//   const addresses = ['0x379dc136068c18a02fa968a78da0022db02f50df', '0xd0a347e0ebea8f8efc26d539e17853c8e7a721c4'];
-//   const tokens = addresses.map(address => {
-//     const token = new web3.eth.Contract(symbolAbi, address);
-//     console.log(token.methods, 'token')
-//     return {
-//       balance: token.methods.symbol()
-//     }
-//   });
-//   console.log(tokens, 'tokens')
-//   console.log(tokens, "tokens")
-//   const [tokensRes] = await multicall.all([tokens]);
-//   console.log(tokensRes, 'tokensRes');
-// }
-// testFunc()
+const userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d'; // 0xaae1db3f3eb4b7d085a93b391459156b43e6eb97 0x45ccf4b9f8447191c38f5134d8c58f874335028d
+export async function getBatchERC20Balance(addresses = [ '0x379dc136068c18a02fa968a78da0022db02f50df', '0xd0a347e0ebea8f8efc26d539e17853c8e7a721c4', '0x5bb4ddd9f1332dfb395b9b2dbc14b145ee73a77d', '0x72755f739b56ef98bda25e2622c63add229dec01'], userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B") {
+  const web3Provider = window.web3 ? window.web3.currentProvider : ""
+  const web3 = new Web3(web3Provider);
+  const multicall = new MultiCall(web3, multiCallContract);
+  const tokens = addresses.map(address => {
+    const token = new web3.eth.Contract(erc20BalanceAbiFragment, address);
+    console.log(token.methods, 'token')
+    return {
+      balance: token.methods.balanceOf(userAddress),
+      symbol: token.methods.symbol(),
+      contractAddress: address
+      // decimals: token.methods.decimal()
+    }
+  });
+  const [tokensRes] = await multicall.all([tokens]);
+  return tokensRes;
+}
+
 // NULS NERVE跨链手续费
 export const crossFee = 0.01;
 const nSdk = {NERVE: nerve, NULS: nuls};

@@ -18,7 +18,7 @@
                  @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
             <div class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')" v-else>
               <div class="image-cont">
-                <img :src="chooseFromAsset.icon || pictureError" @error="pictureError" alt="">
+                <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol) || pictureError" @error="pictureError" alt="">
               </div>
               <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
                 {{ chooseFromAsset.symbolImg }}
@@ -53,7 +53,7 @@
                  v-if="!chooseToAsset">{{ $t('swap.swap12') }}</div>
             <div class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')" v-else>
               <div class="image-cont">
-                <img :src="chooseToAsset.icon || pictureError" @error="pictureError">
+                <img :src="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
               </div>
               <div class="w-90 text-truncate direction-column size-30 ml-1 text-3a">
                 {{ chooseToAsset.symbolImg }}
