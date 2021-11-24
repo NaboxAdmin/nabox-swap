@@ -292,34 +292,46 @@ export default {
         }
         this.showLoading = false;
         this.allList = [...this.showCoinList];
-        const addresses = this.allList.map(asset => asset.contractAddress).filter(item => item);
-        const balanceData = await getBatchERC20Balance(addresses, this.fromAddress, '0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B');
-        this.allList.forEach((item, index) => {
-          balanceData.forEach(data => {
-            if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
-              this.allList[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
-              this.allList[index].showBatchBalanceLoading = false;
-            }
-          });
-        });
-        for (let i = 0; i < this.allList.length; i++) {
-          const asset = this.allList[i];
-          if (!asset.contractAddress && asset.showBatchBalanceLoading) {
-            this.allList[i].balance = await this.getBalance(asset);
-            this.allList[i].showBatchBalanceLoading = false;
-          }
-        }
-        if (this.allList.every(asset => !asset.showBatchBalanceLoading)) {
+        if (tempNetwork === 'NULS' || tempNetwork === "NERVE") {
+          console.log(this.allList, "allList", tempNetwork)
           for (let i = 0; i < this.allList.length; i++) {
+            const asset = this.allList[i];
+            this.allList[i].balance = await this.getBalance(asset);
             this.allList[i].showBalanceLoading = false;
           }
+        } else {
+          const addresses = this.allList.map(asset => asset.contractAddress);
+          const contractConfig = {};
+          const batchQueryContract = "";
+          const balanceData = await getBatchERC20Balance(addresses, this.fromAddress, '0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B');
+          this.allList.forEach((item, index) => {
+            balanceData.forEach(data => {
+              if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
+                this.allList[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
+                this.allList[index].showBalanceLoading = false;
+              }
+            });
+          });
         }
+        // for (let i = 0; i < this.allList.length; i++) {
+        //   const asset = this.allList[i];
+        //   if (!asset.contractAddress && asset.showBatchBalanceLoading) {
+        //     this.allList[i].balance = await this.getBalance(asset);
+        //     this.allList[i].showBatchBalanceLoading = false;
+        //   }
+        // }
+        // if (this.allList.every(asset => !asset.showBatchBalanceLoading)) {
+        //   for (let i = 0; i < this.allList.length; i++) {
+        //     this.allList[i].showBalanceLoading = false;
+        //   }
+        // }
       } else {
         this.showLoading = false;
       }
     },
     // 获取钱包余额
     async getBalance(asset) {
+      console.log(asset, "asset")
       if (asset.chain === "NERVE" || asset.chain === "NULS") {
         const account = getCurrentAccount(this.fromAddress);
         const params = {

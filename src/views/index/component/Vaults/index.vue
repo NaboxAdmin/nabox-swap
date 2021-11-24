@@ -175,6 +175,7 @@ export default {
     crossIn() {
       this.$router.push({ path: '/transfer' });
     },
+    // 刷新数据
     async refreshData() {
       await this.getFarmInfo(true);
       await this.getTvlInfo();
@@ -196,39 +197,11 @@ export default {
       } else {
         this.needAuth = false
       }
-      // try {
-      //   const infoParams = {
-      //     network: item.chain,
-      //     fromChain: item.chain,
-      //     assetsChainId: item.stakeTokenChainId,
-      //     assetsId: item.stakeTokenAssetId,
-      //     contractAddress: item.stakeTokenContractAddress
-      //   }
-      //   const { chainId, assetId } = await getAssetNerveInfo(infoParams);
-      //   const focusParams = {
-      //     address: this.currentAccount['address'].NERVE,
-      //     assetId,
-      //     chainId,
-      //     chain: "NERVE",
-      //     focus: true
-      //   };
-      //   await this.$request({ url: "/wallet/address/asset/focus", data: focusParams });
-      // } catch (e) {
-      //   console.log(e)
-      // }
       if (type==="increase") {
         this.assetsItem = item.stakedAsset;
       } else {
         this.assetsItem = item;
       }
-      // if (item.chain !== "NERVE") {
-      //   await this.setGetERC20Allowance();
-      // } else {
-      //   this.needAuth = false;
-      // }
-      // this.stakedAsset = await this.getAssetInfo({ chainId: item.stakeTokenChainId, assetId: item.stakeTokenAssetId }); // 获取当前可质押的资产
-      // this.syrupAsset = await this.getAssetInfo({ chainId: item.syrupTokenChainId, assetId: item.syrupTokenAssetId }); // 获取当前可领取资产信息
-      // await this.getAddedLiquidity();
     },
     // 资产授权
     async approveERC20() {

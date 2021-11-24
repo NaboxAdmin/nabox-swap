@@ -8,12 +8,12 @@ import { ETHNET } from "@/config"
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
 // import { MultiCall } from "eth-multicall";
-import { MultiCall } from "./Multicall";
+import { MultiCall } from "./Multicall1";
 import Web3 from "web3";
+import { airDropABI } from "../../src/views/airdrop/airDropABI";
 const Signature = require("elliptic/lib/elliptic/ec/signature");
 const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
 const provider = new ethers.providers.Web3Provider(window.ethereum);
-
 // 查询余额
 const erc20BalanceAbiFragment = [
   {
@@ -40,51 +40,91 @@ const erc20BalanceAbiFragment = [
   {
     "constant": true,
     "inputs": [],
-    "name": "decimal",
+    "name": "decimals",
     "outputs": [
       {
         "name": "",
-        "type": "string"
+        "type": "uint8"
       }
     ],
     "payable": false,
-    "stateMutability": "view",
     "type": "function"
-  }
-]
-
-const symbolAbi = [
+  },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "symbol",
-    "outputs": [
+    "inputs":[
       {
-        "name": "",
-        "type": "string"
+        "internalType":"address",
+        "name":"addr",
+        "type":"address"
       }
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    "name":"getEthBalance",
+    "outputs":[
+      {
+        "internalType":"uint256",
+        "name":"balance",
+        "type":"uint256"
+      }
+    ],
+    "stateMutability":"view",
+    "type":"function"
   }
-]
+];
 
 const userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d'; // 0xaae1db3f3eb4b7d085a93b391459156b43e6eb97 0x45ccf4b9f8447191c38f5134d8c58f874335028d
-export async function getBatchERC20Balance(addresses = [ '0x379dc136068c18a02fa968a78da0022db02f50df', '0xd0a347e0ebea8f8efc26d539e17853c8e7a721c4', '0x5bb4ddd9f1332dfb395b9b2dbc14b145ee73a77d', '0x72755f739b56ef98bda25e2622c63add229dec01'], userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B") {
-  const web3Provider = window.web3 ? window.web3.currentProvider : ""
-  const web3 = new Web3(web3Provider);
+/**
+ * 批量查询资产余额
+ * @param addresses {String[]} 需要查询的合约资产
+ * @param userAddress 用户地址
+ * @param multiCallContract 当前网络下面的批量查询合约地址
+ * @returns tokensRes {Promise<*>} 当前返回的批量查询数据
+ */
+export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B") {
+  const web3 = new Web3(window.ethereum);
+  addresses.forEach((item, index) => {
+    if (!item) {
+      addresses[index] = multiCallContract
+    }
+  });
   const multicall = new MultiCall(web3, multiCallContract);
   const tokens = addresses.map(address => {
     const token = new web3.eth.Contract(erc20BalanceAbiFragment, address);
-    console.log(token.methods, 'token')
     return {
-      balance: token.methods.balanceOf(userAddress),
-      symbol: token.methods.symbol(),
-      contractAddress: address
-      // decimals: token.methods.decimal()
+      balance: address===multiCallContract ? token.methods.getEthBalance(userAddress) : token.methods.balanceOf(userAddress),
+      symbol: address===multiCallContract ? '' : token.methods.symbol(),
+      contractAddress: address===multiCallContract ? '' : address,
+      decimals: address===multiCallContract ? '' : token.methods.decimals()
     }
   });
+  const [tokensRes] = await multicall.all([tokens]);
+  return tokensRes;
+};
+
+/**
+ * 批量查询用户farm信息
+ * @param pairAddress farm地址
+ * @param userAddress 用户当前地址
+ * @param multiCallContract 当前批量查询的合约
+ * @returns {Promise<*>}
+ */
+export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallContract) {
+  const web3 = new Web3(window.ethereum);
+  const multicall = new MultiCall(web3, multiCallContract);
+  const userInfoTokens = new web3.eth.Contract(airDropABI, pairAddress);
+  const pendingTokenTokens = new web3.eth.Contract(airDropABI, pairAddress);
+  const getLockedTokenTokens = new web3.eth.Contract(airDropABI, pairAddress);
+  const tokens = [
+    {
+      userFarmInfo: userInfoTokens.methods.userInfo(userAddress)
+    },
+    {
+      pendingToken: pendingTokenTokens.methods.pendingToken(userAddress)
+    },
+    {
+      lockedToken: getLockedTokenTokens.methods.getLockedToken(userAddress)
+    }
+  ];
+  console.log(tokens, "tokens")
   const [tokensRes] = await multicall.all([tokens]);
   return tokensRes;
 }

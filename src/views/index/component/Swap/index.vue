@@ -721,7 +721,7 @@ export default {
             this.available = tempAvailable && tofix(tempAvailable, 6, -1);
           }
         } catch (e) {
-          console.log(e)
+          console.log(e, "error")
           this.available = 0;
           this.$message({
             message: this.$t("tips.tips2"),

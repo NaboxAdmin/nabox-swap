@@ -1,12 +1,13 @@
 <template>
   <div class="p-3 bg-white">
+    <div class="position-fixed_loading" v-if="showLoading" v-loading="showLoading"/>
     <div class="banner-cont">
 
     </div>
     <div class="farm-total p-2 mt-2">
       <div class="text-left size-22 text-d5">{{ $t("airdrop.airdrop1") }}</div>
       <div class="d-flex direction-column align-items-center mt-12">
-        <span class="size-34 font-500 text-white">{{ 26500000 | numFormat }}</span>
+        <span class="size-34 font-500 text-white">{{ LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance }}</span>
         <span class="font-500 text-d5 size-26">≈$200</span>
       </div>
     </div>
@@ -20,25 +21,33 @@
           </span>
         </p>
       </div>
-      <div class="size-34 text-3a font-500 mt-3">{{ 6000000 | numFormat }}</div>
+      <div class="size-34 text-3a font-500 mt-3">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
       <div class="mt-12 text-90 size-26">≈50.00</div>
       <div class="mt-3 d-flex align-items-center">
-        <span>Nabox-BUSD LP {{ $t("airdrop.airdrop3") }}</span>
+        <span>{{ LpFarmInfo && LpFarmInfo.lpSymbol }} LP {{ $t("airdrop.airdrop3") }}</span>
         <span class="calculate-icon cursor-pointer" @click="showCalculate=true">
           <img src="@/assets/image/calculator.png" alt="">
         </span>
       </div>
-      <div class="size-34 mt-23 text-3a">16.8</div>
+      <div class="size-34 mt-23 text-3a">{{ userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0 }}</div>
       <div class="btn-cont d-flex align-items-center space-between">
-        <div class="btn-item cursor-pointer" @click="stakeClick('stake')">{{ $t("airdrop.airdrop4") }}</div>
-        <div class="btn-item cursor-pointer" @click="stakeClick('withdraw')">{{ $t("airdrop.airdrop8") }}</div>
+        <template>
+          <div v-if="!needAuth" class="btn-item cursor-pointer" @click="stakeClick('stake')">{{ $t("airdrop.airdrop4") }}</div>
+          <div
+              class="btn-item cursor-pointer"
+              v-else
+              @click="assetApprove()">{{ $t("vaults.over6") }}</div>
+        </template>
+        <!-- :class="{ active_btn: !userFarmInfo || userFarmInfo && Number(userFarmInfo.userFarmInfo['1']) <= 0 }"-->
+        <div class="btn-item cursor-pointer"
+             @click="stakeClick('withdraw')">{{ $t("airdrop.airdrop8") }}</div>
       </div>
     </div>
     <div class="claim-cont mt-2">
-      <div class="size-28 text-90">{{ $t("airdrop.airdrop5") }} Nabox</div>
-      <div class="mt-3 text-3a size-34 font-500">{{ 46200 | numFormat }}</div>
+      <div class="size-28 text-90">{{ $t("airdrop.airdrop5") }} {{ LpFarmInfo && LpFarmInfo.candySymbol }}</div>
+      <div class="mt-3 text-3a size-34 font-500">{{ pendingToken && pendingToken.pendingToken | numFormat }}</div>
       <div class="size-26 text-90 mt-12">≈18.76</div>
-      <div class="btn cursor-pointer" @click="claimClick">{{ $t("airdrop.airdrop6") }}</div>
+      <div class="btn cursor-pointer" :class="{ active_btn: !pendingToken || pendingToken && Number(pendingToken.pendingToken) <= 0 }" @click="claimClick">{{ $t("airdrop.airdrop6") }}</div>
     </div>
     <pop-up :show="showCalculate">
       <div class="calculate-cont">
@@ -89,8 +98,8 @@
     <pop-up :show="showStake">
       <div class="pop-cont">
         <div class="size-36 font-500">{{ stakeType === 'stake' && $t("vaults.vaults4") || $t("vaults.vaults4") }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='increase'">{{ $t("vaults.vaults5") }}：{{ 0 }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ 0 }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ userFarmInfo && userFarmInfo.userFarmInfo['1'] }}</div>
         <div class="input-cont">
           <input :placeholder="$t('vaults.vaults9')"
                  @input="lpInput"
@@ -109,28 +118,230 @@
 
 <script>
 import PopUp from "../../components/PopUp/PopUp";
+import { divisionDecimals, Minus, timesDecimals } from "../../api/util";
+import { airDropABI } from "./airDropABI";
+import { ETransfer } from "@/api/api";
+import { ethers } from "ethers";
+import { getBatchUserFarmInfo, getBatchERC20Balance } from "../../api/api";
+import { ABIConfig } from "./ABIConfig";
+
 export default {
   name: "airdrop",
   components: { PopUp },
   data() {
     return {
       showCalculate: false,
-      showStake: true,
+      showStake: false,
       amountMsg: "",
       lpCount: "",
-      stakeType: ""
+      stakeType: "",
+      LpFarmInfo: null, // 当前的矿池信息
+      userFarmInfo: null, // 当前用户的
+      pendingToken: null, // 已解锁未领取Token
+      lockedToken: null, // 锁定的Token
+      stakedAsset: null, // 当前质押资产的余额
+      candyAsset: null, // 当前奖励资产的余额
+      needAuth: false,
+      showLoading: false
     }
   },
+  created() {
+    this.getLpFarmInfo();
+  },
+  watch: {
+    lpCount: {
+      handler(newVal, oldVal) {
+        if (newVal) {
+          const decimals = this.stakeType === 'stake' && this.stakedAsset.decimals || this.candyAsset.decimals || 8;
+          const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+          if (patrn.exec(newVal) || newVal === "") {
+            this.lpCount = newVal;
+          } else {
+            this.lpCount = oldVal;
+          }
+        } else {
+          this.lpCount = "";
+        }
+      },
+      deep: true
+    },
+  },
   methods: {
-    lpInput() {},
-    maxCount() {},
-    confirm() {},
-    claimClick() {},
+    // 获取当前矿池信息
+    async getLpFarmInfo() {
+      try {
+        const res = await this.$request({
+          method: 'get',
+          url: "/air/drop/act/info"
+        });
+        if (res.code === 1000 && res.data) {
+          this.LpFarmInfo = {
+            ...res.data,
+            poolModelInfo: {
+              ...res.data.poolModelInfo,
+              candyBalance: divisionDecimals(res.data.poolModelInfo.candyBalance, res.data.lpDecimals)
+            }
+          };
+          const config = JSON.parse(sessionStorage.getItem("config"));
+          const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
+          await this.getUserFarmDetailInfo(res.data.pairAddress, this.fromAddress, multicallAddress);
+          this.needAuth = await this.getSatkeAssetAuth(res.data.lpContractAddress, res.data.pairAddress);
+          console.log(this.needAuth, "need")
+          console.log(this.LpFarmInfo);
+          // console.log(res.data, "res.data");
+        } else {
+          throw res.msg
+        }
+      } catch (e) {
+        this.$message.warning(e)
+      }
+    },
+    // 根据合约查询用户当前的farm的详细信息
+    async getUserFarmDetailInfo(pairAddress, userAddress, multicallAddress) {
+      const balanceTokenRes = await getBatchERC20Balance([ this.LpFarmInfo.lpContractAddress, this.LpFarmInfo.candyContractAddress ], userAddress, multicallAddress);
+      this.stakedAsset = {
+        ...balanceTokenRes[0],
+        balance: divisionDecimals(balanceTokenRes[0].balance, balanceTokenRes[0].decimals)
+      }
+      this.candyAsset = {
+        ...balanceTokenRes[1],
+        balance: divisionDecimals(balanceTokenRes[1].balance, balanceTokenRes[1].decimals)
+      }
+      // console.log(this.stakeBalance, this.candyBalance, "candyBalance")
+      const tokenRes = await getBatchUserFarmInfo(pairAddress, userAddress, multicallAddress);
+      this.userFarmInfo = {
+        ...tokenRes[0],
+      };
+      this.pendingToken = {
+        ...tokenRes[1],
+        pendingToken: divisionDecimals(tokenRes[1].pendingToken, this.LpFarmInfo.lpDecimals)
+      };
+      this.lockedToken = {
+        ...tokenRes[2],
+        lockedToken: divisionDecimals(tokenRes[2].lockedToken, this.LpFarmInfo.lpDecimals)
+      };
+      console.log(this.userFarmInfo.userFarmInfo['0'], this.pendingToken, this.lockedToken, "12312312");
+    },
+    lpInput() {
+      if (this.stakeType==="stake") {
+        if (Minus(this.stakedAsset.balance, this.lpCount) < 0) {
+          this.amountMsg = this.$t("tips.tips16");
+        } else if (Minus(this.lpCount, 0) == "0") {
+          this.amountMsg = this.$t("tips.tips18");
+        } else {
+          this.amountMsg = '';
+        }
+      } else {
+        if (Minus(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'] || 0, this.lpCount) < 0) {
+          this.amountMsg = this.$t("tips.tips16");
+        } else {
+          this.amountMsg = '';
+        }
+      }
+    },
+    maxCount() {
+      if (this.stakeType === "stake") {
+        console.log(this.stakedAsset, "stakeAsset")
+        this.lpCount = this.stakedAsset && this.stakedAsset.balance || 0;
+        if (Minus(this.lpCount, 0) == "0") {
+          this.amountMsg = this.$t("tips.tips18");
+        }
+      } else {
+        this.lpCount = this.stakedAsset && this.stakedAsset.amount || 0;
+        if (Minus(this.lpCount, 0) == "0") {
+          this.amountMsg = this.$t("tips.tips18");
+        }
+      }
+    },
+    confirm() {
+      if (!this.lpCount || this.lpCount === "0" || this.amountMsg) return false;
+      let amount;
+      switch (this.stakeType) {
+        case "stake":
+          amount = timesDecimals(this.lpCount, this.stakedAsset.decimals || 8);
+          this.LpOperation("stake", amount);
+          break;
+        case "withdraw":
+          amount = timesDecimals(this.lpCount, this.stakedAsset.decimals || 8);
+          this.LpOperation("withdraw", amount);
+          break;
+        default:
+          return false;
+      }
+    },
+    LpOperation(type, amount) {
+      const transfer = new ETransfer();
+      const wallet = transfer.provider.getSigner();
+      const contract = new ethers.Contract(this.LpFarmInfo.pairAddress, ABIConfig, wallet);
+      switch (type) {
+        case 'stake':
+          contract.deposit(amount);
+          break;
+        case 'withdraw':
+          contract.withdraw(amount);
+          break;
+        default:
+          return false;
+      }
+    },
+    claimClick() {
+      if (this.pendingToken && Number(this.pendingToken.pendingToken) <= 0) return false;
+      this.LpOperation('stake', 0);
+    },
+    // 获取领取的资产是否需要授权
+    async getSatkeAssetAuth(stakedAssetContractAddress, farmHash) {
+      const transfer = new ETransfer();
+      return await transfer.getERC20Allowance(
+          stakedAssetContractAddress,
+          farmHash,
+          this.currentAccount.address.Ethereum
+      )
+    },
+    // 资产授权
+    async assetApprove() {
+      console.log(this.LpFarmInfo, "lpContractAddress")
+      this.showLoading = true;
+      try {
+        const transfer = new ETransfer();
+        const contractAddress = this.LpFarmInfo.lpContractAddress;
+        const res = await transfer.approveERC20(
+            contractAddress,
+            this.LpFarmInfo.pairAddress,
+            this.currentAccount.address.Ethereum
+        );
+        if (res.hash) {
+          this.$message({
+            message: this.$t("tips.tips14"),
+            type: "success",
+            duration: 2000,
+            offset: 30,
+          });
+        } else {
+          this.$message({
+            message: JSON.stringify(res),
+            type: "warning",
+            offset: 30,
+            duration: 2000
+          });
+        }
+        this.showLoading = false;
+      } catch (e) {
+        console.log(e);
+        this.$message({
+          message: e.message,
+          type: "warning",
+          offset: 30,
+          duration: 2000
+        });
+        this.showPop = false;
+        this.showLoading = false;
+      }
+    },
     stakeClick(type) {
       this.showStake = true;
       this.stakeType = type;
     }
-  }
+  },
 }
 </script>
 
@@ -307,5 +518,9 @@ export default {
         border-radius: 50%;
       }
     }
+  }
+  .active_btn {
+    background-color: #ABB1BA !important;
+    border: none;
   }
 </style>

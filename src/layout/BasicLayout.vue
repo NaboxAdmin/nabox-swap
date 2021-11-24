@@ -159,6 +159,7 @@ export default {
     fromChainId: {
       immediate: true,
       handler(val) {
+        console.log(val, "valllll")
         if (!val) return;
         const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
         const chain = tempSupportChainList.find(v => v[ETHNET] === val);
@@ -419,6 +420,7 @@ export default {
         } else {
           accountList.push(account);
         }
+        console.log(accountList, "accountList")
         const syncRes = await this.syncAccount(pub, account.address);
         if (syncRes) {
           localStorage.setItem("accountList", JSON.stringify(accountList));

@@ -590,19 +590,19 @@ export function getLogoSrc(symbol) {
   return "https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/" + symbol + ".png"
 }
 
-
-// export const supportChainList = [
-//   { label: "NERVE", value: "NERVE", symbol: "NVT", SwftChain: "NERVE", chainId: MAIN_INFO.chainId, assetId: MAIN_INFO.assetId },
-//   { label: "NULS", value: "NULS", symbol:"NULS", SwftChain: "NULS", chainId: NULS_INFO.chainId, assetId: NULS_INFO.assetId },
-//   { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "Ethereum", homestead: "0x1", chainId: 101, assetId: 1 },
-//   { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1, origin: networkOrigin.BSC, rpcUrl: {ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/", homestead: "https://bsc-dataseed.binance.org/"}},
-//   { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1, origin: networkOrigin.Heco, rpcUrl: {ropsten: "https://http-testnet.hecochain.com",homestead: "https://http-mainnet.hecochain.com"}},
-//   { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, origin: networkOrigin.OKExChain, assetId: 1, rpcUrl: {ropsten: "https://exchaintestrpc.okex.org",homestead: "https://exchainrpc.okex.org"}}
-// ];
-
 // TODO:多链
 export const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-// console.log(supportChainList, '==supportChainListTest==')
+
+// 批量查询资产合约配置
+export const contractConfig = {
+  Ethereum: isBeta ? "" : "",
+  BSC: isBeta ? "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B" : "",
+  Heco: isBeta ? "" : "",
+  OKExChain: isBeta ? "" : "",
+  Harmony: isBeta ?  "" : "",
+  Polygon: isBeta ?  "" : "",
+  KCC:  isBeta ?  "" : ""
+}
 
 // export const supportChainList = [
 //   {
