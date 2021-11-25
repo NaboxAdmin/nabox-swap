@@ -33,7 +33,9 @@
           <div class="d-flex align-items-center space-between mt-1">
             <span class="size-40 w-330 word-break">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
-              <div class="btn-item disabled_btn">-</div>
+              <div class="btn-item"
+                   :class="{ disabled_btn: !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0 }"
+                   @click="showClick('decrease', item.farmKey, item)">-</div>
               <div class="btn-item disabled_btn ml-3">+</div>
             </div>
           </div>
@@ -69,6 +71,11 @@ export default {
     receiveClick(asset) {
       if (!asset.reward) return false;
       this.$emit('receiveClick', { asset })
+    },
+    showClick(type, farmHash, item) {
+      // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
+      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0)) return false;
+      this.$emit('showClick', { type, farmHash: item.farmKey, item });
     },
     // 获取当前farm信息
     async getFarmInfo(enable, refresh=false) {
@@ -137,6 +144,27 @@ export default {
       this.farmLoading = false;
       // const tempList = resList.filter(item => item);
       console.log(this.farmList, '==over farmList==');
+    },
+    // 获取资产信息
+    async getAssetInfo(currentAsset) {
+      if (!currentAsset) return '';
+      const { chainId, assetId, contractAddress, chain } = currentAsset;
+      const params = {
+        chain,
+        address: this.currentAccount && this.currentAccount.address[chain],
+        chainId,
+        assetId,
+        refresh: true,
+        contractAddress: contractAddress || ''
+      };
+      const res = await this.$request({
+        url: '/wallet/address/asset',
+        data: params
+      });
+      if (res.code === 1000) {
+        res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
+        return res.data;
+      }
     },
   },
   beforeDestroy() {
