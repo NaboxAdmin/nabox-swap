@@ -29,7 +29,7 @@
           <img src="@/assets/image/calculator.png" alt="">
         </span>
       </div>
-      <div class="size-34 mt-23 text-3a">{{ userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0 }}</div>
+      <div class="size-34 mt-23 text-3a">{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'], LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
       <div class="btn-cont d-flex align-items-center space-between">
         <template>
           <div v-if="!needAuth" class="btn-item cursor-pointer" @click="stakeClick('stake')">{{ $t("airdrop.airdrop4") }}</div>
@@ -58,9 +58,9 @@
         </div>
         <div class="text-left font-500 text-3a size-36">{{ $t("airdrop.airdrop7") }}</div>
         <div class="text-90 size-28 mt-6">{{ $t("airdrop.airdrop9") }} Nabox</div>
-        <div class="mt-23 size-34 font-500 text-3a">{{ 2000000 | numFormat }}</div>
+        <div class="mt-23 size-34 font-500 text-3a">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
         <div class="mt-6 d-flex space-between">
-          <span class="size-26 text-90">Nabox-BUSD LP</span>
+          <span class="size-26 text-90">{{ LpFarmInfo && LpFarmInfo.lpSymbol }} LP</span>
           <p class="d-flex align-items-center">
             <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
             <span class="icon-cont">
@@ -69,20 +69,20 @@
           </p>
         </div>
         <div class="input-cont mt-2">
-          <input :placeholder="$t('vaults.vaults9')"/>
+          <input v-model="liquidityCount" @input="liquidityInput" :placeholder="$t('vaults.vaults9')"/>
         </div>
         <div class="down-icon m-3_auto">
           <img src="@/assets/image/swap.png" alt="">
         </div>
         <div class="input-cont">
-          <input :placeholder="$t('vaults.vaults9')"/>
+          <input v-model="reverse0Count" @input="reverse0Input" :placeholder="$t('vaults.vaults9')"/>
           <span class="text-90">{{ $t("Nabox") }}</span>
         </div>
         <div class="down-icon m-2_auto">
           <img src="@/assets/image/swap.png" alt="">
         </div>
         <div class="input-cont">
-          <input :placeholder="$t('vaults.vaults9')"/>
+          <input v-model="reverse1Count" @input="reverse1Input" :placeholder="$t('vaults.vaults9')"/>
           <span class="text-90">{{ $t("BUSD") }}</span>
         </div>
         <div class="d-flex mt-4 space-between">
@@ -99,9 +99,11 @@
       <div class="pop-cont">
         <div class="size-36 font-500">{{ stakeType === 'stake' && $t("vaults.vaults4") || $t("vaults.vaults4") }}</div>
         <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ userFarmInfo && userFarmInfo.userFarmInfo['1'] }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'], LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
         <div class="input-cont">
           <input :placeholder="$t('vaults.vaults9')"
+                 pattern="^[0-9]*[.,]?[0-9]*$"
+                 type="text"
                  @input="lpInput"
                  v-model="lpCount">
           <span @click="maxCount">{{ $t("vaults.vaults6") }}</span>
@@ -118,7 +120,7 @@
 
 <script>
 import PopUp from "../../components/PopUp/PopUp";
-import { divisionDecimals, Minus, timesDecimals } from "../../api/util";
+import { divisionDecimals, Minus, timesDecimals, Times, Division, formatFloatNumber } from "../../api/util";
 import { airDropABI } from "./airDropABI";
 import { ETransfer } from "@/api/api";
 import { ethers } from "ethers";
@@ -136,17 +138,28 @@ export default {
       lpCount: "",
       stakeType: "",
       LpFarmInfo: null, // 当前的矿池信息
-      userFarmInfo: null, // 当前用户的
+      userFarmInfo: null, // 当前用户的farm信息
       pendingToken: null, // 已解锁未领取Token
       lockedToken: null, // 锁定的Token
       stakedAsset: null, // 当前质押资产的余额
       candyAsset: null, // 当前奖励资产的余额
       needAuth: false,
-      showLoading: false
+      showLoading: false,
+      reverse0Count: "",
+      reverse1Count: "",
+      liquidityCount: "",
+      rate: 5,
+      reverse0: "1153770723954217592642132814",
+      reverse1: "392948295898899396956072",
+      totalSupply: "17944746760119496596621555",
+      reverse0Flag: false,
+      reverse1Flag: false,
+      liquidityFlag: false
     }
   },
   created() {
     this.getLpFarmInfo();
+    this.rate = Division(this.reverse0, this.reverse1);
   },
   watch: {
     lpCount: {
@@ -165,8 +178,77 @@ export default {
       },
       deep: true
     },
+    // liquidity = Math.min(amount0.mul(totalSupply) / reserve0, amount1.mul(totalSupply) / reserve1)
+    reverse0Count: {
+      handler(newVal, oldVal) {
+        if (newVal && !this.liquidityFlag && !this.reverse1Flag) {
+          const tempNewval = timesDecimals(newVal, 18);
+          const tempAmount1 = Division(tempNewval, this.rate);
+          this.reverse1Count = formatFloatNumber(6, divisionDecimals(tempAmount1, 18));
+          // console.log(tempNewval, this.rate.toString(), "1231");
+          this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempNewval, this.totalSupply), this.reverse0), Division(Times(tempAmount1, this.totalSupply), this.reverse1)), 18));
+          // console.log(formatFloatNumber(6, this.liquidityCount), "liquidityCount");
+        } else if (!newVal) {
+          this.resetInput();
+        }
+      }
+    },
+    reverse1Count: {
+      handler(newVal, oldVal) {
+        console.log(this.liquidityFlag, this.reverse0Flag, "reverse0Flag")
+        if (newVal && !this.liquidityFlag && !this.reverse0Flag) {
+          const tempNewval = timesDecimals(newVal, 18);
+          const tempAmount0 = Times(tempNewval, this.rate);
+          this.reverse0Count = formatFloatNumber(6, divisionDecimals(tempAmount0, 18));
+          this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempAmount0, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1)), 18));
+          // this.liquidityCount = Math.min(Division(Times(this.reverse0Count, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1));
+          // console.log(Division(Times(this.reverse0Count, this.totalSupply), this.reverse0).toString(), Division(Times(tempNewval, this.totalSupply), this.reverse1).toString(), "liquidityCount");
+        } else if (!newVal) {
+          this.resetInput();
+        }
+      }
+    },
+    liquidityCount: {
+      handler(newVal, oldVal) {
+        if (newVal && !this.reverse0Flag && !this.reverse1Flag) {
+          const tempNewval = timesDecimals(newVal, 18);
+          const tempAmount0 = divisionDecimals(Division(Times(this.reverse0, tempNewval), this.totalSupply), 18);
+          const tempAmount1 = divisionDecimals(Division(Times(this.reverse1, tempNewval), this.totalSupply), 18);
+          const tempAmount1ToAmount0 = Times(tempAmount1, this.rate);
+          if (Minus(tempAmount0, tempAmount1ToAmount0) < 0) {
+            this.reverse0Count = formatFloatNumber(6, tempAmount0);
+            this.reverse1Count = formatFloatNumber(6, Division(tempAmount0, this.rate));
+          } else {
+            this.reverse0Count = formatFloatNumber(6, tempAmount1ToAmount0);
+            this.reverse1Count = formatFloatNumber(6, Division(tempAmount1ToAmount0, this.rate));
+          }
+        } else if (!newVal) {
+          this.resetInput();
+        }
+      }
+    }
   },
   methods: {
+    reverse0Input() {
+      this.reverse0Flag = true;
+      this.liquidityFlag = false;
+      this.reverse1Flag = false;
+    },
+    reverse1Input() {
+      this.reverse1Flag = true;
+      this.liquidityFlag = false;
+      this.reverse0Flag = false;
+    },
+    liquidityInput() {
+      this.liquidityFlag = true;
+      this.reverse0Flag = false;
+      this.reverse1Flag = false;
+    },
+    resetInput() {
+      this.reverse0Count = "";
+      this.reverse1Count = "";
+      this.liquidityCount = "";
+    },
     // 获取当前矿池信息
     async getLpFarmInfo() {
       try {
@@ -220,7 +302,7 @@ export default {
         ...tokenRes[2],
         lockedToken: divisionDecimals(tokenRes[2].lockedToken, this.LpFarmInfo.lpDecimals)
       };
-      console.log(this.userFarmInfo.userFarmInfo['0'], this.pendingToken, this.lockedToken, "12312312");
+      console.log(this.userFarmInfo, this.pendingToken, this.lockedToken, "12312312");
     },
     lpInput() {
       if (this.stakeType==="stake") {
@@ -255,6 +337,7 @@ export default {
     },
     confirm() {
       if (!this.lpCount || this.lpCount === "0" || this.amountMsg) return false;
+      this.showLoading = true;
       let amount;
       switch (this.stakeType) {
         case "stake":
@@ -269,24 +352,37 @@ export default {
           return false;
       }
     },
-    LpOperation(type, amount) {
-      const transfer = new ETransfer();
-      const wallet = transfer.provider.getSigner();
-      const contract = new ethers.Contract(this.LpFarmInfo.pairAddress, ABIConfig, wallet);
-      switch (type) {
-        case 'stake':
-          contract.deposit(amount);
-          break;
-        case 'withdraw':
-          contract.withdraw(amount);
-          break;
-        default:
-          return false;
+    async LpOperation(type, amount) {
+      try {
+        const transfer = new ETransfer();
+        const wallet = transfer.provider.getSigner();
+        const contract = new ethers.Contract(this.LpFarmInfo.pairAddress, ABIConfig, wallet);
+        let res;
+        switch (type) {
+          case 'stake':
+            res = await contract.deposit(amount);
+            break;
+          case 'withdraw':
+            res = await contract.withdraw(amount);
+            break;
+          default:
+            return false;
+        }
+        if (res.hash) {
+          console.log(res.hash);
+          this.showLoading = false;
+        }
+      } catch (e) {
+        this.showLoading = false;
       }
     },
     claimClick() {
       if (this.pendingToken && Number(this.pendingToken.pendingToken) <= 0) return false;
       this.LpOperation('stake', 0);
+    },
+    // 格式化decimals
+    formatDecimals(number, decimals = 8) {
+      return divisionDecimals(number, decimals) || 0;
     },
     // 获取领取的资产是否需要授权
     async getSatkeAssetAuth(stakedAssetContractAddress, farmHash) {
