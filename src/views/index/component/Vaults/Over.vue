@@ -25,7 +25,7 @@
             <span class="size-40 w-330 word-break">{{ (item.reward || 0) | numFormat }}</span>
             <span class="item-btn size-30"
                   :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
-                  @click="receiveClick(item)">{{ $t("vaults.over3") }}</span>
+                  @click="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
           </div>
         </div>
         <div class="vaults-item">
@@ -68,9 +68,9 @@ export default {
   },
   methods: {
     // 领取
-    receiveClick(asset) {
-      if (!asset.reward) return false;
-      this.$emit('receiveClick', { asset })
+    receiveClick(farmHash, farm) {
+      if (!farm.reward || farm.reward==="0") return false;
+      this.$emit('receiveClick', { farmHash, farm });
     },
     showClick(type, farmHash, item) {
       // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
