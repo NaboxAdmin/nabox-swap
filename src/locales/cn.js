@@ -156,7 +156,8 @@ const cn = {
         airdrop10: "获取 LP",
         airdrop11: "解锁速度",
         airdrop12: "解锁时间",
-        airdrop13: "小时"
+        airdrop13: "小时",
+        airdrop14: "计算器"
     }
 };
 

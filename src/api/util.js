@@ -1,8 +1,8 @@
 import nerve from 'nerve-sdk-js'
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
-import { MAIN_INFO, NULS_INFO, ETHNET} from '@/config.js'
-import { post, request } from './https'
+import {MAIN_INFO, NULS_INFO, ETHNET} from '@/config.js'
+import {post, request} from './https'
 
 /**
  * 10的N 次方
@@ -11,8 +11,8 @@ import { post, request } from './https'
  * @constructor
  */
 export function Power(arg) {
-  let newPower = new BigNumber(10);
-  return newPower.pow(arg);
+    let newPower = new BigNumber(10);
+    return newPower.pow(arg);
 }
 
 /**
@@ -23,8 +23,8 @@ export function Power(arg) {
  * @constructor
  */
 export function Plus(nu, arg) {
-  let newPlus = new BigNumber(nu);
-  return newPlus.plus(arg);
+    let newPlus = new BigNumber(nu);
+    return newPlus.plus(arg);
 }
 
 /**
@@ -35,8 +35,8 @@ export function Plus(nu, arg) {
  * @constructor
  */
 export function Minus(nu, arg) {
-  let newMinus = new BigNumber(nu);
-  return newMinus.minus(arg);
+    let newMinus = new BigNumber(nu);
+    return newMinus.minus(arg);
 }
 
 /**
@@ -47,8 +47,8 @@ export function Minus(nu, arg) {
  * @constructor
  */
 export function Times(nu, arg) {
-  let newTimes = new BigNumber(nu);
-  return newTimes.times(arg);
+    let newTimes = new BigNumber(nu);
+    return newTimes.times(arg);
 }
 
 /**
@@ -59,49 +59,50 @@ export function Times(nu, arg) {
  * @constructor
  */
 export function Division(nu, arg) {
-  let newDiv = new BigNumber(nu);
-  return newDiv.div(arg);
+    let newDiv = new BigNumber(nu);
+    return newDiv.div(arg);
 }
 
 /**
  * 数字乘以精度系数
  */
 export function timesDecimals(nu, decimals) {
-  if (!decimals) {
-    return nu
-  }
-  return new BigNumber(Times(nu, Power(decimals)))
-    .toFormat()
-    .replace(/[,]/g, "");
+    if (!decimals) {
+        return nu
+    }
+    return new BigNumber(Times(nu, Power(decimals)))
+        .toFormat()
+        .replace(/[,]/g, "");
 }
 
 /**
  * 数字除以精度系数
  */
 export function divisionDecimals(nu, decimals = '') {
-  if (!decimals) {
-    return nu;
-  }
-  return new BigNumber(Division(nu, Power(decimals)))
-    .toFormat()
-    .replace(/[,]/g, "");
+    if (!decimals) {
+        return nu;
+    }
+    return new BigNumber(Division(nu, Power(decimals)))
+        .toFormat()
+        .replace(/[,]/g, "");
 }
 
 export function divisionAndFix(nu, decimals = 8, fix) {
-  const newFix = fix ? fix : decimals
-  const str = new BigNumber(Division(nu, Power(decimals))).toFixed(newFix)
-  const pointIndex = str.indexOf(".");
-  let lastStr = str.substr(str.length-1);
-  let lastIndex = str.length;
-  while(lastStr == 0 && lastIndex >= pointIndex) {
-    lastStr = str.substr(lastIndex - 1, 1);
-    if (lastStr == 0) {
-      lastIndex = lastIndex -1
+    const newFix = fix ? fix : decimals
+    const str = new BigNumber(Division(nu, Power(decimals))).toFixed(newFix)
+    const pointIndex = str.indexOf(".");
+    let lastStr = str.substr(str.length - 1);
+    let lastIndex = str.length;
+    while (lastStr == 0 && lastIndex >= pointIndex) {
+        lastStr = str.substr(lastIndex - 1, 1);
+        if (lastStr == 0) {
+            lastIndex = lastIndex - 1
+        }
     }
-  }
-  lastIndex = str.substr(lastIndex - 1 , 1) === "." ? lastIndex -1 : lastIndex
-  return str.substring(0,lastIndex)
+    lastIndex = str.substr(lastIndex - 1, 1) === "." ? lastIndex - 1 : lastIndex
+    return str.substring(0, lastIndex)
 }
+
 /**
  * @disc: 验证密码
  * @params:  accountInfo
@@ -111,29 +112,35 @@ export function divisionAndFix(nu, decimals = 8, fix) {
  * @author: Wave
  */
 export function passwordVerification(accountInfo, password, prefix) {
-  const pri = nerve.decrypteOfAES(accountInfo.aesPri, password);
-  if (!prefix && sessionStorage.hasOwnProperty('info')) {
-    prefix = JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol
-  }
-  const newAddressInfo = nerve.importByKey(chainID(), pri, password, prefix);
-  if (newAddressInfo.address === accountInfo.address) {
-    return {success: true, pri: pri, pub: accountInfo.pub, aesPri: accountInfo.aesPri, address: newAddressInfo.address};
-  } else {
-    return {success: false};
-  }
+    const pri = nerve.decrypteOfAES(accountInfo.aesPri, password);
+    if (!prefix && sessionStorage.hasOwnProperty('info')) {
+        prefix = JSON.parse(sessionStorage.getItem('info')).defaultAsset.symbol
+    }
+    const newAddressInfo = nerve.importByKey(chainID(), pri, password, prefix);
+    if (newAddressInfo.address === accountInfo.address) {
+        return {
+            success: true,
+            pri: pri,
+            pub: accountInfo.pub,
+            aesPri: accountInfo.aesPri,
+            address: newAddressInfo.address
+        };
+    } else {
+        return {success: false};
+    }
 }
 
 export function main_info() {
-  let info = MAIN_INFO;
-  if (sessionStorage.hasOwnProperty('info')) {
-    let defaultAsset = JSON.parse(sessionStorage.getItem('info')).defaultAsset;
-    info = defaultAsset;
-    let prefixList = sessionStorage.hasOwnProperty('prefixData') ? JSON.parse(sessionStorage.getItem('prefixData')) : [];
-    let prefixInfo = prefixList.filter(v => v.chainId === defaultAsset.chainId)[0];
-    //console.log(prefixInfo);
-    info.prefix = prefixInfo.addressPrefix ? prefixInfo.addressPrefix : MAIN_INFO.prefix;
-  }
-  return info
+    let info = MAIN_INFO;
+    if (sessionStorage.hasOwnProperty('info')) {
+        let defaultAsset = JSON.parse(sessionStorage.getItem('info')).defaultAsset;
+        info = defaultAsset;
+        let prefixList = sessionStorage.hasOwnProperty('prefixData') ? JSON.parse(sessionStorage.getItem('prefixData')) : [];
+        let prefixInfo = prefixList.filter(v => v.chainId === defaultAsset.chainId)[0];
+        //console.log(prefixInfo);
+        info.prefix = prefixInfo.addressPrefix ? prefixInfo.addressPrefix : MAIN_INFO.prefix;
+    }
+    return info
 }
 
 /**
@@ -141,12 +148,12 @@ export function main_info() {
  * @returns {number}
  */
 export function chainID() {
-  const url = JSON.parse(localStorage.getItem('url'));
-  if (url && url.urls) {
-    return url.chainId
-  } else {
-    return main_info().chainId;
-  }
+    const url = JSON.parse(localStorage.getItem('url'));
+    if (url && url.urls) {
+        return url.chainId
+    } else {
+        return main_info().chainId;
+    }
 }
 
 /**
@@ -154,7 +161,7 @@ export function chainID() {
  * @returns {string}
  */
 export function chainIdNumber() {
-  return 'chainId' + chainID();
+    return 'chainId' + chainID();
 }
 
 /**
@@ -163,21 +170,21 @@ export function chainIdNumber() {
  * @returns {*}
  */
 export function addressInfo(type) {
-  let chainNumber = 'chainId' + chainID();
-  let addressList = localStorage.hasOwnProperty(chainNumber) ? JSON.parse(localStorage.getItem(chainNumber)) : [];
-  if (addressList) {
-    if (type === 0) {
-      return addressList
-    } else {
-      for (let item  of addressList) {
-        if (item.selection) {
-          return item
+    let chainNumber = 'chainId' + chainID();
+    let addressList = localStorage.hasOwnProperty(chainNumber) ? JSON.parse(localStorage.getItem(chainNumber)) : [];
+    if (addressList) {
+        if (type === 0) {
+            return addressList
+        } else {
+            for (let item of addressList) {
+                if (item.selection) {
+                    return item
+                }
+            }
         }
-      }
+    } else {
+        return addressList
     }
-  } else {
-    return addressList
-  }
 }
 
 /**
@@ -187,8 +194,8 @@ export function addressInfo(type) {
  * @returns {string}
  */
 export function langNumber(nu, powerNu) {
-  let newNu = new BigNumber(Division(nu, powerNu).toString());
-  return newNu.toFormat().replace(/[,]/g, '');
+    let newNu = new BigNumber(Division(nu, powerNu).toString());
+    return newNu.toFormat().replace(/[,]/g, '');
 }
 
 /**
@@ -198,11 +205,11 @@ export function langNumber(nu, powerNu) {
  * @returns {*}
  */
 export function superLong(string, leng) {
-  if (string && string.length > 10) {
-    return string.substr(0, leng) + "...." + string.substr(string.length - leng, string.length);
-  } else {
-    return string;
-  }
+    if (string && string.length > 10) {
+        return string.substr(0, leng) + "...." + string.substr(string.length - leng, string.length);
+    } else {
+        return string;
+    }
 }
 
 /**
@@ -217,16 +224,16 @@ export const copys = (value) => copy(value);
  * @returns {{days: number, hours: number, minutes: number, seconds: number}}
  */
 export function timeDifference(dateBegin) {
-  let dateEnd = new Date();    //结束时间
-  let newDate = dateEnd.getTime() - dateBegin;   //时间差的毫秒数
-  let days = Math.floor(newDate / (24 * 3600 * 1000));//计算出相差天数
-  let leave1 = newDate % (24 * 3600 * 1000);    //计算天数后剩余的毫秒数
-  let hours = Math.floor(leave1 / (3600 * 1000));
-  let leave2 = leave1 % (3600 * 1000);        //计算小时数后剩余的毫秒数
-  let minutes = Math.floor(leave2 / (60 * 1000));
-  let leave3 = leave2 % (60 * 1000);      //计算分钟数后剩余的毫秒数
-  let seconds = Math.round(leave3 / 1000);
-  return {days: days, hours: hours, minutes: minutes, seconds: seconds};
+    let dateEnd = new Date();    //结束时间
+    let newDate = dateEnd.getTime() - dateBegin;   //时间差的毫秒数
+    let days = Math.floor(newDate / (24 * 3600 * 1000));//计算出相差天数
+    let leave1 = newDate % (24 * 3600 * 1000);    //计算天数后剩余的毫秒数
+    let hours = Math.floor(leave1 / (3600 * 1000));
+    let leave2 = leave1 % (3600 * 1000);        //计算小时数后剩余的毫秒数
+    let minutes = Math.floor(leave2 / (60 * 1000));
+    let leave3 = leave2 % (60 * 1000);      //计算分钟数后剩余的毫秒数
+    let seconds = Math.round(leave3 / 1000);
+    return {days: days, hours: hours, minutes: minutes, seconds: seconds};
 }
 
 /**
@@ -235,18 +242,18 @@ export function timeDifference(dateBegin) {
  * @returns {*}
  */
 export function getLocalTime(time) {
-  if (typeof time !== 'number') return;
-  let d = new Date();
-  let offset = d.getTimezoneOffset() * 60000;
-  let localUtc = new Date().getTimezoneOffset() / 60;
-  let utcTime;
-  if (localUtc > 0) {
-    utcTime = time - offset;
-  } else {
-    utcTime = time + offset;
-  }
-  let localTime = utcTime + 3600000 * Math.abs(localUtc);
-  return new Date(localTime);
+    if (typeof time !== 'number') return;
+    let d = new Date();
+    let offset = d.getTimezoneOffset() * 60000;
+    let localUtc = new Date().getTimezoneOffset() / 60;
+    let utcTime;
+    if (localUtc > 0) {
+        utcTime = time - offset;
+    } else {
+        utcTime = time + offset;
+    }
+    let localTime = utcTime + 3600000 * Math.abs(localUtc);
+    return new Date(localTime);
 }
 
 /**
@@ -255,82 +262,82 @@ export function getLocalTime(time) {
  * @returns {{allParameter: boolean, args: Array}}
  */
 export function getArgs(parameterList) {
-  //console.log(parameterList);
-  let newArgs = [];
-  let allParameter = false;
-  if (parameterList.length !== 0) {
-    //循环获取必填参数
-    for (let itme of parameterList) {
-      if (itme.required) {
-        if (itme.value) {
-          allParameter = true;
-          newArgs.push(itme.value)
-        } else {
-          return {allParameter: false, args: newArgs};
+    //console.log(parameterList);
+    let newArgs = [];
+    let allParameter = false;
+    if (parameterList.length !== 0) {
+        //循环获取必填参数
+        for (let itme of parameterList) {
+            if (itme.required) {
+                if (itme.value) {
+                    allParameter = true;
+                    newArgs.push(itme.value)
+                } else {
+                    return {allParameter: false, args: newArgs};
+                }
+            } else {
+                allParameter = true;
+                if (!itme.value) {
+                    newArgs.push('')
+                } else {
+                    newArgs.push(itme.value)
+                }
+            }
         }
-      } else {
-        allParameter = true;
-        if (!itme.value) {
-          newArgs.push('')
-        } else {
-          newArgs.push(itme.value)
-        }
-      }
+        return {allParameter: allParameter, args: newArgs};
+    } else {
+        return {allParameter: true, args: newArgs};
     }
-    return {allParameter: allParameter, args: newArgs};
-  } else {
-    return {allParameter: true, args: newArgs};
-  }
 }
 
 
 //地址必须参数列表
 export const defaultAddressInfo = {
-  address: '', //地址
-  aesPri: '',//加密私钥
-  pub: '',//公钥
-  selection: false,//是否选中
-  alias: "",//别名
-  remark: "",//标签（备注）
-  balance: 0,//余额
-  consensusLock: 0,//锁定金额
-  totalReward: 0,//总奖励
-  tokens: [],//代币列表
-  contactList: [],//合约列表（收藏的合约）
+    address: '', //地址
+    aesPri: '',//加密私钥
+    pub: '',//公钥
+    selection: false,//是否选中
+    alias: "",//别名
+    remark: "",//标签（备注）
+    balance: 0,//余额
+    consensusLock: 0,//锁定金额
+    totalReward: 0,//总奖励
+    tokens: [],//代币列表
+    contactList: [],//合约列表（收藏的合约）
 };
 
 //地址信息写入localStorage
 export function localStorageByAddressInfo(newAddressInfo) {
-  let addressList = [];
-  let newAddressList = [];
-  newAddressList.push(newAddressInfo);
-  const chainNumber = 'chainId' + chainID();
-  //console.log(chainNumber);
-  let newArr = localStorage.hasOwnProperty(chainNumber) ? JSON.parse(localStorage.getItem(chainNumber)) : [];
-  //console.log(newArr);
-  if (newArr.length !== 0) {
-    let ifAddress = false;
-    for (let item of newArr) {
-      if (item.address === newAddressInfo.address) {
-        item.aesPri = newAddressInfo.aesPri;
-        item.pub = newAddressInfo.pub;
-        ifAddress = true
-      }
-      if (item.selection) {
-        newAddressList[0].selection = false;
-      }
-    }
-    if (ifAddress) {
-      addressList = [...newArr]
+    let addressList = [];
+    let newAddressList = [];
+    newAddressList.push(newAddressInfo);
+    const chainNumber = 'chainId' + chainID();
+    //console.log(chainNumber);
+    let newArr = localStorage.hasOwnProperty(chainNumber) ? JSON.parse(localStorage.getItem(chainNumber)) : [];
+    //console.log(newArr);
+    if (newArr.length !== 0) {
+        let ifAddress = false;
+        for (let item of newArr) {
+            if (item.address === newAddressInfo.address) {
+                item.aesPri = newAddressInfo.aesPri;
+                item.pub = newAddressInfo.pub;
+                ifAddress = true
+            }
+            if (item.selection) {
+                newAddressList[0].selection = false;
+            }
+        }
+        if (ifAddress) {
+            addressList = [...newArr]
+        } else {
+            addressList = [...newArr, ...newAddressList]
+        }
     } else {
-      addressList = [...newArr, ...newAddressList]
+        newAddressInfo.selection = true;
+        addressList.push(newAddressInfo);
     }
-  } else {
-    newAddressInfo.selection = true;
-    addressList.push(newAddressInfo);
-  }
-  //console.log(addressList);
-  return addressList
+    //console.log(addressList);
+    return addressList
 }
 
 /**
@@ -339,31 +346,31 @@ export function localStorageByAddressInfo(newAddressInfo) {
  * @param {Object} newData
  */
 export function equalsObj(oldData, newData) {
-  //类型为基本类型时,如果相同,则返回true
-  if (oldData === newData) return true;
-  if (isObject(oldData) && isObject(newData) && Object.keys(oldData).length === Object.keys(newData).length) {
-    //类型为对象并且元素个数相同
-    //遍历所有对象中所有属性,判断元素是否相同
-    for (const key in oldData) {
-      if (oldData.hasOwnProperty(key)) {
-        if (!equalsObj(oldData[key], newData[key]))
-        //对象中具有不相同属性 返回false
-          return false;
-      }
-    }
-  } else if (isArray(oldData) && isArray(oldData) && oldData.length === newData.length) {
-    //类型为数组并且数组长度相同
-    for (let i = 0, length = oldData.length; i < length; i++) {
-      if (!equalsObj(oldData[i], newData[i]))
-      //如果数组元素中具有不相同元素,返回false
+    //类型为基本类型时,如果相同,则返回true
+    if (oldData === newData) return true;
+    if (isObject(oldData) && isObject(newData) && Object.keys(oldData).length === Object.keys(newData).length) {
+        //类型为对象并且元素个数相同
+        //遍历所有对象中所有属性,判断元素是否相同
+        for (const key in oldData) {
+            if (oldData.hasOwnProperty(key)) {
+                if (!equalsObj(oldData[key], newData[key]))
+                    //对象中具有不相同属性 返回false
+                    return false;
+            }
+        }
+    } else if (isArray(oldData) && isArray(oldData) && oldData.length === newData.length) {
+        //类型为数组并且数组长度相同
+        for (let i = 0, length = oldData.length; i < length; i++) {
+            if (!equalsObj(oldData[i], newData[i]))
+                //如果数组元素中具有不相同元素,返回false
+                return false;
+        }
+    } else {
+        //其它类型,均返回false
         return false;
     }
-  } else {
-    //其它类型,均返回false
-    return false;
-  }
-  //走到这里,说明数组或者对象中所有元素都相同,返回true
-  return true;
+    //走到这里,说明数组或者对象中所有元素都相同,返回true
+    return true;
 }
 
 /**
@@ -371,7 +378,7 @@ export function equalsObj(oldData, newData) {
  * @param {Object} obj
  */
 function isObject(obj) {
-  return Object.prototype.toString.call(obj) === '[object Object]';
+    return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
 /**
@@ -379,7 +386,7 @@ function isObject(obj) {
  * @param {Array} arr
  */
 function isArray(arr) {
-  return Object.prototype.toString.call(arr) === '[object Array]';
+    return Object.prototype.toString.call(arr) === '[object Array]';
 }
 
 /**
@@ -389,13 +396,13 @@ function isArray(arr) {
  * @author: Wave
  */
 export function getRamNumber(len) {
-  let chars = 'ABCDEFGHJKLMNOPQRSVTWXYIUZabcdefhijkmnprstwxyzovu0123456789';
-  let maxPos = chars.length;
-  let ramNumber = '';
-  for (let i = 0; i < len; i++) {
-    ramNumber += chars.charAt(Math.floor(Math.random() * maxPos));
-  }
-  return ramNumber;
+    let chars = 'ABCDEFGHJKLMNOPQRSVTWXYIUZabcdefhijkmnprstwxyzovu0123456789';
+    let maxPos = chars.length;
+    let ramNumber = '';
+    for (let i = 0; i < len; i++) {
+        ramNumber += chars.charAt(Math.floor(Math.random() * maxPos));
+    }
+    return ramNumber;
 }
 
 /**
@@ -405,17 +412,17 @@ export function getRamNumber(len) {
  * @constructor
  */
 export function htmlEncode(str) {
-  let s = "";
-  if (str.length === 0) {
-    return "";
-  }
-  s = str.replace(/&/g, "&amp;");
-  s = s.replace(/</g, "&lt;");
-  s = s.replace(/>/g, "&gt;");
-  s = s.replace(/ /g, "&nbsp;");
-  s = s.replace(/\\'/g, "&#39;"); //IE下不支持实体名称
-  s = s.replace(/\\"/g, "&quot;");
-  return s;
+    let s = "";
+    if (str.length === 0) {
+        return "";
+    }
+    s = str.replace(/&/g, "&amp;");
+    s = s.replace(/</g, "&lt;");
+    s = s.replace(/>/g, "&gt;");
+    s = s.replace(/ /g, "&nbsp;");
+    s = s.replace(/\\'/g, "&#39;"); //IE下不支持实体名称
+    s = s.replace(/\\"/g, "&quot;");
+    return s;
 }
 
 /**
@@ -425,49 +432,49 @@ export function htmlEncode(str) {
  * @constructor
  */
 export function htmlRestore(str) {
-  let s = "";
-  if (str.length === 0) {
-    return "";
-  }
-  s = str.replace(/&amp;/g, "&");
-  s = s.replace(/&lt;/g, "<");
-  s = s.replace(/&gt;/g, ">");
-  s = s.replace(/&nbsp;/g, " ");
-  s = s.replace(/&#39;/g, "/\\'");
-  s = s.replace(/&quot;/g, "/\"");
-  return s;
+    let s = "";
+    if (str.length === 0) {
+        return "";
+    }
+    s = str.replace(/&amp;/g, "&");
+    s = s.replace(/&lt;/g, "<");
+    s = s.replace(/&gt;/g, ">");
+    s = s.replace(/&nbsp;/g, " ");
+    s = s.replace(/&#39;/g, "/\\'");
+    s = s.replace(/&quot;/g, "/\"");
+    return s;
 }
 
 //转千分位
 export function toThousands(num = 0) {
-  const N = num.toString().split('.');
-  const int = N[0];
-  const float = N[1] ? '.' + N[1] : '';
-  return int.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,') + float;
+    const N = num.toString().split('.');
+    const int = N[0];
+    const float = N[1] ? '.' + N[1] : '';
+    return int.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,') + float;
 }
 
 //获取币种配置
 export async function getSymbolInfo(chainId, assetId, refresh = false) {
-  if (!assetId || !chainId) return;
-  const symbol = chainId + '-' + assetId;
-  let coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {};
-  if (coinInfo[symbol]&&!refresh) {
-    return coinInfo[symbol]
-  }
-  try {
-    //console.log(assetId, chainId);
-    const res = await post('/', 'getSymbolInfo', [chainId, assetId]);
-    //console.info(res);
-    if (res.result.symbol) {
-      const symbol = chainId + '-' + assetId;
-      const coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {};
-      coinInfo[symbol] = res.result;
-      sessionStorage.setItem('coinInfo', JSON.stringify(coinInfo))
+    if (!assetId || !chainId) return;
+    const symbol = chainId + '-' + assetId;
+    let coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {};
+    if (coinInfo[symbol] && !refresh) {
+        return coinInfo[symbol]
     }
-    return res.result || {}
-  } catch (e) {
-    console.error('获取币种信息失败' + chainId + '-' + assetId)
-  }
+    try {
+        //console.log(assetId, chainId);
+        const res = await post('/', 'getSymbolInfo', [chainId, assetId]);
+        //console.info(res);
+        if (res.result.symbol) {
+            const symbol = chainId + '-' + assetId;
+            const coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {};
+            coinInfo[symbol] = res.result;
+            sessionStorage.setItem('coinInfo', JSON.stringify(coinInfo))
+        }
+        return res.result || {}
+    } catch (e) {
+        console.error('获取币种信息失败' + chainId + '-' + assetId)
+    }
 }
 
 /**
@@ -478,29 +485,29 @@ export async function getSymbolInfo(chainId, assetId, refresh = false) {
  * @returns {string|number}
  */
 export function tofix(val, len, side) {
-  const numval = Number(val);
-  if (isNaN(numval)) return 0;
-  const str = val.toString();
-  if (str.indexOf('.') > -1) {
-    let numArr = str.split('.');
-    if (numArr[1].length > len) {
-      let tempnum = numval * Math.pow(10, len);
-      if (!side) {
-        return Number(val).toFixed(len)
-      } else if (side === 1) {
-        if (tempnum < 1) return (1 / Math.pow(10, len));
-        return (Math.ceil(tempnum) / Math.pow(10, len)).toFixed(len)
-      } else if (side === -1) {
-        return (Math.floor(tempnum) / Math.pow(10, len)).toFixed(len)
-      } else {
-        return Number(val.toFixed(len))
-      }
+    const numval = Number(val);
+    if (isNaN(numval)) return 0;
+    const str = val.toString();
+    if (str.indexOf('.') > -1) {
+        let numArr = str.split('.');
+        if (numArr[1].length > len) {
+            let tempnum = numval * Math.pow(10, len);
+            if (!side) {
+                return Number(val).toFixed(len)
+            } else if (side === 1) {
+                if (tempnum < 1) return (1 / Math.pow(10, len));
+                return (Math.ceil(tempnum) / Math.pow(10, len)).toFixed(len)
+            } else if (side === -1) {
+                return (Math.floor(tempnum) / Math.pow(10, len)).toFixed(len)
+            } else {
+                return Number(val.toFixed(len))
+            }
+        } else {
+            return Number(str).toFixed(len)
+        }
     } else {
-      return Number(str).toFixed(len)
+        return Number(val).toFixed(len)
     }
-  } else {
-    return Number(val).toFixed(len)
-  }
 }
 
 /**
@@ -509,85 +516,87 @@ export function tofix(val, len, side) {
  * @author: Wave
  */
 export function IsPC() {
-  let userAgentInfo = navigator.userAgent;
-  let Agents = ["Android", "iPhone",
-    "SymbianOS", "Windows Phone",
-    "iPad", "iPod"];
-  let flag = true;
-  for (let v = 0; v < Agents.length; v++) {
-    if (userAgentInfo.indexOf(Agents[v]) > 0) {
-      flag = false;
-      break;
+    let userAgentInfo = navigator.userAgent;
+    let Agents = ["Android", "iPhone",
+        "SymbianOS", "Windows Phone",
+        "iPad", "iPod"];
+    let flag = true;
+    for (let v = 0; v < Agents.length; v++) {
+        if (userAgentInfo.indexOf(Agents[v]) > 0) {
+            flag = false;
+            break;
+        }
     }
-  }
-  return flag;
+    return flag;
 }
 
 
 //资产排序
 export function assetSort(assets) {
-  const sortOrder = ['NVT', 'NULS', 'ETH']
-  function indexOf(item) {
-    return sortOrder.indexOf(item.symbol)
-  }
-  return assets.filter(v=>v.symbol!=='CNVT').sort(function(a,b) {
-    if (indexOf(a) > -1 && indexOf(b) > -1) {
-      return indexOf(a) - indexOf(b);
-    } else if (indexOf(a) > -1 || indexOf(b) > -1) {
-      return indexOf(b) - indexOf(a);
-    } else {
-      return a.symbol > b.symbol ? 1 : -1
+    const sortOrder = ['NVT', 'NULS', 'ETH']
+
+    function indexOf(item) {
+        return sortOrder.indexOf(item.symbol)
     }
-  })
+
+    return assets.filter(v => v.symbol !== 'CNVT').sort(function (a, b) {
+        if (indexOf(a) > -1 && indexOf(b) > -1) {
+            return indexOf(a) - indexOf(b);
+        } else if (indexOf(a) > -1 || indexOf(b) > -1) {
+            return indexOf(b) - indexOf(a);
+        } else {
+            return a.symbol > b.symbol ? 1 : -1
+        }
+    })
 }
 
 export const isBeta = ETHNET === 'ropsten'
 
 export const networkOrigin = {
-  NERVE: isBeta ? 'http://beta.scan.nerve.network' : 'https://scan.nerve.network',
-  NULS: isBeta ? 'http://beta.nulscan.io' : 'https://nulscan.io',
-  Ethereum: isBeta ? 'https://ropsten.etherscan.io' : 'https://etherscan.io',
-  BSC: isBeta ? 'https://testnet.bscscan.com' : 'https://bscscan.com',
-  Heco: isBeta ? 'https://testnet.hecoinfo.com' : 'https://hecoinfo.com',
-  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test" : "https://www.oklink.com/okexchain",
-  Harmony: isBeta ?  "https://explorer.harmony.one/" : "https://explorer.pops.one/",
-  Polygon: isBeta ?  "https://mumbai.polygonscan.com/" : "https://explorer.matic.network/",
-  KCC:  isBeta ?  "https://scan-testnet.kcc.network" : "https://explorer.kcc.io/",
+    NERVE: isBeta ? 'http://beta.scan.nerve.network' : 'https://scan.nerve.network',
+    NULS: isBeta ? 'http://beta.nulscan.io' : 'https://nulscan.io',
+    Ethereum: isBeta ? 'https://ropsten.etherscan.io' : 'https://etherscan.io',
+    BSC: isBeta ? 'https://testnet.bscscan.com' : 'https://bscscan.com',
+    Heco: isBeta ? 'https://testnet.hecoinfo.com' : 'https://hecoinfo.com',
+    OKExChain: isBeta ? "https://www.oklink.com/okexchain-test" : "https://www.oklink.com/okexchain",
+    Harmony: isBeta ? "https://explorer.harmony.one/" : "https://explorer.pops.one/",
+    Polygon: isBeta ? "https://mumbai.polygonscan.com/" : "https://explorer.matic.network/",
+    KCC: isBeta ? "https://scan-testnet.kcc.network" : "https://explorer.kcc.io/",
 }
 
 export const hashLinkList = {
-  Ethereum: isBeta ? 'https://ropsten.etherscan.io/tx/' : 'https://etherscan.io/tx/',
-  BSC: isBeta ? 'https://testnet.bscscan.com/tx/' : 'https://bscscan.com/tx/',
-  Heco: isBeta ? 'https://testnet.hecoinfo.com/tx/' : 'https://hecoinfo.com/tx/',
-  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/tx/" : 'https://www.oklink.com/okexchain/tx/',
-  NULS: isBeta ? 'http://beta.nulscan.io/transaction/info?hash=' : 'https://nulscan.io/transaction/info?hash=',
-  NERVE: isBeta ? 'http://beta.scan.nerve.network/transaction/info?hash=' : 'https://scan.nerve.network/transaction/info?hash='
+    Ethereum: isBeta ? 'https://ropsten.etherscan.io/tx/' : 'https://etherscan.io/tx/',
+    BSC: isBeta ? 'https://testnet.bscscan.com/tx/' : 'https://bscscan.com/tx/',
+    Heco: isBeta ? 'https://testnet.hecoinfo.com/tx/' : 'https://hecoinfo.com/tx/',
+    OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/tx/" : 'https://www.oklink.com/okexchain/tx/',
+    NULS: isBeta ? 'http://beta.nulscan.io/transaction/info?hash=' : 'https://nulscan.io/transaction/info?hash=',
+    NERVE: isBeta ? 'http://beta.scan.nerve.network/transaction/info?hash=' : 'https://scan.nerve.network/transaction/info?hash='
 }
 
 export const addressNetworkOrigin = {
-  NERVE: isBeta ? 'http://beta.scan.nerve.network/address/info?address=' : 'https://scan.nerve.network/address/info?address=',
-  NULS: isBeta ? 'http://beta.nulscan.io/address/info?address=' : 'https://nulscan.io/address/info?address=',
-  Ethereum: isBeta ? 'https://ropsten.etherscan.io/address/' : 'https://etherscan.io/address/',
-  BSC: isBeta ? 'https://testnet.bscscan.com/address/' : 'https://bscscan.com/address/',
-  Heco: isBeta ? 'https://testnet.hecoinfo.com/address/' : 'https://hecoinfo.com/address/',
-  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/address/" : "https://www.oklink.com/okexchaint/address/",
-  Harmony: isBeta ?  "https://explorer.harmony.one/address/" : "https://explorer.pops.one/address/",
-  Polygon: isBeta ?  "https://mumbai.polygonscan.com/address/" : "https://explorer.matic.network/address/",
-  KCC:  isBeta ?  "https://scan-testnet.kcc.network/address/" : "https://explorer.kcc.io/address/"
+    NERVE: isBeta ? 'http://beta.scan.nerve.network/address/info?address=' : 'https://scan.nerve.network/address/info?address=',
+    NULS: isBeta ? 'http://beta.nulscan.io/address/info?address=' : 'https://nulscan.io/address/info?address=',
+    Ethereum: isBeta ? 'https://ropsten.etherscan.io/address/' : 'https://etherscan.io/address/',
+    BSC: isBeta ? 'https://testnet.bscscan.com/address/' : 'https://bscscan.com/address/',
+    Heco: isBeta ? 'https://testnet.hecoinfo.com/address/' : 'https://hecoinfo.com/address/',
+    OKExChain: isBeta ? "https://www.oklink.com/okexchain-test/address/" : "https://www.oklink.com/okexchaint/address/",
+    Harmony: isBeta ? "https://explorer.harmony.one/address/" : "https://explorer.pops.one/address/",
+    Polygon: isBeta ? "https://mumbai.polygonscan.com/address/" : "https://explorer.matic.network/address/",
+    KCC: isBeta ? "https://scan-testnet.kcc.network/address/" : "https://explorer.kcc.io/address/"
 }
 
 export const networkRpc = {
-  // Ethereum: isBeta ? 'https://ropsten.etherscan.io' : 'https://etherscan.io',
-  BSC: isBeta ? 'https://data-seed-prebsc-1-s1.binance.org:8545/' : 'https://bsc-dataseed.binance.org/',
-  Heco: isBeta ? 'https://http-testnet.hecochain.com' : 'https://http-mainnet.hecochain.com',
-  OKExChain: isBeta ? "https://exchaintestrpc.okex.org" : "https://exchainrpc.okex.org",
-  Harmony: isBeta ? "https://api.s0.b.hmny.io" : "https://api.harmony.one",
-  Polygon: isBeta ? "https://rpc-mumbai.maticvigil.com/" : "https://rpc-mainnet.maticvigil.com/",
-  KCC: isBeta ? "https://rpc-testnet.kcc.network" : "https://rpc-mainnet.kcc.network",
+    // Ethereum: isBeta ? 'https://ropsten.etherscan.io' : 'https://etherscan.io',
+    BSC: isBeta ? 'https://data-seed-prebsc-1-s1.binance.org:8545/' : 'https://bsc-dataseed.binance.org/',
+    Heco: isBeta ? 'https://http-testnet.hecochain.com' : 'https://http-mainnet.hecochain.com',
+    OKExChain: isBeta ? "https://exchaintestrpc.okex.org" : "https://exchainrpc.okex.org",
+    Harmony: isBeta ? "https://api.s0.b.hmny.io" : "https://api.harmony.one",
+    Polygon: isBeta ? "https://rpc-mumbai.maticvigil.com/" : "https://rpc-mainnet.maticvigil.com/",
+    KCC: isBeta ? "https://rpc-testnet.kcc.network" : "https://rpc-mainnet.kcc.network",
 }
 
 export function getLogoSrc(symbol) {
-  return "https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/" + symbol + ".png"
+    return "https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/" + symbol + ".png"
 }
 
 // TODO:多链
@@ -595,13 +604,13 @@ export const supportChainList = sessionStorage.getItem('supportChainList') && JS
 
 // 批量查询资产合约配置
 export const contractConfig = {
-  Ethereum: isBeta ? "" : "",
-  BSC: isBeta ? "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B" : "",
-  Heco: isBeta ? "" : "",
-  OKExChain: isBeta ? "" : "",
-  Harmony: isBeta ?  "" : "",
-  Polygon: isBeta ?  "" : "",
-  KCC:  isBeta ?  "" : ""
+    Ethereum: isBeta ? "" : "",
+    BSC: isBeta ? "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B" : "",
+    Heco: isBeta ? "" : "",
+    OKExChain: isBeta ? "" : "",
+    Harmony: isBeta ? "" : "",
+    Polygon: isBeta ? "" : "",
+    KCC: isBeta ? "" : ""
 }
 
 // export const supportChainList = [
@@ -685,35 +694,35 @@ export const contractConfig = {
 // ];
 
 export function debounce(fn, delay) {
-  let timer
-  return function() {
-    const args = arguments;
-    if (timer) {
-      clearTimeout(timer);
+    let timer
+    return function () {
+        const args = arguments;
+        if (timer) {
+            clearTimeout(timer);
+        }
+        timer = setTimeout(() => {
+            fn.apply(this, args);
+            timer = null
+        }, delay)
     }
-    timer = setTimeout(() => {
-      fn.apply(this, args);
-      timer = null
-    }, delay)
-  }
 }
 
 export function genID() {
-  return (
-    Date.now() +
-    Number(
-      Math.random()
-        .toString()
-        .split(".")[1]
-    )
-  ).toString(36);
+    return (
+        Date.now() +
+        Number(
+            Math.random()
+                .toString()
+                .split(".")[1]
+        )
+    ).toString(36);
 }
 
 export function getCurrentAccount(address) {
-  const accountList = JSON.parse(localStorage.getItem('accountList')) || [];
-  return accountList.find(account => {
-    return Object.keys(account.address).find(item => account.address[item] === address)
-  })
+    const accountList = JSON.parse(localStorage.getItem('accountList')) || [];
+    return accountList.find(account => {
+        return Object.keys(account.address).find(item => account.address[item] === address)
+    })
 }
 
 /**
@@ -724,50 +733,50 @@ export function getCurrentAccount(address) {
  * data.assetsId
  */
 export async function getAssetNerveInfo(data) {
-  let result = null;
-  let params = {};
-  if (data.contractAddress) {
-    const config = JSON.parse(sessionStorage.getItem("config"));
-    const mainAsset = config[data.network]; //来源链(eth,bnb,heco)主资产信息
-    params = {chainId: mainAsset.chainId, contractAddress: data.contractAddress};
-  } else {
-    params = {chainId: data.assetsChainId, assetId: data.assetsId};
-  }
-  try {
-    const res = await request({url: "/asset/nerve/chain/info", data: params});
-    if (res.code === 1000) {
-      result = res.data;
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return result;
-}
-
-export function formatFloatNumber (precision = 6, number) {
-  if (typeof number === 'undefined' || number === null) return ''
-  if (number === 0) return '0'
-  const roundedValue = round(precision, number)
-  const floorValue = Math.floor(roundedValue)
-  const isInteger = Math.abs(floorValue - roundedValue) < Number.EPSILON
-  const numberOfFloorDigits = String(floorValue).length
-  const numberOfDigits = String(roundedValue).length
-  if (numberOfFloorDigits > precision) {
-    return String(floorValue)
-  } else {
-    const padding = isInteger ? precision - numberOfFloorDigits : precision - numberOfDigits + 1
-    if (padding > 0) {
-      if (isInteger) {
-        return `${String(floorValue)}.${'0'.repeat(padding)}`
-      } else {
-        return `${String(roundedValue)}${'0'.repeat(padding)}`
-      }
+    let result = null;
+    let params = {};
+    if (data.contractAddress) {
+        const config = JSON.parse(sessionStorage.getItem("config"));
+        const mainAsset = config[data.network]; //来源链(eth,bnb,heco)主资产信息
+        params = {chainId: mainAsset.chainId, contractAddress: data.contractAddress};
     } else {
-      return String(roundedValue)
+        params = {chainId: data.assetsChainId, assetId: data.assetsId};
     }
-  }
+    try {
+        const res = await request({url: "/asset/nerve/chain/info", data: params});
+        if (res.code === 1000) {
+            result = res.data;
+        }
+    } catch (e) {
+        console.error(e);
+    }
+    return result;
 }
 
-function round (precision, number) {
-  return parseFloat(parseFloat(number).toPrecision(precision));
+export function formatFloatNumber(precision = 6, number) {
+    if (typeof number === 'undefined' || number === null) return ''
+    if (number === 0) return '0'
+    const roundedValue = round(precision, number)
+    const floorValue = Math.floor(roundedValue)
+    const isInteger = Math.abs(floorValue - roundedValue) < Number.EPSILON
+    const numberOfFloorDigits = String(floorValue).length
+    const numberOfDigits = String(roundedValue).length
+    if (numberOfFloorDigits > precision) {
+        return String(floorValue)
+    } else {
+        const padding = isInteger ? precision - numberOfFloorDigits : precision - numberOfDigits + 1
+        if (padding > 0) {
+            if (isInteger) {
+                return `${String(floorValue)}.${'0'.repeat(padding)}`
+            } else {
+                return `${String(roundedValue)}${'0'.repeat(padding)}`
+            }
+        } else {
+            return String(roundedValue)
+        }
+    }
+}
+
+function round(precision, number) {
+    return parseFloat(parseFloat(number).toPrecision(precision));
 }

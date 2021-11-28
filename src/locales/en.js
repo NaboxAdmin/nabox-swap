@@ -156,7 +156,8 @@ const en = {
         airdrop10: "Get LP",
         airdrop11: "Unlock Speed",
         airdrop12: "Unlock Time",
-        airdrop13: "Hours"
+        airdrop13: "Hours",
+        airdrop14: "Calculator"
     }
 };
 

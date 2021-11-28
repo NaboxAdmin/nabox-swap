@@ -7,14 +7,14 @@
     <div class="farm-total p-2 mt-2">
       <div class="text-left size-22 text-d5">{{ $t("airdrop.airdrop1") }}</div>
       <div class="d-flex direction-column align-items-center mt-12">
-        <span class="size-34 font-500 text-white">{{ LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance }}</span>
-        <span class="font-500 text-d5 size-26">≈$200</span>
+        <span class="size-34 font-500 text-white">{{ LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0 }}</span>
+        <span class="font-500 text-d5 size-26">≈${{ formatPrice(LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0, LpFarmInfo && LpFarmInfo.naboxPrice || 0) }}</span>
       </div>
     </div>
     <div class="stake-cont mt-2">
       <div class="d-flex align-items-center space-between">
         <span class="size-28 text-90">{{ $t("airdrop.airdrop2") }} Nabox</span>
-        <p class="d-flex align-items-center">
+        <p class="d-flex align-items-center" @click="toUrl">
           <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
           <span class="icon-cont">
             <img src="@/assets/image/link_to.png" alt="">
@@ -22,9 +22,9 @@
         </p>
       </div>
       <div class="size-34 text-3a font-500 mt-3">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
-      <div class="mt-12 text-90 size-26">≈50.00</div>
+      <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.naboxPrice || 0) }}</div>
       <div class="mt-3 d-flex align-items-center">
-        <span>{{ LpFarmInfo && LpFarmInfo.lpSymbol }} LP {{ $t("airdrop.airdrop3") }}</span>
+        <span>{{ LpFarmInfo && LpFarmInfo.lpSymbol }} {{ $t("airdrop.airdrop3") }}</span>
         <span class="calculate-icon cursor-pointer" @click="showCalculate=true">
           <img src="@/assets/image/calculator.png" alt="">
         </span>
@@ -32,7 +32,10 @@
       <div class="size-34 mt-23 text-3a">{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'], LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
       <div class="btn-cont d-flex align-items-center space-between">
         <template>
-          <div v-if="!needAuth" class="btn-item cursor-pointer" @click="stakeClick('stake')">{{ $t("airdrop.airdrop4") }}</div>
+          <div v-if="!needAuth"
+               class="btn-item cursor-pointer"
+               :class="{ active_btn: !LpFarmInfo || LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance == 0 }"
+               @click="stakeClick('stake')">{{ $t("airdrop.airdrop4") }}</div>
           <div
               class="btn-item cursor-pointer"
               v-else
@@ -46,22 +49,22 @@
     <div class="claim-cont mt-2">
       <div class="size-28 text-90">{{ $t("airdrop.airdrop5") }} {{ LpFarmInfo && LpFarmInfo.candySymbol }}</div>
       <div class="mt-3 text-3a size-34 font-500">{{ pendingToken && pendingToken.pendingToken | numFormat }}</div>
-      <div class="size-26 text-90 mt-12">≈18.76</div>
+      <div class="size-26 text-90 mt-12">≈{{ formatPrice(pendingToken && pendingToken.pendingToken, LpFarmInfo && LpFarmInfo.naboxPrice || 0) }}</div>
       <div class="btn cursor-pointer" :class="{ active_btn: !pendingToken || pendingToken && Number(pendingToken.pendingToken) <= 0 }" @click="claimClick">{{ $t("airdrop.airdrop6") }}</div>
     </div>
     <pop-up :show="showCalculate">
       <div class="calculate-cont">
         <div class="d-flex justify-content-end">
-          <span class="exit-icon" @click.stop="showCalculate=false">
+          <span class="exit-icon" @click.stop="showCalculate = false; resetInput()">
             <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"></path></svg>
           </span>
         </div>
-        <div class="text-left font-500 text-3a size-36">{{ $t("airdrop.airdrop7") }}</div>
+        <div class="text-left font-500 text-3a size-36">{{ $t("airdrop.airdrop14") }}</div>
         <div class="text-90 size-28 mt-6">{{ $t("airdrop.airdrop9") }} Nabox</div>
         <div class="mt-23 size-34 font-500 text-3a">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
         <div class="mt-6 d-flex space-between">
           <span class="size-26 text-90">{{ LpFarmInfo && LpFarmInfo.lpSymbol }} LP</span>
-          <p class="d-flex align-items-center">
+          <p class="d-flex align-items-center" @click="toUrl">
             <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
             <span class="icon-cont">
               <img src="@/assets/image/link_to.png" alt="">
@@ -69,36 +72,36 @@
           </p>
         </div>
         <div class="input-cont mt-2">
-          <input v-model="liquidityCount" @input="liquidityInput" :placeholder="$t('vaults.vaults9')"/>
+          <input type="number" pattern="^[0-9]*[.,]?[0-9]*$" v-model="liquidityCount" @input="liquidityInput" :placeholder="$t('vaults.vaults9')"/>
         </div>
         <div class="down-icon m-3_auto">
           <img src="@/assets/image/swap.png" alt="">
         </div>
         <div class="input-cont">
-          <input v-model="reverse0Count" @input="reverse0Input" :placeholder="$t('vaults.vaults9')"/>
-          <span class="text-90">{{ $t("Nabox") }}</span>
+          <input type="number" v-model="reverse0Count" @input="reverse0Input" :placeholder="$t('vaults.vaults9')"/>
+          <span class="text-90">{{ reverse0Asset && reverse0Asset.symbol || 'NABOX' }}</span>
         </div>
         <div class="down-icon m-2_auto">
           <img src="@/assets/image/swap.png" alt="">
         </div>
         <div class="input-cont">
-          <input v-model="reverse1Count" @input="reverse1Input" :placeholder="$t('vaults.vaults9')"/>
-          <span class="text-90">{{ $t("BUSD") }}</span>
+          <input type="number" v-model="reverse1Count" @input="reverse1Input" :placeholder="$t('vaults.vaults9')"/>
+          <span class="text-90">{{ reverse1Asset && reverse1Asset.symbol || 'BUSD' }}</span>
         </div>
         <div class="d-flex mt-4 space-between">
           <span class="text-90 size-28">{{ $t("airdrop.airdrop11") }}</span>
-          <span class="text-3a">4759 Nabox/Block</span>
+          <span class="text-3a">{{ unlockedSpeed }} Nabox/Block</span>
         </div>
         <div class="d-flex mt-3 space-between">
           <span class="text-90 size-28">{{ $t("airdrop.airdrop12") }}</span>
-          <span class="text-3a">6.78 {{ $t("airdrop.airdrop13") }}</span>
+          <span class="text-3a">{{ unlockedTime }} {{ $t("airdrop.airdrop13") }}</span>
         </div>
       </div>
     </pop-up>
     <pop-up :show="showStake">
       <div class="pop-cont">
         <div class="size-36 font-500">{{ stakeType === 'stake' && $t("vaults.vaults4") || $t("vaults.vaults4") }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance || 0 }}</div>
         <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'], LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
         <div class="input-cont">
           <input :placeholder="$t('vaults.vaults9')"
@@ -120,12 +123,11 @@
 
 <script>
 import PopUp from "../../components/PopUp/PopUp";
-import { divisionDecimals, Minus, timesDecimals, Times, Division, formatFloatNumber } from "../../api/util";
-import { airDropABI } from "./airDropABI";
+import { divisionDecimals, Minus, timesDecimals, Times, Division, formatFloatNumber, tofix } from "../../api/util";
 import { ETransfer } from "@/api/api";
 import { ethers } from "ethers";
 import { getBatchUserFarmInfo, getBatchERC20Balance } from "../../api/api";
-import { ABIConfig } from "./ABIConfig";
+import { ABIConfig, pancakeABI } from "./ABIConfig";
 
 export default {
   name: "airdrop",
@@ -152,20 +154,40 @@ export default {
       reverse0: "1153770723954217592642132814",
       reverse1: "392948295898899396956072",
       totalSupply: "17944746760119496596621555",
+      // reverse0: 0,
+      // reverse1: 0,
+      // totalSupply: 0,
       reverse0Flag: false,
       reverse1Flag: false,
-      liquidityFlag: false
+      liquidityFlag: false,
+      unlockedSpeed: 0,
+      unlockedTime: 0, // hours
+      reverse0Asset: null, // token0资产
+      reverse1Asset: null, // token1资产
+      liquidityAsset: null, // lp资产
+      farmTimer: null,
+      maxUnlockedSpeed: 0 // 最大解锁速度
     }
   },
   created() {
     this.getLpFarmInfo();
+    this.getPancakeFarmInfo();
+    this.farmTimer = setInterval(() => {
+      this.getLpFarmInfo();
+    }, 10000);
+    // 主网上面调用
     this.rate = Division(this.reverse0, this.reverse1);
+  },
+  computed: {
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    },
   },
   watch: {
     lpCount: {
       handler(newVal, oldVal) {
         if (newVal) {
-          const decimals = this.stakeType === 'stake' && this.stakedAsset.decimals || this.candyAsset.decimals || 8;
+          const decimals = (this.stakeType === 'stake' && this.stakedAsset && this.stakedAsset.decimals) || (this.candyAsset && this.candyAsset.decimals) || 8;
           const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
           if (patrn.exec(newVal) || newVal === "") {
             this.lpCount = newVal;
@@ -181,26 +203,43 @@ export default {
     // liquidity = Math.min(amount0.mul(totalSupply) / reserve0, amount1.mul(totalSupply) / reserve1)
     reverse0Count: {
       handler(newVal, oldVal) {
+        console.log(newVal, "newVal")
+        const decimals = this.reverse0Asset && this.reverse0Asset.decimals || 18;
+        const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+        console.log(patrn.exec(newVal), "patrn.exec(newVal)")
+        if (patrn.exec(newVal) || newVal === "") {
+          this.reverse0Count = newVal;
+        } else {
+          this.reverse0Count = oldVal;
+        }
         if (newVal && !this.liquidityFlag && !this.reverse1Flag) {
           const tempNewval = timesDecimals(newVal, 18);
           const tempAmount1 = Division(tempNewval, this.rate);
           this.reverse1Count = formatFloatNumber(6, divisionDecimals(tempAmount1, 18));
-          // console.log(tempNewval, this.rate.toString(), "1231");
           this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempNewval, this.totalSupply), this.reverse0), Division(Times(tempAmount1, this.totalSupply), this.reverse1)), 18));
-          // console.log(formatFloatNumber(6, this.liquidityCount), "liquidityCount");
+          console.log(this.liquidityCount, "liquidityCount");
         } else if (!newVal) {
           this.resetInput();
+          console.log(1)
         }
       }
     },
     reverse1Count: {
       handler(newVal, oldVal) {
-        console.log(this.liquidityFlag, this.reverse0Flag, "reverse0Flag")
+        console.log(newVal, "reverse1Count newVal");
+        const decimals = this.reverse1Asset && this.reverse1Asset.decimals || 18;
+        const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+        if (patrn.exec(newVal) || newVal === "") {
+          this.reverse1Count = newVal;
+        } else {
+          this.reverse1Count = oldVal;
+        }
         if (newVal && !this.liquidityFlag && !this.reverse0Flag) {
           const tempNewval = timesDecimals(newVal, 18);
           const tempAmount0 = Times(tempNewval, this.rate);
           this.reverse0Count = formatFloatNumber(6, divisionDecimals(tempAmount0, 18));
           this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempAmount0, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1)), 18));
+          console.log(this.reverse0Count, "reverse1Count")
           // this.liquidityCount = Math.min(Division(Times(this.reverse0Count, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1));
           // console.log(Division(Times(this.reverse0Count, this.totalSupply), this.reverse0).toString(), Division(Times(tempNewval, this.totalSupply), this.reverse1).toString(), "liquidityCount");
         } else if (!newVal) {
@@ -210,6 +249,19 @@ export default {
     },
     liquidityCount: {
       handler(newVal, oldVal) {
+        console.log(newVal, "liquidityCount newVal");
+        const decimals = this.LpFarmInfo && this.LpFarmInfo.lpDecimals || 18;
+        const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+        if (newVal) { // 根据LP计算解锁速度
+          this.maxUnlockedSpeed = Times(1, this.LpFarmInfo && this.LpFarmInfo.poolModelInfo.candyPerBlockPerLp || 0);
+          this.unlockedSpeed = Times(newVal, this.LpFarmInfo && this.LpFarmInfo.poolModelInfo.candyUserBlockMaxLp || 0);
+          this.unlockedTime = this.numberFormat(tofix(Division(Times(Times((this.lockedToken && this.lockedToken.lockedToken || 0), this.unlockedSpeed), 3), 3600), 2, -1), 2);
+        }
+        if (patrn.exec(newVal) || newVal === "") {
+          this.liquidityCount = newVal;
+        } else {
+          this.liquidityCount = oldVal;
+        }
         if (newVal && !this.reverse0Flag && !this.reverse1Flag) {
           const tempNewval = timesDecimals(newVal, 18);
           const tempAmount0 = divisionDecimals(Division(Times(this.reverse0, tempNewval), this.totalSupply), 18);
@@ -226,9 +278,24 @@ export default {
           this.resetInput();
         }
       }
+    },
+    unlockedSpeed: {
+      handler(newVal) {
+        if (newVal) {
+          console.log(newVal.toString(), 'test newVal', this.maxUnlockedSpeed.toString(), "maxUnlockedSpeed");
+          this.unlockedTime = this.numberFormat(tofix(Division(Times(Division((this.lockedToken && this.lockedToken.lockedToken || 0), this.unlockedSpeed), 3), 3600), 2, -1), 2);
+          if (Minus(newVal, this.maxUnlockedSpeed) > 0) {
+            this.unlockedSpeed = this.maxUnlockedSpeed;
+            this.unlockedTime = this.numberFormat(tofix(Division(Times(Division((this.lockedToken && this.lockedToken.lockedToken || 0), this.maxUnlockedSpeed), 3), 3600), 2, -1), 2);
+          }
+        }
+      }
     }
   },
   methods: {
+    toUrl() {
+      this.isMobile ? window.location.href = 'https://pancakeswap.finance/add/0x755f34709E369D37C6Fa52808aE84A32007d1155/0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56' : window.open('https://pancakeswap.finance/add/0x755f34709E369D37C6Fa52808aE84A32007d1155/0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56');
+    },
     reverse0Input() {
       this.reverse0Flag = true;
       this.liquidityFlag = false;
@@ -248,25 +315,33 @@ export default {
       this.reverse0Count = "";
       this.reverse1Count = "";
       this.liquidityCount = "";
+      this.unlockedSpeed = 0;
+      this.unlockedTime = 0;
     },
     // 获取当前矿池信息
     async getLpFarmInfo() {
       try {
         const res = await this.$request({
           method: 'get',
-          url: "/air/drop/act/info"
+          url: "/farm/air/act/info"
         });
         if (res.code === 1000 && res.data) {
           this.LpFarmInfo = {
             ...res.data,
             poolModelInfo: {
               ...res.data.poolModelInfo,
-              candyBalance: divisionDecimals(res.data.poolModelInfo.candyBalance, res.data.lpDecimals)
+              candyBalance: divisionDecimals(res.data.poolModelInfo.candyBalance, res.data.lpDecimals),
+              candyPerBlockPerLp: divisionDecimals(res.data.poolModelInfo.candyPerBlockPerLp, res.data.lpDecimals),
+              maxCandyPerUser: divisionDecimals(res.data.poolModelInfo.maxCandyPerUser, res.data.lpDecimals),
+              candyUserBlockMaxLp: divisionDecimals(res.data.poolModelInfo.candyUserBlockMaxLp, res.data.lpDecimals)
             }
           };
+          this.reverse0Asset = res.data.poolAsset0;
+          this.reverse1Asset = res.data.poolAsset1;
           const config = JSON.parse(sessionStorage.getItem("config"));
           const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
-          await this.getUserFarmDetailInfo(res.data.pairAddress, this.fromAddress, multicallAddress);
+          const fromAddress = this.currentAccount['address']['BSC'];
+          await this.getUserFarmDetailInfo(res.data.pairAddress, fromAddress, multicallAddress);
           this.needAuth = await this.getSatkeAssetAuth(res.data.lpContractAddress, res.data.pairAddress);
           console.log(this.needAuth, "need")
           console.log(this.LpFarmInfo);
@@ -280,7 +355,9 @@ export default {
     },
     // 根据合约查询用户当前的farm的详细信息
     async getUserFarmDetailInfo(pairAddress, userAddress, multicallAddress) {
-      const balanceTokenRes = await getBatchERC20Balance([ this.LpFarmInfo.lpContractAddress, this.LpFarmInfo.candyContractAddress ], userAddress, multicallAddress);
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const RPCUrl = config['BSC']['apiUrl'];
+      const balanceTokenRes = await getBatchERC20Balance([ this.LpFarmInfo.lpContractAddress, this.LpFarmInfo.candyContractAddress ], userAddress, multicallAddress, RPCUrl);
       this.stakedAsset = {
         ...balanceTokenRes[0],
         balance: divisionDecimals(balanceTokenRes[0].balance, balanceTokenRes[0].decimals)
@@ -304,9 +381,24 @@ export default {
       };
       console.log(this.userFarmInfo, this.pendingToken, this.lockedToken, "12312312");
     },
+    // 获取pancake上面的farmInfo
+    async getPancakeFarmInfo() {
+      const pancakeFarm = '0x29b4abb0f8734EA672a0e82FA47998F710B6A07a';
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(pancakeFarm, pancakeABI, provider);
+      const token0 = await contract.token0();
+      const token1 = await contract.token1();
+      const reverse = await contract.getReserves();
+      const totalSupply = await contract.totalSupply();
+      this.reverse0 = reverse[0].toString();
+      this.reverse1 = reverse[1].toString();
+      this.totalSupply = totalSupply.toString();
+      this.rate = this.reverse0 && this.reverse1 && Division(this.reverse0, this.reverse1);
+      console.log(token0, token1, this.reverse0.toString(), this.reverse1.toString(), this.totalSupply.toString());
+    },
     lpInput() {
       if (this.stakeType==="stake") {
-        if (Minus(this.stakedAsset.balance, this.lpCount) < 0) {
+        if (Minus(this.stakedAsset && this.stakedAsset.balance || 0, this.lpCount) < 0) {
           this.amountMsg = this.$t("tips.tips16");
         } else if (Minus(this.lpCount, 0) == "0") {
           this.amountMsg = this.$t("tips.tips18");
@@ -314,7 +406,9 @@ export default {
           this.amountMsg = '';
         }
       } else {
-        if (Minus(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'] || 0, this.lpCount) < 0) {
+        console.log(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], "123123123");
+        const tempInfo = this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals);
+        if (Minus(tempInfo || 0, this.lpCount) < 0) {
           this.amountMsg = this.$t("tips.tips16");
         } else {
           this.amountMsg = '';
@@ -329,7 +423,7 @@ export default {
           this.amountMsg = this.$t("tips.tips18");
         }
       } else {
-        this.lpCount = this.stakedAsset && this.stakedAsset.amount || 0;
+        this.lpCount = this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals) || 0;
         if (Minus(this.lpCount, 0) == "0") {
           this.amountMsg = this.$t("tips.tips18");
         }
@@ -369,12 +463,50 @@ export default {
             return false;
         }
         if (res.hash) {
-          console.log(res.hash);
-          this.showLoading = false;
+          await this.broadcastHex({ txHash: res.hash,  amount});
         }
       } catch (e) {
+        console.log(e, "e")
         this.showLoading = false;
       }
+    },
+    // 广播nerve nuls跨链转账交易
+    async broadcastHex({ txHash, amount }) {
+      const isPledge = this.stakeType === "stake"; // 是否为质押
+      let params = {
+        chain: this.LpFarmInfo.chain,
+        address: this.currentAccount.address[this.LpFarmInfo.chain],
+        type: isPledge ? 3 : 4, // 3质押 4撤出质押
+        chainId: isPledge ? this.LpFarmInfo.lpChainId : this.LpFarmInfo.candyChainId,
+        assetId: isPledge ? this.LpFarmInfo.lpAssetId : this.LpFarmInfo.candyAssetId,
+        contractAddress: isPledge ? this.LpFarmInfo.lpContractAddress : this.LpFarmInfo.candyContractAddress,
+        amount,
+        txHash
+      };
+      console.log(params, "params")
+      const result = await this.$request({
+        url: "/swap/vaults/add",
+        data: params
+      });
+      if (result.code === 1000) {
+        this.$message({
+          message: this.$t("tips.tips10"),
+          type: "success",
+          offset: 30,
+          duration: 2000
+        })
+      } else {
+        this.$message({
+          message: this.$t("tips.tips15"),
+          type: "warning",
+          offset: 30,
+          duration: 2000
+        })
+      }
+      this.showLoading = false;
+      this.showStake = false;
+      this.lpCount='';
+      this.amountMsg='';
     },
     claimClick() {
       if (this.pendingToken && Number(this.pendingToken.pendingToken) <= 0) return false;
@@ -382,7 +514,10 @@ export default {
     },
     // 格式化decimals
     formatDecimals(number, decimals = 8) {
-      return divisionDecimals(number, decimals) || 0;
+      return isNaN(divisionDecimals(number, decimals)) && '0' || divisionDecimals(number, decimals);
+    },
+    formatPrice(amount, usdtPrice) {
+      return isNaN(this.numberFormat(tofix(Times(amount, usdtPrice), 2, -1), 2)) && '0' || this.numberFormat(tofix(Times(amount, usdtPrice), 2, -1), 2);
     },
     // 获取领取的资产是否需要授权
     async getSatkeAssetAuth(stakedAssetContractAddress, farmHash) {
@@ -434,10 +569,18 @@ export default {
       }
     },
     stakeClick(type) {
+      if (type==='stake' && (!this.LpFarmInfo || this.LpFarmInfo && this.LpFarmInfo.poolModelInfo.candyBalance == 0)) return false;
+      if (type==='withdraw' && this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals) == 0) return false;
       this.showStake = true;
       this.stakeType = type;
     }
   },
+  beforeDestroy() {
+    if (this.farmTimer) {
+      clearInterval(this.farmTimer);
+      this.farmTimer = null;
+    }
+  }
 }
 </script>
 

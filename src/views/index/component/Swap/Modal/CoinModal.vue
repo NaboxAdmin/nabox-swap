@@ -301,9 +301,11 @@ export default {
           }
         } else {
           const addresses = this.allList.map(asset => asset.contractAddress);
-          const contractConfig = {};
-          const batchQueryContract = "";
-          const balanceData = await getBatchERC20Balance(addresses, this.fromAddress, '0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B');
+          const config = JSON.parse(sessionStorage.getItem("config"));
+          const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
+          const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]];
+          const RPCUrl = config[this.picList[this.currentIndex]]['apiUrl'];
+          const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
           this.allList.forEach((item, index) => {
             balanceData.forEach(data => {
               if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
@@ -312,19 +314,9 @@ export default {
               }
             });
           });
+          this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
+          // console.log(this.allList, "allList")
         }
-        // for (let i = 0; i < this.allList.length; i++) {
-        //   const asset = this.allList[i];
-        //   if (!asset.contractAddress && asset.showBatchBalanceLoading) {
-        //     this.allList[i].balance = await this.getBalance(asset);
-        //     this.allList[i].showBatchBalanceLoading = false;
-        //   }
-        // }
-        // if (this.allList.every(asset => !asset.showBatchBalanceLoading)) {
-        //   for (let i = 0; i < this.allList.length; i++) {
-        //     this.allList[i].showBalanceLoading = false;
-        //   }
-        // }
       } else {
         this.showLoading = false;
       }

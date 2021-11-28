@@ -263,7 +263,7 @@ export default {
     async getTvlInfo() {
       const res = await this.$request({
         method: "get",
-        url: '/swap/tvl/all'
+        url: '/farm/tvl/all'
       });
       if (res.code === 1000) {
         this.allTvl = tofix(res.data, 0, -1);
@@ -406,7 +406,7 @@ export default {
       const data = { enable };
       const res = await this.$request({
         methods: 'post',
-        url: '/swap/farm/list',
+        url: '/farm/list',
         data
       });
       if (res.code === 1000) {
@@ -455,7 +455,7 @@ export default {
         }
         const res = await this.$request({
           methods: 'post',
-          url: '/swap/stake/account',
+          url: '/farm/stake/account',
           data: {
             chain: item.chain,
             farmHash: item.farmKey,
@@ -711,82 +711,6 @@ export default {
       if (res.code === 1000) {
         res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
         return res.data;
-      }
-    },
-    // 广播nerve nuls跨链转账交易
-    async broadcastHex({txHex, txHash, amount}) {
-      const isPledge = this.vaultsType === "increase"; // 是否为质押
-      const { chainId: tempChainId, assetId, contractAddress, decimals } = isPledge ? this.assetsItem : this.assetsItem.syrupAsset;
-      let params = {
-        chain: this.currentFarm.chain,
-        address: this.currentAccount.address[this.currentFarm.chain],
-        type: isPledge ? 3 : 4, // 3质押 4撤出质押
-        chainId: tempChainId,
-        assetId: assetId,
-        contractAddress: contractAddress || "",
-        amount: amount || timesDecimals(this.lpCount, decimals),
-        txHash
-      };
-      const config = JSON.parse(sessionStorage.getItem("config"));
-      const url = config[this.currentFarm.chain].apiUrl;
-      const chainId = config[this.currentFarm.chain].chainId;
-      console.log(txHex, "---txHex---")
-      if (txHex) {
-        const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-        if (res.result && res.result.hash) {
-          // console.log(res.result.hash, "res.result.hashres.result.hash");
-          params.txHash = res.result.hash;
-          const result = await this.$request({
-            url: "/swap/vaults/add",
-            data: params
-          });
-          if (result.code === 1000) {
-            this.$message({
-              message: this.$t("tips.tips10"),
-              type: "success", duration: 2000,
-              offset: 30,
-            })
-          } else {
-            this.$message({
-              message: this.$t("tips.tips15"),
-              type: "warning",
-              offset: 30,
-              duration: 2000
-            })
-          }
-          this.reset();
-          this.showLoading = false;
-        } else {
-          console.error(res.error);
-          this.$message({
-            message: this.$t("tips.tips15"),
-            offset: 30,
-            type: "warning"
-          });
-          this.reset();
-        }
-      } else {
-        const result = await this.$request({
-          url: "/swap/vaults/add",
-          data: params
-        });
-        if (result.code === 1000) {
-          this.$message({
-            message: this.$t("tips.tips10"),
-            type: "success",
-            offset: 30,
-            duration: 2000
-          })
-        } else {
-          this.$message({
-            message: this.$t("tips.tips15"),
-            type: "warning",
-            offset: 30,
-            duration: 2000
-          })
-        }
-        this.reset();
-        this.showLoading = false;
       }
     },
     // 获取领取的资产是否需要授权

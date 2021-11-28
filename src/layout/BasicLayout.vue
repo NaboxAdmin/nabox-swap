@@ -144,9 +144,11 @@ export default {
     address: {
       immediate: true,
       handler(val) {
+        console.log(val, "address val")
         if (!val) return '';
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
+        console.log(currentAccount, "currentAccount")
         const config = JSON.parse(sessionStorage.getItem("config"));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
@@ -356,6 +358,7 @@ export default {
             address: this.address
           });
           const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
+          console.log(address, "addresses addresses addresses addresses")
           const addressMap = {};
           for (let item of networkList) {
             addressMap[item] = address

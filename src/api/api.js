@@ -13,7 +13,8 @@ import Web3 from "web3";
 import { airDropABI } from "../../src/views/airdrop/airDropABI";
 const Signature = require("elliptic/lib/elliptic/ec/signature");
 const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
-const provider = new ethers.providers.Web3Provider(window.ethereum);
+// const provider = new ethers.providers.Web3Provider(window.ethereum);
+
 // 查询余额
 const erc20BalanceAbiFragment = [
   {
@@ -79,8 +80,8 @@ const userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d'; // 0xaae1db3f3
  * @param multiCallContract 当前网络下面的批量查询合约地址
  * @returns tokensRes {Promise<*>} 当前返回的批量查询数据
  */
-export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B") {
-  const web3 = new Web3(window.ethereum);
+export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B", RPCUrl) {
+  const web3 = new Web3(RPCUrl || window.ethereum);
   addresses.forEach((item, index) => {
     if (!item) {
       addresses[index] = multiCallContract
@@ -124,7 +125,6 @@ export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallCo
       lockedToken: getLockedTokenTokens.methods.getLockedToken(userAddress)
     }
   ];
-  console.log(tokens, "tokens")
   const [tokensRes] = await multicall.all([tokens]);
   return tokensRes;
 }
