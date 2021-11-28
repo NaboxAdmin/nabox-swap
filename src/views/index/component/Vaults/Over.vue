@@ -117,7 +117,7 @@ export default {
           item.needStakeAuth = false;
         } else {
           item.needReceiveAuth = false;
-          item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
+          item.needStakeAuth = false;
         }
         const res = await this.$request({
           methods: 'post',
