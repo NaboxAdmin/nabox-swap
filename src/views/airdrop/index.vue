@@ -8,7 +8,7 @@
       <div class="text-left size-22 text-d5">{{ $t("airdrop.airdrop1") }}</div>
       <div class="d-flex direction-column align-items-center mt-12">
         <span class="size-34 font-500 text-white">{{ LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0 }}</span>
-        <span class="font-500 text-d5 size-26">≈${{ formatPrice(LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0, LpFarmInfo && LpFarmInfo.naboxPrice || 0) }}</span>
+        <span class="font-500 text-d5 size-26">≈${{ formatPrice(LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0, LpFarmInfo && LpFarmInfo.candyPrice || 0) }}</span>
       </div>
     </div>
     <div class="stake-cont mt-2">
@@ -22,7 +22,7 @@
         </p>
       </div>
       <div class="size-34 text-3a font-500 mt-3">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
-      <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.naboxPrice || 0) }}</div>
+      <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.candyPrice || 0) }}</div>
       <div class="mt-3 d-flex align-items-center">
         <span>{{ LpFarmInfo && LpFarmInfo.lpSymbol }} {{ $t("airdrop.airdrop3") }}</span>
         <span class="calculate-icon cursor-pointer" @click="showCalculate=true">
@@ -49,7 +49,7 @@
     <div class="claim-cont mt-2">
       <div class="size-28 text-90">{{ $t("airdrop.airdrop5") }} {{ LpFarmInfo && LpFarmInfo.candySymbol }}</div>
       <div class="mt-3 text-3a size-34 font-500">{{ pendingToken && pendingToken.pendingToken | numFormat }}</div>
-      <div class="size-26 text-90 mt-12">≈{{ formatPrice(pendingToken && pendingToken.pendingToken, LpFarmInfo && LpFarmInfo.naboxPrice || 0) }}</div>
+      <div class="size-26 text-90 mt-12">≈{{ formatPrice(pendingToken && pendingToken.pendingToken, LpFarmInfo && LpFarmInfo.candyPrice || 0) }}</div>
       <div class="btn cursor-pointer" :class="{ active_btn: !pendingToken || pendingToken && Number(pendingToken.pendingToken) <= 0 }" @click="claimClick">{{ $t("airdrop.airdrop6") }}</div>
     </div>
     <pop-up :show="showCalculate">

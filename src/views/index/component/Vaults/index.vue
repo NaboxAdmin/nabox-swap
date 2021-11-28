@@ -419,20 +419,6 @@ export default {
     async getStakeAccount(farmList) {
       // debugger;
       this.farmList = (await Promise.all(farmList.map(async item => {
-        // if (this.isFirstRequest) { // 第一次进入自动关注一次资产
-        //   await this.focusAsset({
-        //     chainId: item.stakeTokenChainId,
-        //     assetId: item.stakeTokenAssetId,
-        //     contractAddress: item.stakeTokenContractAddress,
-        //     chain: item.chain
-        //   });
-        //   await this.focusAsset({
-        //     chainId: item.syrupTokenChainId,
-        //     assetId: item.syrupTokenAssetId,
-        //     contractAddress: item.syrupTokenContractAddress,
-        //     chain: item.chain
-        //   });
-        // }
         const stakedAsset = await this.getAssetInfo({
           chainId: item.stakeTokenChainId,
           assetId: item.stakeTokenAssetId,

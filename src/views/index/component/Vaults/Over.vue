@@ -21,7 +21,7 @@
             <span class="text-3a">${{ item.tvl }}</span>
           </div>
         </div>
-        <div class="d-flex pl-3 mt-3 align-items-center">
+        <div class="d-flex pl-3 mt-3 align-items-center" v-if="item.lockCandy">
           <span class="tips-icon mr-2">
             <img src="@/assets/image/tips_icon.png" alt="">
           </span>
@@ -47,7 +47,7 @@
           </div>
         </div>
         <div class="pl-72 size-28 text-right text-6e">{{ $t("vaults.over5") }}{{ item.stakedAsset && item.stakedAsset.symbol }}</div>
-        <template>
+        <template v-if="item.lockCandy">
           <div class="px-cont w-80 mt-3"></div>
           <div class="size-28 mt-3 d-flex space-between align-items-center pl-3 pr-3">
             <span class="text-90 size-28">{{ $t("vaults.vaults12") }}Nabox</span>
