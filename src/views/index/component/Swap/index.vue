@@ -515,9 +515,11 @@ export default {
       if (!this.canNext) return false;
       const { currentPlatform, stableFromAsset, stableToAsset, chooseFromAsset, chooseToAsset, fromAmount, toAmount, swapRate, fromAddress, fromNetwork, amount, fee, withdrawFee, estimatedAmount, transferFee, stableFee } = this;
       const pairAddress = stableFromAsset && stableToAsset && this.chooseFromAsset && this.chooseFromAsset.pairAddress || '';
+      const toChain = this.chooseToAsset.chain;
       const tempParams = {
         address: fromAddress,
         fromAsset: chooseFromAsset,
+        toAddress: this.currentAccount['address'][toChain] || '',
         toAsset: chooseToAsset,
         fromNetwork,
         fromAmount,

@@ -31,7 +31,7 @@
           <span class="text-aa">To</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="size-20 sign">{{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.chain }}</span>
-            <span  class="ml-4">{{ superLong(orderInfo && orderInfo.address) }}</span>
+            <span  class="ml-4">{{ superLong(orderInfo && orderInfo.toAddress) }}</span>
           </div>
         </div>
         <!--汇率-->
@@ -278,8 +278,10 @@ export default {
           // amount: this.orderInfo && this.orderInfo.toAmount && timesDecimals(this.orderInfo.toAmount, this.orderInfo.toAsset.decimals),
           amount: this.orderInfo && this.orderInfo.toAmount,
         }
+        const toChain = this.orderInfo && this.orderInfo.toAsset.chain;
         const params = {
-          address: this.orderInfo && this.orderInfo.address,
+          sendAddress: this.orderInfo.address,
+          receiveAddress: this.currentAccount['address'][toChain],
           depositCoin,
           receiveCoin
         }
