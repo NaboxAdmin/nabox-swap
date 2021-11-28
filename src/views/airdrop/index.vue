@@ -510,6 +510,7 @@ export default {
     },
     claimClick() {
       if (this.pendingToken && Number(this.pendingToken.pendingToken) <= 0) return false;
+      this.showLoading = true;
       this.LpOperation('stake', 0);
     },
     // 格式化decimals
