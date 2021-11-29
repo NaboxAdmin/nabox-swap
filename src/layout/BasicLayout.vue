@@ -161,7 +161,6 @@ export default {
     fromChainId: {
       immediate: true,
       handler(val) {
-        console.log(val, "valllll")
         if (!val) return;
         const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
         const chain = tempSupportChainList.find(v => v[ETHNET] === val);

@@ -10,7 +10,8 @@ import txs from "nerve-sdk-js/lib/model/txs";
 // import { MultiCall } from "eth-multicall";
 import { MultiCall } from "./Multicall1";
 import Web3 from "web3";
-import { airDropABI } from "../../src/views/airdrop/airDropABI";
+import { airDropABI } from "../views/airdrop/airDropABI";
+import { farmABI } from "../views/index/component/Vaults/FarmABI";
 const Signature = require("elliptic/lib/elliptic/ec/signature");
 const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
 // const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -72,7 +73,6 @@ const erc20BalanceAbiFragment = [
   }
 ];
 
-const userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d'; // 0xaae1db3f3eb4b7d085a93b391459156b43e6eb97 0x45ccf4b9f8447191c38f5134d8c58f874335028d
 /**
  * 批量查询资产余额
  * @param addresses {String[]} 需要查询的合约资产
@@ -103,9 +103,10 @@ export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f
 
 /**
  * 批量查询用户farm信息
- * @param pairAddress farm地址
- * @param userAddress 用户当前地址
- * @param multiCallContract 当前批量查询的合约
+ * @param pairAddress {string} farm地址
+ * @param userAddress {string} 用户当前地址
+ * @param multiCallContract {string} 当前批量查询的合约
+ * @param RPCUrl {string}
  * @returns {Promise<*>}
  */
 export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallContract, RPCUrl) {
@@ -129,12 +130,33 @@ export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallCo
   return tokensRes;
 }
 
+export async function getBatchLockedFarmInfo(pairAddress, pid, userAddress, multiCallContract, RPCUrl) {
+  console.log(pairAddress, userAddress, multiCallContract, RPCUrl, "12312312");
+  const web3 = new Web3(RPCUrl || window.ethereum);
+  const multicall = new MultiCall(web3, multiCallContract);
+  const userInfoTokens = new web3.eth.Contract(farmABI, pairAddress);
+  const unlockNumber = new web3.eth.Contract(farmABI, pairAddress);
+  const getUnlockedToken = new web3.eth.Contract(farmABI, pairAddress);
+  const tokens = [
+    {
+      userInfo: userInfoTokens.methods.getUserInfo(pid, userAddress)
+    },
+    {
+      unlockNumber: unlockNumber.methods.getLocks(pid, userAddress)
+    },
+    {
+      unlockedToken: getUnlockedToken.methods.getUnlockedToken(pid, userAddress, false)
+    }
+  ];
+  const [tokensRes] = await multicall.all([tokens]);
+  return tokensRes;
+}
+
 // NULS NERVE跨链手续费
 export const crossFee = 0.01;
 const nSdk = {NERVE: nerve, NULS: nuls};
 
 export class NTransfer {
-
   constructor(props) {
     if (!props.chain) {
       throw "未获取到交易网络，组装交易失败";

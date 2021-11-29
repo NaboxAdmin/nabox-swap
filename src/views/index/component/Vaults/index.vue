@@ -36,6 +36,7 @@
                 @stakeApprove="stakeApprove"
                 @receiveApprove="receiveApprove"
                 @receiveClick="progressReceive"
+                @confirmUnlocked="confirmUnlocked"
                 @showClick="showClick"/>
       <Over v-if="currentIndex===1"
             :farm-list="farmList"
@@ -71,7 +72,7 @@ import Progress from "./Progress";
 import Over from "./Over";
 import { currentNet } from "@/config";
 import {divisionDecimals, getAssetNerveInfo, Minus, timesDecimals} from "@/api/util";
-import {ETransfer, NTransfer} from "@/api/api";
+import {ETransfer, NTransfer, getBatchLockedFarmInfo} from "@/api/api";
 import {ethers} from "ethers";
 import {txAbi} from "@/api/contractConfig";
 import {tofix} from "../../../../api/util";
@@ -270,61 +271,65 @@ export default {
       }
     },
     // 正在进行领取奖励
-    async progressReceive({ farmHash, farm }) {
+    async progressReceive({ farmHash, farm, candyLock }) {
       // console.log(farm, 'farm')
       this.vaultsType = "decrease";
-      if (farm.chain !== "NERVE") {
-        this.currentFarm = farm;
-        this.currentFarmHash = farmHash;
-        this.assetsItem = farm;
-        await this.LPOperation(2, '0', 'receive');
-      } else {
-        try {
-          this.showLoading = true;
-          this.assetsItem = farm;
+      if (!candyLock) {
+        if (farm.chain !== "NERVE") {
           this.currentFarm = farm;
-          await this.focusAsset(farm.syrupAsset);
-          const { syrupTokenChainId: chainId, syrupTokenAssetId: assetId } = farm;
-          const transferInfo = {
-            from: this.nerveAddress,
-            to: this.nerveAddress,
-            assetsChainId: chainId,
-            assetsId: assetId,
-            amount: 0,
-            fee: 0
-          };
-          const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
-          const fromAddress = this.nerveAddress;
-          const token = nerve.swap.token(chainId, assetId);
-          const farmHash = farm.farmKey || '';
-          const amount = 0;
-          const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
-          const tAssemble = nerve.deserializationTx(tempTxData.hex);
-          const data = {
-            tAssemble,
-            inputs: inputs,
-            outputs: outputs,
-            txData: {},
-            pub: this.currentAccount.pub,
-            signAddress: this.currentAccount.address.Ethereum,
-          };
-          const txHex = await transfer.getTxHex(data);
-          if (txHex) {
-            await this.broadcastHex({ txHex, txHash: "", amount: "0" });
-            await this.getFarmInfo(true, true);
+          this.currentFarmHash = farmHash;
+          this.assetsItem = farm;
+          await this.LPOperation(2, '0', 'receive');
+        } else {
+          try {
+            this.showLoading = true;
+            this.assetsItem = farm;
+            this.currentFarm = farm;
+            await this.focusAsset(farm.syrupAsset);
+            const { syrupTokenChainId: chainId, syrupTokenAssetId: assetId } = farm;
+            const transferInfo = {
+              from: this.nerveAddress,
+              to: this.nerveAddress,
+              assetsChainId: chainId,
+              assetsId: assetId,
+              amount: 0,
+              fee: 0
+            };
+            const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
+            const fromAddress = this.nerveAddress;
+            const token = nerve.swap.token(chainId, assetId);
+            const farmHash = farm.farmKey || '';
+            const amount = 0;
+            const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
+            const tAssemble = nerve.deserializationTx(tempTxData.hex);
+            const data = {
+              tAssemble,
+              inputs: inputs,
+              outputs: outputs,
+              txData: {},
+              pub: this.currentAccount.pub,
+              signAddress: this.currentAccount.address.Ethereum,
+            };
+            const txHex = await transfer.getTxHex(data);
+            if (txHex) {
+              await this.broadcastHex({ txHex, txHash: "", amount: "0" });
+              await this.getFarmInfo(true, true);
+              this.showLoading = false;
+            }
+          } catch (e) {
+            console.log(e);
+            this.$message({
+              type: 'warning',
+              message: e.message || e,
+              offset: 30,
+              customClass: 'messageClass'
+            });
             this.showLoading = false;
+            this.showPop = false;
           }
-        } catch (e) {
-          console.log(e);
-          this.$message({
-            type: 'warning',
-            message: e.message || e,
-            offset: 30,
-            customClass: 'messageClass'
-          });
-          this.showLoading = false;
-          this.showPop = false;
         }
+      } else {
+        console.log('Lock Farm');
       }
     },
     // 已结束领取奖励
@@ -439,27 +444,45 @@ export default {
           item.needReceiveAuth = false;
           item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         }
-        const res = await this.$request({
-          methods: 'post',
-          url: '/farm/stake/account',
-          data: {
-            chain: item.chain,
-            farmHash: item.farmKey,
-            address: this.currentAccount["address"][item.chain]
+        console.log(item, "item")
+        if (!item.lockCandy) {
+          const res = await this.$request({
+            methods: 'post',
+            url: '/farm/stake/account',
+            data: {
+              chain: item.chain,
+              farmHash: item.farmKey,
+              address: this.currentAccount["address"][item.chain]
+            }
+          });
+          if (res.data) {
+            const {amount, reward} = res.data;
+            return {
+              ...item,
+              ...res.data,
+              amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
+              reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+              stakedAsset,
+              syrupAsset,
+              showDetail: false
+            }
           }
-        });
-        if (res.data) {
-          const {amount, reward} = res.data;
+          return {...item, stakedAsset, syrupAsset, showDetail: false};
+        } else {
+          const config = JSON.parse(sessionStorage.getItem('config'));
+          const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
+          const fromAddress = this.currentAccount['address'][this.fromNetwork];
+          const RPCUrl = config['BSC']['apiUrl'];
+          const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
           return {
             ...item,
-            ...res.data,
-            amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
-            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            amount: 0,
+            reward: 0,
             stakedAsset,
-            syrupAsset
+            syrupAsset,
+            showDetail: false
           }
         }
-        return {...item, stakedAsset, syrupAsset};
       })));
       this.farmLoading = false;
       // const tempList = resList.filter(item => item);
@@ -543,10 +566,6 @@ export default {
           res = await contracts.deposit(pid, amount);
         }
         if (res.hash) {
-          // this.$message({
-          //   message: this.$t("广播交易成功，请等待区块确认"),
-          //   type: "success"
-          // });
           await this.broadcastHex({ txHex: "", txHash: res.hash, amount });
           this.showPop = false;
         } else {
@@ -566,6 +585,10 @@ export default {
           type: "warning"
         });
       }
+    },
+    // 完成解锁
+    confirmUnlocked() {
+      console.log('完成解锁')
     },
     // nerve加入矿池
     async increaseClick() {
@@ -697,6 +720,82 @@ export default {
       if (res.code === 1000) {
         res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
         return res.data;
+      }
+    },
+    // 广播nerve nuls跨链转账交易
+    async broadcastHex({txHex, txHash, amount}) {
+      const isPledge = this.vaultsType === "increase"; // 是否为质押
+      const { chainId: tempChainId, assetId, contractAddress, decimals } = isPledge ? this.assetsItem : this.assetsItem.syrupAsset;
+      let params = {
+        chain: this.currentFarm.chain,
+        address: this.currentAccount.address[this.currentFarm.chain],
+        type: isPledge ? 3 : 4, // 3质押 4撤出质押
+        chainId: tempChainId,
+        assetId: assetId,
+        contractAddress: contractAddress || "",
+        amount: amount || timesDecimals(this.lpCount, decimals),
+        txHash
+      };
+      const config = JSON.parse(sessionStorage.getItem("config"));
+      const url = config[this.currentFarm.chain].apiUrl;
+      const chainId = config[this.currentFarm.chain].chainId;
+      console.log(txHex, "---txHex---")
+      if (txHex) {
+        const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+        if (res.result && res.result.hash) {
+          // console.log(res.result.hash, "res.result.hashres.result.hash");
+          params.txHash = res.result.hash;
+          const result = await this.$request({
+            url: "/swap/vaults/add",
+            data: params
+          });
+          if (result.code === 1000) {
+            this.$message({
+              message: this.$t("tips.tips10"),
+              type: "success", duration: 2000,
+              offset: 30,
+            })
+          } else {
+            this.$message({
+              message: this.$t("tips.tips15"),
+              type: "warning",
+              offset: 30,
+              duration: 2000
+            })
+          }
+          this.reset();
+          this.showLoading = false;
+        } else {
+          console.error(res.error);
+          this.$message({
+            message: this.$t("tips.tips15"),
+            offset: 30,
+            type: "warning"
+          });
+          this.reset();
+        }
+      } else {
+        const result = await this.$request({
+          url: "/swap/vaults/add",
+          data: params
+        });
+        if (result.code === 1000) {
+          this.$message({
+            message: this.$t("tips.tips10"),
+            type: "success",
+            offset: 30,
+            duration: 2000
+          })
+        } else {
+          this.$message({
+            message: this.$t("tips.tips15"),
+            type: "warning",
+            offset: 30,
+            duration: 2000
+          })
+        }
+        this.reset();
+        this.showLoading = false;
       }
     },
     // 获取领取的资产是否需要授权

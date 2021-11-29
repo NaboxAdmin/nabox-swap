@@ -203,10 +203,8 @@ export default {
     // liquidity = Math.min(amount0.mul(totalSupply) / reserve0, amount1.mul(totalSupply) / reserve1)
     reverse0Count: {
       handler(newVal, oldVal) {
-        console.log(newVal, "newVal")
         const decimals = this.reverse0Asset && this.reverse0Asset.decimals || 18;
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
-        console.log(patrn.exec(newVal), "patrn.exec(newVal)")
         if (patrn.exec(newVal) || newVal === "") {
           this.reverse0Count = newVal;
         } else {
@@ -286,6 +284,7 @@ export default {
           this.unlockedTime = this.numberFormat(tofix(Division(Times(Division((this.lockedToken && this.lockedToken.lockedToken || 0), this.unlockedSpeed), 3), 3600), 2, -1), 2);
           if (Minus(newVal, this.maxUnlockedSpeed) > 0) {
             this.unlockedSpeed = this.maxUnlockedSpeed;
+            // TODO: 上线时解锁速度保留两位小数
             this.unlockedTime = this.numberFormat(tofix(Division(Times(Division((this.lockedToken && this.lockedToken.lockedToken || 0), this.maxUnlockedSpeed), 3), 3600), 2, -1), 2);
           }
         }
