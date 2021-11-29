@@ -85,7 +85,7 @@ export default {
       const data = { enable };
       const res = await this.$request({
         methods: 'post',
-        url: '/swap/farm/list',
+        url: '/farm/list',
         data
       });
       if (res.code === 1000) {
@@ -121,7 +121,7 @@ export default {
         }
         const res = await this.$request({
           methods: 'post',
-          url: '/swap/stake/account',
+          url: '/farm/stake/account',
           data: {
             chain: item.chain,
             farmHash: item.farmKey,
