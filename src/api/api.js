@@ -108,8 +108,8 @@ export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f
  * @param multiCallContract 当前批量查询的合约
  * @returns {Promise<*>}
  */
-export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallContract) {
-  const web3 = new Web3(window.ethereum);
+export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallContract, RPCUrl) {
+  const web3 = new Web3(RPCUrl || window.ethereum);
   const multicall = new MultiCall(web3, multiCallContract);
   const userInfoTokens = new web3.eth.Contract(airDropABI, pairAddress);
   const pendingTokenTokens = new web3.eth.Contract(airDropABI, pairAddress);

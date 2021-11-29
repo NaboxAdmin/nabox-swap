@@ -367,7 +367,7 @@ export default {
         balance: divisionDecimals(balanceTokenRes[1].balance, balanceTokenRes[1].decimals)
       }
       // console.log(this.stakeBalance, this.candyBalance, "candyBalance")
-      const tokenRes = await getBatchUserFarmInfo(pairAddress, userAddress, multicallAddress);
+      const tokenRes = await getBatchUserFarmInfo(pairAddress, userAddress, multicallAddress, RPCUrl);
       this.userFarmInfo = {
         ...tokenRes[0],
       };
