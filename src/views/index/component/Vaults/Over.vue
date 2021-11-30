@@ -5,7 +5,7 @@
          v-for="(item, index) in farmList"
          :key="item.farmKey"
          @click.stop="showDetailInfo(item)"
-         v-else-if="true">
+         v-else-if="farmList.length !== 0">
       <div class="farm-item p-3 bg-white d-flex align-items-center space-between"
            :class="{ 'farm_item_show': item.showDetail, 'farm_item_hide': !item.showDetail }">
         <div class="d-flex direction-column">
@@ -84,94 +84,27 @@
         <template v-if="item.lockCandy">
           <div class="px-cont mt-3"></div>
           <div class="size-28 mt-3 d-flex space-between align-items-center">
-            <span class="text-90 size-28">{{ $t("vaults.vaults12") }}Nabox</span>
+            <span class="d-flex align-items-center text-90 size-28">
+              <span>{{ $t("vaults.vaults12") }}{{ item.syrupAsset && item.syrupAsset.symbol || 'NABOX' }}</span>
+              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="$t('tips.tips27')" placement="top">
+                <span class="info-icon">
+                  <img src="@/assets/image/info.png"/>
+                </span>
+              </el-tooltip>
+            </span>
             <div class="d-flex align-items-center size-28">
-              <span class="text-3a">{{ 20000 | numFormat }}</span>
+              <span class="text-3a">{{ item.lockNumbers | numFormat }}</span>
             </div>
           </div>
           <div class="vaults-item">
             <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
-              <span class="size-40 word-break w-330">{{ (item.reward || 0) | numFormat }}</span>
+              <span class="size-40 word-break w-330">{{ (item.unlockNumbers || 0) | numFormat }}</span>
               <span
                   class="item-btn size-30"
                   v-if="!item.needReceiveAuth"
-                  @click="receiveClick(item.farmKey, item)">{{ $t("vaults.vaults14") }}</span>
-              <span
-                  class="item-btn size-30"
-                  v-else
-                  @click="receiveApprove(item.farmKey, item)">{{ $t("vaults.over6") }}</span>
-            </div>
-          </div>
-        </template>
-      </div>
-    </div>
-    <div class="detail-item mt-3" v-else-if="farmList.length !== 0" v-for="(item, index) in farmList" :key="item.farmKey">
-      <div class="d-flex align-items-center space-between border-bottom">
-        <div class="d-flex align-items-center pl-3">
-          <span class="icon">
-            <img :src="item.icon || pictureError" @error="pictureError" alt="">
-          </span>
-          <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
-        </div>
-        <div class="d-flex direction-column pt-3 pb-4 pr-3">
-          <span class="text-center size-34 font-500">{{ item.profit || '0%' }}</span>
-          <!--          <span class="text-center size-24 text-90 mt-1">{{ $t("vaults.over1") }}</span>-->
-        </div>
-      </div>
-      <div class="mt-3">
-        <div class="size-28 d-flex space-between align-items-center pl-3 pr-3">
-          <span class="text-90 size-28">TVL</span>
-          <div class="d-flex align-items-center size-28">
-            <span class="text-3a">${{ item.tvl }}</span>
-          </div>
-        </div>
-        <div class="d-flex pl-3 mt-3 align-items-center" v-if="item.lockCandy">
-          <span class="tips-icon mr-2">
-            <img src="@/assets/image/tips_icon.png" alt="">
-          </span>
-          <span>{{ $t("vaults.vaults10") }}XXX{{ $t("vaults.vaults11") }}</span>
-        </div>
-        <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</div>
-          <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 w-330 word-break">{{ (item.reward || 0) | numFormat }}</span>
-            <span class="item-btn size-30"
-                  :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
-                  @click="receiveClick(item)">{{ $t("vaults.over3") }}</span>
-          </div>
-        </div>
-        <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.vaults4") }}</div>
-          <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 w-330 word-break">{{ (item.amount || 0) | numFormat }}</span>
-            <div class="btn-group">
-              <div class="btn-item disabled_btn">-</div>
-              <div class="btn-item disabled_btn ml-3">+</div>
-            </div>
-          </div>
-        </div>
-        <div class="pl-72 size-28 text-right text-6e">{{ $t("vaults.over5") }}{{ item.stakedAsset && item.stakedAsset.symbol }}</div>
-        <template v-if="item.lockCandy">
-          <div class="px-cont w-80 mt-3"></div>
-          <div class="size-28 mt-3 d-flex space-between align-items-center pl-3 pr-3">
-            <span class="text-90 size-28">{{ $t("vaults.vaults12") }}Nabox</span>
-            <div class="d-flex align-items-center size-28">
-              <span class="text-3a">2345874</span>
-            </div>
-          </div>
-          <div class="vaults-item">
-            <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
-            <div class="d-flex align-items-center space-between mt-1">
-              <span class="size-40 word-break w-330">{{ (item.reward || 0) | numFormat }}</span>
-              <span
-                  class="item-btn size-30"
-                  v-if="!item.needReceiveAuth"
-                  @click="receiveClick(item.farmKey, item)">{{ $t("vaults.vaults14") }}</span>
-              <span
-                  class="item-btn size-30"
-                  v-else
-                  @click="receiveApprove(item.farmKey, item)">{{ $t("vaults.over6") }}</span>
+                  :class="{ active_btn: item.unlockNumbers == 0 }"
+                  @click="confirmUnlocked(item.farmKey, item)">{{ $t("vaults.vaults14") }}</span>
             </div>
           </div>
         </template>
@@ -217,9 +150,19 @@ export default {
   },
   methods: {
     // 领取
-    receiveClick(asset) {
-      if (!asset.reward) return false;
-      this.$emit('receiveClick', { asset })
+    receiveClick(farmHash, farm) {
+      if (!farm.reward || farm.reward==="0") return false;
+      this.$emit('receiveClick', { farmHash, farm, candyLock: farm.candyLock });
+    },
+    showClick(type, farmHash, item) {
+      // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
+      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0)) return false;
+      this.$emit('showClick', { type, farmHash: item.farmKey, item });
+    },
+    // 完成解锁
+    confirmUnlocked(farmHash, farm) {
+      if (farm.unlockNumbers == 0) return false;
+      this.$emit('confirmUnlocked', { farmHash, farm });
     },
     // 获取当前farm信息
     async getFarmInfo(enable, refresh=false) {
@@ -327,7 +270,7 @@ export default {
       })));
       this.farmLoading = false;
       // const tempList = resList.filter(item => item);
-      console.log(this.farmList, '==over farmList==');
+      console.log(this.farmList, '==ended farmList==');
     },
     // 获取资产信息
     async getAssetInfo(currentAsset) {

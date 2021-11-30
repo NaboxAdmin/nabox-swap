@@ -112,18 +112,16 @@ export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f
 export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallContract, RPCUrl) {
   const web3 = new Web3(RPCUrl || window.ethereum);
   const multicall = new MultiCall(web3, multiCallContract);
-  const userInfoTokens = new web3.eth.Contract(airDropABI, pairAddress);
-  const pendingTokenTokens = new web3.eth.Contract(airDropABI, pairAddress);
-  const getLockedTokenTokens = new web3.eth.Contract(airDropABI, pairAddress);
+  const airDropConfig = new web3.eth.Contract(airDropABI, pairAddress);
   const tokens = [
     {
-      userFarmInfo: userInfoTokens.methods.userInfo(userAddress)
+      userFarmInfo: airDropConfig.methods.userInfo(userAddress)
     },
     {
-      pendingToken: pendingTokenTokens.methods.pendingToken(userAddress)
+      pendingToken: airDropConfig.methods.pendingToken(userAddress)
     },
     {
-      lockedToken: getLockedTokenTokens.methods.getLockedToken(userAddress)
+      lockedToken: airDropConfig.methods.getLockedToken(userAddress)
     }
   ];
   const [tokensRes] = await multicall.all([tokens]);

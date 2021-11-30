@@ -52,7 +52,7 @@
       <div class="size-26 text-90 mt-12">≈{{ formatPrice(pendingToken && pendingToken.pendingToken, LpFarmInfo && LpFarmInfo.candyPrice || 0) }}</div>
       <div class="btn cursor-pointer" :class="{ active_btn: !pendingToken || pendingToken && Number(pendingToken.pendingToken) <= 0 }" @click="claimClick">{{ $t("airdrop.airdrop6") }}</div>
     </div>
-    <pop-up :show="showCalculate">
+    <pop-up :show.sync="showCalculate">
       <div class="calculate-cont">
         <div class="d-flex justify-content-end">
           <span class="exit-icon" @click.stop="showCalculate = false; resetInput()">
@@ -98,7 +98,7 @@
         </div>
       </div>
     </pop-up>
-    <pop-up :show="showStake">
+    <pop-up :show.sync="showStake">
       <div class="pop-cont">
         <div class="size-36 font-500">{{ stakeType === 'stake' && $t("vaults.vaults4") || $t("vaults.vaults4") }}</div>
         <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance || 0 }}</div>
@@ -648,7 +648,7 @@ export default {
     }
   }
   .calculate-cont {
-    transform: translateY(-90px);
+    // transform: translateY(-90px);
     width: 660px;
     padding: 30px 30px 60px 30px;
     background-color: #FFFFFF;

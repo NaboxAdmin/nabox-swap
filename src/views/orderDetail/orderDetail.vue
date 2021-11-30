@@ -1,5 +1,5 @@
 <template>
-  <div class="main-cont" v-loading="false">
+  <div class="main-cont" :class="isMobile && 'main-cont_mobile' || ''" v-loading="false">
     <NavBar :nav-title="$t('navBar.navBar4')"/>
     <div class="position-cont_nav"/>
     <div class="order-cont">
@@ -138,6 +138,11 @@ export default {
       this.txHash = this.$route.query.txHash;
       this.getOrderDetail(this.$route.query.txHash);
     }
+  },
+  computed: {
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    },
   },
   methods: {
     stableOrderStatus(val) {

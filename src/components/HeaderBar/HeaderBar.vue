@@ -53,7 +53,7 @@
            @poolClick="poolClick"
            @vaultsClick="vaultsClick"
            @airdropClick="airdropClick"/>
-      <pop-up :prevent-boo="false" :show="showAccount">
+      <pop-up :prevent-boo="false" :show.sync="showAccount">
         <div class="address-detail_pop">
           <div class="customer-p">
             <div class="icon-cont d-flex justify-content-end">

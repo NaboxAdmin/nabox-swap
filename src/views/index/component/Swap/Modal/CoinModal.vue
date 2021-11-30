@@ -1,6 +1,6 @@
 <template>
-  <div class="mask-cont" @touchmove.prevent :class="{'show_modal': showModal}">
-    <div class="modal-cont" @touchmove.stop :class="{'show_modal-cont': showModal}">
+  <div class="mask-cont" @click="maskClick" @touchmove.prevent :class="{'show_modal': showModal}">
+    <div class="modal-cont" @click.stop @touchmove.stop :class="{'show_modal-cont': showModal}">
       <div class="header-cont size-36 font-500 mt-2">
           {{ $t('modal.modal1') }}
         <div class="back-icon" @click="back">
@@ -134,6 +134,9 @@ export default {
     }
   },
   methods: {
+    maskClick() {
+      this.$emit('update:showModal', false)
+    },
     setUrl(index) {
       return this.currentIndex===index ? `../../assets/image/${this.picList[index]}_active.png` : `../../assets/image/${this.picList[index]}.png`
     },

@@ -36,13 +36,15 @@
                 @stakeApprove="stakeApprove"
                 @receiveApprove="receiveApprove"
                 @receiveClick="progressReceive"
-                @confirmUnlocked="confirmUnlocked"
+                @confirmUnlocked="progressReceive"
                 @showClick="showClick"/>
       <Over v-if="currentIndex===1"
             :farm-list="farmList"
             :farmLoading="farmLoading"
             @receiveApprove="receiveApprove"
-            @receiveClick="progressReceive"/>
+            @receiveClick="progressReceive"
+            @confirmUnlocked="progressReceive"
+            @showClick="showClick"/>
     </div>
     <PopUp :show="showPop">
       <div class="pop-cont">
@@ -120,11 +122,11 @@ export default {
   created() {
     // this.getLiquidityInfo();
     this.getFarmInfo(true);
+    this.getTvlInfo();
     this.timer = setInterval(() => {
       this.getFarmInfo(this.currentIndex===0, true);
       this.getTvlInfo();
     }, 15000);
-    this.getTvlInfo();
   },
   watch: {
     currentAccount: {
@@ -578,7 +580,6 @@ export default {
         const contracts = new ethers.Contract(this.currentFarmHash, txAbi, wallet);
         let res;
         const amount = timesDecimals(value, stakeTokenDecimals);
-        // console.log(amount, "amount", stakeTokenDecimals);
         const pid = this.currentFarm.pid || 0;
         if (type === 0) {
           res = await contracts.deposit(pid, amount);
@@ -709,6 +710,15 @@ export default {
       this.currentIndex = i;
       if (i===0) {
         this.getFarmInfo(i===0);
+        if (!this.timer) {
+          this.timer = setInterval(() => {
+            this.getFarmInfo(this.currentIndex===0, true);
+            this.getTvlInfo();
+          }, 15000);
+        }
+      } else {
+        clearInterval(this.timer);
+        this.timer = null;
       }
     },
     // 获取pool流动性信息

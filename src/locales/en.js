@@ -25,7 +25,8 @@ const en = {
         tips23: "Receiving assets does not support cross-chain exchange",
         tips24: "Transaction confirmation in progress",
         tips25: "No trading pairs available",
-        tips26: "No support for transfer of non-primary assets"
+        tips26: "No support for transfer of non-primary assets",
+        tips27: "The received income will be locked for 90 days"
     },
     swap: {
         swap1:'From',

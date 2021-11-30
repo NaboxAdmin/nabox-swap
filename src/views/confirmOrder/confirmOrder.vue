@@ -38,10 +38,10 @@
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap5') }}</span>
           <div class="d-flex align-items-center justify-content-end w-75" v-if="orderInfo.swapRate">
-            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
+            <span class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
           <div class="d-flex align-items-center justify-content-end w-75" v-else>
-            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
+            <span class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
         </div>
         <!--手续费-->
@@ -415,7 +415,7 @@ export default {
         })
       }
     },
-    // 广播naboxswap交易
+    // 广播swapBox usdt兑换交易
     async broadcastNaboxTx(hash) {
       const { toAsset, fromNetwork, address, contractAddress, fromAmount, pairAddress, decimals } = this.orderInfo;
       const params = {
@@ -435,7 +435,7 @@ export default {
         url: '/swap/cross/swapTx',
         data: params
       });
-      if (res.code === 1000) {
+      if (res.code === 1000 && res.data) {
         this.$message({
           type: 'success',
           message: this.$t('tips.tips24'),
@@ -444,6 +444,7 @@ export default {
         });
         setTimeout(() => {
           // this.$router.go(-1)
+          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash } });
           this.$emit('confirm');
         }, 1500);
       } else {
@@ -482,7 +483,7 @@ export default {
         url: '/swap/usdtn/exchange',
         data
       });
-      if (res.code === 1000) {
+      if (res.code === 1000 && res.data) {
         this.$message({
           type: 'success',
           message: this.$t('tips.tips24'),
@@ -490,7 +491,7 @@ export default {
           duration: 1500
         });
         setTimeout(() => {
-          // this.$router.go(-1)
+          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash } });
           this.$emit('confirm');
         }, 1500);
       } else {
@@ -546,7 +547,7 @@ export default {
               duration: 1500
             });
             setTimeout(() => {
-              // this.$router.go(-1)
+              this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash } });
               this.$emit('confirm');
             }, 1500);
           }
