@@ -89,16 +89,17 @@
           <div class="size-28 mt-3 d-flex space-between align-items-center">
             <span class="text-90 size-28">{{ $t("vaults.vaults12") }}Nabox</span>
             <div class="d-flex align-items-center size-28">
-              <span class="text-3a">{{ 20000 | numFormat }}</span>
+              <span class="text-3a">{{ item.lockNumbers || 0 | numFormat }}</span>
             </div>
           </div>
           <div class="vaults-item">
             <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
-              <span class="size-40 word-break w-330">{{ (item.reward || 0) | numFormat }}</span>
+              <span class="size-40 word-break w-330">{{ (item.unlockNumbers || 0) | numFormat }}</span>
               <span
                   class="item-btn size-30"
                   v-if="!item.needReceiveAuth"
+                  :class="{ active_btn: item.unlockNumbers == 0 }"
                   @click="confirmUnlocked(item.farmKey, item)">{{ $t("vaults.vaults14") }}</span>
             </div>
           </div>
@@ -189,7 +190,7 @@
               </el-tooltip>
             </span>
             <div class="d-flex align-items-center size-28">
-              <span class="text-3a">{{ 20000 | numFormat }}</span>
+              <span class="text-3a">{{ item.lockNumbers | numFormat }}</span>
             </div>
           </div>
           <div class="vaults-item">
@@ -278,6 +279,7 @@ export default {
     },
     // 完成解锁
     confirmUnlocked(farmHash, farm) {
+      if (farm.unlockNumbers == 0) return false;
       this.$emit('confirmUnlocked', { farmHash, farm });
     }
   }

@@ -130,22 +130,31 @@ export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallCo
   return tokensRes;
 }
 
+/**
+ * 获取锁定的farm的信息
+ * @param pairAddress
+ * @param pid
+ * @param userAddress
+ * @param multiCallContract
+ * @param RPCUrl
+ * @returns {Promise<*>}
+ */
 export async function getBatchLockedFarmInfo(pairAddress, pid, userAddress, multiCallContract, RPCUrl) {
-  console.log(pairAddress, userAddress, multiCallContract, RPCUrl, "12312312");
   const web3 = new Web3(RPCUrl || window.ethereum);
   const multicall = new MultiCall(web3, multiCallContract);
-  const userInfoTokens = new web3.eth.Contract(farmABI, pairAddress);
-  const unlockNumber = new web3.eth.Contract(farmABI, pairAddress);
-  const getUnlockedToken = new web3.eth.Contract(farmABI, pairAddress);
+  const tokensConfig = new web3.eth.Contract(farmABI, pairAddress);
   const tokens = [
     {
-      userInfo: userInfoTokens.methods.getUserInfo(pid, userAddress)
+      userInfo: tokensConfig.methods.getUserInfo(pid, userAddress)
     },
     {
-      unlockNumber: unlockNumber.methods.getLocks(pid, userAddress)
+      unlockNumber: tokensConfig.methods.getLocks(pid, userAddress)
     },
     {
-      unlockedToken: getUnlockedToken.methods.getUnlockedToken(pid, userAddress, false)
+      unlockedToken: tokensConfig.methods.getUnlockedToken(pid, userAddress, false)
+    },
+    {
+      pendingToken: tokensConfig.methods.pendingToken(pid, userAddress)
     }
   ];
   const [tokensRes] = await multicall.all([tokens]);

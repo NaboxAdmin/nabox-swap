@@ -72,7 +72,7 @@ import Progress from "./Progress";
 import Over from "./Over";
 import { currentNet } from "@/config";
 import {divisionDecimals, getAssetNerveInfo, Minus, timesDecimals} from "@/api/util";
-import {ETransfer, NTransfer, getBatchLockedFarmInfo} from "@/api/api";
+import {ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance} from "@/api/api";
 import {ethers} from "ethers";
 import {txAbi} from "@/api/contractConfig";
 import {tofix} from "../../../../api/util";
@@ -424,27 +424,45 @@ export default {
     async getStakeAccount(farmList) {
       // debugger;
       this.farmList = (await Promise.all(farmList.map(async item => {
-        const stakedAsset = await this.getAssetInfo({
-          chainId: item.stakeTokenChainId,
-          assetId: item.stakeTokenAssetId,
-          contractAddress: item.stakeTokenContractAddress,
-          chain: item.chain
-        }); // 获取当前可质押的资产
-        // this.stakedAsset = stakedAsset;
-        const syrupAsset = await this.getAssetInfo({
-          chainId: item.syrupTokenChainId,
-          assetId: item.syrupTokenAssetId,
-          contractAddress: item.syrupTokenContractAddress,
-          chain: item.chain
-        }); // 获取当前可领取资产信息
+        const config = JSON.parse(sessionStorage.getItem("config"));
+        const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
+        const fromAddress = this.currentAccount['address'][item.chain || 'BSC'];
+        const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
+        let syrupAsset, stakedAsset;
         if (item.chain === "NERVE") {
+          stakedAsset = await this.getAssetInfo({
+            chainId: item.stakeTokenChainId,
+            assetId: item.stakeTokenAssetId,
+            contractAddress: item.stakeTokenContractAddress,
+            chain: item.chain
+          }); // 获取当前可质押的资产
+          syrupAsset = await this.getAssetInfo({
+            chainId: item.syrupTokenChainId,
+            assetId: item.syrupTokenAssetId,
+            contractAddress: item.syrupTokenContractAddress,
+            chain: item.chain
+          }); // 获取当前可领取资产信息
           item.needReceiveAuth = false;
           item.needStakeAuth = false;
         } else {
+          const tokenBalance = await getBatchERC20Balance([item.stakeTokenContractAddress || batchQueryContract, item.syrupTokenContractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
+          stakedAsset = {
+            ...tokenBalance[0],
+            chainId: item.stakeTokenChainId,
+            assetId: item.stakeTokenAssetId,
+            contractAddress: item.stakeTokenContractAddress,
+            balance: divisionDecimals(tokenBalance[0].balance || 0, tokenBalance[0].decimals || 18)
+          }
+          syrupAsset = {
+            ...tokenBalance[1],
+            chainId: item.syrupTokenChainId,
+            assetId: item.syrupTokenAssetId,
+            contractAddress: item.syrupTokenContractAddress,
+            balance: divisionDecimals(tokenBalance[1].balance || 0, tokenBalance[1].decimals || 18)
+          }
           item.needReceiveAuth = false;
           item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         }
-        console.log(item, "item")
         if (!item.lockCandy) {
           const res = await this.$request({
             methods: 'post',
@@ -474,10 +492,14 @@ export default {
           const fromAddress = this.currentAccount['address'][this.fromNetwork];
           const RPCUrl = config['BSC']['apiUrl'];
           const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
+          console.log(tokens, "tokensssss")
           return {
             ...item,
-            amount: 0,
-            reward: 0,
+            amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
+            // reward: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['1'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
+            reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             stakedAsset,
             syrupAsset,
             showDetail: false
