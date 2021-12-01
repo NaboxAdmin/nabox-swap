@@ -86,7 +86,7 @@
 
 <script>
 import { NTransfer } from "@/api/api";
-import { currentNet } from "@/config";
+import { currentNet, MAIN_INFO, NULS_INFO } from "@/config";
 import { divisionDecimals, timesDecimals, Minus, Division, tofix } from "@/api/util";
 import Modal from "./Modal/Modal";
 import {Times} from "../../../../api/util";
@@ -225,26 +225,44 @@ export default {
         }, 15000);
         await this.getAddedLiquidity();
         if (this.liquidityInfo.lpCoinList) {
-          this.lpAssetsList = await Promise.all(this.liquidityInfo.lpCoinList.map(async (item) => {
-            const data = {
-              chain: "NERVE",
-              address: this.nerveAddress,
-              chainId: item.chainId,
-              assetId: item.assetId,
-              contractAddress: "",
-              refresh: true
-            }
-            const res = await this.$request({
-              url: '/wallet/address/asset',
-              data
-            });
-            if (res.code === 1000) {
-              return {
-                ...res.data,
-                userBalance: res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1) || 0
-              }
-            }
+          const tempParams = this.liquidityInfo.lpCoinList.map(item => ({
+            chainId: item.chainId,
+            assetId: item.assetId,
+            contractAddress: item.contractAddress
           }));
+          const url = MAIN_INFO.batchRPC;
+          const params = [MAIN_INFO.chainId, this.currentAccount['address']['NERVE'], tempParams];
+          const res = await this.$post(url, "getBalanceList", params);
+          if (res.result && res.result.length !== 0) {
+            this.lpAssetsList = this.liquidityInfo.lpCoinList.map((item, index) => ({
+              ...res.result[index],
+              symbol: item.symbol,
+              registerChain: item.chain,
+              userBalance: tofix(divisionDecimals(res.result[index].balance || 0, item.decimals || 8), 6, -1),
+              chainId: res.result[index].assetChainId
+            }));
+          } else {
+            this.lpAssetsList = await Promise.all(this.liquidityInfo.lpCoinList.map(async (item) => {
+              const data = {
+                chain: "NERVE",
+                address: this.nerveAddress,
+                chainId: item.chainId,
+                assetId: item.assetId,
+                contractAddress: "",
+                refresh: true
+              }
+              const res = await this.$request({
+                url: '/wallet/address/asset',
+                data
+              });
+              if (res.code === 1000) {
+                return {
+                  ...res.data,
+                  userBalance: res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1) || 0
+                }
+              }
+            }));
+          }
         }
       }
     },

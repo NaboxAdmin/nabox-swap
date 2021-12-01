@@ -36,13 +36,16 @@
                 @stakeApprove="stakeApprove"
                 @receiveApprove="receiveApprove"
                 @receiveClick="progressReceive"
+                @confirmUnlocked="progressReceive"
                 @showClick="showClick"/>
       <Over v-if="currentIndex===1"
             :farm-list="farmList"
             :farmLoading="farmLoading"
             @showClick="showClick"
             @receiveApprove="receiveApprove"
-            @receiveClick="progressReceive"/>
+            @receiveClick="progressReceive"
+            @confirmUnlocked="progressReceive"
+            @showClick="showClick"/>
     </div>
     <PopUp :show="showPop">
       <div class="pop-cont">
@@ -72,7 +75,7 @@ import Progress from "./Progress";
 import Over from "./Over";
 import { currentNet } from "@/config";
 import {divisionDecimals, getAssetNerveInfo, Minus, timesDecimals} from "@/api/util";
-import {ETransfer, NTransfer} from "@/api/api";
+import {ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance} from "@/api/api";
 import {ethers} from "ethers";
 import {txAbi} from "@/api/contractConfig";
 import {tofix} from "../../../../api/util";
@@ -120,11 +123,11 @@ export default {
   created() {
     // this.getLiquidityInfo();
     this.getFarmInfo(true);
+    this.getTvlInfo();
     this.timer = setInterval(() => {
       this.getFarmInfo(this.currentIndex===0, true);
       this.getTvlInfo();
     }, 15000);
-    this.getTvlInfo();
   },
   watch: {
     currentAccount: {
@@ -176,6 +179,7 @@ export default {
     crossIn() {
       this.$router.push({ path: '/transfer' });
     },
+    // 刷新数据
     async refreshData() {
       await this.getFarmInfo(true);
       await this.getTvlInfo();
@@ -197,39 +201,11 @@ export default {
       } else {
         this.needAuth = false
       }
-      // try {
-      //   const infoParams = {
-      //     network: item.chain,
-      //     fromChain: item.chain,
-      //     assetsChainId: item.stakeTokenChainId,
-      //     assetsId: item.stakeTokenAssetId,
-      //     contractAddress: item.stakeTokenContractAddress
-      //   }
-      //   const { chainId, assetId } = await getAssetNerveInfo(infoParams);
-      //   const focusParams = {
-      //     address: this.currentAccount['address'].NERVE,
-      //     assetId,
-      //     chainId,
-      //     chain: "NERVE",
-      //     focus: true
-      //   };
-      //   await this.$request({ url: "/wallet/address/asset/focus", data: focusParams });
-      // } catch (e) {
-      //   console.log(e)
-      // }
       if (type==="increase") {
         this.assetsItem = item.stakedAsset;
       } else {
         this.assetsItem = item;
       }
-      // if (item.chain !== "NERVE") {
-      //   await this.setGetERC20Allowance();
-      // } else {
-      //   this.needAuth = false;
-      // }
-      // this.stakedAsset = await this.getAssetInfo({ chainId: item.stakeTokenChainId, assetId: item.stakeTokenAssetId }); // 获取当前可质押的资产
-      // this.syrupAsset = await this.getAssetInfo({ chainId: item.syrupTokenChainId, assetId: item.syrupTokenAssetId }); // 获取当前可领取资产信息
-      // await this.getAddedLiquidity();
     },
     // 资产授权
     async approveERC20() {
@@ -298,7 +274,7 @@ export default {
       }
     },
     // 正在进行领取奖励
-    async progressReceive({ farmHash, farm }) {
+    async progressReceive({ farmHash, farm, candyLock }) {
       // console.log(farm, 'farm')
       this.vaultsType = "decrease";
       if (farm.chain !== "NERVE") {
@@ -447,61 +423,86 @@ export default {
     async getStakeAccount(farmList) {
       // debugger;
       this.farmList = (await Promise.all(farmList.map(async item => {
-        // if (this.isFirstRequest) { // 第一次进入自动关注一次资产
-        //   await this.focusAsset({
-        //     chainId: item.stakeTokenChainId,
-        //     assetId: item.stakeTokenAssetId,
-        //     contractAddress: item.stakeTokenContractAddress,
-        //     chain: item.chain
-        //   });
-        //   await this.focusAsset({
-        //     chainId: item.syrupTokenChainId,
-        //     assetId: item.syrupTokenAssetId,
-        //     contractAddress: item.syrupTokenContractAddress,
-        //     chain: item.chain
-        //   });
-        // }
-        const stakedAsset = await this.getAssetInfo({
-          chainId: item.stakeTokenChainId,
-          assetId: item.stakeTokenAssetId,
-          contractAddress: item.stakeTokenContractAddress,
-          chain: item.chain
-        }); // 获取当前可质押的资产
-        // this.stakedAsset = stakedAsset;
-        const syrupAsset = await this.getAssetInfo({
-          chainId: item.syrupTokenChainId,
-          assetId: item.syrupTokenAssetId,
-          contractAddress: item.syrupTokenContractAddress,
-          chain: item.chain
-        }); // 获取当前可领取资产信息
+        const config = JSON.parse(sessionStorage.getItem("config"));
+        const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
+        const fromAddress = this.currentAccount['address'][item.chain || 'BSC'];
+        const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
+        let syrupAsset, stakedAsset;
         if (item.chain === "NERVE") {
+          stakedAsset = await this.getAssetInfo({
+            chainId: item.stakeTokenChainId,
+            assetId: item.stakeTokenAssetId,
+            contractAddress: item.stakeTokenContractAddress,
+            chain: item.chain
+          }); // 获取当前可质押的资产
+          syrupAsset = await this.getAssetInfo({
+            chainId: item.syrupTokenChainId,
+            assetId: item.syrupTokenAssetId,
+            contractAddress: item.syrupTokenContractAddress,
+            chain: item.chain
+          }); // 获取当前可领取资产信息
           item.needReceiveAuth = false;
           item.needStakeAuth = false;
         } else {
+          const tokenBalance = await getBatchERC20Balance([item.stakeTokenContractAddress || batchQueryContract, item.syrupTokenContractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
+          stakedAsset = {
+            ...tokenBalance[0],
+            chainId: item.stakeTokenChainId,
+            assetId: item.stakeTokenAssetId,
+            contractAddress: item.stakeTokenContractAddress,
+            balance: divisionDecimals(tokenBalance[0].balance || 0, tokenBalance[0].decimals || 18)
+          }
+          syrupAsset = {
+            ...tokenBalance[1],
+            chainId: item.syrupTokenChainId,
+            assetId: item.syrupTokenAssetId,
+            contractAddress: item.syrupTokenContractAddress,
+            balance: divisionDecimals(tokenBalance[1].balance || 0, tokenBalance[1].decimals || 18)
+          }
           item.needReceiveAuth = false;
           item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         }
-        const res = await this.$request({
-          methods: 'post',
-          url: '/farm/stake/account',
-          data: {
-            chain: item.chain,
-            farmHash: item.farmKey,
-            address: this.currentAccount["address"][item.chain]
+        if (item.chain === 'NERVE') {
+          const res = await this.$request({
+            methods: 'post',
+            url: '/farm/stake/account',
+            data: {
+              chain: item.chain,
+              farmHash: item.farmKey,
+              address: this.currentAccount["address"][item.chain]
+            }
+          });
+          if (res.data) {
+            const {amount, reward} = res.data;
+            return {
+              ...item,
+              ...res.data,
+              amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
+              reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+              stakedAsset,
+              syrupAsset,
+              showDetail: false
+            }
           }
-        });
-        if (res.data) {
-          const {amount, reward} = res.data;
+          return {...item, stakedAsset, syrupAsset, showDetail: false};
+        } else {
+          const config = JSON.parse(sessionStorage.getItem('config'));
+          const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
+          const fromAddress = this.currentAccount['address'][this.fromNetwork];
+          const RPCUrl = config[item.chain]['apiUrl'];
+          const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
           return {
             ...item,
-            ...res.data,
-            amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
-            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
+            // reward: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['1'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
+            reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             stakedAsset,
-            syrupAsset
+            syrupAsset,
+            showDetail: false
           }
         }
-        return {...item, stakedAsset, syrupAsset};
       })));
       this.farmLoading = false;
       // const tempList = resList.filter(item => item);
@@ -575,7 +576,6 @@ export default {
         const contracts = new ethers.Contract(this.currentFarmHash, txAbi, wallet);
         let res;
         const amount = timesDecimals(value, stakeTokenDecimals);
-        // console.log(amount, "amount", stakeTokenDecimals);
         const pid = this.currentFarm.pid || 0;
         if (type === 0) {
           res = await contracts.deposit(pid, amount);
@@ -585,10 +585,6 @@ export default {
           res = await contracts.deposit(pid, amount);
         }
         if (res.hash) {
-          // this.$message({
-          //   message: this.$t("广播交易成功，请等待区块确认"),
-          //   type: "success"
-          // });
           await this.broadcastHex({ txHex: "", txHash: res.hash, amount });
           this.showPop = false;
         } else {
@@ -608,6 +604,10 @@ export default {
           type: "warning"
         });
       }
+    },
+    // 完成解锁
+    confirmUnlocked() {
+      console.log('完成解锁')
     },
     // nerve加入矿池
     async increaseClick() {
@@ -706,6 +706,15 @@ export default {
       this.currentIndex = i;
       if (i===0) {
         this.getFarmInfo(i===0);
+        if (!this.timer) {
+          this.timer = setInterval(() => {
+            this.getFarmInfo(this.currentIndex===0, true);
+            this.getTvlInfo();
+          }, 15000);
+        }
+      } else {
+        clearInterval(this.timer);
+        this.timer = null;
       }
     },
     // 获取pool流动性信息

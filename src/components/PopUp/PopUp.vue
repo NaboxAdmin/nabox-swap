@@ -1,9 +1,9 @@
 <template>
   <div class="mask-cont"
        @touchmove="touchmoveEvent"
-       @click.stop
+       @click.stop="maskClick"
        :class="[show && 'show_pop', !customClass && 'defaultClass']">
-    <div :class="[show && 'show-main', customClass && 'customClass']">
+    <div @click.stop :class="[show && 'show-main', customClass && 'customClass']">
       <slot></slot>
     </div>
   </div>
@@ -29,6 +29,9 @@ export default {
   methods: {
     touchmoveEvent(e) {
       this.preventBoo && e.preventDefault();
+    },
+    maskClick() {
+      this.$emit('update:show', false)
     }
   }
 }

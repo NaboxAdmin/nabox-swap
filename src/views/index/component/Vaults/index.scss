@@ -33,6 +33,44 @@
     }
   }
 }
+.farm-item {
+  border-radius: 20px;
+  &.farm_item_hide {
+    border-radius: 20px;
+  }
+  &.farm_item_show {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+  }
+  .drop-icon {
+    height: 10px;
+    width: 17px;
+    img {
+      height: 100%;
+      width: 100%;
+      vertical-align: 10px;
+    }
+  }
+  .farm-icon {
+    .icon {
+      height: 63px;
+      width: 63px;
+      border-radius: 50%;
+      overflow: hidden;
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+}
+.farm-detail_info {
+  padding: 30px;
+  border-top: 1px solid #AAB2C9;
+  background: #F8FBFB;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
 .tab {
   padding: 30px 0;
   border-bottom: 1px solid #D7D9E4;
@@ -72,7 +110,8 @@
   padding: 10px 58px 10px 70px;
 }
 .vaults-item {
-  margin: 30px;
+  //margin: 30px;
+  margin-top: 30px;
   padding: 20px 36px 35px 36px;
   border: 1px solid #AAB2C9;
   border-radius: 20px;
@@ -104,7 +143,7 @@
   }
 }
 .pl-72 {
-  padding-right: 72px;
+  padding-right: 52px;
 }
 .text-6e {
   color: #6EB6A9;
@@ -194,8 +233,19 @@
   color: #ABB1BA;
 }
 .rotate_x {
-  transform: rotateX(180deg);
+  transform: rotateX(180deg) !important;
 }
 .w-330 {
   width: 330px;
+}
+.show_transition {
+  transition: all 0.25s ease-in;
+}
+.info-icon {
+  height: 25px;
+  width: 25px;
+  img {
+    height: 100%;
+    width: 100%;
+  }
 }

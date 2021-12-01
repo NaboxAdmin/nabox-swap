@@ -2,6 +2,7 @@
   --top: 80px; // fix: 双倍
   height: 100%;
   width: 100%;
+  z-index: 100;
   //position: fixed;
   //top: 0;
   //left: 0;
@@ -15,6 +16,15 @@
   padding-top: calc(env(safe-area-inset-top) + var(--top)) !important; /* 兼容 ios11 */
   padding-bottom: calc(constant(safe-area-inset-bottom) + var(--top)) !important;
   padding-bottom: calc(env(safe-area-inset-bottom) + var(--top)) !important;
+}
+.main-cont_mobile {
+  //position: fixed;
+  //top: 0;
+  //left: 0;
+  //right: 0;
+  //bottom: 0;
+  height: calc(100vh - 275px);
+  overflow-y: auto;
 }
 @media screen and (min-width: 1000px) {
   .main-cont {

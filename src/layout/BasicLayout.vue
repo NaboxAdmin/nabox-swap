@@ -11,7 +11,8 @@
                  @swapClick="swapClick"
                  @transferClick="transferClick"
                  @vaultsClick="vaultsClick"
-                 @poolClick="poolClick">
+                 @poolClick="poolClick"
+                 @airdropClick="airdropClick">
         <div class="connect-item" v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)">
           <div class="connect-btn" v-if="showConnect" @click="connectMetamask">{{ $t("tips.tips12") }}</div>
           <div class="sign-btn" v-else-if="!showConnect && showSign" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
@@ -143,9 +144,11 @@ export default {
     address: {
       immediate: true,
       handler(val) {
+        console.log(val, "address val")
         if (!val) return '';
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
+        console.log(currentAccount, "currentAccount")
         const config = JSON.parse(sessionStorage.getItem("config"));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
@@ -354,6 +357,7 @@ export default {
             address: this.address
           });
           const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
+          console.log(address, "addresses addresses addresses addresses")
           const addressMap = {};
           for (let item of networkList) {
             addressMap[item] = address
@@ -418,6 +422,7 @@ export default {
         } else {
           accountList.push(account);
         }
+        console.log(accountList, "accountList")
         const syncRes = await this.syncAccount(pub, account.address);
         if (syncRes) {
           localStorage.setItem("accountList", JSON.stringify(accountList));
@@ -460,10 +465,12 @@ export default {
       this.$router.push({ path: '/liquidity' })
     },
     vaultsClick() {
-      // this.currentIndex = 3;
       this.showType = "Vaults";
-      this.$router.push({ path: '/vaults' })
-      // this.isDapp = false;
+      this.$router.push({ path: '/vaults' });
+    },
+    airdropClick() {
+      this.showType = "Airdrop";
+      this.$router.push({ path: '/airdrop' });
     },
     crossOut() {
       if (this.isDapp) {

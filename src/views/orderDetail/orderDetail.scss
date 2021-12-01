@@ -16,6 +16,21 @@
   padding-bottom: calc(constant(safe-area-inset-bottom) + 30px) !important;
   padding-bottom: calc(env(safe-area-inset-bottom) + 30px) !important;
 }
+.main-cont_mobile {
+  //position: fixed;
+  //top: 0;
+  //left: 0;
+  //right: 0;
+  //bottom: 0;
+  //height: calc(100vh - 0px);
+  height: 100vh;
+  overflow-y: auto;
+}
+@media screen and (min-width: 1000px) {
+  .main-cont {
+    height: 1560px !important;
+  }
+}
 //@media screen and (max-width: 1000px) {
 //  .main-cont {
 //    position: fixed;

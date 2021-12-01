@@ -1,6 +1,6 @@
 <template>
-  <div class="mask-cont" @touchmove.prevent :class="{'show_modal': showModal}">
-    <div class="modal-cont" @touchmove.stop :class="{'show_modal-cont': showModal}">
+  <div class="mask-cont" @click="maskClick" @touchmove.prevent :class="{'show_modal': showModal}">
+    <div class="modal-cont" @click.stop @touchmove.stop :class="{'show_modal-cont': showModal}">
       <div class="header-cont size-36 font-500 mt-2">
           {{ $t('modal.modal1') }}
         <div class="back-icon" @click="back">
@@ -51,7 +51,7 @@
 <script>
 import {divisionDecimals} from "@/api/util";
 import {getCurrentAccount, tofix} from "../../../../../api/util";
-import {ETransfer} from "@/api/api";
+import {ETransfer, getBatchERC20Balance} from "@/api/api";
 
 export default {
   name: "CoinModal",
@@ -101,48 +101,6 @@ export default {
     }
   },
   watch: {
-    // coinList: {
-    //   immediate: true,
-    //   handler(val) {
-    //     if (this.toAsset) {
-    //       this.showCoinList = val.filter(coin => {
-    //         if (this.toAsset.contractAddress) {
-    //           return coin.contractAddress !== this.toAsset.contractAddress;
-    //         } else {
-    //           return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
-    //         }
-    //       });
-    //       this.allList = this.showCoinList;
-    //     } else {
-    //       this.showCoinList = val;
-    //       this.allList = val;
-    //     }
-    //   },
-    //   deep: true
-    // },
-    // modalType(val) {
-    //   if (val === 'receive') {
-    //     // this.showCoinList = await this.getCoins(this.picList[this.currentIndex]);
-    //     this.showCoinList = this.coinList.filter(coin => {
-    //       if (this.fromAsset && this.fromAsset.contractAddress) {
-    //         return coin.mainNetwork === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
-    //       } else {
-    //         return coin.mainNetwork === this.picList[this.currentIndex] && coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId
-    //       }
-    //     });
-    //     // console.log(this.showCoinList, "this.showCoinList");
-    //   } else if (val === 'send') {
-    //     if (this.toAsset) {
-    //       this.showCoinList = this.coinList.filter(coin => {
-    //         if (coin.contractAddress) {
-    //           return coin.contractAddress !== this.toAsset.contractAddress;
-    //         } else {
-    //           return coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId
-    //         }
-    //       });
-    //     }
-    //   }
-    // },
     searchVal(val) {
       if (val) {
         this.showCoinList = this.allList.filter(v => {
@@ -176,6 +134,9 @@ export default {
     }
   },
   methods: {
+    maskClick() {
+      this.$emit('update:showModal', false)
+    },
     setUrl(index) {
       return this.currentIndex===index ? `../../assets/image/${this.picList[index]}_active.png` : `../../assets/image/${this.picList[index]}.png`
     },
@@ -234,6 +195,7 @@ export default {
           symbol: v.swftInfo && v.swftInfo.coinCode || v.symbol,
           symbolImg: v.swftInfo && v.swftInfo.coinCode.split("(")[0] ||  v.symbol,
           showBalanceLoading: true,
+          showBatchBalanceLoading: true,
           ...v.swftInfo
         }));
         // 当前选择的资产是否支持跨链
@@ -333,13 +295,35 @@ export default {
         }
         this.showLoading = false;
         this.allList = [...this.showCoinList];
-        // console.log(this.showCoinList, 'showCoinList')
-        for (let i = 0; i < this.allList.length; i++) {
-          const asset = this.allList[i];
-          if (asset.showBalanceLoading) {
+        if (tempNetwork === 'NULS' || tempNetwork === "NERVE") {
+          console.log(this.allList, "allList", tempNetwork)
+          for (let i = 0; i < this.allList.length; i++) {
+            const asset = this.allList[i];
             this.allList[i].balance = await this.getBalance(asset);
             this.allList[i].showBalanceLoading = false;
           }
+        } else {
+          const config = JSON.parse(sessionStorage.getItem("config"));
+          const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
+          const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]];
+          const RPCUrl = config[this.picList[this.currentIndex]]['apiUrl'];
+          const addresses = this.allList.map(asset => {
+            if (asset.contractAddress) {
+              return asset.contractAddress
+            }
+            return batchQueryContract
+          });
+          const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
+          this.allList.forEach((item, index) => {
+            balanceData.forEach(data => {
+              if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
+                this.allList[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
+                this.allList[index].showBalanceLoading = false;
+              }
+            });
+          });
+          this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
+          // console.log(this.allList, "allList")
         }
       } else {
         this.showLoading = false;
@@ -347,6 +331,7 @@ export default {
     },
     // 获取钱包余额
     async getBalance(asset) {
+      console.log(asset, "asset")
       if (asset.chain === "NERVE" || asset.chain === "NULS") {
         const account = getCurrentAccount(this.fromAddress);
         const params = {

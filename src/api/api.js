@@ -1,21 +1,161 @@
 import nuls from "nuls-sdk-js";
 import nerve from "nerve-sdk-js";
 import {ethers} from "ethers";
-import sdk from "nerve-sdk-js/lib/api/sdk";
 import {Plus, htmlEncode, timesDecimals, Minus} from "./util";
 import {request} from "./https";
 import { ETHNET } from "@/config"
-const Signature = require("elliptic/lib/elliptic/ec/signature");
-const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
+import { MultiCall } from "./Multicall1";
+import Web3 from "web3";
+import { airDropABI } from "../views/airdrop/airDropABI";
+import { farmABI } from "../views/index/component/Vaults/FarmABI";
+
+// 查询余额
+const erc20BalanceAbiFragment = [
+  {
+    "constant": true,
+    "inputs": [{"name": "", "type": "address"}],
+    "name": "balanceOf",
+    "outputs": [{"name": "", "type": "uint256"}],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "payable": false,
+    "type": "function"
+  },
+  {
+    "inputs":[
+      {
+        "internalType":"address",
+        "name":"addr",
+        "type":"address"
+      }
+    ],
+    "name":"getEthBalance",
+    "outputs":[
+      {
+        "internalType":"uint256",
+        "name":"balance",
+        "type":"uint256"
+      }
+    ],
+    "stateMutability":"view",
+    "type":"function"
+  }
+];
+const Signature = require("elliptic/lib/elliptic/ec/signature");
+const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
+const nSdk = {NERVE: nerve, NULS: nuls};
+
+/**
+ * 批量查询资产余额
+ * @param addresses {String[]} 需要查询的合约资产
+ * @param userAddress 用户地址
+ * @param multiCallContract 当前网络下面的批量查询合约地址
+ * @returns tokensRes {Promise<*>} 当前返回的批量查询数据
+ */
+export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B", RPCUrl) {
+  const web3 = new Web3(RPCUrl || window.ethereum);
+  const multicall = new MultiCall(web3, multiCallContract);
+  const tokens = addresses.map(address => {
+    const token = new web3.eth.Contract(erc20BalanceAbiFragment, address);
+    return {
+      balance: address===multiCallContract ? token.methods.getEthBalance(userAddress) : token.methods.balanceOf(userAddress),
+      symbol: address===multiCallContract ? '' : token.methods.symbol(),
+      contractAddress: address===multiCallContract ? '' : address,
+      decimals: address===multiCallContract ? '' : token.methods.decimals()
+    }
+  });
+  const [tokensRes] = await multicall.all([tokens]);
+  return tokensRes;
+}
+
+/**
+ * 批量查询用户farm信息
+ * @param pairAddress {string} farm地址
+ * @param userAddress {string} 用户当前地址
+ * @param multiCallContract {string} 当前批量查询的合约
+ * @param RPCUrl {string}
+ * @returns {Promise<*>}
+ */
+export async function getBatchUserFarmInfo(pairAddress, userAddress, multiCallContract, RPCUrl) {
+  const web3 = new Web3(RPCUrl || window.ethereum);
+  const multicall = new MultiCall(web3, multiCallContract);
+  const airDropConfig = new web3.eth.Contract(airDropABI, pairAddress);
+  const tokens = [
+    {
+      userFarmInfo: airDropConfig.methods.userInfo(userAddress)
+    },
+    {
+      pendingToken: airDropConfig.methods.pendingToken(userAddress)
+    },
+    {
+      lockedToken: airDropConfig.methods.getLockedToken(userAddress)
+    }
+  ];
+  const [tokensRes] = await multicall.all([tokens]);
+  return tokensRes;
+}
+
+/**
+ * 获取锁定的farm的信息
+ * @param pairAddress
+ * @param pid
+ * @param userAddress
+ * @param multiCallContract
+ * @param RPCUrl
+ * @returns {Promise<*>}
+ */
+export async function getBatchLockedFarmInfo(pairAddress, pid, userAddress, multiCallContract, RPCUrl) {
+  const web3 = new Web3(RPCUrl || window.ethereum);
+  const multicall = new MultiCall(web3, multiCallContract);
+  const tokensConfig = new web3.eth.Contract(farmABI, pairAddress);
+  const tokens = [
+    {
+      userInfo: tokensConfig.methods.getUserInfo(pid, userAddress)
+    },
+    {
+      unlockNumber: tokensConfig.methods.getLocks(pid, userAddress)
+    },
+    {
+      unlockedToken: tokensConfig.methods.getUnlockedToken(pid, userAddress, false)
+    },
+    {
+      pendingToken: tokensConfig.methods.pendingToken(pid, userAddress)
+    }
+  ];
+  const [tokensRes] = await multicall.all([tokens]);
+  return tokensRes;
+}
 
 // NULS NERVE跨链手续费
 export const crossFee = 0.01;
-const nSdk = {NERVE: nerve, NULS: nuls};
 
 export class NTransfer {
-
   constructor(props) {
     if (!props.chain) {
       throw "未获取到交易网络，组装交易失败";
@@ -368,22 +508,6 @@ export class NTransfer {
 
 }
 
-
-// const RPC_URL = {
-//   BSC: {
-//     ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-//     homestead: "https://bsc-dataseed.binance.org/"
-//   },
-//   Heco: {
-//     ropsten: "https://http-testnet.hecochain.com",
-//     homestead: "https://http-mainnet.hecochain.com"
-//   },
-//   OKExChain: {
-//     ropsten: "https://exchaintestrpc.okex.org",
-//     homestead: "https://exchainrpc.okex.org"
-//   }
-// };
-
 const CROSS_OUT_ABI = [
   "function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)"
 ];
@@ -393,14 +517,6 @@ const ERC20_ABI = [
   "function approve(address spender, uint256 amount) external returns (bool)"
 ];
 
-// 查询余额
-const erc20BalanceAbiFragment = [{
-  "constant": true,
-  "inputs": [{"name": "", "type": "address"}],
-  "name": "balanceOf",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "type": "function"
-}]
 
 // token转账
 const erc20TransferAbiFragment = [{
@@ -555,6 +671,16 @@ export class ETransfer {
       throw new Error("获取余额失败" + e)
     });
   }
+
+  /**
+   * 批量获取余额信息
+   * @param tx
+   * @returns {Promise<boolean|*>}
+   */
+  // getBatchERC20Balance(contractAddress, tokenDecimals, address) {
+  //   const addresses = [];
+  //   const tokens =
+  // }
 
   //验证交易参数
   async validate(tx) {

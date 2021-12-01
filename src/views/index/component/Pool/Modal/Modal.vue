@@ -1,6 +1,6 @@
 <template>
-  <div class="mask-cont"  @touchmove.prevent :class="{'show_modal': showModal}">
-    <div class="modal-cont" :class="{'show_modal-cont': showModal}">
+  <div class="mask-cont" @click="maskClick" @touchmove.prevent :class="{'show_modal': showModal}">
+    <div class="modal-cont" @click.stop :class="{'show_modal-cont': showModal}">
       <div class="header-cont size-36 font-500 mt-2">
           {{ $t('modal.modal1') }}
         <div class="back-icon" @click="back">
@@ -88,6 +88,9 @@ export default {
     }
   },
   methods: {
+    maskClick() {
+      this.$emit('update:showModal', false)
+    },
     back() {
       this.searchVal = '';
       this.$emit('update:showModal', false)

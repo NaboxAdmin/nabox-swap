@@ -44,15 +44,16 @@
       </div>
     </div>
     <div class="position-cont" />
-    <div class="main-cont" :class="{'p-3': isSwap}">
+    <div class="main-cont" :class="[isSwap && 'p-3', isVaults && 'bg-f0']">
       <slot/>
       <Pop :show="showPop"
            :disabled="currentChain === 'NERVE' || currentChain === 'NULS'"
            @swapClick="swapClick"
            @transferClick="transferClick"
            @poolClick="poolClick"
-           @vaultsClick="vaultsClick"/>
-      <pop-up :prevent-boo="false" :show="showAccount">
+           @vaultsClick="vaultsClick"
+           @airdropClick="airdropClick"/>
+      <pop-up :prevent-boo="false" :show.sync="showAccount">
         <div class="address-detail_pop">
           <div class="customer-p">
             <div class="icon-cont d-flex justify-content-end">
@@ -172,6 +173,7 @@ export default {
       showLoading: false,
       statusTimer: null,
       isSwap: false,
+      isVaults: false,
       isLiquidity: false
     }
   },
@@ -205,6 +207,7 @@ export default {
     "$route.fullPath": {
       handler(val) {
         this.isSwap = window.location.hash.indexOf('swap') > -1;
+        this.isVaults = window.location.hash.indexOf('vaults') > -1;
         this.isLiquidity = window.location.hash.indexOf('liquidity') > -1;
         this.$store.commit('changeSwap', this.isSwap);
       },
@@ -479,6 +482,10 @@ export default {
       this.$emit('vaultsClick');
       this.showPop = false;
     },
+    airdropClick() {
+      this.$emit('airdropClick');
+      this.showPop = false;
+    },
     async getMainAssetInfo(assetInfo) {
       const {chain, address, assetId, chainId, contractAddress } = assetInfo;
       const data = {
@@ -534,4 +541,7 @@ export default {
 
 <style scoped lang="scss">
 @import "HeaderBar.scss";
+.bg-f0 {
+  background-color: #F0F7F7 !important;
+}
 </style>
