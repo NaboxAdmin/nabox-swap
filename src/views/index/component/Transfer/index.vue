@@ -77,7 +77,7 @@
           <img :src="currentCoin && currentCoin.icon || getPicture(currentCoin && currentCoin.symbol) || pictureError" @error="pictureError" alt="">
         </div>
         <span class="size-30 ml-12">{{ currentCoin && currentCoin.symbol }}</span>
-        <div class="size-30 ml-1 text-90 flex-1">{{ toNerve ? superLong(fromAddress) : superLong(nerveAddress) }}</div>
+        <div class="size-30 ml-1 text-90 flex-1">{{ currentCoin && superLong(currentCoin.contractAddress) || '' }}</div>
         <div class="drop_down">
           <img src="@/assets/image/drop_down.png" alt="">
         </div>
@@ -670,12 +670,16 @@ export default {
             feeIsNvt
         );
       }
-      let nvtFee = this.floatToCeil(res, this.currentFeeAsset.decimals); // 异构跨链手续费-nvt
-      this.withdrawalFee = nvtFee;
+      let nvtFee;
       if (boo) {
         this.showFeeLoading = false;
       }
-      console.log(this.withdrawalFee, this.currentFeeAsset, 'this.withdrawalFee')
+      if (this.currentFeeChain === 'OKExChain') {
+       nvtFee = Times(this.floatToCeil(res, this.currentFeeAsset.decimals), 3);
+      } else {
+        nvtFee = this.floatToCeil(res, this.currentFeeAsset.decimals);
+      }
+      this.withdrawalFee = nvtFee;
       return nvtFee + chainToSymbol[this.currentFeeChain];
     },
 

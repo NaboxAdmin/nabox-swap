@@ -1,20 +1,15 @@
 import nuls from "nuls-sdk-js";
 import nerve from "nerve-sdk-js";
 import {ethers} from "ethers";
-import sdk from "nerve-sdk-js/lib/api/sdk";
 import {Plus, htmlEncode, timesDecimals, Minus} from "./util";
 import {request} from "./https";
 import { ETHNET } from "@/config"
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
-// import { MultiCall } from "eth-multicall";
 import { MultiCall } from "./Multicall1";
 import Web3 from "web3";
 import { airDropABI } from "../views/airdrop/airDropABI";
 import { farmABI } from "../views/index/component/Vaults/FarmABI";
-const Signature = require("elliptic/lib/elliptic/ec/signature");
-const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
-// const provider = new ethers.providers.Web3Provider(window.ethereum);
 
 // 查询余额
 const erc20BalanceAbiFragment = [
@@ -72,6 +67,9 @@ const erc20BalanceAbiFragment = [
     "type":"function"
   }
 ];
+const Signature = require("elliptic/lib/elliptic/ec/signature");
+const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
+const nSdk = {NERVE: nerve, NULS: nuls};
 
 /**
  * 批量查询资产余额
@@ -82,11 +80,6 @@ const erc20BalanceAbiFragment = [
  */
 export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B", RPCUrl) {
   const web3 = new Web3(RPCUrl || window.ethereum);
-  addresses.forEach((item, index) => {
-    if (!item) {
-      addresses[index] = multiCallContract
-    }
-  });
   const multicall = new MultiCall(web3, multiCallContract);
   const tokens = addresses.map(address => {
     const token = new web3.eth.Contract(erc20BalanceAbiFragment, address);
@@ -99,7 +92,7 @@ export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f
   });
   const [tokensRes] = await multicall.all([tokens]);
   return tokensRes;
-};
+}
 
 /**
  * 批量查询用户farm信息
@@ -161,7 +154,6 @@ export async function getBatchLockedFarmInfo(pairAddress, pid, userAddress, mult
 
 // NULS NERVE跨链手续费
 export const crossFee = 0.01;
-const nSdk = {NERVE: nerve, NULS: nuls};
 
 export class NTransfer {
   constructor(props) {

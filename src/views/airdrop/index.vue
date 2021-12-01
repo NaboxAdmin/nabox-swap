@@ -13,7 +13,7 @@
     </div>
     <div class="stake-cont mt-2">
       <div class="d-flex align-items-center space-between">
-        <span class="size-28 text-90">{{ $t("airdrop.airdrop2") }} Nabox</span>
+        <span class="size-28 text-90">{{ $t("airdrop.airdrop2") }} {{ LpFarmInfo && LpFarmInfo.candySymbol || 'NABOX' }}</span>
         <p class="d-flex align-items-center" @click="toUrl">
           <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
           <span class="icon-cont">
@@ -22,14 +22,14 @@
         </p>
       </div>
       <div class="size-34 text-3a font-500 mt-3">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
-      <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.candyPrice || 0) }}</div>
+      <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.candyPrice || 0, 3) }}</div>
       <div class="mt-3 d-flex align-items-center">
         <span>{{ LpFarmInfo && LpFarmInfo.lpSymbol }} {{ $t("airdrop.airdrop3") }}</span>
         <span class="calculate-icon cursor-pointer" @click="showCalculate=true">
           <img src="@/assets/image/calculator.png" alt="">
         </span>
       </div>
-      <div class="size-34 mt-23 text-3a">{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'], LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
+      <div class="size-34 mt-23 text-3a">{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0, LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
       <div class="btn-cont d-flex align-items-center space-between">
         <template>
           <div v-if="!needAuth"
@@ -82,7 +82,7 @@
           <span class="text-90">{{ reverse0Asset && reverse0Asset.symbol || 'NABOX' }}</span>
         </div>
         <div class="down-icon m-2_auto">
-          <img src="@/assets/image/swap.png" alt="">
+          <img src="@/assets/image/plus.png" alt="">
         </div>
         <div class="input-cont">
           <input type="number" v-model="reverse1Count" @input="reverse1Input" :placeholder="$t('vaults.vaults9')"/>
@@ -90,7 +90,7 @@
         </div>
         <div class="d-flex mt-4 space-between">
           <span class="text-90 size-28">{{ $t("airdrop.airdrop11") }}</span>
-          <span class="text-3a">{{ unlockedSpeed }} Nabox/Block</span>
+          <span class="text-3a">{{ unlockedSpeed }} {{ reverse0Asset && reverse0Asset.symbol || 'NABOX' }}/{{ $t("airdrop.airdrop15") }}</span>
         </div>
         <div class="d-flex mt-3 space-between">
           <span class="text-90 size-28">{{ $t("airdrop.airdrop12") }}</span>
@@ -101,8 +101,8 @@
     <pop-up :show.sync="showStake">
       <div class="pop-cont">
         <div class="size-36 font-500">{{ stakeType === 'stake' && $t("vaults.vaults4") || $t("vaults.vaults4") }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance || 0 }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'], LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance || 0 }} {{ stakedAsset && stakedAsset.symbol }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0, LpFarmInfo && LpFarmInfo.lpDecimals, 3) || 0 }}  {{ stakedAsset && stakedAsset.symbol }}</div>
         <div class="input-cont">
           <input :placeholder="$t('vaults.vaults9')"
                  pattern="^[0-9]*[.,]?[0-9]*$"
@@ -171,7 +171,7 @@ export default {
   },
   created() {
     this.getLpFarmInfo();
-    this.getPancakeFarmInfo();
+    // this.getPancakeFarmInfo();
     this.farmTimer = setInterval(() => {
       this.getLpFarmInfo();
     }, 10000);
@@ -329,7 +329,7 @@ export default {
             ...res.data,
             poolModelInfo: {
               ...res.data.poolModelInfo,
-              candyBalance: divisionDecimals(res.data.poolModelInfo.candyBalance, res.data.lpDecimals),
+              candyBalance: this.numberFormat(tofix(divisionDecimals(res.data.poolModelInfo.candyBalance, res.data.lpDecimals), 1, -1), 1),
               candyPerBlockPerLp: divisionDecimals(res.data.poolModelInfo.candyPerBlockPerLp, res.data.lpDecimals),
               maxCandyPerUser: divisionDecimals(res.data.poolModelInfo.maxCandyPerUser, res.data.lpDecimals),
               candyUserBlockMaxLp: divisionDecimals(res.data.poolModelInfo.candyUserBlockMaxLp, res.data.lpDecimals)
@@ -342,8 +342,8 @@ export default {
           const fromAddress = this.currentAccount['address']['BSC'];
           await this.getUserFarmDetailInfo(res.data.pairAddress, fromAddress, multicallAddress);
           this.needAuth = await this.getSatkeAssetAuth(res.data.lpContractAddress, res.data.pairAddress);
-          console.log(this.needAuth, "need")
-          console.log(this.LpFarmInfo);
+          // console.log(this.needAuth, "need")
+          // console.log(this.LpFarmInfo);
           // console.log(res.data, "res.data");
         } else {
           throw res.msg
@@ -372,13 +372,13 @@ export default {
       };
       this.pendingToken = {
         ...tokenRes[1],
-        pendingToken: divisionDecimals(tokenRes[1].pendingToken, this.LpFarmInfo.lpDecimals)
+        pendingToken: this.numberFormat(tofix(divisionDecimals(tokenRes[1].pendingToken, this.LpFarmInfo.lpDecimals), 2, -1), 2)
       };
       this.lockedToken = {
         ...tokenRes[2],
-        lockedToken: divisionDecimals(tokenRes[2].lockedToken, this.LpFarmInfo.lpDecimals)
+        lockedToken: this.numberFormat(tofix(divisionDecimals(tokenRes[2].lockedToken, this.LpFarmInfo.lpDecimals), 2, -1), 2)
       };
-      console.log(this.userFarmInfo, this.pendingToken, this.lockedToken, "12312312");
+      // console.log(this.userFarmInfo, this.pendingToken, this.lockedToken, "12312312");
     },
     // 获取pancake上面的farmInfo
     async getPancakeFarmInfo() {
@@ -513,11 +513,11 @@ export default {
       this.LpOperation('stake', 0);
     },
     // 格式化decimals
-    formatDecimals(number, decimals = 8) {
-      return isNaN(divisionDecimals(number, decimals)) && '0' || divisionDecimals(number, decimals);
+    formatDecimals(number, decimals = 8, digits = 2) {
+      return isNaN(divisionDecimals(number, decimals)) && '0' || this.numberFormat(tofix(divisionDecimals(number, decimals) || 0, digits, -1), digits);
     },
-    formatPrice(amount, usdtPrice) {
-      return isNaN(this.numberFormat(tofix(Times(amount, usdtPrice), 2, -1), 2)) && '0' || this.numberFormat(tofix(Times(amount, usdtPrice), 2, -1), 2);
+    formatPrice(amount, usdtPrice, digits = 2) {
+      return isNaN(this.numberFormat(tofix(Times(amount, usdtPrice), digits, -1), digits)) && '0' || this.numberFormat(tofix(Times(amount, usdtPrice), digits, -1), digits);
     },
     // 获取领取的资产是否需要授权
     async getSatkeAssetAuth(stakedAssetContractAddress, farmHash) {
@@ -570,7 +570,7 @@ export default {
     },
     stakeClick(type) {
       if (type==='stake' && (!this.LpFarmInfo || this.LpFarmInfo && this.LpFarmInfo.poolModelInfo.candyBalance == 0)) return false;
-      if (type==='withdraw' && this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals) == 0) return false;
+      if (type==='withdraw' && (!this.LpFarmInfo || this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals) == 0)) return false;
       this.showStake = true;
       this.stakeType = type;
     }

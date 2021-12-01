@@ -303,11 +303,16 @@ export default {
             this.allList[i].showBalanceLoading = false;
           }
         } else {
-          const addresses = this.allList.map(asset => asset.contractAddress);
           const config = JSON.parse(sessionStorage.getItem("config"));
           const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
           const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]];
           const RPCUrl = config[this.picList[this.currentIndex]]['apiUrl'];
+          const addresses = this.allList.map(asset => {
+            if (asset.contractAddress) {
+              return asset.contractAddress
+            }
+            return batchQueryContract
+          });
           const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
           this.allList.forEach((item, index) => {
             balanceData.forEach(data => {

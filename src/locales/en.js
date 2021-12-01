@@ -158,7 +158,8 @@ const en = {
         airdrop11: "Unlock Speed",
         airdrop12: "Unlock Time",
         airdrop13: "Hours",
-        airdrop14: "Calculator"
+        airdrop14: "Calculator",
+        airdrop15: "Block"
     }
 };
 

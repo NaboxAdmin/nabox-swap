@@ -276,62 +276,58 @@ export default {
     async progressReceive({ farmHash, farm, candyLock }) {
       // console.log(farm, 'farm')
       this.vaultsType = "decrease";
-      if (!candyLock) {
-        if (farm.chain !== "NERVE") {
-          this.currentFarm = farm;
-          this.currentFarmHash = farmHash;
-          this.assetsItem = farm;
-          await this.LPOperation(2, '0', 'receive');
-        } else {
-          try {
-            this.showLoading = true;
-            this.assetsItem = farm;
-            this.currentFarm = farm;
-            await this.focusAsset(farm.syrupAsset);
-            const { syrupTokenChainId: chainId, syrupTokenAssetId: assetId } = farm;
-            const transferInfo = {
-              from: this.nerveAddress,
-              to: this.nerveAddress,
-              assetsChainId: chainId,
-              assetsId: assetId,
-              amount: 0,
-              fee: 0
-            };
-            const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
-            const fromAddress = this.nerveAddress;
-            const token = nerve.swap.token(chainId, assetId);
-            const farmHash = farm.farmKey || '';
-            const amount = 0;
-            const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
-            const tAssemble = nerve.deserializationTx(tempTxData.hex);
-            const data = {
-              tAssemble,
-              inputs: inputs,
-              outputs: outputs,
-              txData: {},
-              pub: this.currentAccount.pub,
-              signAddress: this.currentAccount.address.Ethereum,
-            };
-            const txHex = await transfer.getTxHex(data);
-            if (txHex) {
-              await this.broadcastHex({ txHex, txHash: "", amount: "0" });
-              await this.getFarmInfo(true, true);
-              this.showLoading = false;
-            }
-          } catch (e) {
-            console.log(e);
-            this.$message({
-              type: 'warning',
-              message: e.message || e,
-              offset: 30,
-              customClass: 'messageClass'
-            });
-            this.showLoading = false;
-            this.showPop = false;
-          }
-        }
+      if (farm.chain !== "NERVE") {
+        this.currentFarm = farm;
+        this.currentFarmHash = farmHash;
+        this.assetsItem = farm;
+        await this.LPOperation(2, '0', 'receive');
       } else {
-        console.log('Lock Farm');
+        try {
+          this.showLoading = true;
+          this.assetsItem = farm;
+          this.currentFarm = farm;
+          await this.focusAsset(farm.syrupAsset);
+          const { syrupTokenChainId: chainId, syrupTokenAssetId: assetId } = farm;
+          const transferInfo = {
+            from: this.nerveAddress,
+            to: this.nerveAddress,
+            assetsChainId: chainId,
+            assetsId: assetId,
+            amount: 0,
+            fee: 0
+          };
+          const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
+          const fromAddress = this.nerveAddress;
+          const token = nerve.swap.token(chainId, assetId);
+          const farmHash = farm.farmKey || '';
+          const amount = 0;
+          const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
+          const tAssemble = nerve.deserializationTx(tempTxData.hex);
+          const data = {
+            tAssemble,
+            inputs: inputs,
+            outputs: outputs,
+            txData: {},
+            pub: this.currentAccount.pub,
+            signAddress: this.currentAccount.address.Ethereum,
+          };
+          const txHex = await transfer.getTxHex(data);
+          if (txHex) {
+            await this.broadcastHex({ txHex, txHash: "", amount: "0" });
+            await this.getFarmInfo(true, true);
+            this.showLoading = false;
+          }
+        } catch (e) {
+          console.log(e);
+          this.$message({
+            type: 'warning',
+            message: e.message || e,
+            offset: 30,
+            customClass: 'messageClass'
+          });
+          this.showLoading = false;
+          this.showPop = false;
+        }
       }
     },
     // 已结束领取奖励
@@ -465,7 +461,7 @@ export default {
           item.needReceiveAuth = false;
           item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         }
-        if (!item.lockCandy) {
+        if (item.chain === 'NERVE') {
           const res = await this.$request({
             methods: 'post',
             url: '/farm/stake/account',
@@ -492,9 +488,8 @@ export default {
           const config = JSON.parse(sessionStorage.getItem('config'));
           const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
           const fromAddress = this.currentAccount['address'][this.fromNetwork];
-          const RPCUrl = config['BSC']['apiUrl'];
+          const RPCUrl = config[item.chain]['apiUrl'];
           const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
-          console.log(tokens, "tokensssss")
           return {
             ...item,
             amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),

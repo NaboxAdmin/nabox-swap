@@ -5,7 +5,7 @@
          v-loading="farmLoading" />
     <div class="d-flex direction-column mb-3"
          v-for="(item, index) in farmList"
-         :key="item.farmKey"
+         :key="`${item.farmKey}-${item.pid}`"
          @click.stop="showDetailInfo(item)"
          v-else-if="farmList.length !== 0">
       <div class="farm-item p-3 bg-white d-flex align-items-center space-between"
@@ -89,7 +89,7 @@
           <div class="size-28 mt-3 d-flex space-between align-items-center">
             <span class="d-flex align-items-center text-90 size-28">
               <span>{{ $t("vaults.vaults12") }}{{ item.syrupAsset && item.syrupAsset.symbol || 'NABOX' }}</span>
-              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="$t('tips.tips27')" placement="top">
+              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatContent(item.lockDays || 1)" placement="top">
                 <span class="info-icon">
                   <img src="@/assets/image/info.png"/>
                 </span>
@@ -113,7 +113,7 @@
         </template>
       </div>
     </div>
-    <div v-else class="text-center mt-4 text-grey">No Data</div>
+    <div v-else class="text-center mt-4 text-grey">{{ $t('modal.modal3') }}</div>
   </div>
 </template>
 
@@ -159,7 +159,7 @@ export default {
     // 领取
     receiveClick(farmHash, farm) {
       if (!farm.reward || farm.reward==="0") return false;
-      this.$emit('receiveClick', { farmHash, farm, candyLock: farm.candyLock });
+      this.$emit('receiveClick', { farmHash, farm });
     },
     // 领取资产授权
     receiveApprove(farmHash, farm) {
@@ -173,7 +173,7 @@ export default {
     // 显示Farm详细信息
     showDetailInfo(farm) {
       for (let item of this.farmList) {
-        if (item.farmKey === farm.farmKey) {
+        if (`${item.farmKey}-${item.pid}` === `${farm.farmKey}-${farm.pid}`) {
           farm.showDetail = !farm.showDetail;
         } else {
           item.showDetail = false;
@@ -184,6 +184,10 @@ export default {
     confirmUnlocked(farmHash, farm) {
       if (farm.unlockNumbers == 0) return false;
       this.$emit('confirmUnlocked', { farmHash, farm });
+    },
+    formatContent(lockDay) {
+      const isEn = this.$store.state.lang === 'en';
+      return !isEn ? `领取的收益将在${lockDay}天内处于锁定状态` : `The received income will be locked for ${lockDay} days`
     }
   }
 }

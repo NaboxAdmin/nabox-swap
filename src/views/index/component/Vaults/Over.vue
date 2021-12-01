@@ -3,7 +3,7 @@
     <div class="loading-cont" v-if="farmLoading" element-loading-background="rgba(255, 255, 255, 0.1)" v-loading="farmLoading"/>
     <div class="d-flex direction-column mb-3"
          v-for="(item, index) in farmList"
-         :key="item.farmKey"
+         :key="`${item.farmKey}-${item.pid}`"
          @click.stop="showDetailInfo(item)"
          v-else-if="farmList.length !== 0">
       <div class="farm-item p-3 bg-white d-flex align-items-center space-between"
@@ -86,9 +86,9 @@
           <div class="size-28 mt-3 d-flex space-between align-items-center">
             <span class="d-flex align-items-center text-90 size-28">
               <span>{{ $t("vaults.vaults12") }}{{ item.syrupAsset && item.syrupAsset.symbol || 'NABOX' }}</span>
-              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="$t('tips.tips27')" placement="top">
+              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatContent(item.lockDays)" placement="top">
                 <span class="info-icon">
-                  <img src="@/assets/image/info.png"/>
+                  <img src="@/assets/image/info.png" alt=""/>
                 </span>
               </el-tooltip>
             </span>
@@ -225,7 +225,7 @@ export default {
           item.needReceiveAuth = false;
           item.needStakeAuth = false;
         }
-        if (!item.lockCandy) {
+        if (item.chain === 'NERVE') {
           const res = await this.$request({
             methods: 'post',
             url: '/farm/stake/account',
@@ -252,7 +252,7 @@ export default {
           const config = JSON.parse(sessionStorage.getItem('config'));
           const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
           const fromAddress = this.currentAccount['address'][this.fromNetwork];
-          const RPCUrl = config['BSC']['apiUrl'];
+          const RPCUrl = config[item.chain]['apiUrl'];
           const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
           console.log(tokens, "tokensssss")
           return {
@@ -301,6 +301,10 @@ export default {
           item.showDetail = false;
         }
       }
+    },
+    formatContent(lockDay) {
+      const isEn = this.$store.state.lang === 'en';
+      return !isEn ? `领取的收益将在${lockDay}天内处于锁定状态` : `The received income will be locked for ${lockDay} days`
     }
   },
   beforeDestroy() {

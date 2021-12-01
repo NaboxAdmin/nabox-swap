@@ -158,7 +158,8 @@ const cn = {
         airdrop11: "解锁速度",
         airdrop12: "解锁时间",
         airdrop13: "小时",
-        airdrop14: "计算器"
+        airdrop14: "计算器",
+        airdrop15: "区块"
     }
 };
 
