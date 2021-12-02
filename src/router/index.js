@@ -23,7 +23,7 @@ const mainRoutes = [{
         {
             path:'/swap',
             name:'swap',
-            component:() => import('../views/index/component/Swap'),
+            component:() => import('../views/Swap'),
             meta: {
                 title:'Swap',
                 // keepAlive: true
@@ -32,7 +32,7 @@ const mainRoutes = [{
         {
             path:'/transfer',
             name:'transfer',
-            component:() => import('../views/index/component/Transfer'),
+            component:() => import('../views/Transfer'),
             meta: {
                 title:'Transfer'
             }
@@ -40,7 +40,7 @@ const mainRoutes = [{
         {
             path:'/liquidity',
             name:'liquidity',
-            component:() => import('../views/index/component/Pool'),
+            component:() => import('../views/Pool'),
             meta: {
                 title:'Pool'
             }
@@ -48,7 +48,7 @@ const mainRoutes = [{
         {
             path:'/vaults',
             name:'vaults',
-            component:() => import('../views/index/component/Vaults'),
+            component:() => import('../views/Vaults'),
             meta: {
                 title:'Vaults'
             }

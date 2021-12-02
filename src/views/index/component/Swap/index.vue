@@ -26,7 +26,7 @@
             </div>
           </template>
           <div class="icon-cont" @click.stop="openModal('receive')">
-            <img src="../../../../assets/image/drop_down.png" alt="">
+            <img src="@/assets/image/drop_down.png" alt="">
           </div>
           <div class="space-cont"/>
           <div class="input-item align-items-center d-flex flex-1">
@@ -60,7 +60,7 @@
               </div>
             </div>
             <div class="icon-cont" @click.stop="openModal('receive')">
-              <img src="../../../../assets/image/drop_down.png" alt="">
+              <img src="@/assets/image/drop_down.png" alt="">
             </div>
           </template>
           <div class="space-cont"/>

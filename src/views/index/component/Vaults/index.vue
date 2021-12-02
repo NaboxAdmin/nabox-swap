@@ -41,7 +41,6 @@
       <Over v-if="currentIndex===1"
             :farm-list="farmList"
             :farmLoading="farmLoading"
-            @showClick="showClick"
             @receiveApprove="receiveApprove"
             @receiveClick="progressReceive"
             @confirmUnlocked="progressReceive"

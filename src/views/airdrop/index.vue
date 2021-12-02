@@ -7,7 +7,7 @@
     <div class="farm-total p-2 mt-2">
       <div class="text-left size-22 text-d5">{{ $t("airdrop.airdrop1") }}</div>
       <div class="d-flex direction-column align-items-center mt-12">
-        <span class="size-34 font-500 text-white">{{ LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0 }}</span>
+        <span class="size-34 font-500 text-white">{{ (LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0) | numFormat }}</span>
         <span class="font-500 text-d5 size-26">≈${{ formatPrice(LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance || 0, LpFarmInfo && LpFarmInfo.candyPrice || 0) }}</span>
       </div>
     </div>
@@ -175,7 +175,7 @@ export default {
     this.farmTimer = setInterval(() => {
       this.getLpFarmInfo();
     }, 10000);
-    // 主网上面调用
+    // FIXME 主网上面调用
     this.rate = Division(this.reverse0, this.reverse1);
   },
   computed: {
@@ -218,7 +218,6 @@ export default {
           console.log(this.liquidityCount, "liquidityCount");
         } else if (!newVal) {
           this.resetInput();
-          console.log(1)
         }
       }
     },
