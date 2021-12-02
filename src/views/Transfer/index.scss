@@ -1,0 +1,118 @@
+.p-transfer {
+  padding: 50px 40px 120px 40px;
+}
+.transfer-cont {
+  border: 2px solid #6EB6A9;
+  border-radius: 20px;
+  padding: 30px 38px 30px 38px;
+  .sign-cont {
+    span {
+      height: 7px;
+      width: 7px;
+      background-color: #9095A6;
+      border-radius: 50%;
+      margin-top: 15px;
+    }
+  }
+  .coin-cont {
+    height: 166px;
+    width: 450px;
+    .asset-cont {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      .icon-item {
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        img {
+          height: 100%;
+          width: 100%;
+        }
+      }
+      .drop_down {
+        height: 8px;
+        width: 14px;
+        margin-left: 20px;
+        img {
+          height: 100%;
+          width: 100%;
+          vertical-align: 20px;
+        }
+      }
+    }
+    .position-cont {
+      height: 1px;
+      background-color: #AAB2C9;
+      width: 450px;
+    }
+  }
+  .transfer-icon {
+    height: 46px;
+    width: 46px;
+    border-radius: 50%;
+  }
+}
+.asset-cont {
+  .asset-info {
+    padding: 44px 30px;
+    border: 2px solid #AAB2C9;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    .asset-icon {
+      height: 50px;
+      width: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+      img {
+        height: 100%;
+        width: 100%;
+      }
+    }
+  }
+}
+.ml-12 {
+  margin-left: 12px;
+}
+.active-border {
+  border: 2px solid #6EB6A9 !important;
+}
+input {
+  border: none;
+  height: 48px;
+  //font-weight: bold;
+  font-size: 36px;
+  outline: none;
+  flex: 1;
+  width: 50px;
+}
+
+input::placeholder {
+  color: #ABB1BA;
+  line-height: 48px;
+  font-weight: normal;
+}
+
+.btn {
+  height: 98px;
+  margin-top: 130px;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 98px;
+  background: #53b8a9;
+  border-radius: 20px;
+}
+.drop_down {
+  height: 12px;
+  width: 18px;
+  margin-left: 20px;
+  img {
+    height: 100%;
+    width: 100%;
+    vertical-align: 20px;
+  }
+}
+.h-16 {
+  height: 16px;
+}

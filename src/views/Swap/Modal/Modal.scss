@@ -1,0 +1,221 @@
+.mask-cont {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 20;
+  background: rgba(0,0,0,.45);
+  &.show_modal {
+    visibility: visible;
+    opacity: 1;
+    transition: all linear .2s;
+  }
+}
+.modal-cont {
+  //width: calc(100vw - 120px);
+  width: 670px;
+  height: 1072px;
+  padding: 40px;
+  padding-bottom: 0;
+  padding-right: 0;
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  &.show_modal-cont {
+    animation: showPop linear .2s;
+  }
+  .header-cont {
+    padding-right: 40px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3A3C44;
+    .back-icon {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 30px;
+    }
+  }
+  .search-cont {
+    margin-top: 30px;
+    //width: calc(100vw - 220px);
+    max-width: 580px;
+    height: 88px;
+    padding: 0 30px;
+    //background: #F0F7F7;
+    border: 1px solid #E9EBF3;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    .search-icon {
+      width: 30px;
+      height: 30px;
+      img {
+        height: 100%;
+        width: 100%;
+        vertical-align: center;
+      }
+    }
+    input {
+      flex: 1;
+      outline: none;
+      border: none;
+      font-size: 30px;
+      background-color: transparent;
+      margin-left: 21px;
+      &::placeholder {
+        color: #ABB1BA;
+      }
+    }
+  }
+  .search-result {
+    margin-top: 40px;
+    display: flex;
+    .select-cont {
+      display: flex;
+      flex-direction: column;
+      width: 80px;
+      height: calc(1072px - 238px);
+      border-right: 1px solid #E9EBF3;
+      span {
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        margin-bottom: 50px;
+        img {
+          height: 100%;
+          width: 100%;
+        }
+      }
+    }
+    .coin-list {
+      flex: 1;
+      height: 800px;
+      overflow: auto;
+      .list-item {
+        display: flex;
+        align-items: center;
+        height: 109px;
+        border-bottom: 1px solid #E9EBF3;
+        .coin-item {
+          display: flex;
+          align-items: center;
+          font-size: 30px;
+          .coin-icon {
+            height: 52px;
+            width: 52px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 18px;
+            img {
+              height: 100%;
+              width: 100%;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+.nav-cont_0 {
+  background-image: url("../../../assets/image/ETH.png");
+  background-size: 52px 52px;
+  &.active_image {
+    background-image: url("../../../assets/image/ETH_active.png") !important;
+  }
+}
+.nav-cont_1 {
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/BSC.png");
+  &.active_image {
+    background-image: url("../../../assets/image/BSC_active.png");
+  }
+}
+.nav-cont_2 {
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/polygon.png");
+  &.active_image {
+    background-image: url("../../../assets/image/polygon_active.png");
+  }
+}
+.nav-cont_3 {
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/Heco.png");
+  &.active_image {
+    background-image: url("../../../assets/image/Heco_active.png");
+  }
+}
+.nav-cont_4 {
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/OK.png");
+  &.active_image {
+    background-image: url("../../../assets/image/OK_active.png");
+  }
+}
+.nav-cont_5 {
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/NULS.png");
+  &.active_image {
+    background-image: url("../../../assets/image/NULS_active.png");
+  }
+}
+.nav-cont_6 {
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/Nerve.png");
+  &.active_image {
+    background-image: url("../../../assets/image/Nerve_active.png");
+  }
+}
+@keyframes showPop {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@media screen and (min-width: 1000px) {
+  .mask-cont {
+    position: absolute;
+  }
+}
+.loading-contain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  background-color: rgba(255, 255, 255, .5);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.h-800 {
+  height: 800px;
+}
+.box_loading {
+  height: 30px;
+  width: 30px;
+  animation: rotate_loading 1.5s linear infinite;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+@keyframes rotate_loading {
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}

@@ -106,7 +106,8 @@ const en = {
         over3: "Claim",
         over4: " Amount",
         over5: "Get ",
-        over6: "Asset authorization"
+        over6: "Asset authorization",
+        over7: "Unlock"
     },
     modal: {
         modal1:'Select',

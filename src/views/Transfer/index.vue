@@ -126,14 +126,12 @@
                     @selectAsset="selectFeeAsset"/>
   </div>
 </template>
-
 <script>
-import {debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus} from "@/api/util";
+import {debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, tofix} from "@/api/util";
 import {MAIN_INFO, NULS_INFO} from "@/config";
 import {crossFee, ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, NTransfer} from "@/api/api";
 import {getContractCallData} from "@/api/nulsContractValidate";
 import Modal from "./Modal/Modal";
-import {tofix} from "../../../../api/util";
 
 export default {
   name: "Transfer",
@@ -171,12 +169,13 @@ export default {
       userAvailable: 0
     }
   },
+  components: {
+    TransferModal: Modal
+  },
   created() {
     !this.toNerve && this.getMainAssetInfo();
     this.getTransferAsset();
-  },
-  components: {
-    TransferModal: Modal
+    // this.getLiquidityInfo();
   },
   watch: {
     transferCount: {
@@ -307,7 +306,25 @@ export default {
         console.log(e);
       }
     },
-    // 最大
+    // 获取pool流动性信息
+    async getLiquidityInfo() {
+      const res = await this.$request({
+        method: "get",
+        url: '/swap/usdn/info'
+      });
+      if (res.code === 1000 && res.data) {
+        const tempData = res.data.lpCoinList;
+        this.USDTasset = tempData.find(item => item.chain === this.$store.state.network) || null;
+        await this.getCurrentAssetInfo();
+        if (this.assetTimer) {
+          clearInterval(this.assetTimer);
+          this.assetTimer = null;
+        }
+        this.assetTimer = setInterval(async () => {
+          await this.getCurrentAssetInfo(true);
+        }, 15000);
+      }
+    },
     maxAmount() {
       if (!this.available) return;
       this.maxClick = true;
@@ -456,6 +473,12 @@ export default {
         this.amountMsg = "";
         const nerveToNulsFee = crossFee + "NVT" + "+" + crossFee + "NULS"; // nerve -> nuls的手续费
         const nulsToNerveFee = crossFee + "NULS"; // nuls -> nerve的手续费
+        // const pubKey = getCurrentAccount(this.fromAddress).pub;
+        // const accountInfo = await this.$request({ // 获取主资产信息
+        //   url: "/wallet/chain/main",
+        //   data: { pubKey },
+        // });
+        // this.storeAccountInfo = accountInfo.data; // 主资产信息
         // 从其他链跨链转账到nerve
         if (this.toNerve) {
           if (this.$store.state.network === "NULS") { // NULS跨链转入NERVE 为默认手续费
@@ -572,7 +595,7 @@ export default {
 
     /**
      * 查询nerve链上nuls余额
-     * @param address // nerveAddress
+     * @param address //nerveAddress
      */
     async getNulsInfo(address) {
       const data = {
@@ -602,9 +625,7 @@ export default {
 
     // nerve转出到异构链手续费
     async getCrossOutFee(boo=false) { // toNerve=false
-      if (boo) {
-        this.showFeeLoading = true;
-      }
+      this.showFeeLoading = boo && true;
       const chainToSymbol = {};
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
       tempSupportChainList.map(v => {
@@ -674,7 +695,6 @@ export default {
       let fee = await transfer.getGasPrice(gasLimit);
       return fee + chainToSymbol[tempFromNetwork];
     },
-
     //nuls合约资产跨链 计算手续费&其他信息
     async getContractCallData() {
       const currentAccount = getCurrentAccount(this.fromAddress);
@@ -1064,8 +1084,6 @@ export default {
     reset() {
       this.transferCount = '';
       this.transferFee = '';
-      // this.getCoins();
-      // this.getCurrentAssetInfo();
       this.getTransferAsset();
     }
   },

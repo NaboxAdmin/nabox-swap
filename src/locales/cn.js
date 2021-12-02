@@ -106,7 +106,8 @@ const cn = {
         over3: "领取",
         over4: "数量",
         over5: "获取",
-        over6: "资产授权"
+        over6: "资产授权",
+        over7: "解锁"
     },
     modal: {
         modal1: '选择',
