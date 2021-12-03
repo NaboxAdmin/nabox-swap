@@ -51,8 +51,7 @@ const farmABI = [
     {
         "inputs": [
             {"internalType": "uint256", "name": "_pid", "type": "uint256"},
-            {"internalType": "address","name": "_user","type": "address"},
-            {"internalType": "bool", "name": "asc", "type": "bool"}
+            {"internalType": "address","name": "_user","type": "address"}
         ],
         "name": "getUnlockedToken",
         "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],

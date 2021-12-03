@@ -26,7 +26,8 @@ const cn = {
         tips24: "交易确认中",
         tips25: "暂无可用交易对",
         tips26: "暂未支持非主资产转账",
-        tips27: "领取的收益将在90天内处于锁定状态"
+        tips27: "领取的收益将在90天内处于锁定状态",
+        tips28: "你可以通过质押NABOX-BUSD LP来解锁Nabox，可通过计算器查看不同数量LP的解锁速度"
     },
     swap: {
         swap1: '从',
@@ -146,8 +147,8 @@ const cn = {
         order8: '交易hash'
     },
     airdrop: {
-        airdrop1: "剩余总数",
-        airdrop2: "锁定",
+        airdrop1: "当前总量",
+        airdrop2: "我的",
         airdrop3: "已质押",
         airdrop4: "质押解锁",
         airdrop5: "已解锁",
@@ -160,7 +161,8 @@ const cn = {
         airdrop12: "解锁时间",
         airdrop13: "小时",
         airdrop14: "计算器",
-        airdrop15: "区块"
+        airdrop15: "区块",
+        airdrop16: "我已解锁的"
     }
 };
 

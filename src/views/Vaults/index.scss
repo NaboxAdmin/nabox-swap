@@ -72,7 +72,7 @@
   border-bottom-right-radius: 20px;
 }
 .tab {
-  padding: 30px 0;
+  padding: 20px 0;
   border-bottom: 1px solid #D7D9E4;
   .active {
     position: relative;
@@ -247,5 +247,27 @@
   img {
     height: 100%;
     width: 100%;
+  }
+}
+.switch-cont {
+  height: 50px;
+  width: 122px;
+  border-radius: 50px;
+  background-color: #FFFFFF;
+  border: 1px solid #9095A6;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  span {
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    width: 80px;
+    color: #9095A6;
+    &.active_color {
+      color: #FFFFFF;
+      background-color: #52b7a8;
+      border-radius: 40px;
+    }
   }
 }

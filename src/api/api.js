@@ -142,7 +142,7 @@ export async function getBatchLockedFarmInfo(pairAddress, pid, userAddress, mult
       unlockNumber: tokensConfig.methods.getLocks(pid, userAddress)
     },
     {
-      unlockedToken: tokensConfig.methods.getUnlockedToken(pid, userAddress, false)
+      unlockedToken: tokensConfig.methods.getUnlockedToken(pid, userAddress)
     },
     {
       pendingToken: tokensConfig.methods.pendingToken(pid, userAddress)

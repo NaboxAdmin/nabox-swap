@@ -6,7 +6,7 @@
     <div class="d-flex direction-column mb-3"
          v-for="(item, index) in farmList"
          :key="`${item.farmKey}-${item.pid}`"
-         @click.stop="showDetailInfo(item)"
+         @click="showDetailInfo(item)"
          v-else-if="farmList.length !== 0">
       <div class="farm-item p-3 bg-white d-flex align-items-center space-between"
            :class="{ 'farm_item_show': item.showDetail, 'farm_item_hide': !item.showDetail }">
@@ -15,7 +15,7 @@
           <span class="icon">
             <img :src="item.icon || pictureError" @error="pictureError" alt="">
           </span>
-            <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
+            <span class="size-30 ml-1 font-500">{{ item.farmName || '' }}</span>
           </div>
           <div class="farm-info mt-2 d-flex align-items-center">
             <div class="d-flex direction-column mr-100">
@@ -60,7 +60,7 @@
           </div>
         </div>
         <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.vaults4") }}</div>
+          <div class="text-90 size-28">{{ $t("vaults.vaults4") }} <span v-if="item.withdrawLockTime">({{ formatLockContent(item.withdrawLockTime) }})</span></div>
           <div class="d-flex align-items-center space-between mt-1">
             <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
@@ -118,6 +118,8 @@
 </template>
 
 <script>
+import {Division} from "../../api/util";
+
 export default {
   name: "Progress",
   props: {
@@ -189,7 +191,9 @@ export default {
       const isEn = this.$store.state.lang === 'en';
       return !isEn ? `领取的收益将在${lockDay}天内处于锁定状态` : `The reward will be locked for ${lockDay} days.`
     },
-    formatLockContent(lockDay) {
+    formatLockContent(lockSeconds) {
+      if (!lockSeconds) return false;
+      const lockDay = Division(lockSeconds, 3600);
       const isEn = this.$store.state.lang === 'en';
       return !isEn ? `质押的资产退出时将被锁定${lockDay}小时` : `Staked token will be locked for ${lockDay} hours when withdrawing.`
     }

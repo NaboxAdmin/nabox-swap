@@ -1,5 +1,5 @@
 <template>
-  <div class="mask-cont" @click.stop="showPop = false" :class="{'show_pop' : showPop }">
+  <div class="mask-cont" v-if="showPop" @click.stop="showPop = false" :class="{'show_pop' : showPop }">
     <div class="modal-container" @click.stop>
       <div class="nav-bar cursor-pointer" @click="swapClick">
         <span class="icon-cont">

@@ -230,7 +230,6 @@ export default {
               userBalance: tofix(divisionDecimals(res.result[index].balance || 0, item.decimals || 8), 6, -1),
               chainId: res.result[index].assetChainId
             }));
-            console.log(this.lpAssetsList, "this.lpAssetsList")
           } else {
             this.lpAssetsList = await Promise.all(this.liquidityInfo.lpCoinList.map(async item => {
               const data = {

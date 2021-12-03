@@ -47,7 +47,7 @@
     <div class="main-cont" :class="[isSwap && 'p-3', isVaults && 'bg-f0']">
       <slot/>
       <Pop :show="showPop"
-           :disabled="currentChain === 'NERVE' || currentChain === 'NULS'"
+           v-if="showPop"
            @swapClick="swapClick"
            @transferClick="transferClick"
            @poolClick="poolClick"

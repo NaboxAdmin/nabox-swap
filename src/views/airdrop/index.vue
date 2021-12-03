@@ -1,9 +1,9 @@
 <template>
   <div class="p-3 bg-white">
     <div class="position-fixed_loading" v-if="showLoading" v-loading="showLoading"/>
-    <div class="banner-cont">
+<!--    <div class="banner-cont">-->
 
-    </div>
+<!--    </div>-->
     <div class="farm-total p-2 mt-2">
       <div class="text-left size-22 text-d5">{{ $t("airdrop.airdrop1") }}</div>
       <div class="d-flex direction-column align-items-center mt-12">
@@ -13,7 +13,14 @@
     </div>
     <div class="stake-cont mt-2">
       <div class="d-flex align-items-center space-between">
-        <span class="size-28 text-90">{{ $t("airdrop.airdrop2") }} {{ LpFarmInfo && LpFarmInfo.candySymbol || 'NABOX' }}</span>
+        <span class="size-28 text-90 d-flex align-items-center">
+          <span>{{ $t("airdrop.airdrop2") }}{{ LpFarmInfo && LpFarmInfo.candySymbol || 'NABOX' }}</span>
+          <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="$t('tips.tips28')" placement="top">
+            <span class="info-icon">
+              <img src="@/assets/image/question.png"/>
+            </span>
+          </el-tooltip>
+        </span>
         <p class="d-flex align-items-center" @click="toUrl">
           <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
           <span class="icon-cont">
@@ -24,12 +31,12 @@
       <div class="size-34 text-3a font-500 mt-3">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
       <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.candyPrice || 0, 3) }}</div>
       <div class="mt-3 d-flex align-items-center">
-        <span>{{ LpFarmInfo && LpFarmInfo.lpSymbol }} {{ $t("airdrop.airdrop3") }}</span>
+        <span>{{ 'NABOX-BUSD LP' || LpFarmInfo && LpFarmInfo.lpSymbol }} {{ $t("airdrop.airdrop3") }}</span>
         <span class="calculate-icon cursor-pointer" @click="showCalculate=true">
           <img src="@/assets/image/calculator.png" alt="">
         </span>
       </div>
-      <div class="size-34 mt-23 text-3a">{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0, LpFarmInfo && LpFarmInfo.lpDecimals) || 0 }}</div>
+      <div class="size-34 mt-23 text-3a">{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0, LpFarmInfo && LpFarmInfo.lpDecimals, 0) || 0 }}</div>
       <div class="btn-cont d-flex align-items-center space-between">
         <template>
           <div v-if="!needAuth"
@@ -41,13 +48,13 @@
               v-else
               @click="assetApprove()">{{ $t("vaults.over6") }}</div>
         </template>
-        <!-- :class="{ active_btn: !userFarmInfo || userFarmInfo && Number(userFarmInfo.userFarmInfo['1']) <= 0 }"-->
         <div class="btn-item cursor-pointer"
+             :class="{ active_btn: !userFarmInfo || userFarmInfo && Number(userFarmInfo.userFarmInfo['1']) <= 0 }"
              @click="stakeClick('withdraw')">{{ $t("airdrop.airdrop8") }}</div>
       </div>
     </div>
     <div class="claim-cont mt-2">
-      <div class="size-28 text-90">{{ $t("airdrop.airdrop5") }} {{ LpFarmInfo && LpFarmInfo.candySymbol }}</div>
+      <div class="size-28 text-90">{{ $t("airdrop.airdrop16") }}{{ LpFarmInfo && LpFarmInfo.candySymbol }}</div>
       <div class="mt-3 text-3a size-34 font-500">{{ pendingToken && pendingToken.pendingToken | numFormat }}</div>
       <div class="size-26 text-90 mt-12">≈{{ formatPrice(pendingToken && pendingToken.pendingToken, LpFarmInfo && LpFarmInfo.candyPrice || 0) }}</div>
       <div class="btn cursor-pointer" :class="{ active_btn: !pendingToken || pendingToken && Number(pendingToken.pendingToken) <= 0 }" @click="claimClick">{{ $t("airdrop.airdrop6") }}</div>
@@ -60,10 +67,10 @@
           </span>
         </div>
         <div class="text-left font-500 text-3a size-36">{{ $t("airdrop.airdrop14") }}</div>
-        <div class="text-90 size-28 mt-6">{{ $t("airdrop.airdrop9") }} Nabox</div>
+        <div class="text-90 size-28 mt-6">{{ $t("airdrop.airdrop2") }}NABOX</div>
         <div class="mt-23 size-34 font-500 text-3a">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
         <div class="mt-6 d-flex space-between">
-          <span class="size-26 text-90">{{ LpFarmInfo && LpFarmInfo.lpSymbol }} LP</span>
+          <span class="size-26 text-90">{{ 'NABOX-BUSD LP' || LpFarmInfo && LpFarmInfo.lpSymbol }}</span>
           <p class="d-flex align-items-center" @click="toUrl">
             <span class="text-primary size-28 cursor-pointer">{{ $t("airdrop.airdrop10") }}</span>
             <span class="icon-cont">
@@ -101,8 +108,8 @@
     <pop-up :show.sync="showStake">
       <div class="pop-cont">
         <div class="size-36 font-500">{{ stakeType === 'stake' && $t("vaults.vaults4") || $t("vaults.vaults4") }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance || 0 }} {{ stakedAsset && stakedAsset.symbol }}</div>
-        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0, LpFarmInfo && LpFarmInfo.lpDecimals, 3) || 0 }}  {{ stakedAsset && stakedAsset.symbol }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-if="stakeType==='stake'">{{ $t("vaults.vaults5") }}：{{ stakedAsset && stakedAsset.balance || 0 }} {{ 'NABOX-BUSD LP' || stakedAsset && stakedAsset.symbol }}</div>
+        <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ formatDecimals(userFarmInfo && userFarmInfo.userFarmInfo['1'] || 0, LpFarmInfo && LpFarmInfo.lpDecimals, 3) || 0 }}  {{ 'NABOX-BUSD LP' || stakedAsset && stakedAsset.symbol }}</div>
         <div class="input-cont">
           <input :placeholder="$t('vaults.vaults9')"
                  pattern="^[0-9]*[.,]?[0-9]*$"
@@ -128,6 +135,7 @@ import { ETransfer } from "@/api/api";
 import { ethers } from "ethers";
 import { getBatchUserFarmInfo, getBatchERC20Balance } from "../../api/api";
 import { ABIConfig, pancakeABI } from "./ABIConfig";
+import { ETHNET } from "@/config";
 
 export default {
   name: "airdrop",
@@ -154,9 +162,6 @@ export default {
       reverse0: "1153770723954217592642132814",
       reverse1: "392948295898899396956072",
       totalSupply: "17944746760119496596621555",
-      // reverse0: 0,
-      // reverse1: 0,
-      // totalSupply: 0,
       reverse0Flag: false,
       reverse1Flag: false,
       liquidityFlag: false,
@@ -171,9 +176,10 @@ export default {
   },
   created() {
     this.getLpFarmInfo();
-    // this.getPancakeFarmInfo();
+    ETHNET === "homestead" && this.getPancakeFarmInfo();
     this.farmTimer = setInterval(() => {
       this.getLpFarmInfo();
+      ETHNET === "homestead" && this.getPancakeFarmInfo();
     }, 10000);
     // FIXME 主网上面调用
     this.rate = Division(this.reverse0, this.reverse1);
@@ -215,7 +221,6 @@ export default {
           const tempAmount1 = Division(tempNewval, this.rate);
           this.reverse1Count = formatFloatNumber(6, divisionDecimals(tempAmount1, 18));
           this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempNewval, this.totalSupply), this.reverse0), Division(Times(tempAmount1, this.totalSupply), this.reverse1)), 18));
-          console.log(this.liquidityCount, "liquidityCount");
         } else if (!newVal) {
           this.resetInput();
         }
@@ -223,7 +228,6 @@ export default {
     },
     reverse1Count: {
       handler(newVal, oldVal) {
-        console.log(newVal, "reverse1Count newVal");
         const decimals = this.reverse1Asset && this.reverse1Asset.decimals || 18;
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
         if (patrn.exec(newVal) || newVal === "") {
@@ -236,9 +240,6 @@ export default {
           const tempAmount0 = Times(tempNewval, this.rate);
           this.reverse0Count = formatFloatNumber(6, divisionDecimals(tempAmount0, 18));
           this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempAmount0, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1)), 18));
-          console.log(this.reverse0Count, "reverse1Count")
-          // this.liquidityCount = Math.min(Division(Times(this.reverse0Count, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1));
-          // console.log(Division(Times(this.reverse0Count, this.totalSupply), this.reverse0).toString(), Division(Times(tempNewval, this.totalSupply), this.reverse1).toString(), "liquidityCount");
         } else if (!newVal) {
           this.resetInput();
         }
@@ -246,7 +247,6 @@ export default {
     },
     liquidityCount: {
       handler(newVal, oldVal) {
-        console.log(newVal, "liquidityCount newVal");
         const decimals = this.LpFarmInfo && this.LpFarmInfo.lpDecimals || 18;
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
         if (newVal) { // 根据LP计算解锁速度
@@ -279,11 +279,9 @@ export default {
     unlockedSpeed: {
       handler(newVal) {
         if (newVal) {
-          console.log(newVal.toString(), 'test newVal', this.maxUnlockedSpeed.toString(), "maxUnlockedSpeed");
           this.unlockedTime = this.numberFormat(tofix(Division(Times(Division((this.lockedToken && this.lockedToken.lockedToken || 0), this.unlockedSpeed), 3), 3600), 2, -1), 2);
           if (Minus(newVal, this.maxUnlockedSpeed) > 0) {
             this.unlockedSpeed = this.maxUnlockedSpeed;
-            // TODO: 上线时解锁速度保留两位小数
             this.unlockedTime = this.numberFormat(tofix(Division(Times(Division((this.lockedToken && this.lockedToken.lockedToken || 0), this.maxUnlockedSpeed), 3), 3600), 2, -1), 2);
           }
         }
@@ -392,7 +390,6 @@ export default {
       this.reverse1 = reverse[1].toString();
       this.totalSupply = totalSupply.toString();
       this.rate = this.reverse0 && this.reverse1 && Division(this.reverse0, this.reverse1);
-      console.log(token0, token1, this.reverse0.toString(), this.reverse1.toString(), this.totalSupply.toString());
     },
     lpInput() {
       if (this.stakeType==="stake") {
@@ -415,13 +412,12 @@ export default {
     },
     maxCount() {
       if (this.stakeType === "stake") {
-        console.log(this.stakedAsset, "stakeAsset")
         this.lpCount = this.stakedAsset && this.stakedAsset.balance || 0;
         if (Minus(this.lpCount, 0) == "0") {
           this.amountMsg = this.$t("tips.tips18");
         }
       } else {
-        this.lpCount = this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals) || 0;
+        this.lpCount = this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals, 0) || 0;
         if (Minus(this.lpCount, 0) == "0") {
           this.amountMsg = this.$t("tips.tips18");
         }
@@ -513,6 +509,9 @@ export default {
     },
     // 格式化decimals
     formatDecimals(number, decimals = 8, digits = 2) {
+      if (digits === 0) {
+        return isNaN(divisionDecimals(number, decimals)) && '0' || (divisionDecimals(number, decimals) || 0);
+      }
       return isNaN(divisionDecimals(number, decimals)) && '0' || this.numberFormat(tofix(divisionDecimals(number, decimals) || 0, digits, -1), digits);
     },
     formatPrice(amount, usdtPrice, digits = 2) {
@@ -760,5 +759,16 @@ export default {
   .active_btn {
     background-color: #ABB1BA !important;
     border: none;
+  }
+  .info-icon {
+    height: 30px;
+    width: 30px;
+    img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+  /deep/ .el-tooltip__popper {
+    max-width: 75vw !important;
   }
 </style>

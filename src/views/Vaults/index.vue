@@ -21,7 +21,7 @@
       </div>
     </div>
     <div class="detail-cont">
-      <div class="tab ml-3 d-flex align-items-center">
+      <div class="tab ml-3 mr-3 d-flex align-items-center">
         <span class="size-30 text-90 cursor-pointer"
               @click="checkTab(index)"
               :class="{ 'active': index===currentIndex, 'ml-53': index===1 }"
@@ -29,6 +29,11 @@
               :key="index">
           {{ item }}
         </span>
+        <div class="flex-1"/>
+        <div class="switch-cont" @click="switchFarmType">
+          <span :class="{ active_color: networkType==='L1' }">L1</span>
+          <span :class="{ active_color: networkType==='L2' }">L2</span>
+        </div>
       </div>
       <Progress v-if="currentIndex===0"
                 :farm-list="farmList"
@@ -41,6 +46,7 @@
       <Over v-if="currentIndex===1"
             :farm-list="farmList"
             :farmLoading="farmLoading"
+            :network-type="networkType"
             @receiveApprove="receiveApprove"
             @receiveClick="progressReceive"
             @confirmUnlocked="progressReceive"
@@ -115,7 +121,8 @@ export default {
       authRefresh: true, // 授权后刷新
       currentFarm: null, // 当前操作的farm
       receiveNeedAuth: false, // 领取是否需要授权
-      isFirstRequest: true // 是否为第一次请求
+      isFirstRequest: true, // 是否为第一次请求
+      networkType: "L1"
     }
   },
   created() {
@@ -169,6 +176,14 @@ export default {
     }
   },
   methods: {
+    switchFarmType() {
+      if (this.networkType==='L1') {
+        this.networkType = 'L2'
+      } else {
+        this.networkType = 'L1'
+      }
+      this.getFarmInfo(true);
+    },
     // 转出
     crossOut() {
       this.$router.push({ name: 'transfer', params: { nerveTo: 'true' } });
@@ -413,7 +428,12 @@ export default {
       });
       if (res.code === 1000) {
         // this.farmList = res.data;
-        const tempList = res.data.filter(item => item.chain === "NERVE" || item.chain === this.$store.state.network);
+        let tempList;
+        if (this.networkType === 'L1') {
+          tempList = res.data.filter(item => item.chain === this.$store.state.network);
+        } else {
+          tempList = res.data.filter(item => item.chain === "NERVE");
+        }
         await this.getStakeAccount(tempList);
         this.isFirstRequest = false;
       }
@@ -577,7 +597,6 @@ export default {
     async LPOperation(type, value, option) {
       this.showLoading = true;
       try {
-        console.log(this.assetsItem, "assetsItem");
         let stakeTokenDecimals;
         const transfer = new ETransfer();
         switch (option) {

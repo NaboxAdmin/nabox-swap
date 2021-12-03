@@ -115,13 +115,20 @@ export default {
     showModal: {
       handler(val) {
         if (val) {
+          const chainConfig = Object.keys(JSON.parse(sessionStorage.getItem("config")));
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
               this.getCoins(this.picList[this.currentIndex]);
             }, 0);
           } else {
-            this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
+            if (this.picList.findIndex(item => item === this.fromNetwork) === -1) {
+              this.currentIndex = chainConfig.findIndex(item => item === this.fromNetwork);
+              this.picList = chainConfig;
+            } else {
+              this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
+            }
             this.timer = setTimeout(() => {
               this.getCoins(this.fromNetwork);
             }, 0);
@@ -209,50 +216,54 @@ export default {
         const { chainId: toChainId, assetId: toAssetId, contractAddress: toContractAddress } = this.toAsset || {};
         const currentNetwork = this.picList[this.currentIndex];
         if (this.modalType === "receive" && this.fromAsset) {
-          const tempCoinList = tempList.filter(item => {
-            return this.fromAsset.noSupportCoin && this.fromAsset.noSupportCoin.indexOf(item.symbol === -1) || true;
-          });
-          if (fromChainId === usdtnChainId && (fromContractAddress && usdtnContractAddress && fromContractAddress === usdtnContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtnAssetId)) { // from资产为usdtn
-            if (this.fromNetwork === this.picList[this.currentIndex]) {
-              this.showCoinList = tempCoinList.filter(item => {
-                if (item.contractAddress) {
-                  return item.contractAddress === usdtContractAddress
-                } else {
-                  return (item.chainId === usdtChainId && item.assetId === usdtAssetId)
-                }
-              });
-            } else {
-              this.showCoinList = []
-            }
-          } else if (fromChainId === usdtChainId && (fromContractAddress && usdtContractAddress && fromContractAddress === usdtContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtAssetId)) { // from资产为usdt
-            if (this.fromNetwork !== this.picList[this.currentIndex]) {
-              this.showCoinList = tempCoinList.filter(coin => {
-                if (coin.contractAddress) {
-                  return (coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== usdtnContractAddress) && coin.symbol !== 'USDTN';
-                } else {
-                  return (coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtnChainId && coin.assetId !== usdtnAssetId)) && coin.symbol !== 'USDTN'
-                }
-              });
-            } else {
-              this.showCoinList = tempCoinList.filter(coin => {
-                if (coin.contractAddress) {
-                  return coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
-                } else {
-                  return coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId || coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtChainId || coin.assetId !== usdtAssetId)
-                }
-              });
-            }
+          if (this.fromAsset.isSupportAdvanced !== 'Y') {
+            this.showCoinList = [];
           } else {
-            // console.log('233333', tempList, currentNetwork)
-            this.showCoinList = tempCoinList.filter(coin => {
-              if (coin.contractAddress) {
-                return coin.chain === currentNetwork && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== (this.usdtnInfo[currentNetwork] && this.usdtnInfo[currentNetwork].contractAddress);
-              } else {
-                // console.log('123', coin.chain === currentNetwork, coin.chainId !== this.fromAsset.chainId, coin.assetId !== this.fromAsset.assetId)
-                return coin.chain === currentNetwork  && (coin.chainId !== this.fromAsset.chainId) && coin.symbol !== "USDTN"
-                //  && (coin.chainId !== this.usdtnInfo['NERVE'].chainId && coin.assetId !== this.usdtnInfo['NERVE'].assetId)
-              }
+            const tempCoinList = tempList.filter(item => {
+              return this.fromAsset.noSupportCoin && this.fromAsset.noSupportCoin.indexOf(item.symbol === -1) || true;
             });
+            if (fromChainId === usdtnChainId && (fromContractAddress && usdtnContractAddress && fromContractAddress === usdtnContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtnAssetId)) { // from资产为usdtn
+              if (this.fromNetwork === this.picList[this.currentIndex]) {
+                this.showCoinList = tempCoinList.filter(item => {
+                  if (item.contractAddress) {
+                    return item.contractAddress === usdtContractAddress
+                  } else {
+                    return (item.chainId === usdtChainId && item.assetId === usdtAssetId)
+                  }
+                });
+              } else {
+                this.showCoinList = []
+              }
+            } else if (fromChainId === usdtChainId && (fromContractAddress && usdtContractAddress && fromContractAddress === usdtContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtAssetId)) { // from资产为usdt
+              if (this.fromNetwork !== this.picList[this.currentIndex]) {
+                this.showCoinList = tempCoinList.filter(coin => {
+                  if (coin.contractAddress) {
+                    return (coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== usdtnContractAddress) && coin.symbol !== 'USDTN';
+                  } else {
+                    return (coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtnChainId && coin.assetId !== usdtnAssetId)) && coin.symbol !== 'USDTN'
+                  }
+                });
+              } else {
+                this.showCoinList = tempCoinList.filter(coin => {
+                  if (coin.contractAddress) {
+                    return coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
+                  } else {
+                    return coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId || coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtChainId || coin.assetId !== usdtAssetId)
+                  }
+                });
+              }
+            } else {
+              // console.log('233333', tempList, currentNetwork)
+              this.showCoinList = tempCoinList.filter(coin => {
+                if (coin.contractAddress) {
+                  return coin.chain === currentNetwork && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== (this.usdtnInfo[currentNetwork] && this.usdtnInfo[currentNetwork].contractAddress);
+                } else {
+                  // console.log('123', coin.chain === currentNetwork, coin.chainId !== this.fromAsset.chainId, coin.assetId !== this.fromAsset.assetId)
+                  return coin.chain === currentNetwork  && (coin.chainId !== this.fromAsset.chainId) && coin.symbol !== "USDTN"
+                  //  && (coin.chainId !== this.usdtnInfo['NERVE'].chainId && coin.assetId !== this.usdtnInfo['NERVE'].assetId)
+                }
+              });
+            }
           }
         } else if (this.modalType === "send" && this.toAsset) {
           const tempShowCoinList = tempList.filter(coin => {

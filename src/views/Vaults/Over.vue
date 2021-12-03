@@ -59,7 +59,7 @@
           </div>
         </div>
         <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.vaults4") }}</div>
+          <div class="text-90 size-28">{{ $t("vaults.vaults4") }} <span v-if="item.withdrawLockTime">({{ formatLockContent(item.withdrawLockTime) }})</span></div>
           <div class="d-flex align-items-center space-between mt-1">
             <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
@@ -121,6 +121,12 @@ import { getBatchLockedFarmInfo, getBatchERC20Balance } from "@/api/api";
 
 export default {
   name: "Over",
+  props: {
+    networkType: {
+      type: String,
+      default: 'L1'
+    }
+  },
   data() {
     return {
       showDropList: false,
@@ -145,7 +151,16 @@ export default {
             }
           })
         }
-      }
+      },
+    },
+    networkType: {
+      handler(newVal) {
+        if (newVal) {
+          this.getFarmInfo(false);
+        }
+      },
+      immediate: true,
+      deep: true
     }
   },
   methods: {
@@ -177,7 +192,12 @@ export default {
       });
       if (res.code === 1000) {
         // this.farmList = res.data;
-        const tempList = res.data.filter(item => item.chain === "NERVE" || item.chain === this.$store.state.network);
+        let tempList = res.data.filter(item => item.chain === "NERVE" || item.chain === this.$store.state.network);
+        if (this.networkType==='L1') {
+          tempList = res.data.filter(item => item.chain === this.$store.state.network);
+        } else {
+          tempList = res.data.filter(item => item.chain === "NERVE");
+        }
         await this.getStakeAccount(tempList);
         this.isFirstRequest = false;
       }
@@ -271,27 +291,6 @@ export default {
       this.farmLoading = false;
       // const tempList = resList.filter(item => item);
       console.log(this.farmList, '==ended farmList==');
-    },
-    // 获取资产信息
-    async getAssetInfo(currentAsset) {
-      if (!currentAsset) return '';
-      const { chainId, assetId, contractAddress, chain } = currentAsset;
-      const params = {
-        chain,
-        address: this.currentAccount && this.currentAccount.address[chain],
-        chainId,
-        assetId,
-        refresh: true,
-        contractAddress: contractAddress || ''
-      };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: params
-      });
-      if (res.code === 1000) {
-        res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
-        return res.data;
-      }
     },
     showDetailInfo(farm) {
       for (let item of this.farmList) {

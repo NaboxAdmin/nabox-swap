@@ -26,7 +26,8 @@ const en = {
         tips24: "Transaction confirmation in progress",
         tips25: "No trading pairs available",
         tips26: "No support for transfer of non-primary assets",
-        tips27: "The received income will be locked for 90 days"
+        tips27: "The received income will be locked for 90 days",
+        tips28: "You can unlock your Nabox by staking NABOX-BUSD LP and you can check the unlocking speed of different amounts of LP through the calculator"
     },
     swap: {
         swap1:'From',
@@ -106,7 +107,7 @@ const en = {
         over3: "Claim",
         over4: " Amount",
         over5: "Get ",
-        over6: "Asset authorization",
+        over6: "Approve",
         over7: "Unlock"
     },
     modal: {
@@ -146,8 +147,8 @@ const en = {
         order8:'TXID'
     },
     airdrop: {
-        airdrop1: "Total remaining",
-        airdrop2: "Locked",
+        airdrop1: "Current Total Amount",
+        airdrop2: "My ",
         airdrop3: "Staked",
         airdrop4: "Stake To Unlock",
         airdrop5: "Unlocked",
@@ -160,7 +161,8 @@ const en = {
         airdrop12: "Unlock Time",
         airdrop13: "Hours",
         airdrop14: "Calculator",
-        airdrop15: "Block"
+        airdrop15: "Block",
+        airdrop16: "My Unlocked "
     }
 };
 
