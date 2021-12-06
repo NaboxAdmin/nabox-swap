@@ -29,7 +29,6 @@ Vue.mixin(globalMixin);
 Vue.use(VueI18n);
 Vue.use(ElementUI);
 Vue.use(Loading);
-// window.localStorage.clear();
 let tempData, locale;
 if (typeof window._naboxAccount === 'string') {
     tempData = window._naboxAccount && JSON.parse(window._naboxAccount);

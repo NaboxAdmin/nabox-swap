@@ -311,6 +311,7 @@ export default {
         console.log(e);
       }
     },
+    // 点击最大
     maxAmount() {
       if (!this.available) return;
       this.maxClick = true;
@@ -330,7 +331,7 @@ export default {
         this.checkTransferFee();
       }
     },
-
+    // 获取当前资产详情
     async getCurrentAssetInfo(refresh = false, assetInfo) {
       try {
         if (!refresh) {
@@ -432,7 +433,6 @@ export default {
         }
       }
     },
-
     // 查询异构链token资产授权情况
     async checkCrossInAuthStatus() {
       const transfer = new ETransfer();
@@ -451,7 +451,6 @@ export default {
         this.clearGetAllowanceTimer();
       }
     },
-
     // 获取跨链费用
     async getTransferFee() {
       try {
@@ -499,7 +498,6 @@ export default {
         console.log(e, '计算手续费失败');
       }
     },
-
     // 检查手续费
     async checkTransferFee() {
       // console.log('checkTransferFee checkTransferFee')
@@ -554,7 +552,6 @@ export default {
       }
       this.amountMsg = flag ? "" : (!this.toNerve && this.$t("tips.tips8") || this.$t("tips.tips9"));
     },
-
     // 验证主资产是否够手续费/手续费+转账数量
     checkFee(fee, isMainAsset) {
       let flag = true;
@@ -579,7 +576,6 @@ export default {
       }
       return flag
     },
-
     /**
      * 查询nerve链上nuls余额
      * @param address //nerveAddress
@@ -602,14 +598,12 @@ export default {
       }
       return balance;
     },
-
     // 查询nerve链上nvt余额
     getNvtBalanceInfo() {
       const nvtInfo = this.storeAccountInfo.filter(v => v.chain === "NERVE")[0];
       // nerve链上nvt余额
       return divisionDecimals(nvtInfo.balance, nvtInfo.decimals);
     },
-
     // nerve转出到异构链手续费
     async getCrossOutFee(boo=false) { // toNerve=false
       this.showFeeLoading = boo && true;
@@ -657,7 +651,8 @@ export default {
       if (boo) {
         this.showFeeLoading = false;
       }
-      if (this.currentFeeChain === 'OKExChain') {
+      // OK上面波动大收取三倍手续费保证交易能够被确认
+      if (this.currentFeeChain === 'OKExChain' || this.currentFeeChain === 'OEC') {
        nvtFee = Times(this.floatToCeil(res, this.currentFeeAsset.decimals), 3);
       } else {
         nvtFee = this.floatToCeil(res, this.currentFeeAsset.decimals);
@@ -665,11 +660,9 @@ export default {
       this.withdrawalFee = nvtFee;
       return nvtFee + chainToSymbol[this.currentFeeChain];
     },
-
     floatToCeil(num, decimal = 6) {
       return Math.ceil(num * Math.pow(10, decimal)) / Math.pow(10, decimal);
     },
-
     // 异构链转入nerve手续费
     async getCrossInFee() {
       const tempFromNetwork = this.toNerve ? this.fromNetwork : "NERVE";
@@ -720,7 +713,6 @@ export default {
         value: str.match(/[\d|.]+/gi)[0],
       };
     },
-
     // 下一步
     async next() {
       if (!this.canNext) return false;

@@ -29,7 +29,7 @@
         </p>
       </div>
       <div class="size-34 text-3a font-500 mt-3">{{ lockedToken && lockedToken.lockedToken | numFormat }}</div>
-      <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.candyPrice || 0, 3) }}</div>
+      <div class="mt-12 text-90 size-26">≈{{ formatPrice(lockedToken && lockedToken.lockedToken, LpFarmInfo && LpFarmInfo.candyPrice || 0, 2) }}</div>
       <div class="mt-3 d-flex align-items-center">
         <span>{{ 'NABOX-BUSD LP' || LpFarmInfo && LpFarmInfo.lpSymbol }} {{ $t("airdrop.airdrop3") }}</span>
         <span class="calculate-icon cursor-pointer" @click="showCalculate=true">
@@ -363,20 +363,18 @@ export default {
         ...balanceTokenRes[1],
         balance: divisionDecimals(balanceTokenRes[1].balance, balanceTokenRes[1].decimals)
       }
-      // console.log(this.stakeBalance, this.candyBalance, "candyBalance")
       const tokenRes = await getBatchUserFarmInfo(pairAddress, userAddress, multicallAddress, RPCUrl);
       this.userFarmInfo = {
         ...tokenRes[0],
       };
-      this.pendingToken = {
+      this.pendingToken = { // 待领取的token
         ...tokenRes[1],
         pendingToken: this.numberFormat(tofix(divisionDecimals(tokenRes[1].pendingToken, this.LpFarmInfo.lpDecimals), 2, -1), 2)
       };
-      this.lockedToken = {
+      this.lockedToken = { // 锁定的token
         ...tokenRes[2],
-        lockedToken: this.numberFormat(tofix(divisionDecimals(tokenRes[2].lockedToken, this.LpFarmInfo.lpDecimals), 2, -1), 2)
+        lockedToken: Minus(this.numberFormat(tofix(divisionDecimals(tokenRes[2].lockedToken, this.LpFarmInfo.lpDecimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokenRes[1].pendingToken, this.LpFarmInfo.lpDecimals), 2, -1), 2))
       };
-      // console.log(this.userFarmInfo, this.pendingToken, this.lockedToken, "12312312");
     },
     // 获取pancake上面的farmInfo
     async getPancakeFarmInfo() {

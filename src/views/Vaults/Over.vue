@@ -1,7 +1,7 @@
 <template>
   <div class="p-3">
     <div class="loading-cont" v-if="farmLoading" element-loading-background="rgba(255, 255, 255, 0.1)" v-loading="farmLoading"/>
-    <div class="d-flex direction-column mb-3"
+    <div class="d-flex direction-column mb-3 border_d8"
          v-for="(item, index) in farmList"
          :key="`${item.farmKey}-${item.pid}`"
          @click.stop="showDetailInfo(item)"
@@ -392,5 +392,9 @@ export default {
 }
 .mr-100 {
   margin-right: 100px;
+}
+.border_d8 {
+  border: 1px solid #DBDEE8;
+  border-radius: 20px;
 }
 </style>
