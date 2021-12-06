@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="{ mobile_class: !isMobile }">
     <div class="vaults-cont">
       <div class="position-fixed_loading" @touchmove.prevent v-if="showLoading" v-loading="showLoading"></div>
       <div class="coin-info">
@@ -52,9 +52,12 @@
             @confirmUnlocked="progressReceive"
             @showClick="showClick"/>
     </div>
-    <PopUp :show="showPop">
+    <PopUp :show.sync="showPop">
       <div class="pop-cont">
-        <div class="size-36 font-500">{{ $t("vaults.vaults4") }}</div>
+        <template>
+          <div class="size-36 font-500" v-if="vaultsType==='increase'">{{ assetsItem && assetsItem.symbol }} {{ $t("vaults.vaults15") }}</div>
+          <div class="size-36 font-500" v-else>{{ assetsItem && assetsItem.stakedAsset && assetsItem.stakedAsset.symbol }} {{ $t("vaults.vaults16") }}</div>
+        </template>
         <div class="text-right mt-2 text-90 size-26" v-if="vaultsType==='increase'">{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.balance || 0 }}</div>
         <div class="text-right mt-2 text-90 size-26" v-else>{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.amount || 0 }}</div>
         <div class="input-cont">
@@ -75,14 +78,14 @@
 </template>
 
 <script>
-import {PopUp} from "@/components";
+import { PopUp } from "@/components";
 import Progress from "./Progress";
 import Over from "./Over";
 import { currentNet, MAIN_INFO } from "@/config";
-import {divisionDecimals, getAssetNerveInfo, Minus, timesDecimals, tofix} from "@/api/util";
-import {ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance} from "@/api/api";
-import {ethers} from "ethers";
-import {txAbi} from "@/api/contractConfig";
+import { divisionDecimals, getAssetNerveInfo, Minus, timesDecimals, tofix } from "@/api/util";
+import { ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance } from "@/api/api";
+import { ethers } from "ethers";
+import { txAbi } from "@/api/contractConfig";
 
 const nerve = require('nerve-sdk-js');
 const transfer = new NTransfer({
@@ -122,7 +125,9 @@ export default {
       currentFarm: null, // 当前操作的farm
       receiveNeedAuth: false, // 领取是否需要授权
       isFirstRequest: true, // 是否为第一次请求
-      networkType: "L1"
+      networkType: "L1",
+      approveLoading: false,
+      approveList: [] // 授权列表
     }
   },
   created() {
@@ -173,6 +178,9 @@ export default {
   computed: {
     nerveAddress() {
       return this.currentAccount && this.currentAccount.address['NERVE'] || ''
+    },
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     }
   },
   methods: {
@@ -440,7 +448,7 @@ export default {
     },
     async getStakeAccount(farmList) {
       // debugger;
-      this.farmList = (await Promise.all(farmList.map(async item => {
+      this.farmList = (await Promise.all(farmList.map(async (item, index) => {
         const config = JSON.parse(sessionStorage.getItem("config"));
         const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
         const fromAddress = this.currentAccount['address'][item.chain || 'BSC'];
@@ -516,6 +524,7 @@ export default {
             const {amount, reward} = res.data;
             return {
               ...item,
+              approveLoading: this.farmList && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
               ...res.data,
               amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
               reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
@@ -524,7 +533,7 @@ export default {
               showDetail: false
             }
           }
-          return {...item, stakedAsset, syrupAsset, showDetail: false};
+          return {...item, stakedAsset, syrupAsset, showDetail: false, approveLoading: this.farmList && this.farmList.length > 0 && this.farmList[index].approveLoading || false};
         } else {
           const config = JSON.parse(sessionStorage.getItem('config'));
           const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
@@ -534,10 +543,13 @@ export default {
           return {
             ...item,
             amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
+            approveLoading: this.farmList && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
             // reward: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['1'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
+            // lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
+            lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
             reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             stakedAsset,
             syrupAsset,
             showDetail: false
@@ -916,7 +928,7 @@ export default {
       }
     },
     // 质押资产授权
-    async stakeApprove({ farmHash, farm }) {
+    async stakeApprove({ farmHash, farm, index }) {
       this.showLoading = true;
       try {
         const transfer = new ETransfer();
@@ -935,6 +947,9 @@ export default {
             duration: 2000,
             offset: 30,
           });
+          this.farmList[index].approveLoading = true
+          const tempItem = this.farmList[index];
+          this.$set(this.farmList, index, tempItem);
         } else {
           this.$message({
             message: JSON.stringify(res),

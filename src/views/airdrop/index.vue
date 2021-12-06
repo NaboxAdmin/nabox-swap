@@ -44,9 +44,12 @@
                :class="{ active_btn: !LpFarmInfo || LpFarmInfo && LpFarmInfo.poolModelInfo.candyBalance == 0 }"
                @click="stakeClick('stake')">{{ $t("airdrop.airdrop4") }}</div>
           <div
-              class="btn-item cursor-pointer"
+              class="btn-item cursor-pointer d-flex align-items-center justify-content-center"
               v-else
-              @click="assetApprove()">{{ $t("vaults.over6") }}</div>
+              @click="assetApprove()">
+            <span :class="{ 'mr-1': showApproveLoading }">{{ $t("vaults.over6") }}</span>
+            <Loading v-if="showApproveLoading" :is-active="false"/>
+          </div>
         </template>
         <div class="btn-item cursor-pointer"
              :class="{ active_btn: !userFarmInfo || userFarmInfo && Number(userFarmInfo.userFarmInfo['1']) <= 0 }"
@@ -131,15 +134,15 @@
 <script>
 import PopUp from "../../components/PopUp/PopUp";
 import { divisionDecimals, Minus, timesDecimals, Times, Division, formatFloatNumber, tofix } from "../../api/util";
-import { ETransfer } from "@/api/api";
+import { ETransfer, getBatchUserFarmInfo, getBatchERC20Balance } from "@/api/api";
 import { ethers } from "ethers";
-import { getBatchUserFarmInfo, getBatchERC20Balance } from "../../api/api";
 import { ABIConfig, pancakeABI } from "./ABIConfig";
 import { ETHNET } from "@/config";
+import { Loading } from "@/components";
 
 export default {
   name: "airdrop",
-  components: { PopUp },
+  components: { PopUp, Loading },
   data() {
     return {
       showCalculate: false,
@@ -171,7 +174,8 @@ export default {
       reverse1Asset: null, // token1资产
       liquidityAsset: null, // lp资产
       farmTimer: null,
-      maxUnlockedSpeed: 0 // 最大解锁速度
+      maxUnlockedSpeed: 0, // 最大解锁速度
+      showApproveLoading: false
     }
   },
   created() {
@@ -339,9 +343,6 @@ export default {
           const fromAddress = this.currentAccount['address']['BSC'];
           await this.getUserFarmDetailInfo(res.data.pairAddress, fromAddress, multicallAddress);
           this.needAuth = await this.getSatkeAssetAuth(res.data.lpContractAddress, res.data.pairAddress);
-          // console.log(this.needAuth, "need")
-          // console.log(this.LpFarmInfo);
-          // console.log(res.data, "res.data");
         } else {
           throw res.msg
         }
@@ -528,7 +529,7 @@ export default {
     },
     // 资产授权
     async assetApprove() {
-      console.log(this.LpFarmInfo, "lpContractAddress")
+      if (this.showApproveLoading) return false;
       this.showLoading = true;
       try {
         const transfer = new ETransfer();
@@ -554,6 +555,7 @@ export default {
           });
         }
         this.showLoading = false;
+        this.showApproveLoading = true;
       } catch (e) {
         console.log(e);
         this.$message({

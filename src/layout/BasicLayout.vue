@@ -144,11 +144,9 @@ export default {
     address: {
       immediate: true,
       handler(val) {
-        console.log(val, "address val")
         if (!val) return '';
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
-        console.log(currentAccount, "currentAccount")
         const config = JSON.parse(sessionStorage.getItem("config"));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
@@ -520,6 +518,10 @@ export default {
   background-color: #FFFFFF;
   color: #333333;
   font-weight: 400;
+  &::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+  }
 }
 @media screen and (min-width: 1000px) {
   .main-cont {

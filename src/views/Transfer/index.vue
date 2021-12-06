@@ -113,7 +113,10 @@
         <span class="text-primary ml-2 cursor-pointer" @click="showFeeModal=true">{{ $t('transfer.transfer10') }}</span>
       </div>
     </div>
-    <div class="btn size-30 cursor-pointer" :class="{opacity_btn: !canNext}" v-if="crossInAuth" @click="approveERC20">{{ $t("transfer.transfer8") }}</div>
+    <div class="btn size-30 cursor-pointer d-flex align-items-center justify-content-center" :class="{opacity_btn: !canNext}" v-if="crossInAuth" @click="approveERC20">
+      <span :class="{'mr-1': showApproveLoading}">{{ $t("transfer.transfer8") }}</span>
+      <Loading v-if="showApproveLoading" :is-active="false"/>
+    </div>
     <div class="btn size-30 cursor-pointer" :class="{opacity_btn: !canNext}" v-else @click="next">{{ $t("transfer.transfer9") }}</div>
     <transfer-modal :show-modal.sync="showModal"
                     v-if="showModal"
@@ -127,11 +130,12 @@
   </div>
 </template>
 <script>
-import {debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, tofix} from "@/api/util";
-import {MAIN_INFO, NULS_INFO} from "@/config";
-import {crossFee, ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, NTransfer} from "@/api/api";
-import {getContractCallData} from "@/api/nulsContractValidate";
+import { debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, tofix } from "@/api/util";
+import { MAIN_INFO, NULS_INFO } from "@/config";
+import { crossFee, ETransfer, getSymbolUSD, NTransfer } from "@/api/api";
+import { getContractCallData } from "@/api/nulsContractValidate";
 import Modal from "./Modal/Modal";
+import { Loading } from "@/components";
 
 export default {
   name: "Transfer",
@@ -166,16 +170,17 @@ export default {
       transferFeeAssets: [],
       currentFeeChain: 'NERVE',
       currentFeeAsset: {},
-      userAvailable: 0
+      userAvailable: 0,
+      showApproveLoading: false
     }
   },
   components: {
-    TransferModal: Modal
+    TransferModal: Modal,
+    Loading
   },
   created() {
     !this.toNerve && this.getMainAssetInfo();
     this.getTransferAsset();
-    // this.getLiquidityInfo();
   },
   watch: {
     transferCount: {
@@ -306,25 +311,6 @@ export default {
         console.log(e);
       }
     },
-    // 获取pool流动性信息
-    async getLiquidityInfo() {
-      const res = await this.$request({
-        method: "get",
-        url: '/swap/usdn/info'
-      });
-      if (res.code === 1000 && res.data) {
-        const tempData = res.data.lpCoinList;
-        this.USDTasset = tempData.find(item => item.chain === this.$store.state.network) || null;
-        await this.getCurrentAssetInfo();
-        if (this.assetTimer) {
-          clearInterval(this.assetTimer);
-          this.assetTimer = null;
-        }
-        this.assetTimer = setInterval(async () => {
-          await this.getCurrentAssetInfo(true);
-        }, 15000);
-      }
-    },
     maxAmount() {
       if (!this.available) return;
       this.maxClick = true;
@@ -368,7 +354,7 @@ export default {
           if (res.code === 1000) {
             // this.currentCoin = res.data;
             this.clearGetAllowanceTimer();
-            // assset.assetId为0 则为异构链上token资产
+            // asset.assetId为0 则为异构链上token资产
             if (res.data && res.data.assetId === 0 && tempNetwork !== "NULS") {
               await this.checkCrossInAuthStatus();
             } else {
@@ -461,6 +447,7 @@ export default {
       );
       this.crossInAuth = needAuth;
       if (!needAuth && this.getAllowanceTimer) {
+        this.showApproveLoading = false;
         this.clearGetAllowanceTimer();
       }
     },
@@ -1036,6 +1023,7 @@ export default {
     // 异构链token资产转入nerve授权
     async approveERC20() {
       if (!this.canNext) return false;
+      if (this.showApproveLoading) return false;
       this.transferLoading = true;
       try {
         const transfer = new ETransfer();
@@ -1055,6 +1043,7 @@ export default {
             duration: 2000,
             offset: 30
           });
+          this.showApproveLoading = true;
           this.setGetAllowanceTimer();
         } else {
           this.$message({

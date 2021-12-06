@@ -47,7 +47,6 @@
     <div class="main-cont" :class="[isSwap && 'p-3', isVaults && 'bg-f0']">
       <slot/>
       <Pop :show="showPop"
-           v-if="showPop"
            @swapClick="swapClick"
            @transferClick="transferClick"
            @poolClick="poolClick"

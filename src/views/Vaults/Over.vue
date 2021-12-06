@@ -15,13 +15,13 @@
           </span>
             <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
           </div>
-          <div class="farm-info mt-2 d-flex align-items-center">
+          <div class="farm-info mt-4 d-flex align-items-center">
             <div class="d-flex direction-column mr-100">
               <span class="text-90 size-26">
                 <!--{{ item.syrupAsset && item.syrupAsset.symbol }}-->
                 {{ $t("vaults.over2") }}
               </span>
-              <span class="font-500 size-36 mt-1">{{ (item.reward || 0) | numFormat }}</span>
+              <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             </div>
             <div class="d-flex direction-column">
               <span class="text-90 size-26">APR</span>
@@ -44,9 +44,16 @@
           </div>
         </div>
         <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</div>
+          <div class="text-90 size-28">
+            <span>{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</span>
+            <el-tooltip v-if="item.lockCandy" :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatContent(item.lockDays)" placement="top">
+              <span class="info-icon">
+                <img src="@/assets/image/question.png"/>
+              </span>
+            </el-tooltip>
+          </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.reward || 0) | numFormat }}</span>
+            <span class="size-40 word-break w-330">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             <span
                 class="item-btn size-30"
                 :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
@@ -59,7 +66,14 @@
           </div>
         </div>
         <div class="vaults-item">
-          <div class="text-90 size-28">{{ $t("vaults.vaults4") }} <span v-if="item.withdrawLockTime">({{ formatLockContent(item.withdrawLockTime) }})</span></div>
+          <div class="text-90 size-28">
+            <span>{{ item.stakedAsset && item.stakedAsset.symbol || 'USDTN' }} {{ $t("vaults.vaults4") }} </span>
+            <el-tooltip v-if="item.withdrawLockTime" :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatLockContent(item.withdrawLockTime)" placement="top">
+              <span class="info-icon">
+                <img src="@/assets/image/question.png"/>
+              </span>
+            </el-tooltip>
+          </div>
           <div class="d-flex align-items-center space-between mt-1">
             <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
@@ -87,11 +101,6 @@
           <div class="size-28 mt-3 d-flex space-between align-items-center">
             <span class="d-flex align-items-center text-90 size-28">
               <span>{{ $t("vaults.vaults12") }}{{ item.syrupAsset && item.syrupAsset.symbol || 'NABOX' }}</span>
-              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatContent(item.lockDays)" placement="top">
-                <span class="info-icon">
-                  <img src="@/assets/image/info.png" alt=""/>
-                </span>
-              </el-tooltip>
             </span>
             <div class="d-flex align-items-center size-28">
               <span class="text-3a">{{ item.lockNumbers | numFormat }}</span>
@@ -118,6 +127,7 @@
 <script>
 import {divisionDecimals, tofix} from "@/api/util";
 import { getBatchLockedFarmInfo, getBatchERC20Balance } from "@/api/api";
+import {Division} from "../../api/util";
 
 export default {
   name: "Over",
@@ -280,8 +290,10 @@ export default {
             amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
             // reward: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['1'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
+            // lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
+            lockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
             stakedAsset,
             syrupAsset,
             showDetail: false
@@ -324,11 +336,13 @@ export default {
     },
     formatContent(lockDay) {
       const isEn = this.$store.state.lang === 'en';
-      return !isEn ? `领取的收益将在${lockDay}天内处于锁定状态` : `The received income will be locked for ${lockDay} days`
+      return !isEn ? `执行解锁操作后，收益将在${lockDay}天后解锁，你可以在下方将已解锁的Token领取到你的账户地址` : `After executing the unlocking operation, the reward will be unlocked in ${lockDay} days and then you can claim the unlocked Token to your address`
     },
-    formatLockContent(lockDay) {
+    formatLockContent(lockSeconds) {
+      if (!lockSeconds) return false;
+      const lockDay = Division(lockSeconds, 3600);
       const isEn = this.$store.state.lang === 'en';
-      return !isEn ? `质押的资产退出时将被锁定${lockDay}小时` : `Staked token will be locked for ${lockDay} hours when withdrawing.`
+      return !isEn ? `质押的资产退出时将被锁定${lockDay}小时` : `Staked token will be locked for ${lockDay} hours when withdrawing`
     }
   },
   beforeDestroy() {

@@ -102,6 +102,8 @@ const cn = {
         vaults12: "锁定中的",
         vaults13: "已解锁未领取的",
         vaults14: "完成解锁",
+        vaults15: "质押",
+        vaults16: "退出质押",
         over1: "年化收益",
         over2: "已赚取",
         over3: "领取",
