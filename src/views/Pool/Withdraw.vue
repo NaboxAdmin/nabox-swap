@@ -1,6 +1,6 @@
 <template>
   <div class="join-cont p-4">
-    <div class="position-fixed_loading" @touchmove.prevent v-if="withDrawLoading" v-loading="withDrawLoading"/>
+    <div v-loading="withDrawLoading" v-if="withDrawLoading" class="position-fixed_loading" @touchmove.prevent/>
     <div class="d-flex align-items-center size-26 text-90 justify-content-end">
       {{ $t("swap.swap4") }}：
       <span v-if="availableLoading"><i class="el-icon-loading"/></span>
@@ -14,14 +14,15 @@
       <!--{{ liquidityInfo && liquidityInfo.symbol }}-->
       <span class="font-500 ml-14 size-30">{{ liquidityInfo && liquidityInfo.symbol || "USDTN" }}</span>
       <div class="input-item align-items-center ml-4 d-flex flex-1">
-        <input class="flex-1"
-               @input="withdrawInput"
-               v-model="withdrawCount"
-               placeholder="0">
+        <input
+          v-model="withdrawCount"
+          class="flex-1"
+          placeholder="0"
+          @input="withdrawInput">
         <span class="text-primary size-28" @click="maxCount">{{ $t("swap.swap3") }}</span>
       </div>
     </div>
-    <div class="text-red mt-2" v-if="amountMsg">{{ amountMsg }}</div>
+    <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
     <div class="output-cont d-flex justify-content-center direction-column" @click="showModal=!showModal">
       <div class="size-28 text-90">{{ $t("pool.join1") }}</div>
       <div class="d-flex align-items-center space-between mt-2">
@@ -42,18 +43,19 @@
         <span class="text-90">{{ $t("pool.join2") }}</span>
         <span class="text-3a d-flex align-items-center">
           <span>${{ liquidityInfo && liquidityInfo.total | numberFormatLetter }}</span>
-          <span class="drop_down ml-1" :class="{'rotate_x': showDropList}">
+          <span :class="{'rotate_x': showDropList}" class="drop_down ml-1">
             <img src="@/assets/image/drop_down_black.png" alt="">
           </span>
         </span>
       </div>
       <template v-if="showDropList">
-        <div class="d-flex size-28 align-items-center text-90 space-between justify-content-end mt-2"
-             :key="item.assetId"
-             v-for="(item, index) in lpCoinList">
+        <div
+          v-for="item in lpCoinList"
+          :key="item.assetId"
+          class="d-flex size-28 align-items-center text-90 space-between justify-content-end mt-2">
           <span class="d-flex align-items-center ml-4">
             <span class="icon-cont mr-2">
-              <img :src="getPicture(item.chain)" @error="pictureError" alt="">
+              <img :src="getPicture(item.chain)" alt="" @error="pictureError">
             </span>
             <span>{{ item.chain }}</span>
           </span>
@@ -65,36 +67,39 @@
       <span class="text-90 w-85">{{ $t("pool.join3") }}</span>
       <span class="text-3a d-flex direction-column text-right">
         <span>${{ addedBalance || 0 }}({{ poolRate | rateFormat }})</span>
-<!--        <span>{{ liquidityInfo && liquidityInfo.symbol || "USDTN" }}  |  {{ poolRate | rateFormat }}</span>-->
+        <!--        <span>{{ liquidityInfo && liquidityInfo.symbol || "USDTN" }}  |  {{ poolRate | rateFormat }}</span>-->
       </span>
     </div>
-    <div class="btn size-30" :class="{opacity_btn: canNext}" @click="submit">{{ $t("pool.join4") }}</div>
-    <Modal :show-modal.sync="showModal"
-           :asset-list="lpAssetsList"
-           @selectAsset="selectAsset"/>
+    <div :class="{opacity_btn: canNext}" class="btn size-30" @click="submit">{{ $t("pool.join4") }}</div>
+    <Modal
+      :show-modal.sync="showModal"
+      :asset-list="lpAssetsList"
+      @selectAsset="selectAsset"/>
   </div>
 </template>
 
 <script>
-import { divisionDecimals, timesDecimals, Times, tofix, Division, Minus } from "@/api/util";
-import { NTransfer } from "@/api/api";
-import { currentNet, MAIN_INFO } from "@/config";
-import Modal from "./Modal/Modal";
+import { divisionDecimals, timesDecimals, Times, tofix, Division, Minus } from '@/api/util';
+import { NTransfer } from '@/api/api';
+import { currentNet, MAIN_INFO } from '@/config';
+import Modal from './Modal/Modal';
 
-const nerve = require("nerve-sdk-js");
+const nerve = require('nerve-sdk-js');
 // 测试环境
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
-  name: "Withdraw",
-  props: {
-    // nerveAddress: String,
-    // currentAccount: {
-    //   type: Object,
-    //   default: () => null
-    // }
-  },
+  name: 'Withdraw',
   components: { Modal },
+  filters: {
+    rateFormat(val) {
+      if (val < 0.01) {
+        return '<0.01%';
+      } else {
+        return `${val}%`;
+      }
+    }
+  },
   data() {
     return {
       available: 0,
@@ -111,32 +116,9 @@ export default {
       withDrawLoading: false,
       availableLoading: false,
       lpAssetsList: [],
-      addedBalance: 0,
+      addedBalance: 0
       // userAvailable: 0 // 用户可用的流动性
-    }
-  },
-  created() {
-    this.getLiquidityInfo();
-    this.infoTimer = setInterval(async () => {
-      await this.getLiquidityInfo(true);
-    }, 15000);
-  },
-  watch: {
-    withdrawCount: {
-      handler(newVal, oldVal) {
-        if (newVal) {
-          const decimals = this.addedLiquidityInfo.decimals || 8;
-          const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
-          if (patrn.exec(newVal) || newVal === "") {
-            this.withdrawCount = newVal;
-          } else {
-            this.withdrawCount = oldVal;
-          }
-        } else {
-          this.withdrawCount = "";
-        }
-      }
-    }
+    };
   },
   computed: {
     lpCoinList() {
@@ -144,27 +126,47 @@ export default {
       tempList.forEach(item => {
         item.balance = divisionDecimals(item.balance, item.decimals);
       });
-      return this.liquidityInfo && this.liquidityInfo.lpCoinList || []
+      return this.liquidityInfo && this.liquidityInfo.lpCoinList || [];
     },
     canNext() {
       return !this.withdrawCount || !Number(this.withdrawCount) || this.amountMsg;
     }
   },
-  filters: {
-    rateFormat(val) {
-      if (val < 0.01) {
-        return '<0.01%'
-      } else {
-        return `${val}%`
+  watch: {
+    withdrawCount: {
+      handler(newVal, oldVal) {
+        if (newVal) {
+          const decimals = this.addedLiquidityInfo.decimals || 8;
+          const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
+          if (patrn.exec(newVal) || newVal === '') {
+            this.withdrawCount = newVal;
+          } else {
+            this.withdrawCount = oldVal;
+          }
+        } else {
+          this.withdrawCount = '';
+        }
       }
     }
+  },
+  created() {
+    this.getLiquidityInfo();
+    this.infoTimer = setInterval(async() => {
+      await this.getLiquidityInfo(true);
+    }, 15000);
+  },
+  beforeDestroy() {
+    if (this.assetTimer) clearInterval(this.assetTimer);
+    if (this.infoTimer) clearInterval(this.infoTimer);
+    this.assetTimer = null;
+    this.infoTimer = null;
   },
   methods: {
     maxCount() {
       const currentPollTotal = this.currentWithdrawAsset && this.currentWithdrawAsset.total;
       this.withdrawCount = this.addedLiquidityInfo.balance;
       if (Minus(this.withdrawCount, currentPollTotal) < 0) {
-        this.amountMsg = this.$t("pool.join9");
+        this.amountMsg = this.$t('pool.join9');
       }
     },
     withdrawInput() {
@@ -175,11 +177,11 @@ export default {
         return false;
       }
       if (Minus(this.withdrawCount, currentPollTotal) < 0) {
-        this.amountMsg = this.$t("pool.join9")
+        this.amountMsg = this.$t('pool.join9');
       } else if (Minus(this.withdrawCount, addedBalance) > 0) {
-        this.amountMsg = this.$t("pool.join10")
+        this.amountMsg = this.$t('pool.join10');
       } else {
-        this.amountMsg = ''
+        this.amountMsg = '';
       }
     },
     // 选择需要撤出流动性的资产
@@ -189,12 +191,12 @@ export default {
       this.showModal = false;
     },
     // 获取pool流动性信息
-    async getLiquidityInfo(refresh=false) {
+    async getLiquidityInfo(refresh = false) {
       if (!refresh) {
         this.availableLoading = true;
       }
       const res = await this.$request({
-        method: "get",
+        method: 'get',
         url: '/swap/usdn/info'
       });
       if (res.code === 1000 && res.data) {
@@ -210,7 +212,7 @@ export default {
           clearInterval(this.assetTimer);
           this.assetTimer = null;
         }
-        this.assetTimer = setInterval(async () => {
+        this.assetTimer = setInterval(async() => {
           await this.getAddedLiquidity();
         }, 10000);
         if (this.liquidityInfo.lpCoinList) {
@@ -221,7 +223,7 @@ export default {
           }));
           const url = MAIN_INFO.batchRPC;
           const params = [MAIN_INFO.chainId, this.currentAccount['address']['NERVE'], tempParams];
-          const res = await this.$post(url, "getBalanceList", params);
+          const res = await this.$post(url, 'getBalanceList', params);
           if (res.result && res.result.length !== 0) {
             this.lpAssetsList = this.liquidityInfo.lpCoinList.map((item, index) => ({
               ...res.result[index],
@@ -233,13 +235,13 @@ export default {
           } else {
             this.lpAssetsList = await Promise.all(this.liquidityInfo.lpCoinList.map(async item => {
               const data = {
-                chain: "NERVE",
+                chain: 'NERVE',
                 address: this.nerveAddress,
                 chainId: item.chainId,
                 assetId: item.assetId,
-                contractAddress: "",
+                contractAddress: '',
                 refresh: true
-              }
+              };
               const res = await this.$request({
                 url: '/wallet/address/asset',
                 data
@@ -248,7 +250,7 @@ export default {
                 return {
                   ...res.data,
                   userBalance: res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1) || 0
-                }
+                };
               }
             }));
           }
@@ -260,7 +262,7 @@ export default {
     // 获取已添加流动性资产信息
     async getAddedLiquidity() {
       const params = {
-        chain: "NERVE",
+        chain: 'NERVE',
         address: this.nerveAddress,
         chainId: this.liquidityInfo.chainId,
         assetId: this.liquidityInfo.assetId,
@@ -274,9 +276,9 @@ export default {
       if (res.code === 1000) {
         this.addedLiquidityInfo = res.data;
         // this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
-        this.addedLiquidityInfo["balance"] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
+        this.addedLiquidityInfo['balance'] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
         this.addedBalance = this.numberFormat(tofix(res.data.balance, 4, -1), 4);
-        this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo["balance"], this.liquidityInfo.total), 100), 2, -1) || 0;
+        this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
       }
       this.availableLoading = false;
     },
@@ -284,7 +286,7 @@ export default {
     async getAssetInfo(currentAsset) {
       if (!currentAsset) return '';
       const params = {
-        chain: "NERVE",
+        chain: 'NERVE',
         address: this.nerveAddress,
         chainId: currentAsset.chainId,
         assetId: currentAsset.assetId,
@@ -304,7 +306,7 @@ export default {
       if (this.canNext) return false;
       this.withDrawLoading = true;
       const transfer = new NTransfer({
-        chain: "NERVE",
+        chain: 'NERVE',
         type: 2
       });
       try {
@@ -315,7 +317,7 @@ export default {
         const amounts = nerve.swap.tokenAmount(chainId, assetId, timesDecimals(this.withdrawCount, decimals));
         const temIndex = this.lpCoinList.map((item, index) => index);
         const tempReceiveOrderIndex = this.lpCoinList.findIndex(item => {
-          return item.chainId === this.currentWithdrawAssetInfo.chainId && item.assetId === this.currentWithdrawAssetInfo.assetId
+          return item.chainId === this.currentWithdrawAssetInfo.chainId && item.assetId === this.currentWithdrawAssetInfo.assetId;
         });
         tempReceiveOrderIndex !== -1 && temIndex.unshift(tempReceiveOrderIndex);
         const transferInfo = {
@@ -325,7 +327,7 @@ export default {
           assetsId: assetId,
           amount: timesDecimals(this.withdrawCount, decimals),
           fee: 0
-        }
+        };
         const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
         const fromAddress = this.nerveAddress;
         const stablePairAddress = address;
@@ -345,20 +347,20 @@ export default {
         };
         const txHex = await transfer.getTxHex(txData);
         if (txHex) {
-          console.log(txHex, '==txHex==')
+          console.log(txHex, '==txHex==');
           await this.broadcastHex(txHex);
         }
       } catch (e) {
         this.$message({
           message: e.message || e,
           type: 'warning',
-          offset: 30,
+          offset: 30
         });
         this.withDrawLoading = false;
         console.log(e);
       }
     },
-    //广播nerve nuls跨链转账交易
+    // 广播nerve nuls跨链转账交易
     async broadcastHex(txHex) {
       const res = await this.$request({
         url: '/swap/lp/add',
@@ -366,10 +368,10 @@ export default {
       });
       if (res.code === 1000) {
         this.$message({
-          message: this.$t("tips.tips10"),
-          type: "success",
+          message: this.$t('tips.tips10'),
+          type: 'success',
           duration: 2000,
-          offset: 30,
+          offset: 30
         });
         this.withDrawLoading = false;
         this.reset();
@@ -377,24 +379,18 @@ export default {
       } else {
         this.withDrawLoading = false;
         this.$message({
-          message: this.$t("tips.tips15"),
-          type: "warning",
+          message: this.$t('tips.tips15'),
+          type: 'warning',
           duration: 2000,
           offset: 30
-        })
+        });
       }
     },
     reset() {
       this.withdrawCount = '';
     }
-  },
-  beforeDestroy() {
-    if (this.assetTimer) clearInterval(this.assetTimer);
-    if (this.infoTimer) clearInterval(this.infoTimer);
-    this.assetTimer = null;
-    this.infoTimer = null;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

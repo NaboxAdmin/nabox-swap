@@ -553,7 +553,7 @@ export default {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
       const tempValideNetwork = valideNetwork.length === 0 && tempSupportChainList.map(item => item.SwftChain) || valideNetwork;
       const mainAssetSymbol = assetConfig[this.fromNetwork].symbol;
-      console.log(this.fromAddress, "fromAddress getCoins")
+      // console.log(this.fromAddress, "fromAddress getCoins")
       const res = await this.$request({
         url: "/swap/exchange/coins",
         data: {

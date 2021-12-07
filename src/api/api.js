@@ -9,7 +9,7 @@ import txs from "nerve-sdk-js/lib/model/txs";
 import { MultiCall } from "./Multicall1";
 import Web3 from "web3";
 import { airDropABI } from "../views/airdrop/airDropABI";
-import { farmABI } from "../views/Vaults/FarmABI";
+import { farmABI } from "../views/L1Farm/FarmABI";
 
 // 查询余额
 const erc20BalanceAbiFragment = [
@@ -152,7 +152,7 @@ export async function getBatchLockedFarmInfo(pairAddress, pid, userAddress, mult
     }
   ];
   const [tokensRes] = await multicall.all([tokens]);
-  console.log(tokensRes, "tokensRestokensRestokensRes")
+  console.log(tokensRes, "==tokensRes==")
   return tokensRes;
 }
 

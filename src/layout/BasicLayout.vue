@@ -1,77 +1,80 @@
 <template>
-    <div class="main-cont" :class="isDapp && 'cont_shadow'">
-      <HeaderBar v-if="isDapp"
-                 :address="fromAddress"
-                 :current-account="currentAccount"
-                 :show-connect="showConnect"
-                 :header-color="typeBoolean && '#6EB6A9' || '#ffffff'"
-                 @disConnect="disConnect"
-                 @derivedAddress="derivedAddress"
-                 @connectMetamask="connectMetamask"
-                 @swapClick="swapClick"
-                 @transferClick="transferClick"
-                 @vaultsClick="vaultsClick"
-                 @poolClick="poolClick"
-                 @airdropClick="airdropClick"
-                 @l1FarmClick="l1FarmClick"
-                 @l2FarmClick="l2FarmClick">
-        <div class="connect-item" v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)">
-          <div class="connect-btn" v-if="showConnect" @click="connectMetamask">{{ $t("tips.tips12") }}</div>
-          <div class="sign-btn" v-else-if="!showConnect && showSign" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
-        </div>
-        <keep-alive include="swap" v-else>
-          <router-view />
-        </keep-alive>
-      </HeaderBar>
-      <template v-else>
-        <div class="tab-cont d-flex align-items-center space-between font-bold size-36"
-             :class="{'vaults-color': true}">
-          <div v-for="(item, index) in tabList"
-               class="tab-item"
-               :class="{'active': hashType===item.name}"
-               @click="tabClick(index)"
-               :key="index">{{ item.option }}</div>
-        </div>
-        <div class="position-cont" :class="{'vaults-color': true}"/>
-<!--        <keep-alive>-->
-          <router-view />
-<!--        </keep-alive>-->
-      </template>
-    </div>
+  <div :class="isDapp && 'cont_shadow'" class="main-cont">
+    <HeaderBar
+      v-if="isDapp"
+      :address="fromAddress"
+      :current-account="currentAccount"
+      :show-connect="showConnect"
+      :header-color="typeBoolean && '#6EB6A9' || '#ffffff'"
+      @disConnect="disConnect"
+      @derivedAddress="derivedAddress"
+      @connectMetamask="connectMetamask"
+      @swapClick="swapClick"
+      @transferClick="transferClick"
+      @vaultsClick="vaultsClick"
+      @poolClick="poolClick"
+      @airdropClick="airdropClick"
+      @l1FarmClick="l1FarmClick"
+      @l2FarmClick="l2FarmClick">
+      <div v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)" class="connect-item">
+        <div v-if="showConnect" class="connect-btn" @click="connectMetamask">{{ $t("tips.tips12") }}</div>
+        <div v-else-if="!showConnect && showSign" class="sign-btn" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
+      </div>
+      <keep-alive v-else include="swap">
+        <router-view />
+      </keep-alive>
+    </HeaderBar>
+    <template v-else>
+      <div
+        :class="{'vaults-color': true}"
+        class="tab-cont d-flex align-items-center space-between font-bold size-36">
+        <div
+          v-for="(item, index) in tabList"
+          :class="{'active': hashType===item.name}"
+          :key="index"
+          class="tab-item"
+          @click="tabClick(index)">{{ item.option }}</div>
+      </div>
+      <div :class="{'vaults-color': true}" class="position-cont"/>
+      <!--        <keep-alive>-->
+      <router-view />
+      <!--        </keep-alive>-->
+    </template>
+  </div>
 </template>
 
 <script>
-import { HeaderBar } from "../components";
-import { ETHNET, MAIN_INFO, NULS_INFO } from "@/config";
-import nerve from "nerve-sdk-js";
-import { supportChainList, getCurrentAccount } from "@/api/util";
+import { HeaderBar } from '../components';
+import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
+import nerve from 'nerve-sdk-js';
+import { supportChainList, getCurrentAccount } from '@/api/util';
 
-const ethers = require("ethers");
+const ethers = require('ethers');
 
 function getAccountList() {
-  return JSON.parse(localStorage.getItem("accountList")) || [];
+  return JSON.parse(localStorage.getItem('accountList')) || [];
 }
 
 export default {
-  name: "BasicLayout",
+  name: 'BasicLayout',
   components: { HeaderBar },
   data() {
     return {
       tabList: [
         {
-          option: "Swap",
+          option: 'Swap',
           name: 'swap',
           disabled: false
         }, {
-          option: "Layer2",
+          option: 'Layer2',
           name: 'transfer',
           disabled: false
         }, {
-          option: "Liquidity",
+          option: 'Liquidity',
           name: 'liquidity',
           disabled: false
         }, {
-          option: "Vaults",
+          option: 'Vaults',
           name: 'vaults',
           disabled: false
         }
@@ -82,14 +85,68 @@ export default {
       // showSign: true, // 显示派发多链地址
       provider: '',
       loading: false, // 加载
-      walletType: sessionStorage.getItem("walletType") || 'metamask', // 钱包类型（metamask）
+      walletType: sessionStorage.getItem('walletType') || 'metamask', // 钱包类型（metamask）
       // isDapp: true,
       fromChainId: '',
       orderList: [], // 订单列表
       flag: false,
       timer: null,
       nerveTo: true,
-      showType: "Swap"
+      showType: 'Swap'
+    };
+  },
+  computed: {
+    fromNetwork() {
+      return this.$store.state.network;
+    },
+    fromAddress() {
+      const currentAccount = getCurrentAccount(this.address);
+      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : '');
+      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : '';
+    },
+    currentAccount() {
+      return this.$store.getters.currentAccount;
+    },
+    typeBoolean() {
+      return window.location.hash.indexOf('vaults') > -1 || window.location.hash.indexOf('liquidity') > -1;
+    },
+    hashType() {
+      return window.location.hash.split('/')[1];
+    }
+  },
+  watch: {
+    address: {
+      immediate: true,
+      handler(val) {
+        if (!val) return '';
+        // !this.$store.state.isDapp && this.getOrderList(val);
+        const currentAccount = getCurrentAccount(val);
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const chainLength = config && Object.keys(config).length;
+        const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
+        // this.showSign = !chainLength || chainLength !== addressListLength;
+        this.$store.commit('changeFromAddress', val);
+        this.$store.commit('changeShowConnect', false);
+        this.$store.commit('changeShowSign', !chainLength || chainLength !== addressListLength);
+      }
+    },
+    fromChainId: {
+      immediate: true,
+      handler(val) {
+        if (!val) return;
+        const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+        const chain = tempSupportChainList.find(v => v[ETHNET] === val);
+        if (chain) {
+          this.$store.commit('changeNetwork', chain.value);
+        } else {
+          const tempAddress = this.address.toUpperCase();
+          if (tempAddress.startsWith('TNULS') || tempAddress.startsWith('NULS')) {
+            this.$store.commit('changeNetwork', 'NULS');
+          } else {
+            this.$store.commit('changeNetwork', 'NERVE');
+          }
+        }
+      }
     }
   },
   created() {
@@ -107,7 +164,7 @@ export default {
         // this.getOrderList()
         if (this.timer) clearInterval(this.timer);
         this.timer = setInterval(() => {
-          this.refreshWallet()
+          this.refreshWallet();
         }, 300000);
       }
     } else {
@@ -123,59 +180,12 @@ export default {
       localStorage.setItem('accountList', JSON.stringify(accountList));
     }
   },
-  computed: {
-    fromNetwork() {
-      return this.$store.state.network;
-    },
-    fromAddress() {
-      const currentAccount = getCurrentAccount(this.address);
-      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : "")
-      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : "";
-    },
-    currentAccount() {
-      return this.$store.getters.currentAccount
-    },
-    typeBoolean() {
-      return window.location.hash.indexOf('vaults') > -1 || window.location.hash.indexOf('liquidity') > -1
-    },
-    hashType() {
-      return window.location.hash.split('/')[1];
-    }
+  mounted() {
+    window.scrollTo(0, 0);
   },
-  watch: {
-    address: {
-      immediate: true,
-      handler(val) {
-        if (!val) return '';
-        // !this.$store.state.isDapp && this.getOrderList(val);
-        const currentAccount = getCurrentAccount(val);
-        const config = JSON.parse(sessionStorage.getItem("config"));
-        const chainLength = config && Object.keys(config).length;
-        const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
-        // this.showSign = !chainLength || chainLength !== addressListLength;
-        this.$store.commit('changeFromAddress', val);
-        this.$store.commit('changeShowConnect', false);
-        this.$store.commit('changeShowSign', !chainLength || chainLength !== addressListLength);
-      },
-    },
-    fromChainId: {
-      immediate: true,
-      handler(val) {
-        if (!val) return;
-        const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-        const chain = tempSupportChainList.find(v => v[ETHNET] === val);
-        if (chain) {
-          this.$store.commit("changeNetwork", chain.value);
-        } else {
-          const tempAddress = this.address.toUpperCase();
-          if (tempAddress.startsWith('TNULS') || tempAddress.startsWith('NULS')) {
-            this.$store.commit("changeNetwork", 'NULS');
-          } else {
-            this.$store.commit("changeNetwork", 'NERVE');
-          }
-        }
-      }
-    }
+  beforeDestroy() {
+    this.timer && clearInterval(this.timer);
+    this.timer = null;
   },
   methods: {
     // 五分钟一次
@@ -216,8 +226,8 @@ export default {
       this.flag = true;
       const params = {
         address: val
-      }
-      let res = await this.$request({
+      };
+      const res = await this.$request({
         url: '/swap/list',
         data: params
       });
@@ -227,18 +237,18 @@ export default {
     },
     toOrderDetail(id) {
       const orderId = id;
-      this.$router.push({ path: '/orderDetail', query: { orderId }})
+      this.$router.push({ path: '/orderDetail', query: { orderId }});
     },
     initConnect() {
       if (!this.walletType) {
         this.loading = false;
         return;
       }
-      if (this.walletType === "metamask") {
+      if (this.walletType === 'metamask') {
         if (window.ethereum) {
           this.initMetamask();
         }
-      } else if (this.walletType === "walletConnect") {
+      } else if (this.walletType === 'walletConnect') {
         // this.initWalletConnect();
       }
     },
@@ -247,7 +257,7 @@ export default {
       this.wallet = window.ethereum;
       // console.log(this.wallet.selectedAddress, 'this.wallet.selectedAddress');
       // console.log(this.wallet.chainId, 'this.wallet.chainId');
-      this.fromChainId = this.wallet.chainId
+      this.fromChainId = this.wallet.chainId;
       this.address = this.wallet.selectedAddress;
       // console.log(this.wallet.selectedAddress);
       if (!this.address) {
@@ -263,24 +273,24 @@ export default {
     },
     // 获取地址信息
     async requestAccounts() {
-      const res = await this.wallet.request({ method: "eth_requestAccounts" });
+      const res = await this.wallet.request({ method: 'eth_requestAccounts' });
       if (res.length) {
-        this.address = res[0]
+        this.address = res[0];
       }
     },
-    //监听账户改变
+    // 监听账户改变
     listenAccountChange() {
-      this.wallet.on("accountsChanged", (accounts) => {
-        console.log(accounts, "===accounts-changed===")
+      this.wallet.on('accountsChanged', (accounts) => {
+        console.log(accounts, '===accounts-changed===');
         if (accounts.length && this.walletType) {
           this.address = accounts[0];
-          if (this.address && !this.address.startsWith("0x")) {
-            this.switchNetwork(this.address)
+          if (this.address && !this.address.startsWith('0x')) {
+            this.switchNetwork(this.address);
           }
           window.location.reload();
           // this.getBalance();
         } else {
-          this.address = "";
+          this.address = '';
           this.$store.commit('changeShowConnect', true);
         }
       });
@@ -294,9 +304,9 @@ export default {
       this.$router.push({ path: '/' });
       this.address = '';
     },
-    //监听网络改变
+    // 监听网络改变
     listenNetworkChange() {
-      this.wallet.on("chainChanged", (chainId) => {
+      this.wallet.on('chainChanged', (chainId) => {
         if (chainId && this.walletType) {
           this.fromChainId = chainId;
           window.location.reload();
@@ -307,20 +317,20 @@ export default {
     async connectMetamask() {
       if (!window.ethereum) {
         this.$message({
-          message: this.$t("tips.tips1"),
-          type: "warning",
-          offset: 30,
+          message: this.$t('tips.tips1'),
+          type: 'warning',
+          offset: 30
         });
       } else {
         try {
-          this.walletType = "metamask";
-          sessionStorage.setItem("walletType", "metamask");
+          this.walletType = 'metamask';
+          sessionStorage.setItem('walletType', 'metamask');
           await this.initMetamask();
         } catch (e) {
           this.$message({
             message: e.message,
-            type: "warning",
-            offset: 30,
+            type: 'warning',
+            offset: 30
           });
         }
       }
@@ -330,12 +340,12 @@ export default {
       Object.keys(accounts).map((v) => {
         addressList.push({
           chain: v,
-          address: accounts[v],
+          address: accounts[v]
         });
       });
       const res = await this.$request({
-        url: "/wallet/sync",
-        data: { pubKey: pub, addressList },
+        url: '/wallet/sync',
+        data: { pubKey: pub, addressList }
       });
       return res.code === 1000;
     },
@@ -349,48 +359,48 @@ export default {
           await this.requestAccounts();
         }
         let account, pub;
-        if (!this.address.startsWith("0x")) {
+        if (!this.address.startsWith('0x')) {
           if (!window.nabox) {
-            throw "Nabox not found"
+            throw 'Nabox not found';
           }
           pub = await window.nabox.getPub({
             address: this.address
           });
           const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
-          console.log(address, "addresses addresses addresses addresses")
+          console.log(address, 'addresses addresses addresses addresses');
           const addressMap = {};
-          for (let item of networkList) {
-            addressMap[item] = address
+          for (const item of networkList) {
+            addressMap[item] = address;
           }
           account = {
             address: addressMap
           };
         } else {
           const jsonRpcSigner = this.provider.getSigner();
-          const message = "Generate L2 Address";
+          const message = 'Generate L2 Address';
           const signature = await jsonRpcSigner.signMessage(message);
           const msgHash = ethers.utils.hashMessage(message);
           const msgHashBytes = ethers.utils.arrayify(msgHash);
           const recoveredPubKey = ethers.utils.recoverPublicKey(
-              msgHashBytes,
-              signature
+            msgHashBytes,
+            signature
           );
           const addressMap = {};
-          for (let item of networkList) {
-            addressMap[item] = this.address
+          for (const item of networkList) {
+            addressMap[item] = this.address;
           }
-          console.log(addressMap, 'addressMap')
+          console.log(addressMap, 'addressMap');
           account = {
-            address: addressMap,
+            address: addressMap
           };
-          if (recoveredPubKey.startsWith("0x04")) {
+          if (recoveredPubKey.startsWith('0x04')) {
             const compressPub = ethers.utils.computePublicKey(
-                recoveredPubKey,
-                true
+              recoveredPubKey,
+              true
             );
             pub = compressPub.slice(2);
           } else {
-            throw "sign error"
+            throw 'sign error';
           }
         }
         account.pub = pub;
@@ -398,91 +408,91 @@ export default {
         const {
           chainId: NULSChainId,
           assetId: NULSAssetId,
-          prefix: NULSPrefix,
+          prefix: NULSPrefix
         } = NULS_INFO;
         // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
         // 根据公钥获取NERVE和NULS的地址
         account.address.NERVE = nerve.getAddressByPub(
-            chainId,
-            assetId,
-            pub,
-            prefix
+          chainId,
+          assetId,
+          pub,
+          prefix
         );
         account.address.NULS = nerve.getAddressByPub(
-            NULSChainId,
-            NULSAssetId,
-            pub,
-            NULSPrefix
+          NULSChainId,
+          NULSAssetId,
+          pub,
+          NULSPrefix
         );
         const accountList = getAccountList();
         const existIndex = accountList.findIndex(v => v.pub === account.pub);
         // 原来存在就替换，找不到就push
         if (existIndex > -1) {
-          accountList[existIndex] = account
+          accountList[existIndex] = account;
         } else {
           accountList.push(account);
         }
-        console.log(accountList, "accountList")
+        console.log(accountList, 'accountList');
         const syncRes = await this.syncAccount(pub, account.address);
         if (syncRes) {
-          localStorage.setItem("accountList", JSON.stringify(accountList));
+          localStorage.setItem('accountList', JSON.stringify(accountList));
           // 重新计算fromAddress
           const address = this.address;
           this.switchNetwork(address);
-          this.address = "";
+          this.address = '';
           // this.showSign = true;
           this.$store.commit('changeShowSign', false);
-          setTimeout(()=> {
+          setTimeout(() => {
             this.address = address;
-          }, 16)
+          }, 16);
         } else {
           this.$message({
-            type: "warning",
-            message: this.$t("tips.tips22"),
-            offset: 30,
+            type: 'warning',
+            message: this.$t('tips.tips22'),
+            offset: 30
           });
         }
       } catch (e) {
-        this.address = "";
+        this.address = '';
         this.$message({
-          message: this.$t("tips.tips19"),
-          type: "warning",
-          offset: 30,
+          message: this.$t('tips.tips19'),
+          type: 'warning',
+          offset: 30
         });
       }
       this.loading = false;
     },
     swapClick() {
       // this.showType = "Swap";
-      this.$router.push({ path: '/swap' })
+      this.$router.push({ path: '/swap' });
     },
     transferClick() {
-      this.showType = "Transfer";
-      this.$router.push({ path: '/transfer' })
+      this.showType = 'Transfer';
+      this.$router.push({ path: '/transfer' });
     },
     poolClick() {
-      this.showType = "Pool";
-      this.$router.push({ path: '/liquidity' })
+      this.showType = 'Pool';
+      this.$router.push({ path: '/liquidity' });
     },
     vaultsClick() {
-      this.showType = "Vaults";
+      this.showType = 'Vaults';
       this.$router.push({ path: '/vaults' });
     },
     airdropClick() {
-      this.showType = "Airdrop";
+      this.showType = 'Airdrop';
       this.$router.push({ path: '/airdrop' });
     },
     l1FarmClick() {
-      this.showType = "L1Farm";
+      this.showType = 'L1Farm';
       this.$router.push({ path: '/l1farm' });
     },
     l2FarmClick() {
-      this.showType = "L2Farm";
+      this.showType = 'L2Farm';
       this.$router.push({ path: '/l2farm' });
     },
     crossOut() {
       if (this.isDapp) {
-        this.showType = "Transfer";
+        this.showType = 'Transfer';
         this.nerveTo = false;
       } else {
         this.currentIndex = 1;
@@ -491,7 +501,7 @@ export default {
     },
     crossIn() {
       if (this.isDapp) {
-        this.showType = "Transfer";
+        this.showType = 'Transfer';
         this.nerveTo = true;
       } else {
         this.currentIndex = 1;
@@ -499,27 +509,20 @@ export default {
       }
     },
     switchNetwork(address) {
-      console.log(address, 'address ')
+      console.log(address, 'address ');
       // 连接插件时如果是nuls、nerve设置network为nuls/nerve
-      if (!address.startsWith("0x")) {
-        let network
-        if (address.startsWith("tNULS") || address.startsWith("NULS")) {
-          network = "NULS"
+      if (!address.startsWith('0x')) {
+        let network;
+        if (address.startsWith('tNULS') || address.startsWith('NULS')) {
+          network = 'NULS';
         } else {
-          network = "NERVE"
+          network = 'NERVE';
         }
-        this.$store.commit("changeNetwork", network)
+        this.$store.commit('changeNetwork', network);
       }
     }
-  },
-  mounted() {
-      window.scrollTo(0,0);
-  },
-  beforeDestroy() {
-    this.timer && clearInterval(this.timer);
-    this.timer = null;
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

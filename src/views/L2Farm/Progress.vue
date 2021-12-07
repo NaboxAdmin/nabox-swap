@@ -1,20 +1,24 @@
 <template>
   <div class="p-3 main-cont">
-    <div class="loading-cont" v-if="farmLoading"
-         element-loading-background="rgba(255, 255, 255, 0.1)"
-         v-loading="farmLoading" />
-    <div class="d-flex direction-column mb-3 border_d8"
-         v-for="(item, index) in farmList"
-         :key="`${item.farmKey}-${item.pid}`"
-         @click="showDetailInfo(item)"
-         v-else-if="farmList.length !== 0">
-      <div class="farm-item p-3 bg-white d-flex align-items-center space-between"
-           :class="{ 'farm_item_show': item.showDetail, 'farm_item_hide': !item.showDetail }">
+    <div
+      v-loading="farmLoading"
+      v-if="farmLoading"
+      class="loading-cont"
+      element-loading-background="rgba(255, 255, 255, 0.1)" />
+    <div
+      v-for="(item, index) in farmList"
+      v-else-if="farmList.length !== 0"
+      :key="`${item.farmKey}-${item.pid}`"
+      class="d-flex direction-column mb-3 border_d8"
+      @click="showDetailInfo(item)">
+      <div
+        :class="{ 'farm_item_show': item.showDetail, 'farm_item_hide': !item.showDetail }"
+        class="farm-item p-3 bg-white d-flex align-items-center space-between">
         <div class="d-flex direction-column">
           <div class="farm-icon d-flex align-items-center">
-          <span class="icon">
-            <img :src="item.icon || pictureError" @error="pictureError" alt="">
-          </span>
+            <span class="icon">
+              <img :src="item.icon || pictureError" alt="" @error="pictureError">
+            </span>
             <span class="size-30 ml-1 font-500">{{ item.farmName || '' }}</span>
           </div>
           <div class="farm-info mt-4 d-flex align-items-center">
@@ -30,14 +34,15 @@
             </div>
           </div>
         </div>
-        <div class="drop-icon" :class="{'rotate_x': item.showDetail}">
+        <div :class="{'rotate_x': item.showDetail}" class="drop-icon">
           <img src="@/assets/image/dorp_active.png" alt="">
         </div>
       </div>
-      <div class="farm-detail_info"
-           :class="{ 'show_transition': item.showDetail }"
-           @click.stop
-           v-if="item.showDetail">
+      <div
+        v-if="item.showDetail"
+        :class="{ 'show_transition': item.showDetail }"
+        class="farm-detail_info"
+        @click.stop>
         <div class="d-flex align-items-center space-between">
           <span class="text-90 size-28">TVL</span>
           <div class="d-flex align-items-center size-28">
@@ -47,34 +52,34 @@
         <div class="vaults-item">
           <div class="d-flex align-items-center text-90 size-28">
             <span>{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }} </span>
-<!--            <span v-if="item.lockCandy">({{ formatContent(item.lockDays || 1) }})</span>-->
-            <el-tooltip v-if="item.lockCandy" :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatContent(item.lockDays)" placement="top">
+            <!--            <span v-if="item.lockCandy">({{ formatContent(item.lockDays || 1) }})</span>-->
+            <el-tooltip v-if="item.lockCandy" :manual="false" :content="formatContent(item.lockDays)" class="tooltip-item ml-1" effect="dark" placement="top">
               <span class="info-icon">
-                <img src="@/assets/image/question.png"/>
+                <img src="@/assets/image/question.png">
               </span>
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <span class="size-40 word-break w-330">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             <span
-                class="item-btn size-30"
-                :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
-                v-if="!item.needReceiveAuth && !item.lockCandy"
-                @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
+              v-if="!item.needReceiveAuth && !item.lockCandy"
+              :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
+              class="item-btn size-30"
+              @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
             <span
-                class="item-btn size-30"
-                :class="{ active_btn: !item.pendingReward || item.pendingReward === 0 || item.pendingReward === '0' }"
-                v-else-if="!item.needReceiveAuth && item.lockCandy"
-                @click.stop="receiveClick(item.farmKey, item)">{{  $t("vaults.over7") }}</span>
+              v-else-if="!item.needReceiveAuth && item.lockCandy"
+              :class="{ active_btn: !item.pendingReward || item.pendingReward === 0 || item.pendingReward === '0' }"
+              class="item-btn size-30"
+              @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over7") }}</span>
           </div>
         </div>
         <div class="vaults-item">
           <div class="text-90 size-28 d-flex align-items-center">
             <span>{{ item.stakedAsset && item.stakedAsset.symbol || 'USDTN' }} {{ $t("vaults.vaults4") }} </span>
             <!--<span v-if="item.withdrawLockTime">({{ formatLockContent(item.withdrawLockTime) }})</span>-->
-            <el-tooltip v-if="item.withdrawLockTime" :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatLockContent(item.withdrawLockTime)" placement="top">
+            <el-tooltip v-if="item.withdrawLockTime" :manual="false" :content="formatLockContent(item.withdrawLockTime)" class="tooltip-item ml-1" effect="dark" placement="top">
               <span class="info-icon">
-                <img src="@/assets/image/question.png"/>
+                <img src="@/assets/image/question.png">
               </span>
             </el-tooltip>
           </div>
@@ -82,16 +87,18 @@
             <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
-                <div class="btn-item"
-                     :class="{ disabled_btn: !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0 }"
-                     @click="showClick('decrease', item.farmKey, item)">-</div>
-                <div class="btn-item ml-3"
-                     @click="showClick('increase', item.farmKey, item)">+</div>
+                <div
+                  :class="{ disabled_btn: !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0 }"
+                  class="btn-item"
+                  @click="showClick('decrease', item.farmKey, item)">-</div>
+                <div
+                  class="btn-item ml-3"
+                  @click="showClick('increase', item.farmKey, item)">+</div>
               </template>
               <div
-                  class="item-btn size-30"
-                  v-else
-                  @click="stakeApprove(item.farmKey, item, index)">
+                v-else
+                class="item-btn size-30"
+                @click="stakeApprove(item.farmKey, item, index)">
                 <span :class="{'mr-1': item.approveLoading}">{{ $t("vaults.over6") }}</span>
                 <Loading v-if="item.approveLoading" :is-active="false"/>
               </div>
@@ -105,15 +112,15 @@
           </span>
         </div>
         <template v-if="item.lockCandy">
-          <div class="px-cont mt-3"></div>
+          <div class="px-cont mt-3"/>
           <div class="size-28 mt-3 d-flex space-between align-items-center">
             <span class="d-flex align-items-center text-90 size-28">
               <span>{{ $t("vaults.vaults12") }}{{ item.syrupAsset && item.syrupAsset.symbol || 'NABOX' }}</span>
-<!--              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatContent(item.lockDays || 1)" placement="top">-->
-<!--                <span class="info-icon">-->
-<!--                  <img src="@/assets/image/info.png"/>-->
-<!--                </span>-->
-<!--              </el-tooltip>-->
+              <!--              <el-tooltip :manual="false" class="tooltip-item ml-1" effect="dark" :content="formatContent(item.lockDays || 1)" placement="top">-->
+              <!--                <span class="info-icon">-->
+              <!--                  <img src="@/assets/image/info.png"/>-->
+              <!--                </span>-->
+              <!--              </el-tooltip>-->
             </span>
             <div class="d-flex align-items-center size-28">
               <span class="text-3a">{{ item.lockNumbers || 0 | numFormat }}</span>
@@ -124,10 +131,10 @@
             <div class="d-flex align-items-center space-between mt-1">
               <span class="size-40 word-break w-330">{{ (item.unlockNumbers || 0) | numFormat }}</span>
               <span
-                  class="item-btn size-30"
-                  v-if="!item.needReceiveAuth"
-                  :class="{ active_btn: item.unlockNumbers == 0 }"
-                  @click="confirmUnlocked(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
+                v-if="!item.needReceiveAuth"
+                :class="{ active_btn: item.unlockNumbers == 0 }"
+                class="item-btn size-30"
+                @click="confirmUnlocked(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
             </div>
           </div>
         </template>
@@ -138,11 +145,12 @@
 </template>
 
 <script>
-import {Division} from "../../api/util";
-import { Loading } from "@/components";
+import { Division } from '../../api/util';
+import { Loading } from '@/components';
 
 export default {
-  name: "Progress",
+  name: 'Progress',
+  components: { Loading },
   props: {
     farmList: {
       type: Array,
@@ -157,14 +165,13 @@ export default {
       default: false
     }
   },
-  components: { Loading },
   data() {
     return {
       showDropList: false,
       progressFarmList: [],
       showApproveLoading: false
       // showDetail: true
-    }
+    };
   },
   watch: {
     farmList: {
@@ -174,7 +181,7 @@ export default {
             if (item.showDetail && this.farmList[index]) {
               this.farmList[index].showDetail = item.showDetail;
             }
-          })
+          });
         }
       }
     }
@@ -182,13 +189,13 @@ export default {
   methods: {
     showClick(type, farmHash, item) {
       // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
-      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0)) return false;
+      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward == 0 || item.reward < 0)) return false;
       this.$emit('showClick', { type, farmHash: item.farmKey, item });
     },
     // 领取
     receiveClick(farmHash, farm) {
-      if (!farm.lockCandy && (!farm.reward || farm.reward==="0" || farm.reward===0)) return false;
-      if (farm.lockCandy && (!farm.pendingReward || farm.pendingReward === 0 || farm.pendingReward === '0') ) return false;
+      if (!farm.lockCandy && (!farm.reward || farm.reward === '0' || farm.reward === 0)) return false;
+      if (farm.lockCandy && (!farm.pendingReward || farm.pendingReward === 0 || farm.pendingReward === '0')) return false;
       this.$emit('receiveClick', { farmHash, farm });
     },
     // 领取资产授权
@@ -203,7 +210,7 @@ export default {
     },
     // 显示Farm详细信息
     showDetailInfo(farm) {
-      for (let item of this.farmList) {
+      for (const item of this.farmList) {
         if (`${item.farmKey}-${item.pid}` === `${farm.farmKey}-${farm.pid}`) {
           farm.showDetail = !farm.showDetail;
         } else {
@@ -218,16 +225,16 @@ export default {
     },
     formatContent(lockDay) {
       const isEn = this.$store.state.lang === 'en';
-      return !isEn ? `执行解锁操作后，收益将在${lockDay}天后解锁，你可以在下方将已解锁的Token领取到你的账户地址` : `After executing the unlocking operation, the reward will be unlocked in ${lockDay} days and then you can claim the unlocked Token to your address`
+      return !isEn ? `执行解锁操作后，收益将在${lockDay}天后解锁，你可以在下方将已解锁的Token领取到你的账户地址` : `After executing the unlocking operation, the reward will be unlocked in ${lockDay} days and then you can claim the unlocked Token to your address`;
     },
     formatLockContent(lockSeconds) {
       if (!lockSeconds) return false;
       const lockDay = Division(lockSeconds, 3600);
       const isEn = this.$store.state.lang === 'en';
-      return !isEn ? `质押的资产退出时将被锁定${lockDay}小时` : `Staked token will be locked for ${lockDay} hours when withdrawing`
+      return !isEn ? `质押的资产退出时将被锁定${lockDay}小时` : `Staked token will be locked for ${lockDay} hours when withdrawing`;
     }
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

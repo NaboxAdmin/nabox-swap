@@ -1,86 +1,86 @@
 <template>
-  <div class="main-cont" :class="isMobile && 'main-cont_mobile' || ''">
-    <NavBar :back-change="true" @back="$emit('back')" :nav-title="$t('navBar.navBar1')"/>
-<!--    <div class="position-cont_nav" v-if="isMobile"/>-->
-    <div class="order-cont" v-loading="confirmLoading">
+  <div :class="isMobile && 'main-cont_mobile' || ''" class="main-cont">
+    <NavBar :back-change="true" :nav-title="$t('navBar.navBar1')" @back="$emit('back')"/>
+    <!--    <div class="position-cont_nav" v-if="isMobile"/>-->
+    <div v-loading="confirmLoading" class="order-cont">
       <div class="d-flex align-items-center justify-content-center">
-        <div class="coin-icon" v-if="orderInfo">
-          <img :src="getPicture(orderInfo.fromAsset.symbolImg)" @error="pictureError" alt="">
+        <div v-if="orderInfo" class="coin-icon">
+          <img :src="getPicture(orderInfo.fromAsset.symbolImg)" alt="" @error="pictureError">
         </div>
         <div class="coin-icon">
-          <img :src="getPicture(orderInfo.toAsset.symbolImg)" @error="pictureError" alt="">
+          <img :src="getPicture(orderInfo.toAsset.symbolImg)" alt="" @error="pictureError">
         </div>
       </div>
-      <div class="order-info" v-if="orderInfo">
+      <div v-if="orderInfo" class="order-info">
         <div class="detail-info mt-4">{{ orderInfo && orderInfo.fromAmount }} {{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</div>
         <div class="down-icon">
-          <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"></path><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"></path></svg>
+          <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"/><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"/></svg>
         </div>
         <div class="detail-info mt-2">{{ orderInfo.toAmount }} {{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.symbol }}</div>
       </div>
-      <div class="dash_cont"></div>
+      <div class="dash_cont"/>
       <div class="order-detail_info">
         <div class="d-flex align-items-center space-between">
           <span class="text-aa">From</span>
           <div class="d-flex align-items-center justify-content-end">
-            <span class="size-20 sign">{{ orderInfo &&  orderInfo.fromAsset && orderInfo.fromAsset.chain }}</span>
-            <span  class="ml-4">{{ superLong(orderInfo && orderInfo.address) }}</span>
+            <span class="size-20 sign">{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.chain }}</span>
+            <span class="ml-4">{{ superLong(orderInfo && orderInfo.address) }}</span>
           </div>
         </div>
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">To</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="size-20 sign">{{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.chain }}</span>
-            <span  class="ml-4">{{ superLong(orderInfo && orderInfo.toAddress) }}</span>
+            <span class="ml-4">{{ superLong(orderInfo && orderInfo.toAddress) }}</span>
           </div>
         </div>
         <!--汇率-->
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap5') }}</span>
-          <div class="d-flex align-items-center justify-content-end w-75" v-if="orderInfo.swapRate">
+          <div v-if="orderInfo.swapRate" class="d-flex align-items-center justify-content-end w-75">
             <span class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
-          <div class="d-flex align-items-center justify-content-end w-75" v-else>
+          <div v-else class="d-flex align-items-center justify-content-end w-75">
             <span class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
           </div>
         </div>
         <!--手续费-->
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
-          <div class="d-flex align-items-center justify-content-end" v-if="orderInfo.withdrawFee">
-            <span  class="ml-4 text-ec"><span class="text-3a" v-if="orderInfo.withdrawFee">
-              <span v-if="orderInfo.transferFee">{{ orderInfo.transferFee | numberFormat }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span> {{ orderInfo.withdrawFee }}{{orderInfo.toAsset && orderInfo.toAsset.symbol}}</span></span>
+          <div v-if="orderInfo.withdrawFee" class="d-flex align-items-center justify-content-end">
+            <span class="ml-4 text-ec"><span v-if="orderInfo.withdrawFee" class="text-3a">
+            <span v-if="orderInfo.transferFee">{{ orderInfo.transferFee | numberFormat }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span> {{ orderInfo.withdrawFee }}{{ orderInfo.toAsset && orderInfo.toAsset.symbol }}</span></span>
           </div>
-          <div class="d-flex align-items-center justify-content-end" v-else-if="orderInfo.stableFee">
-            <span  class="ml-4 text-ec">
+          <div v-else-if="orderInfo.stableFee" class="d-flex align-items-center justify-content-end">
+            <span class="ml-4 text-ec">
               <span class="text-3a">
-                {{ orderInfo.stableFee }}{{orderInfo.fromAsset && orderInfo.fromAsset.symbol}}
+                {{ orderInfo.stableFee }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}
               </span>
             </span>
           </div>
-          <div class="d-flex align-items-center justify-content-end" v-else>
-            <span  class="ml-4 text-ec">
+          <div v-else class="d-flex align-items-center justify-content-end">
+            <span class="ml-4 text-ec">
               <span class="text-3a">
-                {{ orderInfo.usdtnFee }}{{orderInfo.fromAsset && orderInfo.fromAsset.symbol}}
+                {{ orderInfo.usdtnFee }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}
               </span>
             </span>
           </div>
         </div>
-        <div class="btn cursor-pointer" v-if="crossInAuth" @click="approveERC20">{{ $t('transfer.transfer8') }}</div>
-        <div class="btn cursor-pointer" v-else @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
+        <div v-if="crossInAuth" class="btn cursor-pointer" @click="approveERC20">{{ $t('transfer.transfer8') }}</div>
+        <div v-else class="btn cursor-pointer" @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import NavBar from "../../components/NavBar/NavBar";
-import { ETHNET, MAIN_INFO, NULS_INFO } from "@/config";
+import NavBar from '../../components/NavBar/NavBar';
+import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import { timesDecimals, getCurrentAccount } from '@/api/util';
-import {ETransfer, NTransfer} from "../../api/api";
+import { ETransfer, NTransfer } from '../../api/api';
 
 export default {
-  name: "confirmOrder",
+  name: 'ConfirmOrder',
   components: { NavBar },
   data() {
     return {
@@ -89,6 +89,11 @@ export default {
       platformAddress: '', // 平台地址
       getAllowanceTimer: null,
       crossInAuth: false
+    };
+  },
+  computed: {
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     }
   },
   beforeCreate() {
@@ -107,8 +112,8 @@ export default {
         address: this.orderInfo.address,
         chainId: this.orderInfo.fromAsset.chainId,
         assetId: this.orderInfo.fromAsset.assetId,
-        contractAddress: this.orderInfo.fromAsset.contractAddress,
-      }
+        contractAddress: this.orderInfo.fromAsset.contractAddress
+      };
       this.getAssetDetailInfo(assetInfo);
     } else {
       this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
@@ -117,18 +122,21 @@ export default {
         address: this.orderInfo.address,
         chainId: this.orderInfo.fromAsset.chainId,
         assetId: this.orderInfo.fromAsset.assetId,
-        contractAddress: this.orderInfo.fromAsset.contractAddress,
-      }
+        contractAddress: this.orderInfo.fromAsset.contractAddress
+      };
       this.getAssetDetailInfo(assetInfo);
     }
     if (orderInfo.fromNetwork !== storageNetwork) {
       this.$router.go(-1);
     }
   },
-  computed: {
-    isMobile() {
-      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
-    },
+  beforeDestroy() {
+    // document.querySelector('body').removeAttribute('style');
+    // document.querySelector('body').setAttribute('style', 'font-size:12px');
+    if (this.getAllowanceTimer) {
+      clearTimeout(this.getAllowanceTimer);
+      this.getAllowanceTimer = null;
+    }
   },
   methods: {
     // 获取资产详情
@@ -140,14 +148,14 @@ export default {
         assetId: assetInfo.assetId,
         contractAddress: assetInfo.contractAddress,
         refresh: true
-      }
+      };
       const res = await this.$request({
         url: '/wallet/address/asset',
         data
       });
       if (res.data && res.code === 1000) {
         this.currentAssetInfo = res.data;
-        if (res.data.assetId === 0 && this.orderInfo.fromNetwork !== "NULS") {
+        if (res.data.assetId === 0 && this.orderInfo.fromNetwork !== 'NULS') {
           await this.checkCrossInAuthStatus();
         } else {
           this.crossInAuth = false;
@@ -158,13 +166,13 @@ export default {
     async checkCrossInAuthStatus() {
       const transfer = new ETransfer();
       const heterogeneousInfo = this.currentAssetInfo.heterogeneousList.filter(
-          (v) => v.chainName === this.orderInfo.fromNetwork
+        (v) => v.chainName === this.orderInfo.fromNetwork
       )[0];
       const contractAddress = this.currentAssetInfo.contractAddress;
       const needAuth = await transfer.getERC20Allowance(
-          contractAddress,
-          heterogeneousInfo.heterogeneousChainMultySignAddress,
-          this.fromAddress
+        contractAddress,
+        heterogeneousInfo.heterogeneousChainMultySignAddress,
+        this.fromAddress
       );
       this.crossInAuth = needAuth;
       if (!needAuth && this.getAllowanceTimer) {
@@ -178,18 +186,18 @@ export default {
       try {
         const transfer = new ETransfer();
         const heterogeneousInfo = this.currentAssetInfo.heterogeneousList.filter(
-            (v) => v.chainName === this.orderInfo.fromNetwork
+          (v) => v.chainName === this.orderInfo.fromNetwork
         )[0];
         const contractAddress = this.currentAssetInfo.contractAddress;
         const res = await transfer.approveERC20(
-            contractAddress,
-            heterogeneousInfo.heterogeneousChainMultySignAddress,
-            this.fromAddress
+          contractAddress,
+          heterogeneousInfo.heterogeneousChainMultySignAddress,
+          this.fromAddress
         );
         if (res.hash) {
           this.$message({
-            message: this.$t("tips.tips14"),
-            type: "success",
+            message: this.$t('tips.tips14'),
+            type: 'success',
             duration: 2000,
             offset: 30
           });
@@ -197,7 +205,7 @@ export default {
         } else {
           this.$message({
             message: JSON.stringify(res),
-            type: "warning",
+            type: 'warning',
             duration: 2000,
             offset: 30
           });
@@ -219,19 +227,19 @@ export default {
     setGetAllowanceTimer() {
       this.getAllowanceTimer = setInterval(() => {
         this.checkCrossInAuthStatus();
-      }, 3000)
+      }, 3000);
     },
 
     // 确认订单
     async confirmOrder() {
       this.confirmLoading = true;
-      console.log(this.orderInfo, "this.orderInfo")
-      console.log(this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset), 'this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.usdtnToAsset)')
+      console.log(this.orderInfo, 'this.orderInfo');
+      console.log(this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset), 'this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.usdtnToAsset)');
       if (this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset)) {
         // console.log(this.orderInfo.usdtnFee, this.orderInfo.usdtnFromAsset, '1231231')
         const params = {
           fromChain: this.orderInfo.fromNetwork
-        }
+        };
         const res = await this.$request({
           url: '/swap/conf',
           data: params
@@ -253,7 +261,7 @@ export default {
         // }
         const params = {
           fromChain: this.orderInfo.fromNetwork
-        }
+        };
         const res = await this.$request({
           url: '/swap/conf',
           data: params
@@ -271,7 +279,7 @@ export default {
           contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
           symbol: this.orderInfo && this.orderInfo.fromAsset.symbol,
           coinCode: this.orderInfo && this.orderInfo.fromAsset.coinCode,
-          amount: this.orderInfo && this.orderInfo.fromAmount,
+          amount: this.orderInfo && this.orderInfo.fromAmount
         };
         const receiveCoin = {
           chain: this.orderInfo && this.orderInfo.toAsset.chain,
@@ -281,20 +289,20 @@ export default {
           symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
           coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
           // amount: this.orderInfo && this.orderInfo.toAmount && timesDecimals(this.orderInfo.toAmount, this.orderInfo.toAsset.decimals),
-          amount: this.orderInfo && this.orderInfo.toAmount,
-        }
+          amount: this.orderInfo && this.orderInfo.toAmount
+        };
         const toChain = this.orderInfo && this.orderInfo.toAsset.chain;
         const params = {
           sendAddress: this.orderInfo.address,
           receiveAddress: this.currentAccount['address'][toChain],
           depositCoin,
           receiveCoin
-        }
+        };
         const res = await this.$request({
           url: '/swap/swft/order',
           data: params
         });
-        if (res.code===1000 && res.data) {
+        if (res.code === 1000 && res.data) {
           this.platformAddress = res.data.platformAddr;
           this.orderId = res.data.orderId;
           await this.transfer();
@@ -302,8 +310,8 @@ export default {
           this.$message({
             type: 'warning',
             message: res.msg,
-            offset: 30,
-          })
+            offset: 30
+          });
         }
         this.confirmLoading = false;
       }
@@ -312,10 +320,10 @@ export default {
     async transfer() {
       if (!this.platformAddress) {
         this.$message({
-          message: this.$t("tips.tips21"),
-          type: "warning",
+          message: this.$t('tips.tips21'),
+          type: 'warning',
           duration: 2000,
-          offset: 30,
+          offset: 30
         });
         return;
       }
@@ -323,18 +331,18 @@ export default {
         // 获取当前账户
         const currentAccount = getCurrentAccount(this.orderInfo.address);
         const { fromNetwork, fromAsset, amount, address, fromAmount } = this.orderInfo;
-        if (fromNetwork === "NERVE" || fromNetwork === "NULS") {
+        if (fromNetwork === 'NERVE' || fromNetwork === 'NULS') {
           let checkAssetSupport = true;
           const { chainId, assetId } = fromAsset;
-          if (fromNetwork === "NERVE") {
-            checkAssetSupport = chainId === MAIN_INFO.chainId && assetId === MAIN_INFO.assetId
+          if (fromNetwork === 'NERVE') {
+            checkAssetSupport = chainId === MAIN_INFO.chainId && assetId === MAIN_INFO.assetId;
           } else {
-            checkAssetSupport = chainId === NULS_INFO.chainId && assetId === NULS_INFO.assetId
+            checkAssetSupport = chainId === NULS_INFO.chainId && assetId === NULS_INFO.assetId;
           }
           if (!checkAssetSupport) {
             this.$message({
-              message: this.$t("tips.tips26"),
-              type: "warning",
+              message: this.$t('tips.tips26'),
+              type: 'warning',
               offset: 30,
               duration: 3000
             });
@@ -352,14 +360,14 @@ export default {
             assetsId: fromAsset.assetId,
             amount: timesDecimals(amount, fromAsset.decimals),
             fee: timesDecimals(0.001, 8)
-          }
+          };
           const inputOutput = await transfer.inputsOrOutputs(transferInfo);
           const data = {
             inputs: inputOutput.inputs,
             outputs: inputOutput.outputs,
             txData: {},
             pub: currentAccount.pub,
-            signAddress: currentAccount.address.Ethereum,
+            signAddress: currentAccount.address.Ethereum
           };
           const txHex = await transfer.getTxHex(data);
           if (txHex) {
@@ -380,10 +388,10 @@ export default {
         }
       } catch (e) {
         this.$message({
-          message: this.$t("tips.tips7"),
-          type: "warning",
-          offset: 30,
-        })
+          message: this.$t('tips.tips7'),
+          type: 'warning',
+          offset: 30
+        });
       }
     },
     // 稳定币转账
@@ -397,8 +405,8 @@ export default {
           fromAddress: address,
           decimals,
           nerveAddress: txData.nerveAddress,
-          contractAddress,
-        }
+          contractAddress
+        };
         const res = await transfer.crossIn(params);
         if (res && res.hash) {
           if (usdtnTransfer) {
@@ -411,8 +419,8 @@ export default {
         this.$message({
           type: 'warning',
           message: e.message,
-          offset: 30,
-        })
+          offset: 30
+        });
       }
     },
     // 广播swapBox usdt兑换交易
@@ -430,7 +438,7 @@ export default {
         pairAddress,
         auth: '1561ced6ef90f5d60ce669ba',
         swapAmount: timesDecimals(this.orderInfo.currentPlatform.minReceive, toAsset.decimals) // 最低收到/预计收到
-      }
+      };
       const res = await this.$request({
         url: '/swap/cross/swapTx',
         data: params
@@ -444,7 +452,7 @@ export default {
         });
         setTimeout(() => {
           // this.$router.go(-1)
-          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash } });
+          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash }});
           this.$emit('confirm');
         }, 1500);
       } else {
@@ -452,9 +460,9 @@ export default {
           type: 'warning',
           message: this.$t('tips.tips15'),
           offset: 30
-        })
+        });
       }
-      this.confirmLoading = false
+      this.confirmLoading = false;
     },
     // 同链usdtn兑换
     async broadcastUsdtnTransfer(txHash) {
@@ -470,8 +478,8 @@ export default {
         contractAddress: toAsset.contractAddress
       };
       const data = {
-        platform: "nabox",
-        channel: "nabox",
+        platform: 'nabox',
+        channel: 'nabox',
         chain: fromNetwork,
         address,
         fromCoin,
@@ -491,7 +499,7 @@ export default {
           duration: 1500
         });
         setTimeout(() => {
-          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash } });
+          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash }});
           this.$emit('confirm');
         }, 1500);
       } else {
@@ -499,15 +507,15 @@ export default {
           type: 'warning',
           message: this.$t('tips.tips15'),
           offset: 30
-        })
+        });
       }
-      this.confirmLoading = false
+      this.confirmLoading = false;
     },
     // 广播其他跨链兑换转账交易
     async broadcastHex(txHex, txHash) {
       if (txHex) { // nerve
-        const url = this.$store.state.network === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;
-        const chainId = this.$store.state.network === "NERVE" ? MAIN_INFO.chainId : NULS_INFO.chainId;
+        const url = this.$store.state.network === 'NERVE' ? MAIN_INFO.rpc : NULS_INFO.rpc;
+        const chainId = this.$store.state.network === 'NERVE' ? MAIN_INFO.chainId : NULS_INFO.chainId;
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
         if (res.result && res.result.hash) {
           const depositCoin = {
@@ -517,7 +525,7 @@ export default {
             contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
             symbol: this.orderInfo && this.orderInfo.fromAsset.symbol,
             coinCode: this.orderInfo && this.orderInfo.fromAsset.coinCode,
-            amount: this.orderInfo && this.orderInfo.fromAmount,
+            amount: this.orderInfo && this.orderInfo.fromAmount
           };
           const receiveCoin = {
             chain: this.orderInfo && this.orderInfo.toAsset.chain,
@@ -526,36 +534,36 @@ export default {
             contractAddress: this.orderInfo && this.orderInfo.toAsset.contractAddress,
             symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
             coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
-            amount: this.orderInfo && this.orderInfo.toAmount,
-          }
+            amount: this.orderInfo && this.orderInfo.toAmount
+          };
           const params = {
             address: this.orderInfo && this.orderInfo.address,
             txHash: res.result.hash,
             depositCoin,
             receiveCoin,
             orderId: this.orderId
-          }
+          };
           const res = this.$request({
             url: '/swap/swft/exchange',
             data: params
           });
           if (res.code === 1000 && res.data) {
             this.$message({
-              message: this.$t("tips.tips24"),
-              type: "success",
+              message: this.$t('tips.tips24'),
+              type: 'success',
               offset: 30,
               duration: 1500
             });
             setTimeout(() => {
-              this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash } });
+              this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash }});
               this.$emit('confirm');
             }, 1500);
           }
         } else {
           this.$message({
-            message: this.$t("tips.tips7"),
-            type: "warning",
-            offset: 30,
+            message: this.$t('tips.tips7'),
+            type: 'warning',
+            offset: 30
           });
         }
       } else { // 异构链
@@ -566,7 +574,7 @@ export default {
           contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
           symbol: this.orderInfo && this.orderInfo.fromAsset.symbol,
           coinCode: this.orderInfo && this.orderInfo.fromAsset.coinCode,
-          amount: this.orderInfo && this.orderInfo.fromAmount,
+          amount: this.orderInfo && this.orderInfo.fromAmount
         };
         const receiveCoin = {
           chain: this.orderInfo && this.orderInfo.toAsset.chain,
@@ -575,8 +583,8 @@ export default {
           contractAddress: this.orderInfo && this.orderInfo.toAsset.contractAddress,
           symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
           coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
-          amount: this.orderInfo && this.orderInfo.toAmount,
-        }
+          amount: this.orderInfo && this.orderInfo.toAmount
+        };
         const params = {
           address: this.orderInfo && this.orderInfo.address,
           txHash: txHash,
@@ -584,15 +592,15 @@ export default {
           receiveCoin,
           orderId: this.orderId,
           fee: this.orderInfo && this.orderInfo.withdrawFee
-        }
+        };
         const res = await this.$request({
           url: '/swap/swft/exchange',
           data: params
         });
         if (res.code === 1000 && res.data) {
           this.$message({
-            message: this.$t("tips.tips24"),
-            type: "success",
+            message: this.$t('tips.tips24'),
+            type: 'success',
             offset: 30,
             duration: 1500
           });
@@ -602,23 +610,15 @@ export default {
           }, 1500);
         } else {
           this.$message({
-            message: this.$t("tips.tips7"),
-            type: "warning",
-            offset: 30,
-          })
+            message: this.$t('tips.tips7'),
+            type: 'warning',
+            offset: 30
+          });
         }
       }
     }
-  },
-  beforeDestroy() {
-    // document.querySelector('body').removeAttribute('style');
-    // document.querySelector('body').setAttribute('style', 'font-size:12px');
-    if (this.getAllowanceTimer) {
-      clearTimeout(this.getAllowanceTimer);
-      this.getAllowanceTimer = null;
-    }
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

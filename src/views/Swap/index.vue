@@ -1,24 +1,25 @@
 <template>
   <div>
-    <div class="swap-cont" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" v-loading="showLoading">
+    <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'">
         <div class="d-flex align-items-center space-between text-90 size-28">
-          <div>{{ $t("swap.swap1") }}<span class="size-20 sign" v-if="chooseFromAsset">{{ chooseFromAsset.chain }}</span></div>
+          <div>{{ $t("swap.swap1") }}<span v-if="chooseFromAsset" class="size-20 sign">{{ chooseFromAsset.chain }}</span></div>
           <div>{{ $t("swap.swap4") }}：
-            <span class="text-3a" v-if="balanceLoading"><i class="el-icon-loading"/></span>
-            <span class="text-3a" v-else-if="available">{{ available | numberFormat }}</span>
-            <span class="text-3a" v-else>--</span>
+            <span v-if="balanceLoading" class="text-3a"><i class="el-icon-loading"/></span>
+            <span v-else-if="available" class="text-3a">{{ available | numberFormat }}</span>
+            <span v-else class="text-3a">--</span>
             <!--          <span class="word-break">{{ (available || 0.0) | numberFormat }}</span>-->
           </div>
         </div>
         <div class="input-cont mt-2">
           <template>
-            <div class="coin-cont size-28 cursor-pointer text-90"
-                 v-if="!chooseFromAsset"
-                 @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
-            <div class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')" v-else>
+            <div
+              v-if="!chooseFromAsset"
+              class="coin-cont size-28 cursor-pointer text-90"
+              @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
+            <div v-else class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')">
               <div class="image-cont">
-                <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol) || pictureError" @error="pictureError" alt="">
+                <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol) || pictureError" alt="" @error="pictureError">
               </div>
               <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
                 {{ chooseFromAsset.symbolImg }}
@@ -30,28 +31,30 @@
           </div>
           <div class="space-cont"/>
           <div class="input-item align-items-center d-flex flex-1">
-            <input class="flex-1"
-                   placeholder="0"
-                   @input="fromAmountInput"
-                   @focus="amountFocus('from')"
-                   v-model="fromAmount">
+            <input
+              v-model="fromAmount"
+              class="flex-1"
+              placeholder="0"
+              @input="fromAmountInput"
+              @focus="amountFocus('from')">
             <span class="text-primary size-28 cursor-pointer" @click="maxAmount">{{ $t("swap.swap3") }}</span>
           </div>
         </div>
-        <div class="text-red mt-2 ml-2 size-28" v-if="amountMsg">{{ amountMsg }}</div>
+        <div v-if="amountMsg" class="text-red mt-2 ml-2 size-28">{{ amountMsg }}</div>
         <div class="down-icon" @click="switchAssetClick">
           <img v-if="switchAsset" src="@/assets/image/switch.png" alt="">
           <img v-else src="@/assets/image/swap.png" alt="">
         </div>
         <div class="d-flex mt-05 align-items-center space-between text-90 size-28">
-          <div>{{ $t("swap.swap2") }}<span class="size-20 sign" v-if="chooseToAsset">{{ chooseToAsset.chain }}</span></div>
+          <div>{{ $t("swap.swap2") }}<span v-if="chooseToAsset" class="size-20 sign">{{ chooseToAsset.chain }}</span></div>
         </div>
         <div class="input-cont mt-2">
           <template>
-            <div class="coin-cont size-28 cursor-pointer text-90 text-truncate text-truncate_one"
-                 @click.stop="openModal('receive')"
-                 v-if="!chooseToAsset">{{ $t('swap.swap12') }}</div>
-            <div class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')" v-else>
+            <div
+              v-if="!chooseToAsset"
+              class="coin-cont size-28 cursor-pointer text-90 text-truncate text-truncate_one"
+              @click.stop="openModal('receive')">{{ $t('swap.swap12') }}</div>
+            <div v-else class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')">
               <div class="image-cont">
                 <img :src="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
               </div>
@@ -65,11 +68,12 @@
           </template>
           <div class="space-cont"/>
           <div class="input-item align-items-center d-flex flex-1">
-            <input class="flex-1"
-                   placeholder="0"
-                   @input="toAmountInput"
-                   @focus="amountFocus('to')"
-                   v-model="toAmount">
+            <input
+              v-model="toAmount"
+              class="flex-1"
+              placeholder="0"
+              @input="toAmountInput"
+              @focus="amountFocus('to')">
           </div>
         </div>
       </div>
@@ -77,7 +81,7 @@
         <template>
           <div class="d-flex space-between size-28">
             <span class="text-90">{{ $t("swap.swap5") }}</span>
-            <span class="text-3a w-75" v-if="currentPlatform">1{{ chooseFromAsset && chooseFromAsset.symbol }} ≈ {{ currentPlatform && currentPlatform.swapRate }} {{ chooseToAsset && chooseToAsset.symbol }}</span>
+            <span v-if="currentPlatform" class="text-3a w-75">1{{ chooseFromAsset && chooseFromAsset.symbol }} ≈ {{ currentPlatform && currentPlatform.swapRate }} {{ chooseToAsset && chooseToAsset.symbol }}</span>
             <span v-else>--</span>
           </div>
         </template>
@@ -91,84 +95,87 @@
               <!--              </span>-->
               <!--            </el-tooltip>-->
             </div>
-            <span class="text-3a" v-if="currentPlatform && currentPlatform.fee">
-            <span v-if="!!Number(transferFee)">{{ transferFee | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span> {{ !!Number(transferFee) && '+' || '' }} {{ currentPlatform.fee }}{{currentPlatform && currentPlatform.platform === 'SwapBox' && (chooseFromAsset && chooseFromAsset.symbol) || (chooseToAsset && chooseToAsset.symbol)}}</span>
-            <span class="text-3a" v-else>--</span>
+            <span v-if="currentPlatform && currentPlatform.fee" class="text-3a">
+            <span v-if="!!Number(transferFee)">{{ transferFee | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span> {{ !!Number(transferFee) && '+' || '' }} {{ currentPlatform.fee }}{{ currentPlatform && currentPlatform.platform === 'SwapBox' && (chooseFromAsset && chooseFromAsset.symbol) || (chooseToAsset && chooseToAsset.symbol) }}</span>
+            <span v-else class="text-3a">--</span>
           </div>
         </template>
         <div class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ (currentPlatform && currentPlatform.platform === 'swft' ? $t("swap.swap32") : $t("swap.swap20")) || $t("swap.swap20") }}</span>
-          <span class="text-3a" v-if="currentPlatform && currentPlatform.minReceive">
-          {{ currentPlatform.minReceive | numberFormat }}{{ chooseToAsset && chooseToAsset.symbol }}
-        </span>
-          <span class="text-3a" v-else>--</span>
+          <span v-if="currentPlatform && currentPlatform.minReceive" class="text-3a">
+            {{ currentPlatform.minReceive | numberFormat }}{{ chooseToAsset && chooseToAsset.symbol }}
+          </span>
+          <span v-else class="text-3a">--</span>
         </div>
         <div class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap7") }}</span>
           <span class="text-3a d-flex">
-          <span class="d-flex" v-if="currentPlatform && currentPlatform.platform">
-            <span class="sign size-22 mr-1" v-if="currentPlatform && currentPlatform.isBest">{{ $t("swap.swap19") }}</span>
-            <span class="d-flex align-items-center cursor-pointer" @click="showPop=true">
-              <span class="coin-icon_small">
-                <img v-if="currentPlatform && currentPlatform.platform === 'SwapBox'" src="@/assets/image/SwapBox.png" alt="">
-                <img v-if="currentPlatform && currentPlatform.platform === 'swft'" src="@/assets/image/swft.png" alt="">
-              </span>{{ currentPlatform.platform }}
+            <span v-if="currentPlatform && currentPlatform.platform" class="d-flex">
+              <span v-if="currentPlatform && currentPlatform.isBest" class="sign size-22 mr-1">{{ $t("swap.swap19") }}</span>
+              <span class="d-flex align-items-center cursor-pointer" @click="showPop=true">
+                <span class="coin-icon_small">
+                  <img v-if="currentPlatform && currentPlatform.platform === 'SwapBox'" src="@/assets/image/SwapBox.png" alt="">
+                  <img v-if="currentPlatform && currentPlatform.platform === 'swft'" src="@/assets/image/swft.png" alt="">
+                </span>{{ currentPlatform.platform }}
+              </span>
             </span>
-          </span>
-          <span v-else>--</span>
+            <span v-else>--</span>
           </span>
         </div>
-        <div class="btn size-30 cursor-pointer" :class="!canNext && 'opacity_btn'" @click="nextStep">{{ $t("swap.swap8") }}</div>
+        <div :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ $t("swap.swap8") }}</div>
         <!--      <button @click="test">test</button>-->
       </div>
-      <div class="order-list" v-if="!isDapp">
+      <div v-if="!isDapp" class="order-list">
         <div class="list-item">
           <div class="size-36 font-bold">{{ $t('swap.swap11') }}</div>
-          <div class="size-28 mt-5 d-flex align-items-center space-between"
-               v-if="orderList.length > 0"
-               v-for="(item, index) in orderList"
-               @click="toOrderDetail(item)"
-               :key="item.id">
-            <span>{{ item.amount }} {{ item.symbol  }} {{ $t('swap.swap14') }} {{ item.swapSuccAmount }} {{ item.swapSymbol }}</span>
+          <div
+            v-for="(item, index) in orderList"
+            v-if="orderList.length > 0"
+            :key="item.id"
+            class="size-28 mt-5 d-flex align-items-center space-between"
+            @click="toOrderDetail(item)">
+            <span>{{ item.amount }} {{ item.symbol }} {{ $t('swap.swap14') }} {{ item.swapSuccAmount }} {{ item.swapSymbol }}</span>
             <span>{{ item.createTime }}</span>
             <template>
-              <i class="el-icon-loading" style="color: #6EB6A9" v-if="item.status !== 5 && item.status !== 4"/>
-              <i class="el-icon-success" style="color: #6EB6A9" v-else-if="item.status === 4"/>
-              <i class="el-icon-error" style="color: #eb7d62" v-else-if="item.status === 5"/>
+              <i v-if="item.status !== 5 && item.status !== 4" class="el-icon-loading" style="color: #6EB6A9"/>
+              <i v-else-if="item.status === 4" class="el-icon-success" style="color: #6EB6A9"/>
+              <i v-else-if="item.status === 5" class="el-icon-error" style="color: #eb7d62"/>
             </template>
             <!--          <span v-if="index===0" class="order-icon">-->
             <!--                  <svg t="1626399518824" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1288" width="17" height="17"><path d="M709.570095 118.362074a37.044619 37.044619 0 0 1-16.865843-3.614109A424.657824 424.657824 0 0 0 630.059694 90.352729 37.64697 37.64697 0 0 1 650.539646 18.974073a543.923426 543.923426 0 0 1 74.992765 27.406994 37.64697 37.64697 0 0 1-15.962316 71.981007zM870.699128 859.8568a38.550498 38.550498 0 0 1-24.696413-9.035273 37.948146 37.948146 0 0 1-2.710582-53.308109 426.163703 426.163703 0 0 0 63.24691-96.376244 37.64697 37.64697 0 1 1 67.764547 32.828158 518.624662 518.624662 0 0 1-74.089238 112.940911 37.345794 37.345794 0 0 1-29.515224 12.950557z m113.543262-265.03467h-3.614109a37.64697 37.64697 0 0 1-33.731685-40.959904q1.807055-20.781128 1.807054-41.562255a430.68134 430.68134 0 0 0-6.324691-73.788062 37.64697 37.64697 0 1 1 74.390413-12.649382A517.721135 517.721135 0 0 1 1023.997591 511.998795c0 16.263491 0 32.526982-2.409407 48.489298a37.64697 37.64697 0 0 1-37.345794 34.334037z m-60.235152-282.201689a37.345794 37.345794 0 0 1-32.526983-18.672897 451.763643 451.763643 0 0 0-70.475128-90.352729A37.64697 37.64697 0 1 1 873.40971 150.587881a508.685862 508.685862 0 0 1 82.522158 107.218571 37.345794 37.345794 0 0 1-13.854085 51.19988 34.936388 34.936388 0 0 1-18.974073 3.614109zM673.429004 995.687069a37.64697 37.64697 0 0 1-12.649382-72.884534 473.448298 473.448298 0 0 0 60.235152-28.009346 37.64697 37.64697 0 1 1 36.442267 65.656316A493.024722 493.024722 0 0 1 686.379561 993.880014a38.851673 38.851673 0 0 1-12.950557 1.807055zM511.998795 1023.997591a511.998795 511.998795 0 0 1 0-1023.997591 37.64697 37.64697 0 0 1 0 75.29394 436.704855 436.704855 0 0 0-69.872776 867.687371l-9.938801-16.263492a37.64697 37.64697 0 0 1 64.752789-38.851673l47.284595 79.209226A37.345794 37.345794 0 0 1 511.998795 1023.997591z" fill="#333333" p-id="1289"></path><path d="M680.356046 667.405488a37.044619 37.044619 0 0 1-21.383479-6.927042L490.31414 542.116371a38.249322 38.249322 0 0 1-15.962315-30.117576V227.3877a37.64697 37.64697 0 0 1 75.293941 0v264.733495l152.394935 106.61622a37.64697 37.64697 0 0 1-21.684655 68.668073z" fill="#333333" p-id="1290"></path></svg>-->
             <!--                </span>-->
           </div>
-          <div class="text-center mt-3 size-28" v-if="orderList.length === 0">{{ $t('swap.swap15') }}</div>
+          <div v-if="orderList.length === 0" class="text-center mt-3 size-28">{{ $t('swap.swap15') }}</div>
         </div>
       </div>
-      <CoinModal v-if="showModal"
-                 :show-modal.sync="showModal"
-                 :modal-type="modalType"
-                 :coin-list="dialogCoinList"
-                 :from-chain="chooseFromAsset && chooseFromAsset.symbol || ''"
-                 :from-asset="chooseFromAsset"
-                 :to-asset="chooseToAsset"
-                 :from-address="fromAddress"
-                 :from-network="fromNetwork"
-                 :support-advanced="chooseFromAsset && chooseFromAsset.isSupportAdvanced === 'Y' || false"
-                 :usdt-info="USDT_info"
-                 :usdtn-info="USDTN_info"
-                 @select="selectCoin"/>
-      <pop-modal :preventBoo="false" :show="showPop" :custom-class="true">
+      <CoinModal
+        v-if="showModal"
+        :show-modal.sync="showModal"
+        :modal-type="modalType"
+        :coin-list="dialogCoinList"
+        :from-chain="chooseFromAsset && chooseFromAsset.symbol || ''"
+        :from-asset="chooseFromAsset"
+        :to-asset="chooseToAsset"
+        :from-address="fromAddress"
+        :from-network="fromNetwork"
+        :support-advanced="chooseFromAsset && chooseFromAsset.isSupportAdvanced === 'Y' || false"
+        :usdt-info="USDT_info"
+        :usdtn-info="USDTN_info"
+        @select="selectCoin"/>
+      <pop-modal :prevent-boo="false" :show="showPop" :custom-class="true">
         <div class="route-cont">
           <div class="header-cont size-36 font-500 mt-2">
             {{ $t('swap.swap7') }}
             <div class="back-icon cursor-pointer" @click="showPop=false">
-              <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"></path></svg>
+              <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"/></svg>
             </div>
           </div>
           <div class="route-cont_main">
-            <div class="route-item cursor-pointer"
-                 @click="routeClick(item)"
-                 :class="{active_choose: item.isChoose}"
-                 v-for="(item, index) in platformList">
+            <div
+              v-for="(item, index) in platformList"
+              :class="{active_choose: item.isChoose}"
+              class="route-item cursor-pointer"
+              @click="routeClick(item)">
               <div class="d-flex h-86 direction-column flex-1">
                 <div class="size-28">
                   <span class="text-90">{{ $t('swap.swap17') }}</span>
@@ -178,18 +185,18 @@
                 <div class="d-flex size-28 mt-23">
                   <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
                   <div class="d-flex align-items-center">
-                    <div class="route-icon" v-if="item.platform === 'SwapBox'">
+                    <div v-if="item.platform === 'SwapBox'" class="route-icon">
                       <img src="@/assets/image/SwapBox.png" alt="">
                     </div>
-                    <div class="route-icon" v-if="item.platform === 'swft'">
+                    <div v-if="item.platform === 'swft'" class="route-icon">
                       <img src="@/assets/image/swft.png" alt="">
                     </div>
                     <span class="size-26">{{ item.platform }}</span>
-                    <span class="sign size-22" v-if="item.isBest">{{ $t('swap.swap19') }}</span>
+                    <span v-if="item.isBest" class="sign size-22">{{ $t('swap.swap19') }}</span>
                   </div>
                 </div>
               </div>
-              <div class="success-icon" v-if="item.isChoose">
+              <div v-if="item.isChoose" class="success-icon">
                 <img src="@/assets/image/choose.png" alt="">
               </div>
             </div>
@@ -202,8 +209,8 @@
 </template>
 
 <script>
-import CoinModal from "./Modal/CoinModal";
-import PopUp from "@/components/PopUp/PopUp";
+import CoinModal from './Modal/CoinModal';
+import PopUp from '@/components/PopUp/PopUp';
 import ConfirmOrder from '@/views/confirmOrder/confirmOrder';
 import {
   debounce,
@@ -215,25 +222,25 @@ import {
   Times,
   timesDecimals,
   tofix
-} from "@/api/util";
-import {ETransfer} from "@/api/api";
-import {NULS_INFO} from "@/config";
+} from '@/api/util';
+import { ETransfer } from '@/api/api';
+import { NULS_INFO } from '@/config';
 
 export const valideNetwork = supportChainList.map(v => {
-  return v.SwftChain
+  return v.SwftChain;
 });
 export const networkToChain = {};
-valideNetwork.map(v=> {
-  const chain = supportChainList.filter(item => item.SwftChain === v)[0]
+valideNetwork.map(v => {
+  const chain = supportChainList.filter(item => item.SwftChain === v)[0];
   networkToChain[v] = {
     chain: chain.value,
     chainId: chain.chainId,
     assetId: chain.assetId
-  }
+  };
 });
 const swftFeeRate = 0.001;
 export default {
-  name: "Swap",
+  name: 'Swap',
   // keep-alive: true,
   components: {
     CoinModal,
@@ -297,23 +304,10 @@ export default {
       USDT_info: {}, // 当前的USDT资产
       currentNetwork: '', // 当前兑换资产选择的网络
       showOrderDetail: false,
-      swftError: false
-    }
-  },
-  created() {
-    this.focusSwapAsset();
-    this.getUsdtnAssets();
-    // setTimeout 0 不然获取不到地址
-    setTimeout(() => {
-      this.getOrderList(this.$store.state.fromAddress);
-      this.getCoins();
-    }, 0);
-    this.getLiquidityInfo(); // 获取当前池子的余额
-    if (!this.$store.state.isDapp) {
-      this.orderTimer = setInterval(() => {
-        this.getOrderList(this.$store.state.fromAddress);
-      }, 20000);
-    }
+      swftError: false,
+      fromContractAddress: '',
+      toContractAddress: ''
+    };
   },
   computed: {
     canNext() {
@@ -391,15 +385,15 @@ export default {
       handler(newVal, oldVal) {
         if (newVal && !isNaN(newVal)) {
           const decimals = 8;
-          const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
-          if (patrn.exec(newVal) || newVal === "") {
+          const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
+          if (patrn.exec(newVal) || newVal === '') {
             this.fromAmount = newVal;
           } else {
             this.fromAmount = oldVal;
           }
         } else {
-          this.fromAmount = "";
-          this.amountMsg = "";
+          this.fromAmount = '';
+          this.amountMsg = '';
         }
       },
       deep: true
@@ -410,14 +404,14 @@ export default {
         if (newVal) {
           this.checkLpBalance();
           const decimals = 8;
-          const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
-          if (patrn.exec(newVal) || newVal === "") {
+          const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
+          if (patrn.exec(newVal) || newVal === '') {
             this.toAmount = newVal;
           } else {
             this.toAmount = oldVal;
           }
         } else {
-          this.toAmount = "";
+          this.toAmount = '';
         }
       },
       deep: true
@@ -425,14 +419,14 @@ export default {
     stableFee: {
       handler(val) {
         if (this.stableFromAsset && this.stableToAsset && this.toAmount && this.fromAmount && this.currentPlatform && this.currentPlatform.platform === 'SwapBox') {
-          if (this.focusType==='from') {
+          if (this.focusType === 'from') {
             this.toAmount = Minus(this.fromAmount, val);
           } else {
             this.fromAmount = Plus(this.toAmount, val);
           }
           this.checkStableFee();
         } else {
-          if (this.focusType==='from') {
+          if (this.focusType === 'from') {
             this.toAmount = Minus(this.fromAmount, this.withdrawFee || 0);
           } else {
             this.fromAmount = Plus(this.toAmount, this.withdrawFee || 0);
@@ -453,6 +447,35 @@ export default {
       }
     }
   },
+  created() {
+    if (Object.keys(this.$route.query).length > 0) {
+      this.fromContractAddress = this.$route.query.fromContractAddress;
+      this.toContractAddress = this.$route.query.toContractAddress;
+    }
+    this.focusSwapAsset();
+    this.getUsdtnAssets();
+    // setTimeout 0 不然获取不到地址
+    setTimeout(() => {
+      this.getOrderList(this.$store.state.fromAddress);
+      this.getCoins();
+    }, 0);
+    this.getLiquidityInfo(); // 获取当前池子的余额
+    if (!this.$store.state.isDapp) {
+      this.orderTimer = setInterval(() => {
+        this.getOrderList(this.$store.state.fromAddress);
+      }, 20000);
+    }
+  },
+  beforeDestroy() {
+    if (this.rateTimer) clearInterval(this.rateTimer);
+    if (this.feeTimer) clearInterval(this.feeTimer);
+    if (this.amountTimer) clearInterval(this.amountTimer);
+    if (this.orderTimer) clearInterval(this.orderTimer);
+    this.rateTimer = null;
+    this.feeTimer = null;
+    this.amountTimer = null;
+    this.orderTimer = null;
+  },
   methods: {
     // 查询当前支持的usdtn列表
     async getUsdtnAssets() {
@@ -462,8 +485,8 @@ export default {
           url: '/swap/usdtn/assets'
         });
         if (res.code === 1000 && res.data) {
-          let tempUsdtnMap = {};
-          let tempUsdtMap = {};
+          const tempUsdtnMap = {};
+          const tempUsdtMap = {};
           this.USDTN_info = res.data.forEach(item => {
             if (item.symbol === 'USDTN') {
               tempUsdtnMap[item.chain] = {
@@ -471,14 +494,14 @@ export default {
                 symbol: item.symbol,
                 contractAddress: item.contractAddress,
                 assetId: item.assetId
-              }
+              };
             } else if (item.symbol === 'USDT') {
               tempUsdtMap[item.chain] = {
                 chainId: item.chainId,
                 symbol: item.symbol,
                 contractAddress: item.contractAddress,
                 assetId: item.assetId
-              }
+              };
             }
           });
           this.USDTN_info = tempUsdtnMap;
@@ -486,10 +509,10 @@ export default {
         } else {
           this.USDTN_info = {};
           this.USDT_info = {};
-          throw res.msg
+          throw res.msg;
         }
       } catch (e) {
-        console.error('erroe:' + e)
+        console.error('erroe:' + e);
       }
     },
     // 关注可以swap的资产
@@ -499,7 +522,7 @@ export default {
           pubKey: this.currentAccount.pub
         };
         const res = await this.$request({
-          url: "/swap/usdtn/focus",
+          url: '/swap/usdtn/focus',
           data
         });
         if (res.code !== 1000) {
@@ -539,8 +562,8 @@ export default {
         usdtnFee: this.usdtnFee,
         usdtnFromAsset: this.usdtnFromAsset,
         usdtnToAsset: this.usdtnToAsset
-      }
-      const params = encodeURIComponent(JSON.stringify(tempParams));
+      };
+      // const params = encodeURIComponent(JSON.stringify(tempParams));
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       // this.$router.push({path: '/confirmOrder', query: { orderInfo: params }});
       this.showOrderDetail = true;
@@ -552,9 +575,8 @@ export default {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
       const tempValideNetwork = valideNetwork.length === 0 && tempSupportChainList.map(item => item.SwftChain) || valideNetwork;
       const mainAssetSymbol = assetConfig[this.fromNetwork].symbol;
-      console.log(this.fromAddress, "fromAddress getCoins")
       const res = await this.$request({
-        url: "/swap/exchange/coins",
+        url: '/swap/exchange/coins',
         data: {
           chain: this.fromNetwork || '',
           address: this.fromAddress
@@ -562,15 +584,22 @@ export default {
       });
       if (res.code === 1000) {
         const coins = res.data.filter(v => tempValideNetwork.indexOf(v.chain) > -1);
-        let tempCoins = coins.map(item => ({
+        const tempCoins = coins.map(item => ({
           ...item,
           balance: divisionDecimals(item.balance, item.decimals),
           symbol: item.swftInfo && item.swftInfo.coinCode,
-          symbolImg: item.swftInfo && item.swftInfo.coinCode.split("(")[0],
+          symbolImg: item.swftInfo && item.swftInfo.coinCode.split('(')[0],
           ...item.swftInfo
         }));
         this.supportList = tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1);
-        this.chooseFromAsset = this.supportList.find(item => item.symbolImg === 'USDT') || this.supportList.find(item => item.symbolImg === mainAssetSymbol);
+        if (this.fromContractAddress && this.toContractAddress) {
+          this.chooseFromAsset = this.supportList.find(item => item.contractAddress === this.fromContractAddress);
+          await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
+          this.chooseToAsset = this.supportList.find(item => item.contractAddress === this.toContractAddress);
+          await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
+        } else {
+          this.chooseFromAsset = this.supportList.find(item => item.symbolImg === 'USDT') || this.supportList.find(item => item.symbolImg === mainAssetSymbol);
+        }
         this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
       }
     },
@@ -626,7 +655,7 @@ export default {
             this.usdtnFee = (this.usdtnFromAsset || this.usdtnToAsset) && await this.getSwapUsdtnFee();
           }
           if (this.fromAmount) {
-            this.toAmount = this.swapRate ? this.formatFloat(Times(this.swapRate, this.fromAmount)) : "";
+            this.toAmount = this.swapRate ? this.formatFloat(Times(this.swapRate, this.fromAmount)) : '';
           }
           !this.usdtnFromAsset && !this.usdtnToAsset && await this.getExchangeRate();
           this.withdrawFee = !this.usdtnFromAsset && !this.usdtnToAsset && await this.getSwapFee(); // 提现手续费
@@ -646,7 +675,7 @@ export default {
         contractAddress: this.chooseFromAsset && this.chooseFromAsset.contractAddress,
         amount: this.fromAmount && timesDecimals(this.fromAmount, this.chooseFromAsset.decimals),
         auth: '1561ced6ef90f5d60ce669ba'
-      }
+      };
       const res = this.fromAmount && await this.$request({
         methods: 'post',
         url: '/swap/cross/fee',
@@ -667,19 +696,19 @@ export default {
           swapRate: item === 'SwapBox' ? 1 : this.swapRate
         }));
         if (this.lpCountFull) {
-          this.currentPlatform = this.getBestPlatform(this.platformList)
+          this.currentPlatform = this.getBestPlatform(this.platformList);
         } else {
-          this.currentPlatform = this.getBestPlatform(this.platformList, this.lpCountFull)
+          this.currentPlatform = this.getBestPlatform(this.platformList, this.lpCountFull);
         }
       } else {
         this.checkStableFee();
         this.stableFeeLoading = false;
-        return ''
+        return '';
       }
     },
     // 刷新汇率
     setRateTimer() {
-      this.rateTimer = setInterval(async () => {
+      this.rateTimer = setInterval(async() => {
         if (this.chooseFromAsset && this.chooseToAsset) {
           await this.getExchangeRate(false);
         } else {
@@ -689,11 +718,11 @@ export default {
       }, this.times);
     },
     // 获取钱包余额
-    async getBalance(asset, clickBoo=false) {
+    async getBalance(asset, clickBoo = false) {
       if (this.balanceRequest || clickBoo) {
         this.balanceLoading = true;
       }
-      if (this.$store.state.network === "NERVE" || this.$store.state.network === "NULS") {
+      if (this.$store.state.network === 'NERVE' || this.$store.state.network === 'NULS') {
         const params = {
           chain: this.fromNetwork,
           address: this.fromAddress,
@@ -703,11 +732,11 @@ export default {
         };
         // 关注资产
         await this.$request({
-          url: "/wallet/address/asset/focus",
+          url: '/wallet/address/asset/focus',
           data: {
             focus: true,
-            ...params,
-          },
+            ...params
+          }
         });
         await this.getAssetInfo(params);
       } else {
@@ -723,11 +752,11 @@ export default {
             this.available = tempAvailable && tofix(tempAvailable, 6, -1);
           }
         } catch (e) {
-          console.log(e, "error")
+          console.log(e, 'error');
           this.available = 0;
           this.$message({
-            message: this.$t("tips.tips2"),
-            type: "warning",
+            message: this.$t('tips.tips2'),
+            type: 'warning',
             duration: 1000,
             offset: 30
           });
@@ -739,11 +768,11 @@ export default {
     // nerve nuls链上获取资产信息
     async getAssetInfo(params) {
       const res = await this.$request({
-        url: "/wallet/address/asset",
+        url: '/wallet/address/asset',
         data: {
           refresh: true,
-          ...params,
-        },
+          ...params
+        }
       });
       if (res.code === 1000) {
         this.available = divisionDecimals(res.data.balance, res.data.decimals);
@@ -778,7 +807,7 @@ export default {
           this.stableFeeLoading = false;
           if (this.stableFee && this.currentPlatform && this.currentPlatform.platform === 'SwapBox') {
             this.toAmount = Minus(this.fromAmount, this.stableFee);
-          } else if(this.stableFee && this.currentPlatform && this.currentPlatform.platform !== 'SwapBox') {
+          } else if (this.stableFee && this.currentPlatform && this.currentPlatform.platform !== 'SwapBox') {
             this.toAmount = Minus(this.fromAmount, this.withdrawFee);
           } else {
             this.toAmount = this.fromAmount;
@@ -798,10 +827,9 @@ export default {
           // }
           this.amount = this.formatFloat(this.fromAmount);
           if (this.focusType === 'from') {
-            this.toAmount = this.swapRate ?
-                this.numberFormat(this.formatFloat(Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) < 0 ? 0
-                :
-                Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) ), 8, true) : "";
+            this.toAmount = this.swapRate
+              ? this.numberFormat(this.formatFloat(Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) < 0 ? 0
+                : Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0)), 8, true) : '';
           }
           this.platformList = this.withdrawFee && ['swft'].map(item => ({
             asset: this.chooseToAsset || '',
@@ -819,7 +847,7 @@ export default {
           //   this.checkAmount();
           // }
         } else {
-          this.toAmount = "";
+          this.toAmount = '';
           this.currentPlatform = null;
         }
       }
@@ -847,25 +875,25 @@ export default {
         }
       } else { // swft
         if (this.chooseToAsset) {
-          this.fromAmount = this.swapRate ? this.numberFormat(tofix(Division(Plus(this.toAmount, this.withdrawFee), this.swapRate), 8, -1), 8, true) : "";
+          this.fromAmount = this.swapRate ? this.numberFormat(tofix(Division(Plus(this.toAmount, this.withdrawFee), this.swapRate), 8, -1), 8, true) : '';
           this.amount = this.fromAmount;
           this.fromAmountInput();
           const transformFeeAmount = Times(this.fee, this.swapRate); // swft收取的手续费转换为to资产数量
           this.estimatedAmount = Minus(this.toAmount, Plus(transformFeeAmount, this.withdrawalFee)).toFixed();
           this.checkAmount();
         } else {
-          this.toAmount = "";
+          this.toAmount = '';
         }
       }
     },
 
     async checkUsdtnFee() {
       if (Minus(this.fromAmount, this.usdtnFee) <= 0) {
-        this.amountMsg = `${this.$t("tips.tips3")}${this.usdtnFee}`;
+        this.amountMsg = `${this.$t('tips.tips3')}${this.usdtnFee}`;
       } else if (Minus(this.fromAmount, this.available) > 0) {
-        this.amountMsg = `${this.chooseFromAsset.symbol}${this.$t("tips.tips9")}`;
+        this.amountMsg = `${this.chooseFromAsset.symbol}${this.$t('tips.tips9')}`;
       } else {
-        this.amountMsg = ''
+        this.amountMsg = '';
       }
     },
     // 获取兑换usdtn手续费
@@ -874,19 +902,19 @@ export default {
         chain: this.fromNetwork
       };
       const res = await this.$request({
-        url: "/swap/nerve/cross/fee",
+        url: '/swap/nerve/cross/fee',
         data
       });
       if (res.code === 1000 && res.data) {
-        return res.data
+        return res.data;
       }
       return 0;
     },
     // 计算发送交易消耗的手续费
-    async getTransferFee(firstRequest=true) {
+    async getTransferFee(firstRequest = true) {
       let fee = 0;
       if (firstRequest) this.feeLoading = true;
-      if (this.$store.state.network !== "NERVE" && this.$store.state.network !== "NULS") {
+      if (this.$store.state.network !== 'NERVE' && this.$store.state.network !== 'NULS') {
         if (!this.chooseFromAsset.contractAddress) {
           const transfer = new ETransfer();
           // const res = await this.$request({
@@ -896,13 +924,13 @@ export default {
           //     isToken: !!this.chooseFromAsset.contact
           //   }
           // });
-          const gasLimit = !!this.chooseFromAsset.contact && "150000" || "21000";
+          const gasLimit = !!this.chooseFromAsset.contact && '150000' || '21000';
           fee = await transfer.getGasPrice(gasLimit);
         }
       } else {
         const { chainId, assetId } = this.chooseFromAsset;
-        if (this.$store.state.network === "NULS" && chainId === NULS_INFO.chainId && assetId === NULS_INFO.assetId) {
-          fee = 0.001
+        if (this.$store.state.network === 'NULS' && chainId === NULS_INFO.chainId && assetId === NULS_INFO.assetId) {
+          fee = 0.001;
         }
       }
       this.feeLoading = false;
@@ -915,17 +943,17 @@ export default {
     maxAmount() {
       this.focusType = 'from';
       if (this.stableToAsset && this.stableFromAsset) {
-        if (this.chooseFromAsset && this.available !== "0") {
+        if (this.chooseFromAsset && this.available !== '0') {
           this.fromAmount = this.numberFormat(tofix(this.available, 8, -1), 8, true);
           this.toAmount = this.numberFormat(tofix(Minus(this.fromAmount, this.stableFee || 0), 8, -1), 8, true);
           this.getFeeDebounce();
         }
       } else {
-        if (this.chooseFromAsset && this.available != "0") {
+        if (this.chooseFromAsset && this.available != '0') {
           this.fromAmount = this.numberFormat(tofix(Minus(this.available, this.transferFee || 0), 8, -1), 8, true);
           this.amount = this.numberFormat(tofix(Minus(this.available, this.transferFee || 0), 8, -1), 8, true);
         }
-        if (this.swapRate && this.available !== "0") {
+        if (this.swapRate && this.available !== '0') {
           this.toAmount = this.numberFormat(tofix(Times(this.fromAmount, this.swapRate), 8, -1), 8, true);
         }
         this.chooseToAsset && this.fromAmountInput();
@@ -945,7 +973,7 @@ export default {
         default:
           tempFee = 0;
       }
-      return tempFee || 0
+      return tempFee || 0;
     },
     // 检查稳定币池子是否足够
     async checkLpBalance() {
@@ -970,9 +998,9 @@ export default {
             item.isChoose = false;
           }
         });
-        return platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p)
+        return platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
       } else {
-        const tempList = platformList.filter(item => item.platform !== 'SwapBox');
+        // const tempList = platformList.filter(item => item.platform !== 'SwapBox');
         const tempPlatform = platformList.find(item => item.platform !== 'SwapBox');
         this.platformList.forEach(item => {
           if (item.platform === tempPlatform.platform) {
@@ -981,7 +1009,7 @@ export default {
           } else {
             item.isBest = false;
             item.isChoose = false;
-            item.errorMsg = this.$t('swap.swap27')
+            item.errorMsg = this.$t('swap.swap27');
           }
         });
         return tempPlatform;
@@ -992,18 +1020,18 @@ export default {
       if (!this.chooseFromAsset || !this.chooseToAsset) return false;
       // console.log(Minus(Plus(this.fromAmount, 0), this.available) > 0, (Minus(this.fromAmount, this.stableFee) <= 0), "checkStableFee")
       if (Minus(Plus(this.fromAmount, 0), this.available) > 0) { // 余额不足
-        this.amountMsg = this.chooseFromAsset.symbol + this.$t("tips.tips20");
+        this.amountMsg = this.chooseFromAsset.symbol + this.$t('tips.tips20');
       } else if (!(Minus(Plus(this.fromAmount, 0), this.available) > 0) && (Minus(this.fromAmount, this.stableFee) <= 0)) { // 最小兑换数量
-        this.amountMsg = `${this.$t("tips.tips3")}${Plus(this.stableFee, 0)}`;
+        this.amountMsg = `${this.$t('tips.tips3')}${Plus(this.stableFee, 0)}`;
       } else {
         // this.checkLpBalance();
-        this.amountMsg = "";
+        this.amountMsg = '';
       }
     },
     // 选择最优路径
     routeClick(platform) {
       this.currentPlatform = platform;
-      for (let item of this.platformList) {
+      for (const item of this.platformList) {
         item.isChoose = item.platform === platform.platform;
       }
       this.showPop = false;
@@ -1011,7 +1039,7 @@ export default {
     // 获取pool流动性信息
     async getLiquidityInfo() {
       const res = await this.$request({
-        method: "get",
+        method: 'get',
         url: '/swap/usdn/info'
       });
       if (res.code === 1000 && res.data) {
@@ -1023,8 +1051,8 @@ export default {
       this.flag = true;
       const params = {
         address: val
-      }
-      let res = await this.$request({
+      };
+      const res = await this.$request({
         url: '/swap/get/list',
         data: params
       });
@@ -1034,22 +1062,22 @@ export default {
             ...item,
             createTime: this.formatTime(item.createTime),
             amount: divisionDecimals(item.amount, item.decimal),
-            swapSuccAmount: item.swapSuccAmount && divisionDecimals(item.swapSuccAmount, item.swapDecimal) || 0,
-          }
+            swapSuccAmount: item.swapSuccAmount && divisionDecimals(item.swapSuccAmount, item.swapDecimal) || 0
+          };
         });
       }
     },
     checkAmount() {
       if (!this.min || !this.max) return;
-      let msg = "";
+      let msg = '';
       if (this.chooseFromAsset && Minus(Plus(this.fromAmount, this.transferFee || 0), this.available || 0) > 0) {
-        msg = `${this.chooseFromAsset.symbol}${this.$t("tips.tips9")}`;
+        msg = `${this.chooseFromAsset.symbol}${this.$t('tips.tips9')}`;
       } else if (Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee) < 0) {
         msg = `${this.$t('swap.swap29')}${this.numberFormat(this.formatFloat(Division(this.withdrawFee, this.swapRate), 2), 2)}${this.chooseFromAsset.symbol}${this.$t('swap.swap30')}`;
-      } else if (Minus(this.fromAmount, this.min) < 0 ) {
-        msg = this.$t("tips.tips3") + this.min
+      } else if (Minus(this.fromAmount, this.min) < 0) {
+        msg = this.$t('tips.tips3') + this.min;
       } else if (Minus(this.fromAmount, this.max) > 0) {
-        msg = this.$t("tips.tips4") + this.max
+        msg = this.$t('tips.tips4') + this.max;
       }
       this.amountMsg = msg;
     },
@@ -1071,29 +1099,28 @@ export default {
       this.fromAmountInput();
     },
     // 通过fromCoin toCoin查询swft兑换汇率
-    async getExchangeRate(firstRequest=true) {
+    async getExchangeRate(firstRequest = true) {
       if (!this.chooseFromAsset || !this.chooseToAsset) return false;
       if (firstRequest) this.rateLoading = true;
       const res = await this.$request({
-        url: "/swap/swft/base",
+        url: '/swap/swft/base',
         data: {
           depositCoinCode: this.chooseFromAsset.coinCode,
-          receiveCoinCode: this.chooseToAsset && this.chooseToAsset.coinCode || '',
-        },
+          receiveCoinCode: this.chooseToAsset && this.chooseToAsset.coinCode || ''
+        }
       });
       if (res.code === 1000) {
         this.max = res.data.depositMax;
         this.min = res.data.depositMin;
         this.swapRate = this.numberFormat(tofix(res.data.instantRate, 6));
         if (this.currentPlatform && this.currentPlatform.platform === 'swft') {
-          if (this.focusType==='from') {
-            this.toAmount = this.swapRate ?
-                this.numberFormat(this.formatFloat(Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) < 0 ? 0
-                    :
-                    Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) ), 8, true) : "";
+          if (this.focusType === 'from') {
+            this.toAmount = this.swapRate
+              ? this.numberFormat(this.formatFloat(Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) < 0 ? 0
+                : Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0)), 8, true) : '';
             // this.toAmount = this.fromAmount ? this.numberFormat(tofix(Times(this.swapRate, this.fromAmount), 8, 1), 8, true) : "";
-          } else if (this.focusType==='to') {
-            this.fromAmount = this.swapRate ? this.numberFormat(tofix(Division(Plus(this.toAmount, this.withdrawFee), this.swapRate), 8, -1), 8, true) : "";
+          } else if (this.focusType === 'to') {
+            this.fromAmount = this.swapRate ? this.numberFormat(tofix(Division(Plus(this.toAmount, this.withdrawFee), this.swapRate), 8, -1), 8, true) : '';
             this.amount = this.fromAmount;
             // this.fromAmount = this.toAmount ? this.numberFormat(tofix(Division(this.toAmount, this.swapRate), 8, 1), 8, true) : "";
           }
@@ -1124,7 +1151,7 @@ export default {
         this.feeLoading = false;
         return res.data && res.data[0] && res.data[0].chainFee;
       }
-      return ''
+      return '';
     },
     // 订单详情
     toOrderDetail(item) {
@@ -1137,19 +1164,19 @@ export default {
       if (type === 'send') {
         this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork && v.isSupportAdvanced === 'Y');
       } else {
-        this.dialogCoinList = this.supportList
+        this.dialogCoinList = this.supportList;
       }
       this.modalType = type;
       this.showModal = true;
     },
     // 格式化
     formatFloat(float) {
-      if (!float) return "";
+      if (!float) return '';
       const _float = parseFloat(float);
-      if (_float===0) {
-        return 0
+      if (_float === 0) {
+        return 0;
       }
-      return tofix(float, 8)
+      return tofix(float, 8);
     },
     // 重置
     reset() {
@@ -1175,18 +1202,8 @@ export default {
       this.reset();
       await this.getCoins();
     }
-  },
-  beforeDestroy() {
-    if (this.rateTimer) clearInterval(this.rateTimer);
-    if (this.feeTimer) clearInterval(this.feeTimer);
-    if (this.amountTimer) clearInterval(this.amountTimer);
-    if (this.orderTimer) clearInterval(this.orderTimer);
-    this.rateTimer = null;
-    this.feeTimer = null;
-    this.amountTimer = null;
-    this.orderTimer = null;
-  },
-}
+  }
+};
 </script>
 
 <style lang="scss" scoped>
