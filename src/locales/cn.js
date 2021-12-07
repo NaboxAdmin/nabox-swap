@@ -136,7 +136,9 @@ const cn = {
         navBar3: '矿池',
         navBar4: '交易详情',
         navBar5: '兑换',
-        navBar6: '空投'
+        navBar6: '空投',
+        navBar7: 'L1农场',
+        navBar8: 'L2农场',
     },
     order: {
         order1: '订单信息',

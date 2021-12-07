@@ -12,7 +12,9 @@
                  @transferClick="transferClick"
                  @vaultsClick="vaultsClick"
                  @poolClick="poolClick"
-                 @airdropClick="airdropClick">
+                 @airdropClick="airdropClick"
+                 @l1FarmClick="l1FarmClick"
+                 @l2FarmClick="l2FarmClick">
         <div class="connect-item" v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)">
           <div class="connect-btn" v-if="showConnect" @click="connectMetamask">{{ $t("tips.tips12") }}</div>
           <div class="sign-btn" v-else-if="!showConnect && showSign" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
@@ -39,10 +41,10 @@
 </template>
 
 <script>
-import {HeaderBar} from "../components";
-import {ETHNET, MAIN_INFO, NULS_INFO} from "@/config";
+import { HeaderBar } from "../components";
+import { ETHNET, MAIN_INFO, NULS_INFO } from "@/config";
 import nerve from "nerve-sdk-js";
-import {supportChainList, getCurrentAccount} from "@/api/util";
+import { supportChainList, getCurrentAccount } from "@/api/util";
 
 const ethers = require("ethers");
 
@@ -469,6 +471,14 @@ export default {
     airdropClick() {
       this.showType = "Airdrop";
       this.$router.push({ path: '/airdrop' });
+    },
+    l1FarmClick() {
+      this.showType = "L1Farm";
+      this.$router.push({ path: '/l1farm' });
+    },
+    l2FarmClick() {
+      this.showType = "L2Farm";
+      this.$router.push({ path: '/l2farm' });
     },
     crossOut() {
       if (this.isDapp) {

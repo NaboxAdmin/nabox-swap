@@ -29,9 +29,9 @@
                   :class="{'active_chain': item.chainName === currentChain}"
                   :key="index">
               <span class="chain-icon mr-2">
-                <img :src="getPicture(item.chainName)" @error="pictureError" alt="">
+                <img :src="item.icon" @error="pictureError" alt="">
               </span>
-              {{ item.chainName }}
+              {{ item.chainName === 'OKExChain' && 'OEC' || item.chainName }}
             </span>
           </div>
         </div>
@@ -51,7 +51,9 @@
            @transferClick="transferClick"
            @poolClick="poolClick"
            @vaultsClick="vaultsClick"
-           @airdropClick="airdropClick"/>
+           @airdropClick="airdropClick"
+           @l1FarmClick="l1FarmClick"
+           @l2FarmClick="l2FarmClick"/>
       <pop-up :prevent-boo="false" :show.sync="showAccount">
         <div class="address-detail_pop">
           <div class="customer-p">
@@ -206,7 +208,7 @@ export default {
     "$route.fullPath": {
       handler(val) {
         this.isSwap = window.location.hash.indexOf('swap') > -1;
-        this.isVaults = window.location.hash.indexOf('vaults') > -1;
+        this.isVaults = window.location.hash.indexOf('farm') > -1;
         this.isLiquidity = window.location.hash.indexOf('liquidity') > -1;
         this.$store.commit('changeSwap', this.isSwap);
       },
@@ -252,6 +254,7 @@ export default {
         chainId: chain[ETHNET],
         // rpcUrls: chain.rpcUrl ? [chain.rpcUrl[ETHNET]] : [],
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
+        icon: chain.icon,
         chainName: chain.value,
         nativeCurrency: {
           name: chain.value,
@@ -294,7 +297,7 @@ export default {
     disConnect() {
       this.showAccount = false;
       this.showPop = false;
-      this.$emit('disConnect')
+      this.$emit('disConnect');
     },
     showClick() {
       this.showPop = !this.showPop;
@@ -306,29 +309,13 @@ export default {
     },
     chainClick(chain) {
       if (this.currentChain === chain.chainName) return;
+      delete chain['icon'];
       // if (chain.chainName === "NULS" || chain.chainName === "NERVE") {
       //   this.currentChain = chain.chainName;
       //   this.$store.commit('changeNetwork', chain.chainName);
       //   return;
       // }
       this.showDropList = false;
-      // window.ethereum && window.ethereum.request({
-      //   method: "wallet_switchEthereumChain",
-      //   params: [
-      //     {
-      //       chainId: chain.chainId
-      //     }
-      //   ]
-      // }).then(() => {
-      //   this.currentChain = chain.chainName;
-      //   this.$store.commit('changeNetwork', chain.chainName);
-      // }).catch(err => {
-      //   this.$message({
-      //     message: err.message,
-      //     offset: 30,
-      //     type: "warning"
-      //   })
-      // });
       if (chain.chainName !== 'Ethereum') {
         window.ethereum && window.ethereum.request({
           method: "wallet_addEthereumChain",
@@ -483,6 +470,14 @@ export default {
     },
     airdropClick() {
       this.$emit('airdropClick');
+      this.showPop = false;
+    },
+    l1FarmClick() {
+      this.$emit('l1FarmClick');
+      this.showPop = false;
+    },
+    l2FarmClick() {
+      this.$emit('l2FarmClick');
       this.showPop = false;
     },
     async getMainAssetInfo(assetInfo) {

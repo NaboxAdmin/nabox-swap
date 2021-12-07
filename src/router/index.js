@@ -54,6 +54,22 @@ const mainRoutes = [{
             }
         },
         {
+            path:'/l1farm',
+            name:'l1farm',
+            component:() => import('../views/L1Farm'),
+            meta: {
+                title:'L1 Farm'
+            }
+        },
+        {
+            path:'/l2farm',
+            name:'l2farm',
+            component:() => import('../views/L2Farm'),
+            meta: {
+                title:'L2 Farm'
+            }
+        },
+        {
             path:'/airdrop',
             name:'airdrop',
             component:() => import('../views/airdrop'),

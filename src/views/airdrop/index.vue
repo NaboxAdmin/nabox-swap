@@ -179,6 +179,10 @@ export default {
     }
   },
   created() {
+    if (this.$store.state.network !== 'BSC') {
+      this.$router.go(-1);
+      return false;
+    }
     this.getLpFarmInfo();
     ETHNET === "homestead" && this.getPancakeFarmInfo();
     this.farmTimer = setInterval(() => {

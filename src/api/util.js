@@ -602,16 +602,6 @@ export function getLogoSrc(symbol) {
 // TODO:多链
 export const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
 
-// 批量查询资产合约配置
-export const contractConfig = {
-    Ethereum: isBeta ? "" : "",
-    BSC: isBeta ? "0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B" : "",
-    Heco: isBeta ? "" : "",
-    OKExChain: isBeta ? "" : "",
-    Harmony: isBeta ? "" : "",
-    Polygon: isBeta ? "" : "",
-    KCC: isBeta ? "" : ""
-}
 
 // export const supportChainList = [
 //   {

@@ -56,13 +56,14 @@
             <span class="size-40 word-break w-330">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             <span
                 class="item-btn size-30"
-                :class="{ active_btn: (!item.lockCandy && (!item.reward || item.reward===0 || item.reward === '0')) || (item.lockCandy && (item.pendingReward === 0 || item.pendingReward === '0')) }"
-                v-if="!item.needReceiveAuth"
-                @click.stop="receiveClick(item.farmKey, item)">{{ item.lockCandy ? $t("vaults.over7") : $t("vaults.over3") }}</span>
+                :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
+                v-if="!item.needReceiveAuth && !item.lockCandy"
+                @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
             <span
                 class="item-btn size-30"
-                v-else
-                @click="receiveApprove(item.farmKey, item)">{{ $t("vaults.over6") }}</span>
+                :class="{ active_btn: !item.pendingReward || item.pendingReward === 0 || item.pendingReward === '0' }"
+                v-else-if="!item.needReceiveAuth && item.lockCandy"
+                @click.stop="receiveClick(item.farmKey, item)">{{  $t("vaults.over7") }}</span>
           </div>
         </div>
         <div class="vaults-item">
@@ -175,7 +176,8 @@ export default {
   methods: {
     // 领取
     receiveClick(farmHash, farm) {
-      if (!farm.reward || farm.reward==="0" || farm.pendingReward === 0 || farm.pendingReward === '0') return false;
+      if (!farm.lockCandy && (!farm.reward || farm.reward==="0" || farm.reward===0)) return false;
+      if (farm.lockCandy && (!farm.pendingReward || farm.pendingReward === 0 || farm.pendingReward === '0') ) return false;
       this.$emit('receiveClick', { farmHash, farm });
     },
     showClick(type, farmHash, item) {

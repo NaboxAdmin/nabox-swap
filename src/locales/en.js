@@ -135,8 +135,10 @@ const en = {
         navBar2:'Liquidity',
         navBar3:'Vaults',
         navBar4:'Transaction Details',
-        navBar5:'Exchange',
-        navBar6: "Airdrop"
+        navBar5:'Swap',
+        navBar6: "Airdrop",
+        navBar7: 'L1 Farm',
+        navBar8: 'L2 Farm',
     },
     order: {
         order1:'Order Information',
