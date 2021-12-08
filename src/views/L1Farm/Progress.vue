@@ -60,7 +60,10 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
+            </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
               :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
@@ -84,7 +87,10 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
+            </div>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
                 <div
@@ -129,7 +135,10 @@
           <div class="vaults-item">
             <div class="text-90 size-28">{{ $t("airdrop.airdrop5") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
-              <span class="size-40 word-break w-330">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+              <div class="d-flex direction-column">
+                <span class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+                <span class="mt-1 text-90 size-26">≈${{ item.unlockUsdPrice || 0 }}</span>
+              </div>
               <span
                 v-if="!item.needReceiveAuth"
                 :class="{ active_btn: item.unlockNumbers == 0 }"
@@ -173,6 +182,11 @@ export default {
       // showDetail: true
     };
   },
+  computed: {
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    }
+  },
   watch: {
     farmList: {
       handler(newVal, oldVal) {
@@ -188,16 +202,17 @@ export default {
   },
   methods: {
     toSwap(farm) {
-      if (farm.stakedAsset && farm.stakedAsset.symbol === 'USDTN') {
-        // FIXME 0x55d398326f99059ff775485246999027b3197955 0xd0a347e0ebea8f8efc26d539e17853c8e7a721c4
-        this.$router.push({ path: '/swap', query: { fromContractAddress: '0x55d398326f99059ff775485246999027b3197955', toContractAddress: farm.stakedAsset.contractAddress }});
-      } else {
-        this.$router.push({ path: '/swap' });
-      }
+      this.isMobile ? window.location.href = `${farm.lpUrl}` : window.open(`${farm.lpUrl}`);
+      // if (farm.stakedAsset && farm.stakedAsset.symbol === 'USDTN') {
+      //   // FIXME 0x55d398326f99059ff775485246999027b3197955 0xd0a347e0ebea8f8efc26d539e17853c8e7a721c4
+      //   this.$router.push({ path: '/swap', query: { fromContractAddress: '0x55d398326f99059ff775485246999027b3197955', toContractAddress: farm.stakedAsset.contractAddress }});
+      // } else {
+      //   this.$router.push({ path: '/swap' });
+      // }
     },
     showClick(type, farmHash, item) {
-      // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
-      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward == 0 || item.reward < 0)) return false;
+      // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;  || !item.reward || item.reward == 0 || item.reward < 0
+      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0)) return false;
       this.$emit('showClick', { type, farmHash: item.farmKey, item });
     },
     // 领取

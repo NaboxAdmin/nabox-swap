@@ -1,23 +1,41 @@
-import instance from "./request";
+import axios from 'axios';
+import * as config from '@/config.js';
 
-const qs = require('querystring');//序列化数据
-export default {
-    get(url, params = {}) {
-        return new Promise(((resolve, reject) => {
-            instance.get(url, { params }).then(res => {
-                resolve(res)
-            }).catch(err => {
-                reject(err)
-            })
-        }))
-    },
-    post(url, params = {}) {
-        return new Promise(((resolve, reject) => {
-            instance.post(url, qs.stringify(params), {headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(res => {
-                resolve(res)
-            }).catch(err => {
-                reject(err)
-            })
-        }))
-    }
+axios.defaults.headers.post['Content-Type'] = 'application/json';
+/**
+ * 封装post请求
+ * Encapsulation post method
+ * @param url
+ * @param methodName
+ * @param data
+ * @returns {Promise}
+ */
+export function post(url, methodName, data = []) {
+  return new Promise((resolve, reject) => {
+    const params = { 'jsonrpc': '2.0', 'method': methodName, 'params': data, 'id': Math.floor(Math.random() * 1000) };
+    axios.post(url, params)
+      .then(response => {
+        resolve(response.data);
+      }, err => {
+        reject(err);
+      });
+  });
 }
+
+export async function request(params) {
+  const { url, method = 'post', data } = params;
+  const baseUrl = config.SWAP_BOX_API_URL;
+  const language = localStorage.getItem('locale') === 'cn' ? 'CHS' : 'EN';
+  const newData = method === 'post' ? { data: { language, ...data }} : { params: { language, ...data }};
+  return new Promise((resolve, reject) => {
+    axios({ url: baseUrl + url, method: method, ...newData }).then(
+      response => {
+        resolve(response.data);
+      },
+      err => {
+        reject(err);
+      }
+    );
+  });
+}
+

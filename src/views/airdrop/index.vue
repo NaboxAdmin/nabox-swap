@@ -214,7 +214,7 @@ export default {
           this.reverse0Count = oldVal;
         }
         if (newVal && !this.liquidityFlag && !this.reverse1Flag) {
-          const tempNewval = timesDecimals(newVal, 18);
+          const tempNewval = timesDecimals(newVal, this.reverse0Asset.decimals || 18);
           const tempAmount1 = Division(tempNewval, this.rate);
           this.reverse1Count = formatFloatNumber(6, divisionDecimals(tempAmount1, 18));
           this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempNewval, this.totalSupply), this.reverse0), Division(Times(tempAmount1, this.totalSupply), this.reverse1)), 18));
@@ -233,10 +233,10 @@ export default {
           this.reverse1Count = oldVal;
         }
         if (newVal && !this.liquidityFlag && !this.reverse0Flag) {
-          const tempNewval = timesDecimals(newVal, 18);
+          const tempNewval = timesDecimals(newVal, this.reverse1Asset.decimals || 18);
           const tempAmount0 = Times(tempNewval, this.rate);
-          this.reverse0Count = formatFloatNumber(6, divisionDecimals(tempAmount0, 18));
-          this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempAmount0, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1)), 18));
+          this.reverse0Count = formatFloatNumber(6, divisionDecimals(tempAmount0, this.reverse0Asset.decimals || 18));
+          this.liquidityCount = formatFloatNumber(6, divisionDecimals(Math.min(Division(Times(tempAmount0, this.totalSupply), this.reverse0), Division(Times(tempNewval, this.totalSupply), this.reverse1)), this.LpFarmInfo.lpDecimals || 18));
         } else if (!newVal) {
           this.resetInput();
         }
@@ -257,9 +257,9 @@ export default {
           this.liquidityCount = oldVal;
         }
         if (newVal && !this.reverse0Flag && !this.reverse1Flag) {
-          const tempNewval = timesDecimals(newVal, 18);
-          const tempAmount0 = divisionDecimals(Division(Times(this.reverse0, tempNewval), this.totalSupply), 18);
-          const tempAmount1 = divisionDecimals(Division(Times(this.reverse1, tempNewval), this.totalSupply), 18);
+          const tempNewval = timesDecimals(newVal, this.LpFarmInfo.lpDecimals || 18);
+          const tempAmount0 = divisionDecimals(Division(Times(this.reverse0, tempNewval), this.totalSupply), this.reverse0Asset.decimals || 18);
+          const tempAmount1 = divisionDecimals(Division(Times(this.reverse1, tempNewval), this.totalSupply), this.reverse1Asset.decimals || 18);
           const tempAmount1ToAmount0 = Times(tempAmount1, this.rate);
           if (Minus(tempAmount0, tempAmount1ToAmount0) < 0) {
             this.reverse0Count = formatFloatNumber(6, tempAmount0);

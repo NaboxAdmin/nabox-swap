@@ -248,8 +248,6 @@ export default {
         if (window.ethereum) {
           this.initMetamask();
         }
-      } else if (this.walletType === 'walletConnect') {
-        // this.initWalletConnect();
       }
     },
     // 初始化metamask wallet provider address
@@ -264,7 +262,6 @@ export default {
         await this.requestAccounts();
       }
       this.fromChainId = this.wallet.chainId;
-      // console.log(this.wallet.chainId, 'this.wallet');
       this.provider = new ethers.providers.Web3Provider(window.ethereum);
       // this.showConnect = false;
       this.$store.commit('changeShowConnect', false);
@@ -367,7 +364,6 @@ export default {
             address: this.address
           });
           const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
-          console.log(address, 'addresses addresses addresses addresses');
           const addressMap = {};
           for (const item of networkList) {
             addressMap[item] = address;
@@ -376,6 +372,7 @@ export default {
             address: addressMap
           };
         } else {
+          console.log(this.provider, 'this.providerthis.providerthis.provider');
           const jsonRpcSigner = this.provider.getSigner();
           const message = 'Generate L2 Address';
           const signature = await jsonRpcSigner.signMessage(message);
@@ -448,14 +445,14 @@ export default {
         } else {
           this.$message({
             type: 'warning',
-            message: this.$t('tips.tips22'),
+            message: this.$t('tips.tips19'),
             offset: 30
           });
         }
       } catch (e) {
         this.address = '';
         this.$message({
-          message: this.$t('tips.tips19'),
+          message: this.$t('tips.tips22'),
           type: 'warning',
           offset: 30
         });

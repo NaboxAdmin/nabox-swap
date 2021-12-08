@@ -17,7 +17,7 @@
           </div>
           <div class="space-cont"/>
           <div class="d-flex" @click="addressClick">
-            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isLiquidity && address || nerveAddress) }}</span>
+            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isLiquidity && !isL2Farm && address || nerveAddress) }}</span>
             <span v-if="showLoading" class="box_loading">
               <img src="@/assets/image/loading.svg" alt="">
             </span>

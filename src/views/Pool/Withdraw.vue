@@ -164,7 +164,7 @@ export default {
   methods: {
     maxCount() {
       const currentPollTotal = this.currentWithdrawAsset && this.currentWithdrawAsset.total;
-      this.withdrawCount = this.addedLiquidityInfo.balance;
+      this.withdrawCount = this.userAvailable;
       if (Minus(this.withdrawCount, currentPollTotal) < 0) {
         this.amountMsg = this.$t('pool.join9');
       }
@@ -275,7 +275,7 @@ export default {
       });
       if (res.code === 1000) {
         this.addedLiquidityInfo = res.data;
-        // this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
+        this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
         this.addedLiquidityInfo['balance'] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
         this.addedBalance = this.numberFormat(tofix(res.data.balance, 4, -1), 4);
         this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;

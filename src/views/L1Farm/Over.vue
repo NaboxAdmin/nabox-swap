@@ -91,7 +91,7 @@
             </div>
           </div>
         </div>
-        <div class="mt-3 size-28 text-right text-6e d-flex justify-content-end" @click="$router.push({ path: '/swap' })">
+        <div class="mt-3 size-28 text-right text-6e d-flex justify-content-end" @click="toSwap(item)">
           <span>{{ $t("vaults.over5") }}{{ item.stakedAsset && item.stakedAsset.symbol }}</span>
           <span class="arrow-icon ml-1">
             <img src="@/assets/image/link_to.png" alt="">
@@ -128,6 +128,7 @@
 <script>
 import { divisionDecimals, tofix, Minus, Division } from '@/api/util';
 import { getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
+import { Times } from '../../api/util';
 
 export default {
   name: 'Over',
@@ -144,6 +145,11 @@ export default {
       farmLoading: false,
       farmTimer: null
     };
+  },
+  computed: {
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    }
   },
   watch: {
     farmList: {
@@ -180,6 +186,9 @@ export default {
     }
   },
   methods: {
+    toSwap(farm) {
+      this.isMobile ? window.location.href = `${farm.lpUrl}` : window.open(`${farm.lpUrl}`);
+    },
     // 领取
     receiveClick(farmHash, farm) {
       if (!farm.lockCandy && (!farm.reward || farm.reward === '0' || farm.reward === 0)) return false;
@@ -187,8 +196,8 @@ export default {
       this.$emit('receiveClick', { farmHash, farm });
     },
     showClick(type, farmHash, item) {
-      // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
-      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward == 0 || item.reward < 0)) return false;
+      // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;  || !item.reward || item.reward == 0 || item.reward < 0
+      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0)) return false;
       this.$emit('showClick', { type, farmHash: item.farmKey, item });
     },
     // 完成解锁
@@ -221,96 +230,47 @@ export default {
     },
     // 获取当前质押资产详细信息
     async getStakeAccount(farmList) {
-      // debugger;
       this.farmList = (await Promise.all(farmList.map(async item => {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
         const fromAddress = this.currentAccount['address'][item.chain || 'BSC'];
         const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
-        let syrupAsset, stakedAsset;
-        if (item.chain === 'NERVE') {
-          stakedAsset = await this.getAssetInfo({
-            chainId: item.stakeTokenChainId,
-            assetId: item.stakeTokenAssetId,
-            contractAddress: item.stakeTokenContractAddress,
-            chain: item.chain
-          }); // 获取当前可质押的资产
-          syrupAsset = await this.getAssetInfo({
-            chainId: item.syrupTokenChainId,
-            assetId: item.syrupTokenAssetId,
-            contractAddress: item.syrupTokenContractAddress,
-            chain: item.chain
-          }); // 获取当前可领取资产信息
-          item.needReceiveAuth = false;
-          item.needStakeAuth = false;
-        } else {
-          const tokenBalance = await getBatchERC20Balance([item.stakeTokenContractAddress || batchQueryContract, item.syrupTokenContractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
-          stakedAsset = {
-            ...tokenBalance[0],
-            chainId: item.stakeTokenChainId,
-            assetId: item.stakeTokenAssetId,
-            contractAddress: item.stakeTokenContractAddress,
-            balance: divisionDecimals(tokenBalance[0].balance || 0, tokenBalance[0].decimals || 18)
-          };
-          syrupAsset = {
-            ...tokenBalance[1],
-            chainId: item.syrupTokenChainId,
-            assetId: item.syrupTokenAssetId,
-            contractAddress: item.syrupTokenContractAddress,
-            balance: divisionDecimals(tokenBalance[1].balance || 0, tokenBalance[1].decimals || 18)
-          };
-          item.needReceiveAuth = false;
-          item.needStakeAuth = false;
-        }
-        if (item.chain === 'NERVE') {
-          const res = await this.$request({
-            methods: 'post',
-            url: '/farm/stake/account',
-            data: {
-              chain: item.chain,
-              farmHash: item.farmKey,
-              address: this.currentAccount['address'][item.chain]
-            }
-          });
-          if (res.data) {
-            const { amount, reward } = res.data;
-            return {
-              ...item,
-              ...res.data,
-              amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
-              reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-              stakedAsset,
-              syrupAsset,
-              showDetail: false
-            };
-          }
-          return { ...item, stakedAsset, syrupAsset, showDetail: false };
-        } else {
-          const config = JSON.parse(sessionStorage.getItem('config'));
-          const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
-          const fromAddress = this.currentAccount['address'][this.fromNetwork];
-          const RPCUrl = config[item.chain]['apiUrl'];
-          const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
-          console.log(tokens, 'tokensssss');
-          return {
-            ...item,
-            amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
-            // reward: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['1'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            // lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
-            // lockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
-            reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            stakedAsset,
-            syrupAsset,
-            showDetail: false
-          };
-        }
+        const tokenBalance = await getBatchERC20Balance([item.stakeTokenContractAddress || batchQueryContract, item.syrupTokenContractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
+        const stakedAsset = {
+          ...tokenBalance[0],
+          chainId: item.stakeToken && item.stakeToken.chainId,
+          assetId: item.stakeToken && item.stakeToken.assetId,
+          contractAddress: item.stakeToken && item.stakeToken.contractAddress,
+          balance: divisionDecimals(tokenBalance[0].balance || 0, tokenBalance[0].decimals || 18)
+        };
+        const syrupAsset = {
+          ...tokenBalance[1],
+          chainId: item.syrupToken && item.syrupToken.chainId,
+          assetId: item.syrupToken && item.syrupToken.assetId,
+          contractAddress: item.syrupToken && item.syrupToken.contractAddress,
+          balance: divisionDecimals(tokenBalance[1].balance || 0, tokenBalance[1].decimals || 18)
+        };
+        item.needReceiveAuth = false;
+        item.needStakeAuth = false;
+        const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
+        const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
+        return {
+          ...item,
+          amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
+          unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+          lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
+          reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+          pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+          syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
+          stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 2, -1), 2),
+          unlockUsdPrice: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+          stakedAsset,
+          syrupAsset,
+          showDetail: false
+        };
       })));
       this.farmLoading = false;
-      // const tempList = resList.filter(item => item);
-      console.log(this.farmList, '==ended farmList==');
+      console.log(this.farmList, '==L1 ended farmList==');
     },
     showDetailInfo(farm) {
       for (const item of this.farmList) {

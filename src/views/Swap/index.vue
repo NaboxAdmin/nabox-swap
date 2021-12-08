@@ -172,7 +172,7 @@
           </div>
           <div class="route-cont_main">
             <div
-              v-for="(item, index) in platformList"
+              v-for="item in platformList"
               :class="{active_choose: item.isChoose}"
               class="route-item cursor-pointer"
               @click="routeClick(item)">
@@ -238,10 +238,8 @@ valideNetwork.map(v => {
     assetId: chain.assetId
   };
 });
-const swftFeeRate = 0.001;
 export default {
   name: 'Swap',
-  // keep-alive: true,
   components: {
     CoinModal,
     'pop-modal': PopUp,
@@ -372,14 +370,6 @@ export default {
         }
       },
       deep: true
-    },
-    fromNetwork() {
-      this.getCoins();
-      this.reset();
-    },
-    fromAddress() {
-      this.getCoins();
-      this.reset();
     },
     fromAmount: {
       handler(newVal, oldVal) {
@@ -592,10 +582,12 @@ export default {
           ...item.swftInfo
         }));
         this.supportList = tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1);
-        if (this.fromContractAddress && this.toContractAddress) {
-          this.chooseFromAsset = this.supportList.find(item => item.contractAddress === this.fromContractAddress);
+        const tempFromCoin = this.supportList.find(item => item.contractAddress === this.fromContractAddress);
+        const tempToCoin = this.supportList.find(item => item.contractAddress === this.toContractAddress);
+        if (this.fromContractAddress && this.toContractAddress && tempFromCoin && tempToCoin) {
+          this.chooseFromAsset = tempFromCoin;
           await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
-          this.chooseToAsset = this.supportList.find(item => item.contractAddress === this.toContractAddress);
+          this.chooseToAsset = tempToCoin;
           await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
         } else {
           this.chooseFromAsset = this.supportList.find(item => item.symbolImg === 'USDT') || this.supportList.find(item => item.symbolImg === mainAssetSymbol);
@@ -886,7 +878,6 @@ export default {
         }
       }
     },
-
     async checkUsdtnFee() {
       if (Minus(this.fromAmount, this.usdtnFee) <= 0) {
         this.amountMsg = `${this.$t('tips.tips3')}${this.usdtnFee}`;

@@ -3,7 +3,7 @@ import VueI18n from 'vue-i18n';
 import App from './App.vue';
 import router from './router';
 import store from './store';
-import { post, request } from './api/https';
+import { post, request } from './network/http';
 import './api/rem';
 import 'normalize.css'; // 初始化css
 import messages from './locales';

@@ -98,7 +98,7 @@ const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
-  name: 'Join',
+  name: 'Deposit',
   components: { Modal },
   filters: {
     rateFormat(val) {
@@ -185,7 +185,7 @@ export default {
   methods: {
     maxCount() {
       if (!this.currentAvailable || !Number(this.currentAvailable)) return false;
-      this.joinCount = this.currentAvailable;
+      this.joinCount = this.userAvailable;
     },
     countInput() {
       if (!this.joinCount) {
@@ -294,7 +294,7 @@ export default {
       });
       if (res.code === 1000) {
         this.currentAssetInfo = res.data;
-        // this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
+        this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
         this.currentAvailable = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
       }
       this.availableLoading = false;

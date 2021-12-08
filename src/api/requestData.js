@@ -1,6 +1,5 @@
-import axios from 'axios'
-import {post} from './https'
-import {chainID, main_info, Plus, Minus} from './util'
+import { post } from '../network/http';
+import { main_info, Plus, Minus } from './util';
 
 /**
  * 判断是否为主网
@@ -30,18 +29,18 @@ export async function countCtxFee(tx, signatrueCount) {
   let resultValue = 0;
   await post('/', 'getByzantineCount', [tx.txSerialize().toString('hex')])
     .then((response) => {
-      //console.log(response);
-      if (response.hasOwnProperty("result")) {
+      // console.log(response);
+      if (response.hasOwnProperty('result')) {
         let txSize = tx.txSerialize().length;
         txSize += (signatrueCount + response.result.value) * 110;
-        resultValue = 1000000 * Math.ceil(txSize / 1024)
+        resultValue = 1000000 * Math.ceil(txSize / 1024);
       } else {
-        resultValue = -100
+        resultValue = -100;
       }
     })
     .catch((error) => {
       console.log(error);
-      resultValue = -100
+      resultValue = -100;
     });
   return resultValue;
 }
@@ -54,20 +53,20 @@ export async function countCtxFee(tx, signatrueCount) {
  * @returns {*}
  **/
 export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
-  //console.log(balanceInfo);
-  let newAmount = transferInfo.amount + transferInfo.fee;
-  let newLocked = 0;
-  let newNonce = balanceInfo.nonce;
+  // console.log(balanceInfo);
+  const newAmount = transferInfo.amount + transferInfo.fee;
+  const newLocked = 0;
+  const newNonce = balanceInfo.nonce;
   let newoutputAmount = transferInfo.amount;
   let newLockTime = 0;
-  let inputs = [];
-  let outputs = [];
+  const inputs = [];
+  const outputs = [];
 
   if (type === 4) {
     newLockTime = -1;
   } else if (type === 5) {
     if (transferInfo.defaultAssetsInfo) { // 加入的资产不是nvt input组装两个
-      let newArr = {
+      const newArr = {
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
@@ -76,7 +75,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         nonce: balanceInfo.nonce
       };
       inputs.push(newArr);
-      let feeArr = {
+      const feeArr = {
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.defaultAssetsInfo.chainId,
         assetsId: transferInfo.defaultAssetsInfo.assetId,
@@ -110,12 +109,12 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
       });
     }
 
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
+    return { success: true, data: { inputs: inputs, outputs: outputs }};
   } else if (type === 6) {
-    let times = (new Date()).valueOf() + 3600000 * 24 * 7;//锁定7天
+    const times = (new Date()).valueOf() + 3600000 * 24 * 7;// 锁定7天
     newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
     if (transferInfo.defaultAssetsInfo) { // 加入的资产不是nvt input组装两个
-      let newArr = {
+      const newArr = {
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
@@ -124,7 +123,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         nonce: balanceInfo.nonce
       };
       inputs.push(newArr);
-      let feeArr = {
+      const feeArr = {
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.defaultAssetsInfo.chainId,
         assetsId: transferInfo.defaultAssetsInfo.assetId,
@@ -138,9 +137,9 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
         amount: transferInfo.amount,
-        lockTime: balanceInfo.nvt?newLockTime:0 //0
+        lockTime: balanceInfo.nvt ? newLockTime : 0 // 0
       });
-    } else {  //加入的资产是nvt 合并amount+fee
+    } else { // 加入的资产是nvt 合并amount+fee
       inputs.push({
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
@@ -154,13 +153,13 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
         amount: Minus(transferInfo.amount, transferInfo.fee).toString(),
-        lockTime: balanceInfo.nvt ? newLockTime : 0 //0
+        lockTime: balanceInfo.nvt ? newLockTime : 0 // 0
       });
     }
 
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
+    return { success: true, data: { inputs: inputs, outputs: outputs }};
   } else if (type === 33) {
-    //批量合并转定期
+    // 批量合并转定期
     if (transferInfo.defaultAssetsInfo) { // 加入的资产不是nvt input组装两个
       for (let i = 0; i < balanceInfo.nonce.length; i++) {
         inputs.push({
@@ -172,7 +171,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
           nonce: balanceInfo.nonce[i]
         });
       }
-      let feeArr = {
+      const feeArr = {
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.defaultAssetsInfo.chainId,
         assetsId: transferInfo.defaultAssetsInfo.assetId,
@@ -207,13 +206,13 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         lockTime: transferInfo.locked
       });
     }
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
-  } else if (type === 9) { //注销节点
+    return { success: true, data: { inputs: inputs, outputs: outputs }};
+  } else if (type === 9) { // 注销节点
     newoutputAmount = transferInfo.amount - transferInfo.fee;
-    let times = (new Date()).valueOf() + 3600000 * 360;//锁定15天 24*15=360
+    const times = (new Date()).valueOf() + 3600000 * 360;// 锁定15天 24*15=360
     newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
-    for (let item of transferInfo.nonceList) {
-      let newArr = {
+    for (const item of transferInfo.nonceList) {
+      const newArr = {
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
@@ -221,7 +220,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         locked: -1,
         nonce: item.nonce
       };
-      inputs.push(newArr)
+      inputs.push(newArr);
     }
 
     outputs.push({
@@ -231,17 +230,17 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
       amount: newoutputAmount,
       lockTime: newLockTime
     });
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
-  } else if (type === 28) { //追加保证金
+    return { success: true, data: { inputs: inputs, outputs: outputs }};
+  } else if (type === 28) { // 追加保证金
     newLockTime = -1;
-  } else if (type === 29) { //退出保证金
+  } else if (type === 29) { // 退出保证金
     newoutputAmount = transferInfo.amount - transferInfo.fee;
-    //锁定15 = 24*15天
-    let times = (new Date()).valueOf() + 3600000 * 360;
+    // 锁定15 = 24*15天
+    const times = (new Date()).valueOf() + 3600000 * 360;
     newLockTime = Number(times.toString().substr(0, times.toString().length - 3));
 
-    for (let item of transferInfo.nonceList) {
-      let newArr = {
+    for (const item of transferInfo.nonceList) {
+      const newArr = {
         address: transferInfo.fromAddress,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
@@ -249,7 +248,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         locked: -1,
         nonce: item.nonce
       };
-      inputs.push(newArr)
+      inputs.push(newArr);
     }
 
     outputs.push({
@@ -260,8 +259,8 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
       lockTime: newLockTime
     });
     let allAmount = 0;
-    for (let item of transferInfo.nonceList) {
-      allAmount = allAmount + Number(item.deposit)
+    for (const item of transferInfo.nonceList) {
+      allAmount = allAmount + Number(item.deposit);
     }
 
     if (allAmount - transferInfo.amount !== 0) {
@@ -273,7 +272,7 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
         lockTime: -1
       });
     }
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
+    return { success: true, data: { inputs: inputs, outputs: outputs }};
   }
 
   inputs.push({
@@ -293,9 +292,9 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
     lockTime: newLockTime
   });
 
-  /*console.log(inputs);
+  /* console.log(inputs);
   console.log(outputs);*/
-  return {success: true, data: {inputs: inputs, outputs: outputs}};
+  return { success: true, data: { inputs: inputs, outputs: outputs }};
 }
 
 /**
@@ -306,18 +305,18 @@ export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
  * @returns {Promise<any>}
  */
 export async function getNulsBalance(assetChainId = 2, assetId = 1, address) {
-  //console.info(assetChainId, assetId, address);
+  // console.info(assetChainId, assetId, address);
   return await post('/', 'getAccountBalance', [assetChainId, assetId, address])
     .then((response) => {
-      //console.log(response);
-      if (response.hasOwnProperty("result")) {
-        return {success: true, data: {balance: response.result.balance, nonce: response.result.nonce}}
+      // console.log(response);
+      if (response.hasOwnProperty('result')) {
+        return { success: true, data: { balance: response.result.balance, nonce: response.result.nonce }};
       } else {
-        return {success: false, data: response}
+        return { success: false, data: response };
       }
     })
     .catch((error) => {
-      return {success: false, data: error};
+      return { success: false, data: error };
     });
 }
 
@@ -331,15 +330,15 @@ export async function getNulsBalance(assetChainId = 2, assetId = 1, address) {
 export async function getBaseAssetInfo(chainId = 2, assetId = 1, address) {
   return await post('/', 'getAccountBalance', [chainId, assetId, address])
     .then((response) => {
-      //console.log(response);
+      // console.log(response);
       if (response.result) {
-        return {success: true, data: response.result}
+        return { success: true, data: response.result };
       } else {
-        return {success: false, data: response}
+        return { success: false, data: response };
       }
     })
     .catch((error) => {
-      return {success: false, data: error};
+      return { success: false, data: error };
     });
 }
 
@@ -351,14 +350,14 @@ export async function getBaseAssetInfo(chainId = 2, assetId = 1, address) {
 export async function validateTx(txHex) {
   return await post('/', 'validateTx', [txHex])
     .then((response) => {
-      if (response.hasOwnProperty("result")) {
-        return {success: true, data: response.result};
+      if (response.hasOwnProperty('result')) {
+        return { success: true, data: response.result };
       } else {
-        return {success: false, data: response.error};
+        return { success: false, data: response.error };
       }
     })
     .catch((error) => {
-      return {success: false, data: error};
+      return { success: false, data: error };
     });
 }
 
@@ -370,14 +369,14 @@ export async function validateTx(txHex) {
 export async function broadcastTx(txHex) {
   return await post('/', 'broadcastTx', [txHex])
     .then((response) => {
-      if (response.hasOwnProperty("result")) {
-        return {success: true, data: response.result};
+      if (response.hasOwnProperty('result')) {
+        return { success: true, data: response.result };
       } else {
-        return {success: false, data: response.error};
+        return { success: false, data: response.error };
       }
     })
     .catch((error) => {
-      return {success: false, data: error};
+      return { success: false, data: error };
     });
 }
 
@@ -390,25 +389,25 @@ export async function validateAndBroadcast(txHex) {
   return await post('/', 'validateTx', [txHex])
     .then((response) => {
       // console.log(response);
-      if (response.hasOwnProperty("result")) {
-        let newHash = response.result.value;
+      if (response.hasOwnProperty('result')) {
+        const newHash = response.result.value;
         return post('/', 'broadcastTx', [txHex])
           .then((response) => {
-            if (response.hasOwnProperty("result")) {
-              return {success: true, hash: newHash};
+            if (response.hasOwnProperty('result')) {
+              return { success: true, hash: newHash };
             } else {
-              return {success: false, data: response.error};
+              return { success: false, data: response.error };
             }
           })
           .catch((error) => {
-            return {success: false, data: error};
+            return { success: false, data: error };
           });
       } else {
-        return {success: false, data: response.error};
+        return { success: false, data: response.error };
       }
     })
     .catch((error) => {
-      return {success: false, data: error};
+      return { success: false, data: error };
     });
 }
 
@@ -423,7 +422,7 @@ export async function agentDeposistList(agentHash) {
       return response.result;
     })
     .catch((error) => {
-      return {success: false, data: error};
+      return { success: false, data: error };
     });
 }
 
@@ -435,15 +434,15 @@ export async function agentDeposistList(agentHash) {
 export async function getContractConstructor(contractCodeHex) {
   return await post('/', 'getContractConstructor', [contractCodeHex])
     .then((response) => {
-      //console.log(response);
-      if (response.hasOwnProperty("result")) {
-        return {success: true, data: response.result.constructor};
+      // console.log(response);
+      if (response.hasOwnProperty('result')) {
+        return { success: true, data: response.result.constructor };
       } else {
-        return {success: false, data: response.error};
+        return { success: false, data: response.error };
       }
     })
     .catch((error) => {
-      return {success: false, data: error};
+      return { success: false, data: error };
     });
 }
 
@@ -452,16 +451,16 @@ export async function getContractConstructor(contractCodeHex) {
  * @returns {Promise<any>}
  */
 export async function getAllAddressPrefix() {
-  let newData = [
-    {chainId: 3, addressPrefix: 'NVT'},
-    {chainId: 4, addressPrefix: 'TNVT'},
+  const newData = [
+    { chainId: 3, addressPrefix: 'NVT' },
+    { chainId: 4, addressPrefix: 'TNVT' }
   ];
   await post('/', 'getAllAddressPrefix', [])
     .then((response) => {
-      //console.log(response);
-      if (response.hasOwnProperty("result")) {
+      // console.log(response);
+      if (response.hasOwnProperty('result')) {
         if (sessionStorage.hasOwnProperty('prefixData')) {
-          sessionStorage.removeItem('prefixData')
+          sessionStorage.removeItem('prefixData');
         }
         sessionStorage.setItem('prefixData', JSON.stringify(response.result));
       } else {
@@ -474,12 +473,12 @@ export async function getAllAddressPrefix() {
     });
 }
 
-//根据链ID获取前缀
+// 根据链ID获取前缀
 export async function getPrefixByChainId(chainId) {
   await getAllAddressPrefix();
-  let prefixData = JSON.parse(sessionStorage.getItem('prefixData'));
+  const prefixData = JSON.parse(sessionStorage.getItem('prefixData'));
   if (prefixData) {
-    let newInfo = prefixData.find((v) => {
+    const newInfo = prefixData.find((v) => {
       return v.chainId === chainId;
     });
     return newInfo.addressPrefix;
@@ -496,20 +495,20 @@ export async function getPrefixByChainId(chainId) {
  */
 export async function getScanAutograph(randomString) {
   return await post('/', 'getMsg', [randomString])
-    .then(async (response) => {
-      //console.log(response);
-      if (response.hasOwnProperty("result") && response.result.pubkey) {
+    .then(async(response) => {
+      // console.log(response);
+      if (response.hasOwnProperty('result') && response.result.pubkey) {
         if (response.result.pubkey && response.result.signData) {
-          return {success: true, data: {signData: response.result.signData, pubkey: response.result.pubkey}}
+          return { success: true, data: { signData: response.result.signData, pubkey: response.result.pubkey }};
         } else {
-          return {success: true, data: {}}
+          return { success: true, data: {}};
         }
       } else {
-        return {success: false, data: response}
+        return { success: false, data: response };
       }
     })
     .catch((error) => {
-      return {success: false, data: error}
+      return { success: false, data: error };
     });
 }
 
@@ -520,27 +519,27 @@ export async function getScanAutograph(randomString) {
  * @author: Wave
  */
 export async function commitData(txHexKey, signDataKey, address, assembleHex) {
-  let parameterValue = {
+  const parameterValue = {
     address: address,
     hash: assembleHex.getHash().toString('hex'),
-    txHex: assembleHex.txSerialize().toString("hex")
+    txHex: assembleHex.txSerialize().toString('hex')
   };
   return await post('/', 'commitMsg', [txHexKey, parameterValue])
     .then((response) => {
-      //console.log(response);
-      if (response.hasOwnProperty("result")) {
-        let txInfo = {
+      // console.log(response);
+      if (response.hasOwnProperty('result')) {
+        const txInfo = {
           url: localStorage.hasOwnProperty('url') ? JSON.parse(localStorage.getItem('url')).urls : 'https://beta.wallet.nuls.io/api',
           txHexKey: txHexKey,
-          signDataKey: signDataKey,
+          signDataKey: signDataKey
         };
-        return {success: true, data: {txInfo: txInfo, assembleHex: assembleHex}}
+        return { success: true, data: { txInfo: txInfo, assembleHex: assembleHex }};
       } else {
-        return {success: false, data: response}
+        return { success: false, data: response };
       }
     })
     .catch((error) => {
-      return {success: false, data: error}
+      return { success: false, data: error };
     });
 }
 

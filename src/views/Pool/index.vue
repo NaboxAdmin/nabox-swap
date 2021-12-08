@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import Join from './Join';
+import Join from './Deposit';
 import Withdraw from './Withdraw';
 import { divisionDecimals } from '@/api/util';
 

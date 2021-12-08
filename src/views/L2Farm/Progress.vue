@@ -60,7 +60,10 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <span class="mt-1">≈${{ item.syrupUsdPrice || 0 }}</span>
+            </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
               :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
@@ -84,7 +87,10 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="mt-2 size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
+              <span class="mt-1">≈${{ item.stakeUsdPrice || 0 }}</span>
+            </div>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
                 <div

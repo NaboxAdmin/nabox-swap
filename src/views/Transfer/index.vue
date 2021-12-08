@@ -133,7 +133,7 @@
   </div>
 </template>
 <script>
-import { debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, tofix } from '@/api/util';
+import { debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, tofix, formatFloatNumber } from '@/api/util';
 import { MAIN_INFO, NULS_INFO } from '@/config';
 import { crossFee, ETransfer, getSymbolUSD, NTransfer } from '@/api/api';
 import { getContractCallData } from '@/api/nulsContractValidate';
@@ -254,7 +254,7 @@ export default {
       this.transferFeeAssets = this.allTransferFeeAssets.filter(item => item.registerChain !== this.currentFeeChain && item.registerChain !== 'NULS');
       this.showFeeModal = false;
       if (this.currentCoin) {
-        this.transferFee = await this.getCrossOutFee(true);
+        this.transferFee = await this.getCrossOutFee();
       }
       this.transferCount && await this.checkTransferFee();
     },
@@ -468,12 +468,6 @@ export default {
         this.amountMsg = '';
         const nerveToNulsFee = crossFee + 'NVT' + '+' + crossFee + 'NULS'; // nerve -> nuls的手续费
         const nulsToNerveFee = crossFee + 'NULS'; // nuls -> nerve的手续费
-        // const pubKey = getCurrentAccount(this.fromAddress).pub;
-        // const accountInfo = await this.$request({ // 获取主资产信息
-        //   url: "/wallet/chain/main",
-        //   data: { pubKey },
-        // });
-        // this.storeAccountInfo = accountInfo.data; // 主资产信息
         // 从其他链跨链转账到nerve
         if (this.toNerve) {
           if (this.$store.state.network === 'NULS') { // NULS跨链转入NERVE 为默认手续费
@@ -534,7 +528,6 @@ export default {
           }
         } else {
           const { value } = this.splitFeeSymbol(this.transferFee);
-          console.log(value, 'this,transferFee');
           if (!this.checkFee(value, isMainAsset)) {
             flag = false;
           }
@@ -607,15 +600,9 @@ export default {
       }
       return balance;
     },
-    // 查询nerve链上nvt余额
-    getNvtBalanceInfo() {
-      const nvtInfo = this.storeAccountInfo.filter(v => v.chain === 'NERVE')[0];
-      // nerve链上nvt余额
-      return divisionDecimals(nvtInfo.balance, nvtInfo.decimals);
-    },
     // nerve转出到异构链手续费
-    async getCrossOutFee(boo = false) { // toNerve=false
-      this.showFeeLoading = boo && true;
+    async getCrossOutFee() {
+      this.showFeeLoading = true;
       const chainToSymbol = {};
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
       tempSupportChainList.map(v => {
@@ -658,14 +645,12 @@ export default {
         );
       }
       let nvtFee;
-      if (boo) {
-        this.showFeeLoading = false;
-      }
+      this.showFeeLoading = false;
       // OK上面波动大收取三倍手续费保证交易能够被确认
       if (this.currentFeeChain === 'OKExChain' || this.currentFeeChain === 'OEC') {
-        nvtFee = Times(this.floatToCeil(res, this.currentFeeAsset.decimals), 3);
+        nvtFee = this.numberFormat(formatFloatNumber(6, Times(this.floatToCeil(res, this.currentFeeAsset.decimals), 3)), 6);
       } else {
-        nvtFee = this.floatToCeil(res, this.currentFeeAsset.decimals);
+        nvtFee = this.numberFormat(formatFloatNumber(6, this.floatToCeil(res, this.currentFeeAsset.decimals)), 6);
       }
       this.withdrawalFee = nvtFee;
       return nvtFee + chainToSymbol[this.currentFeeChain];
@@ -716,7 +701,6 @@ export default {
         return null;
       }
     },
-
     splitFeeSymbol(str) {
       if (!str) return { value: 0 };
       return {

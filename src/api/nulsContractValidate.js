@@ -1,7 +1,7 @@
-import { request } from "./https";
-import { Times, timesDecimals, Plus, Division } from "./util";
-import sdk from "nerve-sdk-js/lib/api/sdk";
-import utils from "nuls-sdk-js/lib/utils/utils";
+import { request } from '../network/http';
+import { Times, timesDecimals, Plus, Division } from './util';
+import sdk from 'nerve-sdk-js/lib/api/sdk';
+import utils from 'nuls-sdk-js/lib/utils/utils';
 
 /**
  * from
@@ -13,25 +13,25 @@ import utils from "nuls-sdk-js/lib/utils/utils";
  * decimals 转账资产精度
  */
 export async function getContractCallData(from, to, price, contractAddress, methodName, amount, decimals) {
-  //console.log(from, to, price, contractAddress, methodName, amount, decimals);
+  // console.log(from, to, price, contractAddress, methodName, amount, decimals);
   const gasLimit = sdk.CONTRACT_MAX_GASLIMIT;
-  const methodDesc = "";
+  const methodDesc = '';
   let newValue = 0;
   let args = [];
   let newContractAddress = contractAddress;
-  if (methodName === "transfer") {
-    /// nuls 合约资产  普通token转账、向合约地址转token
-    args = [to, timesDecimals(amount, decimals)]
-  } else if (methodName === "_payable") {
-    //合约 payable 向合约地址转nuls
+  if (methodName === 'transfer') {
+    // / nuls 合约资产  普通token转账、向合约地址转token
+    args = [to, timesDecimals(amount, decimals)];
+  } else if (methodName === '_payable') {
+    // 合约 payable 向合约地址转nuls
     newValue = Number(Times(amount, 100000000));
     newContractAddress = to;
-  } else if (methodName === "transferCrossChain") {
+  } else if (methodName === 'transferCrossChain') {
     // token跨链转账
     args = [to, timesDecimals(amount, decimals)];
     newValue = Number(timesDecimals(0.1, 8));
   }
-  return await validateContractCall(from, newValue, gasLimit, price, newContractAddress, methodName, methodDesc, args)
+  return await validateContractCall(from, newValue, gasLimit, price, newContractAddress, methodName, methodDesc, args);
 }
 
 /**
@@ -46,20 +46,20 @@ export async function getContractCallData(from, to, price, contractAddress, meth
  * @param args
  */
 async function validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args) {
-  //console.log(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args);
+  // console.log(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args);
   try {
     const params = {
-      chain: "NULS", address: sender, value, gasLimit, gasPrice: price, contractAddress, methodName, methodDesc, args
+      chain: 'NULS', address: sender, value, gasLimit, gasPrice: price, contractAddress, methodName, methodDesc, args
     };
-    const res = await request({url: "/contract/validate/call", data: params});
-    //console.log(res);
+    const res = await request({ url: '/contract/validate/call', data: params });
+    // console.log(res);
     if (res.code === 1000) {
-      return await imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args, price)
+      return await imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args, price);
     } else {
-      return {success: false, msg: res.msg};
+      return { success: false, msg: res.msg };
     }
   } catch (e) {
-    return {success: false, msg: e};
+    return { success: false, msg: e };
   }
 }
 
@@ -75,18 +75,18 @@ async function validateContractCall(sender, value, gasLimit, price, contractAddr
  */
 async function imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args, price) {
   try {
-    const params = {chain: "NULS", address: sender, value, contractAddress, methodName, methodDesc, args};
-    const res = await request({url: "/contract/imputed/call/gas", data: params});
-    //console.log(res);
+    const params = { chain: 'NULS', address: sender, value, contractAddress, methodName, methodDesc, args };
+    const res = await request({ url: '/contract/imputed/call/gas', data: params });
+    // console.log(res);
     if (res.code === 1000) {
       const contractConstructorArgsTypes = await getContractMethodArgsTypes(contractAddress, methodName);
       if (!contractConstructorArgsTypes.success) {
-        return {success: false, msg: contractConstructorArgsTypes.data};
+        return { success: false, msg: contractConstructorArgsTypes.data };
       }
       const newArgs = utils.twoDimensionalArray(args, contractConstructorArgsTypes.data);
 
-      const config = JSON.parse(sessionStorage.getItem("config"));
-      //console.log(config);
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      // console.log(config);
       const MAIN_INFO = config.NULS;
       const data = {
         fee: Number(Plus(Division(Times(res.data.gasLimit, price), 10000000), 0.001)),
@@ -103,24 +103,24 @@ async function imputedContractCallGas(sender, value, contractAddress, methodName
           args: newArgs
         }
       };
-      //console.log(data);
-      return {success: true, data}
+      // console.log(data);
+      return { success: true, data };
     } else {
-      return {success: false, msg: res.msg};
+      return { success: false, msg: res.msg };
     }
   } catch (e) {
-    return {success: false, msg: e};
+    return { success: false, msg: e };
   }
 }
 
 // 获取合约指定函数的参数类型
 async function getContractMethodArgsTypes(contractAddress, methodName) {
-  const params = {chain: "NULS", contractAddress, methodName, methodDesc: ""};
-  const res = await request({url: "/contract/method/args/type", data: params});
-  //console.log(res);
+  const params = { chain: 'NULS', contractAddress, methodName, methodDesc: '' };
+  const res = await request({ url: '/contract/method/args/type', data: params });
+  // console.log(res);
   if (res.code === 1000) {
-    return {success: true, data: res.data};
+    return { success: true, data: res.data };
   } else {
-    return {success: false, data: res.data};
+    return { success: false, data: res.data };
   }
 }

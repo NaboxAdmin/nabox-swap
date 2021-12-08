@@ -2,7 +2,7 @@
   <div class="p-3">
     <div v-loading="farmLoading" v-if="farmLoading" class="loading-cont" element-loading-background="rgba(255, 255, 255, 0.1)"/>
     <div
-      v-for="(item, index) in farmList"
+      v-for="item in farmList"
       v-else-if="farmList.length !== 0"
       :key="`${item.farmKey}-${item.pid}`"
       class="d-flex direction-column mb-3 border_d8"
@@ -56,7 +56,10 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <span class="mt-1">≈${{ item.syrupUsdPrice || 0 }}</span>
+            </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
               :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
@@ -79,7 +82,10 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              <span class="mt-1">≈${{ item.stakeUsdPrice || 0 }}</span>
+            </div>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
                 <div
@@ -130,8 +136,7 @@
 </template>
 
 <script>
-import { divisionDecimals, tofix, Minus, Division } from '@/api/util';
-import { getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
+import { divisionDecimals, tofix, Division, Times } from '@/api/util';
 
 export default {
   name: 'Over',
@@ -225,96 +230,71 @@ export default {
     },
     // 获取当前质押资产详细信息
     async getStakeAccount(farmList) {
-      // debugger;
       this.farmList = (await Promise.all(farmList.map(async item => {
-        const config = JSON.parse(sessionStorage.getItem('config'));
-        const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
-        const fromAddress = this.currentAccount['address'][item.chain || 'BSC'];
-        const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
-        let syrupAsset, stakedAsset;
-        if (item.chain === 'NERVE') {
-          stakedAsset = await this.getAssetInfo({
-            chainId: item.stakeTokenChainId,
-            assetId: item.stakeTokenAssetId,
-            contractAddress: item.stakeTokenContractAddress,
-            chain: item.chain
-          }); // 获取当前可质押的资产
-          syrupAsset = await this.getAssetInfo({
-            chainId: item.syrupTokenChainId,
-            assetId: item.syrupTokenAssetId,
-            contractAddress: item.syrupTokenContractAddress,
-            chain: item.chain
-          }); // 获取当前可领取资产信息
-          item.needReceiveAuth = false;
-          item.needStakeAuth = false;
-        } else {
-          const tokenBalance = await getBatchERC20Balance([item.stakeTokenContractAddress || batchQueryContract, item.syrupTokenContractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
-          stakedAsset = {
-            ...tokenBalance[0],
-            chainId: item.stakeTokenChainId,
-            assetId: item.stakeTokenAssetId,
-            contractAddress: item.stakeTokenContractAddress,
-            balance: divisionDecimals(tokenBalance[0].balance || 0, tokenBalance[0].decimals || 18)
-          };
-          syrupAsset = {
-            ...tokenBalance[1],
-            chainId: item.syrupTokenChainId,
-            assetId: item.syrupTokenAssetId,
-            contractAddress: item.syrupTokenContractAddress,
-            balance: divisionDecimals(tokenBalance[1].balance || 0, tokenBalance[1].decimals || 18)
-          };
-          item.needReceiveAuth = false;
-          item.needStakeAuth = false;
-        }
-        if (item.chain === 'NERVE') {
-          const res = await this.$request({
-            methods: 'post',
-            url: '/farm/stake/account',
-            data: {
-              chain: item.chain,
-              farmHash: item.farmKey,
-              address: this.currentAccount['address'][item.chain]
-            }
-          });
-          if (res.data) {
-            const { amount, reward } = res.data;
-            return {
-              ...item,
-              ...res.data,
-              amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
-              reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-              stakedAsset,
-              syrupAsset,
-              showDetail: false
-            };
+        let stakedAsset, syrupAsset;
+        const tempParams = [
+          {
+            chainId: item.stakeToken && item.stakeToken.chainId,
+            assetId: item.stakeToken && item.stakeToken.assetId,
+            contractAddress: item.stakeToken && item.stakeToken.contractAddress
+          },
+          {
+            chainId: item.syrupToken && item.syrupToken.chainId,
+            assetId: item.syrupToken && item.syrupToken.assetId,
+            contractAddress: item.syrupToken && item.syrupToken.contractAddress
           }
-          return { ...item, stakedAsset, syrupAsset, showDetail: false };
+        ];
+        // 通过jsonrpc去查询
+        const params = [MAIN_INFO.chainId, this.currentAccount['address']['NERVE'], tempParams];
+        const url = MAIN_INFO.batchRPC;
+        const res = await this.$post(url, 'getBalanceList', params);
+        if (res.result && res.result.length !== 0) {
+          stakedAsset = res.result[0];
+          syrupAsset = res.result[0];
         } else {
-          const config = JSON.parse(sessionStorage.getItem('config'));
-          const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
-          const fromAddress = this.currentAccount['address'][this.fromNetwork];
-          const RPCUrl = config[item.chain]['apiUrl'];
-          const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
-          console.log(tokens, 'tokensssss');
+          console.log('getBalanceList error');
+        }
+        // const stakedAsset = await this.getAssetInfo({
+        //   chainId: item.stakeToken && item.stakeToken.chainId,
+        //   assetId: item.stakeToken && item.stakeToken.assetId,
+        //   contractAddress: item.stakeToken && item.stakeToken.contractAddress,
+        //   chain: item.chain
+        // }); // 获取当前可质押的资产
+        // const syrupAsset = await this.getAssetInfo({
+        //   chainId: item.syrupToken && item.syrupToken.chainId,
+        //   assetId: item.syrupToken && item.syrupToken.assetId,
+        //   contractAddress: item.syrupToken && item.syrupToken.contractAddress,
+        //   chain: item.chain
+        // }); // 获取当前可领取资产信息
+        item.needReceiveAuth = false;
+        item.needStakeAuth = false;
+        const accountRes = await this.$request({
+          methods: 'post',
+          url: '/farm/stake/account',
+          data: {
+            chain: item.chain,
+            farmHash: item.farmKey,
+            address: this.currentAccount['address'][item.chain]
+          }
+        });
+        if (accountRes.data) {
+          const { amount, reward } = accountRes.data;
           return {
             ...item,
-            amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
-            // reward: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['1'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            // lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
-            // lockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
-            reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            ...accountRes.data,
             stakedAsset,
             syrupAsset,
+            amount: this.numberFormat(tofix(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), 2, -1), 2),
+            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+            syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
+            stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 2, -1), 2),
             showDetail: false
           };
         }
+        return { ...item, stakedAsset, syrupAsset, showDetail: false };
       })));
       this.farmLoading = false;
-      // const tempList = resList.filter(item => item);
-      console.log(this.farmList, '==ended farmList==');
+      console.log(this.farmList, '==L2 ended farmList==');
     },
     showDetailInfo(farm) {
       for (const item of this.farmList) {
