@@ -181,7 +181,7 @@ export default {
     this.timer = setInterval(() => {
       this.getFarmInfo(this.currentIndex === 0, true);
       this.getTvlInfo();
-    }, 15000);
+    }, 20000);
   },
   beforeDestroy() {
     if (this.timer) clearInterval(this.timer);

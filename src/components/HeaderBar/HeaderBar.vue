@@ -3,7 +3,7 @@
     <!-- :style="{'background-color': headerColor}"-->
     <div class="header-cont">
       <div class="logo-cont">
-        <img src="@/assets/image/SwapBoxBeta.svg" alt="">
+        <img src="@/assets/image/SwapBox.svg" alt="">
       </div>
       <div class="address-cont d-flex align-items-center">
         <div v-if="!showConnect && !showSign && address" class="address-detail pl-2 pr-2">
@@ -309,7 +309,7 @@ export default {
       this.$toast(this.$t('tips.tips13'));
     },
     showDropClick() {
-      !this.isLiquidity && (this.showDropList = !this.showDropList);
+      !this.isL2Farm && !this.isLiquidity && (this.showDropList = !this.showDropList);
     },
     // 断开连接
     disConnect() {

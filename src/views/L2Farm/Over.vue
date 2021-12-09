@@ -266,18 +266,6 @@ export default {
         } else {
           console.log('getBalanceList error');
         }
-        // const stakedAsset = await this.getAssetInfo({
-        //   chainId: item.stakeToken && item.stakeToken.chainId,
-        //   assetId: item.stakeToken && item.stakeToken.assetId,
-        //   contractAddress: item.stakeToken && item.stakeToken.contractAddress,
-        //   chain: item.chain
-        // }); // 获取当前可质押的资产
-        // const syrupAsset = await this.getAssetInfo({
-        //   chainId: item.syrupToken && item.syrupToken.chainId,
-        //   assetId: item.syrupToken && item.syrupToken.assetId,
-        //   contractAddress: item.syrupToken && item.syrupToken.contractAddress,
-        //   chain: item.chain
-        // }); // 获取当前可领取资产信息
         item.needReceiveAuth = false;
         item.needStakeAuth = false;
         const accountRes = await this.$request({
