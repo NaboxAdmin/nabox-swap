@@ -314,8 +314,10 @@ export default {
           this.showLoading = true;
           this.assetsItem = farm;
           this.currentFarm = farm;
-          await this.focusAsset(farm.syrupAsset);
-          const { syrupTokenChainId: chainId, syrupTokenAssetId: assetId } = farm;
+          // await this.focusAsset(farm.syrupAsset);
+          const { chainId, assetId } = farm.syrupToken;
+          // const chainId = farm.syrupToken.chainId;
+          // const assetId = farm.syrupToken.assetId;
           const transferInfo = {
             from: this.nerveAddress,
             to: this.nerveAddress,
@@ -474,11 +476,13 @@ export default {
         if (res.result && res.result.length !== 0) {
           stakedAsset = {
             ...res.result[0],
-            ...item.stakeToken
+            ...item.stakeToken,
+            balance: divisionDecimals(res.result[0].balance, item.stakeToken.decimals)
           };
           syrupAsset = {
             ...res.result[1],
-            ...item.syrupToken
+            ...item.syrupToken,
+            balance: divisionDecimals(res.result[1].balance, item.syrupToken.decimals)
           };
         } else {
           console.log('getBalanceList error');

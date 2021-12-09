@@ -44,7 +44,7 @@
         class="farm-detail_info"
         @click.stop>
         <div class="d-flex align-items-center space-between">
-          <span class="text-90 size-28">TVL</span>
+          <span class="text-90 size-28">{{ $t("navBar.navBar2") }}</span>
           <div class="d-flex align-items-center size-28">
             <span class="text-3a">${{ item.tvl }}</span>
           </div>
@@ -94,7 +94,7 @@
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
                 <div
-                  :class="{ disabled_btn: !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0 }"
+                  :class="{ disabled_btn: !item.amount || item.amount == 0 }"
                   class="btn-item"
                   @click="showClick('decrease', item.farmKey, item)">-</div>
                 <div

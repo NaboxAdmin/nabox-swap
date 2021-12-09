@@ -41,7 +41,7 @@
         class="farm-detail_info"
         @click.stop>
         <div class="d-flex align-items-center space-between">
-          <span class="text-90 size-28">TVL</span>
+          <span class="text-90 size-28">{{ $t("navBar.navBar2") }}</span>
           <div class="d-flex align-items-center size-28">
             <span class="text-3a">${{ item.tvl }}</span>
           </div>
@@ -56,7 +56,10 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
+            </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
               :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
@@ -79,11 +82,14 @@
             </el-tooltip>
           </div>
           <div class="d-flex align-items-center space-between mt-1">
-            <span class="size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
+            <div class="d-flex direction-column">
+              <span class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
+            </div>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
                 <div
-                  :class="{ disabled_btn: !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0 }"
+                  :class="{ disabled_btn: !item.amount || item.amount == 0 }"
                   class="btn-item"
                   @click="showClick('decrease', item.farmKey, item)">-</div>
                 <div class="btn-item ml-3 disabled_btn">+</div>
@@ -110,7 +116,10 @@
           <div class="vaults-item">
             <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
-              <span class="size-40 word-break w-330">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+              <div class="d-flex direction-column">
+                <span class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+                <span class="mt-1 text-90 size-26">≈${{ item.unlockUsdPrice || 0 }}</span>
+              </div>
               <span
                 v-if="!item.needReceiveAuth"
                 :class="{ active_btn: item.unlockNumbers == 0 }"
@@ -263,7 +272,7 @@ export default {
           pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
           syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
           stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 2, -1), 2),
-          unlockUsdPrice: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
+          unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
           stakedAsset,
           syrupAsset,
           showDetail: false

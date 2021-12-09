@@ -114,7 +114,7 @@
                     <span v-else-if="orderType===2" class="w-240 text-primary flex-1">
                       {{ item.type === 1 ? $t("popUp.popUp1") + 'L2' : item.type === 2 ? $t("popUp.popUp2") + 'L2' : item.type===3 ? $t("popUp.popUp7") : item.type===4 ? $t("popUp.popUp6") : item.type === 5 ? $t("popUp.popUp8") : "" }}
                     </span>
-                    <span v-else class="w-240 text-primary flex-1">{{ superLong(item.hash) }}</span>
+                    <span v-else class="w-240 text-primary flex-1">{{ superLong(item.txHash) }}</span>
                   </template>
                   <span>{{ item.createTime }}</span>
                   <span class="status-icon">
@@ -377,16 +377,14 @@ export default {
       this.orderType = 1;
       const params = {
         address: val,
-        chain: this.currentChain,
-        pageNumber: 1,
-        pageSize: 5
+        chain: this.currentChain
       };
       const res = await this.$request({
-        url: '/tx/coin/list',
+        url: '/swap/lp/list',
         data: params
       });
       if (res.code === 1000 && res.data) {
-        this.orderList = res.data.records.map(item => {
+        this.orderList = res.data.map(item => {
           return {
             ...item,
             createTime: this.formatTime(item.createTime)
@@ -444,7 +442,8 @@ export default {
       const res = await this.$request({
         url: '/swap/lp/list',
         data: {
-          address
+          address,
+          chain: 'NERVE'
         }
       });
       if (res.code === 1000) {

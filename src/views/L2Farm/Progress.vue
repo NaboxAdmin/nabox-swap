@@ -44,7 +44,7 @@
         class="farm-detail_info"
         @click.stop>
         <div class="d-flex align-items-center space-between">
-          <span class="text-90 size-28">TVL</span>
+          <span class="text-90 size-28">{{ $t("navBar.navBar2") }}</span>
           <div class="d-flex align-items-center size-28">
             <span class="text-3a">${{ item.tvl }}</span>
           </div>
@@ -62,7 +62,7 @@
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
               <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
-              <span class="mt-1">≈${{ item.syrupUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
             </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
@@ -89,7 +89,7 @@
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
               <span class="mt-2 size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
-              <span class="mt-1">≈${{ item.stakeUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
             </div>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
@@ -111,7 +111,7 @@
             </div>
           </div>
         </div>
-        <div class="mt-3 size-28 text-right text-6e d-flex justify-content-end" @click="$router.push({ path: '/swap' })">
+        <div class="mt-3 size-28 text-right text-6e d-flex justify-content-end" @click="toSwap(item)">
           <span>{{ $t("vaults.over5") }}{{ item.stakedAsset && item.stakedAsset.symbol }}</span>
           <span class="arrow-icon ml-1">
             <img src="@/assets/image/link_to.png" alt="">
@@ -179,6 +179,11 @@ export default {
       // showDetail: true
     };
   },
+  computed: {
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    }
+  },
   watch: {
     farmList: {
       handler(newVal, oldVal) {
@@ -193,6 +198,9 @@ export default {
     }
   },
   methods: {
+    toSwap(farm) {
+      this.isMobile ? window.location.href = `${farm.lpUrl}` : window.open(`${farm.lpUrl}`);
+    },
     showClick(type, farmHash, item) {
       // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
       if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward == 0 || item.reward < 0)) return false;

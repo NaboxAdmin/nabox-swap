@@ -73,3 +73,12 @@
 .rotate-180 {
   transform: rotateZ(90deg);
 }
+.url-cont {
+  height: 60px;
+  width: 150px;
+  //margin-bottom: 20px;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}

@@ -41,7 +41,7 @@
         class="farm-detail_info"
         @click.stop>
         <div class="d-flex align-items-center space-between">
-          <span class="text-90 size-28">TVL</span>
+          <span class="text-90 size-28">{{ $t("navBar.navBar2") }}</span>
           <div class="d-flex align-items-center size-28">
             <span class="text-3a">${{ item.tvl }}</span>
           </div>
@@ -58,7 +58,7 @@
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
               <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
-              <span class="mt-1">≈${{ item.syrupUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
             </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
@@ -84,7 +84,7 @@
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
               <span class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
-              <span class="mt-1">≈${{ item.stakeUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
             </div>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
@@ -190,6 +190,9 @@ export default {
     }
   },
   methods: {
+    toSwap(farm) {
+      this.isMobile ? window.location.href = `${farm.lpUrl}` : window.open(`${farm.lpUrl}`);
+    },
     // 领取
     receiveClick(farmHash, farm) {
       if (!farm.lockCandy && (!farm.reward || farm.reward === '0' || farm.reward === 0)) return false;
@@ -252,11 +255,13 @@ export default {
         if (res.result && res.result.length !== 0) {
           stakedAsset = {
             ...res.result[0],
-            ...item.stakeToken
+            ...item.stakeToken,
+            balance: divisionDecimals(res.result[0].balance, item.stakeToken.decimals)
           };
           syrupAsset = {
             ...res.result[1],
-            ...item.syrupToken
+            ...item.syrupToken,
+            balance: divisionDecimals(res.result[1].balance, item.syrupToken.decimals)
           };
         } else {
           console.log('getBalanceList error');

@@ -69,6 +69,12 @@
           </span>
           <span class="ml-16 size-28">{{ locale === 'cn' ? 'English' : '中文' }}</span>
         </div>
+        <!--        <div class="d-flex direction-column align-items-center justify-content-center">-->
+        <!--          <div class="size-28 mt-2 text-65">{{ $t('tips.tips29') }}</div>-->
+        <!--          <div class="url-cont mt-1" @click="toUrl('CERTIK')">-->
+        <!--            <img src="@/assets/image/CERTIK.svg" alt="">-->
+        <!--          </div>-->
+        <!--        </div>-->
       </div>
     </div>
   </div>
@@ -128,6 +134,9 @@ export default {
         case 'paraBox':
           this.isMobile ? window.location.href = 'https://parabox.nabox.io/' : window.open('https://parabox.nabox.io/');
           break;
+        case 'CERTIK':
+          this.isMobile ? window.location.href = 'https://www.certik.com/projects/nabox' : window.open('https://www.certik.com/projects/nabox');
+          break;
       }
     },
     switchLocale() {
@@ -186,5 +195,8 @@ export default {
 @import "Pop.scss";
 .disabled {
   opacity: .5;
+}
+.text-65 {
+  color: #656A7D
 }
 </style>
