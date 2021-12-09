@@ -68,12 +68,12 @@
               v-if="!item.needReceiveAuth && !item.lockCandy"
               :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
               class="item-btn size-30"
-              @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
+              @click.stop="receiveClick(item.farmKey, item)">{{ $t("tips.tips30") }}</span>
             <span
               v-else-if="!item.needReceiveAuth && item.lockCandy"
               :class="{ active_btn: !item.pendingReward || item.pendingReward === 0 || item.pendingReward === '0' }"
               class="item-btn size-30"
-              @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over7") }}</span>
+              @click.stop="receiveClick(item.farmKey, item)">{{ $t("tips.tips30") }}</span>
           </div>
         </div>
         <div class="vaults-item">

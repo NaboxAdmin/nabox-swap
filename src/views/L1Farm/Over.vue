@@ -64,12 +64,12 @@
               v-if="!item.needReceiveAuth && !item.lockCandy"
               :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
               class="item-btn size-30"
-              @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
+              @click.stop="receiveClick(item.farmKey, item)">{{ $t("tips.tips30") }}</span>
             <span
               v-else-if="!item.needReceiveAuth && item.lockCandy"
               :class="{ active_btn: !item.pendingReward || item.pendingReward === 0 || item.pendingReward === '0' }"
               class="item-btn size-30"
-              @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over7") }}</span>
+              @click.stop="receiveClick(item.farmKey, item)">{{ $t("tips.tips30") }}</span>
           </div>
         </div>
         <div class="vaults-item">
@@ -313,7 +313,7 @@ export default {
     },
     formatContent(lockDay) {
       const isEn = this.$store.state.lang === 'en';
-      return !isEn ? `执行解锁操作后，收益将在${lockDay}天后解锁，你可以在下方将已解锁的Token领取到你的账户地址` : `After executing the unlocking operation, the reward will be unlocked in ${lockDay} days and then you can claim the unlocked Token to your address`;
+      return !isEn ? `执行收割操作${lockDay}天后，你可以将收益领取到你的地址` : `${lockDay} days after the harvesting operation, you can claim the rewards to your address`;
     },
     formatLockContent(lockSeconds) {
       if (!lockSeconds) return false;

@@ -28,7 +28,8 @@ const en = {
     tips26: 'No support for transfer of non-primary assets',
     tips27: 'The received income will be locked for 90 days',
     tips28: 'You can unlock your Nabox by staking NABOX-BUSD LP and you can check the unlocking speed of different amounts of LP through the calculator',
-    tips29: 'Audit by'
+    tips29: 'Audit by',
+    tips30: 'Harvest'
   },
   swap: {
     swap1: 'From',
