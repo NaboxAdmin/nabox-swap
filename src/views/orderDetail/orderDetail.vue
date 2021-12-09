@@ -84,7 +84,7 @@
 
 <script>
 import { NavBar } from '@/components';
-import { divisionDecimals, copys } from '../../api/util';
+import { divisionDecimals, copys } from '@/api/util';
 
 export default {
   name: 'OrderDetail',

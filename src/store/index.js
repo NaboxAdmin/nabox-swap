@@ -5,48 +5,48 @@ import { getCurrentAccount } from '@/api/util';
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-    state: {
-        network: sessionStorage.getItem('network') || 'Ethereum',
-        fromNetwork: '',
-        fromAddress: '',
-        showConnect: true,
-        showSign: false,
-        isDapp: true,
-        lang: 'en',
-        isSwap: false
+  state: {
+    network: sessionStorage.getItem('network') || 'Ethereum',
+    fromNetwork: '',
+    fromAddress: '',
+    showConnect: true,
+    showSign: false,
+    isDapp: true,
+    lang: 'en',
+    isSwap: false
+  },
+  mutations: {
+    changeNetwork(state, data) {
+      state.network = data;
+      sessionStorage.setItem('network', data);
     },
-    mutations: {
-        changeNetwork(state, data) {
-            state.network = data;
-            sessionStorage.setItem("network", data);
-        },
-        changeFromNetwork(state, data) {
-            state.fromNetwork = data;
-        },
-        changeFromAddress(state, data) {
-            state.fromAddress = data;
-        },
-        changeShowConnect(state, data) {
-            state.showConnect = data;
-        },
-        changeShowSign(state, data) {
-            state.showSign = data;
-        },
-        changeDapp(state, data) {
-            state.isDapp = data;
-        },
-        changeLang(state, data) {
-            state.lang = data;
-            localStorage.setItem('locale', data);
-        },
-        changeSwap(state, data) {
-            state.isSwap = data;
-        }
+    changeFromNetwork(state, data) {
+      state.fromNetwork = data;
     },
-    getters: {
-        currentAccount(state) {
-            if(!state.fromAddress) return null;
-            return getCurrentAccount(state.fromAddress);
-        }
+    changeFromAddress(state, data) {
+      state.fromAddress = data;
+    },
+    changeShowConnect(state, data) {
+      state.showConnect = data;
+    },
+    changeShowSign(state, data) {
+      state.showSign = data;
+    },
+    changeDapp(state, data) {
+      state.isDapp = data;
+    },
+    changeLang(state, data) {
+      state.lang = data;
+      localStorage.setItem('locale', data);
+    },
+    changeSwap(state, data) {
+      state.isSwap = data;
     }
-})
+  },
+  getters: {
+    currentAccount(state) {
+      if (!state.fromAddress) return null;
+      return getCurrentAccount(state.fromAddress);
+    }
+  }
+});

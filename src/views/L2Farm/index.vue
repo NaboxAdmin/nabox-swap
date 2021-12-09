@@ -472,8 +472,14 @@ export default {
         const url = MAIN_INFO.batchRPC;
         const res = await this.$post(url, 'getBalanceList', params);
         if (res.result && res.result.length !== 0) {
-          stakedAsset = res.result[0];
-          syrupAsset = res.result[0];
+          stakedAsset = {
+            ...res.result[0],
+            ...item.stakeToken
+          };
+          syrupAsset = {
+            ...res.result[1],
+            ...item.syrupToken
+          };
         } else {
           console.log('getBalanceList error');
         }

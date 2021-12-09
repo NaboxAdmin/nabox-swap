@@ -9,14 +9,14 @@
 
 <script>
 export default {
-  name: "Loading",
+  name: 'Loading',
   props: {
     isActive: {
       type: Boolean,
       default: true
     }
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

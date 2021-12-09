@@ -157,28 +157,38 @@ export default {
       tempData = window._naboxAccount;
     }
     console.log(tempData, '==_naboxAccount==');
-    if (!tempData || tempData && !tempData.isTabbarSwap) {
-      this.initConnect();
-      if (this.address && getCurrentAccount(this.address)) {
+    this.initConnect();
+    if (this.address && getCurrentAccount(this.address)) {
+      this.refreshWallet();
+      // this.getOrderList()
+      if (this.timer) clearInterval(this.timer);
+      this.timer = setInterval(() => {
         this.refreshWallet();
-        // this.getOrderList()
-        if (this.timer) clearInterval(this.timer);
-        this.timer = setInterval(() => {
-          this.refreshWallet();
-        }, 300000);
-      }
-    } else {
-      this.$store.commit('changeDapp', true);
-      this.$store.commit('changeNetwork', tempData.chain);
-      const accountList = [
-        {
-          pub: tempData.publicKey,
-          address: tempData.addressDict
-        }
-      ];
-      this.address = tempData.addressDict[tempData.chain];
-      localStorage.setItem('accountList', JSON.stringify(accountList));
+      }, 300000);
     }
+    // FIXME: 取消tab-bar展示
+    // if (!tempData || tempData && !tempData.isTabbarSwap) {
+    //   this.initConnect();
+    //   if (this.address && getCurrentAccount(this.address)) {
+    //     this.refreshWallet();
+    //     // this.getOrderList()
+    //     if (this.timer) clearInterval(this.timer);
+    //     this.timer = setInterval(() => {
+    //       this.refreshWallet();
+    //     }, 300000);
+    //   }
+    // } else {
+    //   this.$store.commit('changeDapp', true);
+    //   this.$store.commit('changeNetwork', tempData.chain);
+    //   const accountList = [
+    //     {
+    //       pub: tempData.publicKey,
+    //       address: tempData.addressDict
+    //     }
+    //   ];
+    //   this.address = tempData.addressDict[tempData.chain];
+    //   localStorage.setItem('accountList', JSON.stringify(accountList));
+    // }
   },
   mounted() {
     window.scrollTo(0, 0);

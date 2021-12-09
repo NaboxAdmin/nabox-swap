@@ -295,10 +295,11 @@ export default {
           data
         });
         if (res.code === 1000 && res.data) {
-          this.transferAssets = res.data.map(asset => ({
+          const tempList = res.data.map(asset => ({
             ...asset,
             userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
           }));
+          this.transferAssets = (tempList.length > 0 && tempList.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
           // .filter(item => item.nulsCross && item.heterogeneousList)
           if (!this.currentCoin) {
             this.currentCoin = !this.currentCoin && (this.transferAssets.find(asset => asset.symbol === 'USDT' && asset.registerChain === this.fromNetwork) || this.transferAssets[0]) || this.currentCoin;

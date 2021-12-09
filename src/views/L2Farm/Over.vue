@@ -137,6 +137,7 @@
 
 <script>
 import { divisionDecimals, tofix, Division, Times } from '@/api/util';
+import { MAIN_INFO } from '@/config';
 
 export default {
   name: 'Over',
@@ -249,8 +250,14 @@ export default {
         const url = MAIN_INFO.batchRPC;
         const res = await this.$post(url, 'getBalanceList', params);
         if (res.result && res.result.length !== 0) {
-          stakedAsset = res.result[0];
-          syrupAsset = res.result[0];
+          stakedAsset = {
+            ...res.result[0],
+            ...item.stakeToken
+          };
+          syrupAsset = {
+            ...res.result[1],
+            ...item.syrupToken
+          };
         } else {
           console.log('getBalanceList error');
         }

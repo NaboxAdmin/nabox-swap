@@ -105,7 +105,7 @@
             <div v-loading="orderLoading" class="order-list mt-3">
               <div class="fix-cont">
                 <div
-                  v-for="(item, index) in orderList"
+                  v-for="item in orderList"
                   :key="item.id"
                   class="d-flex align-items-center mb-3 cursor-pointer space-between"
                   @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">

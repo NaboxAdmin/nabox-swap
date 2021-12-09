@@ -74,10 +74,10 @@
 </template>
 
 <script>
-import NavBar from '../../components/NavBar/NavBar';
-import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
+import NavBar from '@/components/NavBar/NavBar';
+import { MAIN_INFO, NULS_INFO } from '@/config';
 import { timesDecimals, getCurrentAccount } from '@/api/util';
-import { ETransfer, NTransfer } from '../../api/api';
+import { ETransfer, NTransfer } from '@/api/api';
 
 export default {
   name: 'ConfirmOrder',

@@ -1,17 +1,18 @@
 <template>
-  <div class="mask-cont"
-       @touchmove="touchmoveEvent"
-       @click.stop="maskClick"
-       :class="[show && 'show_pop', !customClass && 'defaultClass']">
-    <div @click.stop :class="[show && 'show-main', customClass && 'customClass']">
-      <slot></slot>
+  <div
+    :class="[show && 'show_pop', !customClass && 'defaultClass']"
+    class="mask-cont"
+    @touchmove="touchmoveEvent"
+    @click.stop="maskClick">
+    <div :class="[show && 'show-main', customClass && 'customClass']" @click.stop>
+      <slot/>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: "PopUp",
+  name: 'PopUp',
   props: {
     show: {
       type: Boolean,
@@ -31,10 +32,10 @@ export default {
       this.preventBoo && e.preventDefault();
     },
     maskClick() {
-      this.$emit('update:show', false)
+      this.$emit('update:show', false);
     }
   }
-}
+};
 </script>
 
 <style scoped lang="scss">

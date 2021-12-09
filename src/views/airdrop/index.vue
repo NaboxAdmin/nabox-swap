@@ -258,8 +258,8 @@ export default {
         }
         if (newVal && !this.reverse0Flag && !this.reverse1Flag) {
           const tempNewval = timesDecimals(newVal, this.LpFarmInfo.lpDecimals || 18);
-          const tempAmount0 = divisionDecimals(Division(Times(this.reverse0, tempNewval), this.totalSupply), this.reverse0Asset.decimals || 18);
-          const tempAmount1 = divisionDecimals(Division(Times(this.reverse1, tempNewval), this.totalSupply), this.reverse1Asset.decimals || 18);
+          const tempAmount0 = divisionDecimals(Division(Times(this.reverse0, tempNewval), this.totalSupply), this.reverse0Asset && this.reverse0Asset.decimals || 18);
+          const tempAmount1 = divisionDecimals(Division(Times(this.reverse1, tempNewval), this.totalSupply), this.reverse1Asset && this.reverse1Asset.decimals || 18);
           const tempAmount1ToAmount0 = Times(tempAmount1, this.rate);
           if (Minus(tempAmount0, tempAmount1ToAmount0) < 0) {
             this.reverse0Count = formatFloatNumber(6, tempAmount0);

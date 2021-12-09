@@ -464,7 +464,7 @@ export default {
         const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
         const fromAddress = this.currentAccount['address'][item.chain || 'BSC'];
         const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
-        const tokenBalance = await getBatchERC20Balance([item.stakeToken && item.stakeToken.contractAddress || batchQueryContract, item.stakeToken && item.stakeToken.contractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
+        const tokenBalance = await getBatchERC20Balance([item.stakeToken && item.stakeToken.contractAddress || batchQueryContract, item.syrupToken && item.syrupToken.contractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
         const stakedAsset = {
           ...tokenBalance[0],
           chainId: item.stakeToken && item.stakeToken.chainId,
