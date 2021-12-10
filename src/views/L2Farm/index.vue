@@ -2,6 +2,7 @@
   <div :class="{ mobile_class: !isMobile }">
     <div class="vaults-cont">
       <div v-loading="showLoading" v-if="showLoading" class="position-fixed_loading" @touchmove.prevent/>
+      <div class="coin-info"/>
       <div class="bg-f0">
         <div class="main-cont pb-3 pt-3">
           <div class="font-500 size-38 text-white text-center">${{ (allTvl || 0) | numFormat }}</div>
@@ -68,7 +69,7 @@ import { PopUp } from '@/components';
 import Progress from './Progress';
 import Over from './Over';
 import { currentNet, MAIN_INFO } from '@/config';
-import { divisionDecimals, getAssetNerveInfo, Minus, timesDecimals, tofix, Times } from '@/api/util';
+import { divisionDecimals, Minus, timesDecimals, tofix, Times } from '@/api/util';
 import { ETransfer, NTransfer } from '@/api/api';
 import { ethers } from 'ethers';
 import { txAbi } from '@/api/contractConfig';

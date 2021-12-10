@@ -2,6 +2,7 @@
   <div :class="{ mobile_class: !isMobile }">
     <div class="vaults-cont">
       <div v-loading="showLoading" v-if="showLoading" class="position-fixed_loading" @touchmove.prevent/>
+      <div class="coin-info"/>
       <div class="bg-f0">
         <div class="main-cont pb-3 pt-3">
           <div class="font-500 size-38 text-white text-center">${{ (allTvl || 0) | numFormat }}</div>
@@ -69,11 +70,10 @@ import { PopUp } from '@/components';
 import Progress from './Progress';
 import Over from './Over';
 import { currentNet } from '@/config';
-import { divisionDecimals, Minus, timesDecimals, tofix } from '@/api/util';
+import { divisionDecimals, Minus, timesDecimals, tofix, Times } from '@/api/util';
 import { ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
 import { ethers } from 'ethers';
 import { txAbi } from '@/api/contractConfig';
-import { Times } from '../../api/util';
 
 const nerve = require('nerve-sdk-js');
 // eslint-disable-next-line no-unused-vars
@@ -363,6 +363,9 @@ export default {
         const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
         return {
           ...item,
+          stakedAsset,
+          syrupAsset,
+          showDetail: false,
           amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
           approveLoading: this.farmList && this.farmList[index] && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
           unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
@@ -371,10 +374,7 @@ export default {
           pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
           syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
           stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 2, -1), 2),
-          unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
-          stakedAsset,
-          syrupAsset,
-          showDetail: false
+          unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2)
         };
       })));
       this.farmLoading = false;
