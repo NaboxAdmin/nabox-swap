@@ -313,7 +313,7 @@ export default {
     },
     formatContent(lockDay) {
       const isEn = this.$store.state.lang === 'en';
-      return !isEn ? `执行收割操作${lockDay}天后，你可以将收益领取到你的地址` : `${lockDay} days after the harvesting operation, you can claim the rewards to your address`;
+      return !isEn ? `执行收获操作${lockDay}天后，你可以将收益领取到你的地址` : `${lockDay} days after the harvesting operation, you can claim the rewards to your address`;
     },
     formatLockContent(lockSeconds) {
       if (!lockSeconds) return false;

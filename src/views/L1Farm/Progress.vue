@@ -203,12 +203,6 @@ export default {
   methods: {
     toSwap(farm) {
       this.isMobile ? window.location.href = `${farm.lpUrl}` : window.open(`${farm.lpUrl}`);
-      // if (farm.stakedAsset && farm.stakedAsset.symbol === 'USDTN') {
-      //   // FIXME 0x55d398326f99059ff775485246999027b3197955 0xd0a347e0ebea8f8efc26d539e17853c8e7a721c4
-      //   this.$router.push({ path: '/swap', query: { fromContractAddress: '0x55d398326f99059ff775485246999027b3197955', toContractAddress: farm.stakedAsset.contractAddress }});
-      // } else {
-      //   this.$router.push({ path: '/swap' });
-      // }
     },
     showClick(type, farmHash, item) {
       // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;  || !item.reward || item.reward == 0 || item.reward < 0
@@ -243,7 +237,7 @@ export default {
     },
     formatContent(lockDay) {
       const isEn = this.$store.state.lang === 'en';
-      return !isEn ? `执行收割操作${lockDay}天后，你可以将收益领取到你的地址` : `${lockDay} days after the harvesting operation, you can claim the rewards to your address`;
+      return !isEn ? `执行收获操作${lockDay}天后，你可以将收益领取到你的地址` : `${lockDay} days after the harvesting operation, you can claim the rewards to your address`;
     },
     formatLockContent(lockSeconds) {
       if (!lockSeconds) return false;

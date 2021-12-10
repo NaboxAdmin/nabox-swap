@@ -31,4 +31,21 @@ body {
     padding-bottom: constant(safe-area-inset-bottom);
   }
 }
+
+::-webkit-scrollbar {
+  background-color: rgba(27,27,27,.4);
+  border-radius: 20px;
+  width: 3px; // y轴滚动条宽度
+  height: 3px; // x轴滚动条高度
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 20px; // 滚动条的圆角
+  background: rgba(27,27,27,.4); // 滚动条的背景颜色
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 20px; // 滚动条的背景区域的圆角
+  background: #fff; // 滚动条的背景颜色
+}
 </style>

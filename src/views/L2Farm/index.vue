@@ -2,17 +2,6 @@
   <div :class="{ mobile_class: !isMobile }">
     <div class="vaults-cont">
       <div v-loading="showLoading" v-if="showLoading" class="position-fixed_loading" @touchmove.prevent/>
-      <div class="coin-info">
-        <!--        <div class="detail-info">-->
-        <!--          <span class="size-28">L2 ID: {{ superLong(nerveAddress) }}</span>-->
-        <!--          <span class="icon ml-35" @click="crossOut">-->
-        <!--            <svg t="1627381264959" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1769" width="18" height="18"><path d="M193.794931 34.540951l28.424555 56.84911c-67.08195 28.424555-299.02632 154.345334-183.906872 515.621431 2.55821 4.832174 9.948594 7.390384 12.79105 0 21.034171-227.396441 160.030246-282.255833 267.759309-325.461157l26.719082 52.585427a26.150591 26.150591 0 0 0 43.205324 0l113.698221-212.331427a39.510132 39.510132 0 0 0-28.424556-56.84911L219.945521 0.71573a23.308135 23.308135 0 0 0-26.15059 33.825221z" fill="#FFFFFF" p-id="1770"></path><path d="M457.006311 495.30299h181.632908a46.332025 46.332025 0 0 1 38.94164 51.164199 46.61627 46.61627 0 0 1-38.94164 51.164199h-181.632908a46.332025 46.332025 0 0 1-38.94164-51.164199 46.047779 46.047779 0 0 1 38.94164-51.164199z" fill="#FFFFFF" p-id="1771"></path><path d="M510.16023 1023.999716a505.388591 505.388591 0 0 1-387.710933-180.495925 51.164199 51.164199 0 0 1 78.451772-65.944968A403.912929 403.912929 0 1 0 706.005415 164.725414a51.164199 51.164199 0 0 1 50.027217-89.537349A506.241327 506.241327 0 0 1 510.16023 1023.999716z" fill="#FFFFFF" p-id="1772"></path></svg>-->
-        <!--          </span>-->
-        <!--          <span class="icon ml-3" @click="crossIn">-->
-        <!--            <svg t="1627381295687" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1939" width="18" height="18"><path d="M323.36059 579.128406l-28.444421-56.888841c67.413277-28.444421 300.088639-154.737649 184.60429-517.119569-2.559998-4.835552-10.239991-7.679994-12.799989 0-21.333316 227.555366-160.426533 284.444207-268.799776 326.257506l-27.591088-53.475511a26.453311 26.453311 0 0 0-43.519964 0l-113.777683 213.048711a39.537745 39.537745 0 0 0 28.444421 56.888841l255.999787 64.284391a23.324425 23.324425 0 0 0 25.884423-32.995528z" fill="#FFFFFF" p-id="1940"></path><path d="M457.9027 498.630696h182.044292a44.657741 44.657741 0 0 1 38.968857 48.639959A44.657741 44.657741 0 0 1 639.946992 597.332836h-182.044292a44.657741 44.657741 0 0 1-38.968857-48.924404 44.657741 44.657741 0 0 1 38.968857-49.777736z" fill="#FFFFFF" p-id="1941"></path><path d="M511.093766 1023.999147a505.172912 505.172912 0 0 1-386.844122-180.053184 48.924404 48.924404 0 1 1 74.808827-62.862169A407.892993 407.892993 0 1 0 709.066935 162.133198a48.639959 48.639959 0 1 1 47.502182-85.333262A505.172912 505.172912 0 0 1 511.093766 1023.999147z" fill="#FFFFFF" p-id="1942"></path></svg>-->
-        <!--          </span>-->
-        <!--        </div>-->
-      </div>
       <div class="bg-f0">
         <div class="main-cont pb-3 pt-3">
           <div class="font-500 size-38 text-white text-center">${{ (allTvl || 0) | numFormat }}</div>
@@ -37,18 +26,16 @@
         :farm-list="farmList"
         :farmLoading="farmLoading"
         @stakeApprove="stakeApprove"
-        @receiveApprove="receiveApprove"
-        @receiveClick="progressReceive"
-        @confirmUnlocked="progressReceive"
+        @receiveClick="harvestReward"
+        @confirmUnlocked="harvestReward"
         @showClick="showClick"/>
       <Over
         v-if="currentIndex===1"
         :farm-list="farmList"
         :farm-loading="farmLoading"
         :network-type="networkType"
-        @receiveApprove="receiveApprove"
-        @receiveClick="progressReceive"
-        @confirmUnlocked="progressReceive"
+        @receiveClick="harvestReward"
+        @confirmUnlocked="harvestReward"
         @showClick="showClick"/>
     </div>
     <PopUp :show.sync="showPop">
@@ -69,8 +56,7 @@
         <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
         <div class="pop-btn d-flex align-items-center space-between mt-4">
           <div class="btn" @click="showPop = false; lpCount=''; amountMsg=''">{{ $t("vaults.vaults7") }}</div>
-          <div v-if="!needAuth" class="btn btn_active" @click="confirm">{{ $t("vaults.vaults8") }}</div>
-          <div v-if="needAuth" class="btn btn_active" @click="approveERC20">{{ $t("vaults.over6") }}</div>
+          <div class="btn btn_active" @click="confirm">{{ $t("vaults.vaults8") }}</div>
         </div>
       </div>
     </PopUp>
@@ -119,7 +105,6 @@ export default {
       assetsItem: null,
       timer: null,
       timer1: null,
-      needAuth: true, // 是否需要授权
       farmLoading: false,
       authRefresh: true, // 授权后刷新
       currentFarm: null, // 当前操作的farm
@@ -175,7 +160,6 @@ export default {
     }
   },
   created() {
-    // this.getLiquidityInfo();
     this.getFarmInfo(true);
     this.getTvlInfo();
     this.timer = setInterval(() => {
@@ -190,22 +174,6 @@ export default {
     this.timer1 = null;
   },
   methods: {
-    switchFarmType() {
-      if (this.networkType === 'L1') {
-        this.networkType = 'L2';
-      } else {
-        this.networkType = 'L1';
-      }
-      this.getFarmInfo(true);
-    },
-    // 转出
-    crossOut() {
-      this.$router.push({ name: 'transfer', params: { nerveTo: 'true' }});
-    },
-    // 转入
-    crossIn() {
-      this.$router.push({ path: '/transfer' });
-    },
     // 刷新数据
     async refreshData() {
       await this.getFarmInfo(true);
@@ -222,57 +190,13 @@ export default {
       this.currentFarmHash = farmHash;
       this.currentFarm = item;
       this.stakedAsset = item.stakedAsset;
-      if (item.chain === 'NERVE') {
-        if (this.timer1) clearTimeout(this.timer1);
-        this.needAuth = false;
-      } else {
-        this.needAuth = false;
-      }
+      if (this.timer1) clearTimeout(this.timer1);
       if (type === 'increase') {
         this.assetsItem = item.stakedAsset;
       } else {
         this.assetsItem = item;
       }
     },
-    // 资产授权
-    async approveERC20() {
-      this.showLoading = true;
-      try {
-        const transfer = new ETransfer();
-        const contractAddress = this.assetsItem.contractAddress;
-        const res = await transfer.approveERC20(
-          contractAddress,
-          this.currentFarmHash,
-          this.currentAccount.address.Ethereum
-        );
-        if (res.hash) {
-          this.$message({
-            message: this.$t('tips.tips14'),
-            type: 'success',
-            offset: 30,
-            duration: 2000
-          });
-          await this.setGetERC20Allowance();
-        } else {
-          this.$message({
-            message: JSON.stringify(res),
-            type: 'warning',
-            offset: 30,
-            duration: 2000 });
-        }
-        this.showLoading = false;
-      } catch (e) {
-        console.log(e);
-        this.$message({
-          message: e.message,
-          type: 'warning',
-          offset: 30,
-          duration: 2000 });
-        this.showPop = false;
-        this.showLoading = false;
-      }
-    },
-
     async setGetERC20Allowance() {
       if (this.timer1) clearTimeout(this.timer1);
       const transfer = new ETransfer();
@@ -301,7 +225,7 @@ export default {
       }
     },
     // 正在进行领取奖励
-    async progressReceive({ farmHash, farm, candyLock }) {
+    async harvestReward({ farmHash, farm, candyLock }) {
       // console.log(farm, 'farm')
       this.vaultsType = 'decrease';
       if (farm.chain !== 'NERVE') {
@@ -314,10 +238,7 @@ export default {
           this.showLoading = true;
           this.assetsItem = farm;
           this.currentFarm = farm;
-          // await this.focusAsset(farm.syrupAsset);
           const { chainId, assetId } = farm.syrupToken;
-          // const chainId = farm.syrupToken.chainId;
-          // const assetId = farm.syrupToken.assetId;
           const transferInfo = {
             from: this.nerveAddress,
             to: this.nerveAddress,
@@ -358,44 +279,6 @@ export default {
           this.showLoading = false;
           this.showPop = false;
         }
-      }
-    },
-    // 已结束领取奖励
-    async overReceive(asset) {
-      try {
-        const { chainId, assetId } = asset;
-        const transferInfo = {
-          fromAddress: this.nerveAddress,
-          toAddress: this.nerveAddress,
-          assetsChainId: chainId,
-          assetsId: assetId,
-          amount: 0,
-          fee: 0
-        };
-        const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
-        const fromAddress = this.nerveAddress;
-        const token = nerve.swap.token(chainId, assetId);
-        const farmHash = asset.farmKey || '';
-        const amount = 0;
-        const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
-        const tAssemble = nerve.deserializationTx(tempTxData.hex);
-        const data = {
-          tAssemble,
-          inputs: inputs,
-          outputs: outputs,
-          txData: {},
-          pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address.Ethereum
-        };
-        const txHex = await transfer.getTxHex(data);
-        if (txHex) {
-          await this.broadcastHex({ txHex, txHash: '' });
-          await this.getFarmInfo(false);
-          this.showLoading = false;
-        }
-      } catch (e) {
-        console.log(e);
-        this.showLoading = false;
       }
     },
     // 最大
@@ -487,18 +370,6 @@ export default {
         } else {
           console.log('getBalanceList error');
         }
-        // const stakedAsset = await this.getAssetInfo({
-        //   chainId: item.stakeToken && item.stakeToken.chainId,
-        //   assetId: item.stakeToken && item.stakeToken.assetId,
-        //   contractAddress: item.stakeToken && item.stakeToken.contractAddress,
-        //   chain: item.chain
-        // }); // 获取当前可质押的资产
-        // const syrupAsset = await this.getAssetInfo({
-        //   chainId: item.syrupToken && item.syrupToken.chainId,
-        //   assetId: item.syrupToken && item.syrupToken.assetId,
-        //   contractAddress: item.syrupToken && item.syrupToken.contractAddress,
-        //   chain: item.chain
-        // }); // 获取当前可领取资产信息
         item.needReceiveAuth = false;
         item.needStakeAuth = false;
         const accountRes = await this.$request({
@@ -535,29 +406,6 @@ export default {
       })));
       this.farmLoading = false;
       console.log(this.farmList, '==L2 farmList==');
-    },
-    // 关注当前这两个资产
-    async focusAsset(assetInfo) {
-      try {
-        const infoParams = {
-          network: assetInfo.chain,
-          assetsChainId: assetInfo.chainId,
-          assetsId: assetInfo.assetId,
-          contractAddress: assetInfo.contractAddress || ''
-        };
-        const { chainId, assetId } = await getAssetNerveInfo(infoParams);
-        const focusParams = {
-          address: this.currentAccount.address[assetInfo.chain],
-          assetId,
-          chainId,
-          chain: assetInfo.chain,
-          contractAddress: assetInfo.contractAddress || '',
-          focus: true
-        };
-        await this.$request({ url: '/wallet/address/asset/focus', data: focusParams });
-      } catch (e) {
-        console.log(e);
-      }
     },
     // 确认
     async confirm() {
@@ -688,7 +536,6 @@ export default {
     async decreaseClick() {
       this.showLoading = true;
       try {
-        // this.stakedAsset = await this.getAssetInfo({ chainId: 5, assetId: 37 }); // 获取当前可退出质押的资产
         const { chainId, assetId, decimals } = this.assetsItem.stakedAsset;
         const transferInfo = {
           from: this.nerveAddress,
@@ -742,39 +589,6 @@ export default {
       } else {
         clearInterval(this.timer);
         this.timer = null;
-      }
-    },
-    // 获取pool流动性信息
-    async getLiquidityInfo() {
-      const res = await this.$request({
-        method: 'get',
-        url: '/swap/usdn/info'
-      });
-      if (res.code === 1000) {
-        this.liquidityInfo = res.data;
-        this.liquidityInfo.total = res.data && divisionDecimals(res.data.total, res.data.decimals);
-        this.liquidityInfo.balabce = res.data && divisionDecimals(res.data.balabce, res.data.decimals);
-      }
-    },
-    // 获取资产信息
-    async getAssetInfo(currentAsset) {
-      if (!currentAsset) return '';
-      const { chainId, assetId, contractAddress, chain } = currentAsset;
-      const params = {
-        chain,
-        address: this.currentAccount && this.currentAccount.address[chain],
-        chainId,
-        assetId,
-        refresh: true,
-        contractAddress: contractAddress || ''
-      };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: params
-      });
-      if (res.code === 1000) {
-        res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
-        return res.data;
       }
     },
     // 广播nerve nuls跨链转账交易
@@ -850,56 +664,6 @@ export default {
           });
         }
         this.reset();
-        this.showLoading = false;
-      }
-    },
-    // 获取领取的资产是否需要授权
-    async getReceiveAuth(syrupAsset, farmHash) {
-      const transfer = new ETransfer();
-      return await transfer.getERC20Allowance(
-        syrupAsset.contractAddress,
-        farmHash,
-        this.currentAccount.address.Ethereum
-      );
-    },
-    // 领取资产授权
-    async receiveApprove({ farmHash, farm }) {
-      this.showLoading = true;
-      try {
-        const transfer = new ETransfer();
-        const contractAddress = farm.stakedAsset.contractAddress;
-        // const multiAddress = this.assetsItem.heterogeneousList && this.assetsItem.heterogeneousList.find(item => item.chainName === this.currentFarm.chain).heterogeneousChainMultySignAddress || '';
-        // console.log(multiAddress, 'contractAddress contractAddress contractAddress');
-        const res = await transfer.approveERC20(
-          contractAddress,
-          farmHash,
-          this.currentAccount.address.Ethereum
-        );
-        if (res.hash) {
-          this.$message({
-            message: this.$t('tips.tips14'),
-            type: 'success',
-            duration: 2000,
-            offset: 30
-          });
-        } else {
-          this.$message({
-            message: JSON.stringify(res),
-            type: 'warning',
-            offset: 30,
-            duration: 2000
-          });
-        }
-        this.showLoading = false;
-      } catch (e) {
-        console.log(e);
-        this.$message({
-          message: e.message,
-          type: 'warning',
-          offset: 30,
-          duration: 2000
-        });
-        this.showPop = false;
         this.showLoading = false;
       }
     },

@@ -89,42 +89,6 @@ import { divisionDecimals, copys } from '@/api/util';
 export default {
   name: 'OrderDetail',
   components: { NavBar },
-  filters: {
-    orderStatus(val) {
-      switch (val) {
-        case 0:
-          return '等待兑换';
-        case 1:
-          return '兑换已确认';
-        case 2:
-          return '等待跨链';
-        case 3:
-          return '跨链已确认';
-        case 4:
-          return '目标链等待接收';
-        case 5:
-          return '目标地址接收已确认';
-        case 6:
-          return '兑换失败';
-      }
-    },
-    stableOrderStatus(val) {
-      switch (val) {
-        case 0:
-          return 'swap跨链交易未确认';
-        case 1:
-          return 'swap跨链交易已确认';
-        case 2:
-          return 'swap跨链交易,swap交易已广播';
-        case 3:
-          return 'swap跨链交易，链跨出交易已广播';
-        case 4:
-          return 'swap跨链交易，目标链已确认';
-        case 5:
-          return 'swap跨链交易失败';
-      }
-    }
-  },
   data() {
     return {
       detailInfo: null

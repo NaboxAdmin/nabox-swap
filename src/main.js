@@ -17,10 +17,6 @@ import { networkOrigin, addressNetworkOrigin } from './api/util';
 
 const development = process.env.NODE_ENV === 'development';
 Vue.config.devtools = development;
-if (!development) {
-  console.log = () => {};
-}
-
 Vue.prototype.$request = request; // 网络请求
 Vue.prototype.$post = post;
 Vue.config.productionTip = false; // 开发环境提示
@@ -28,6 +24,9 @@ Vue.mixin(globalMixin);
 Vue.use(VueI18n);
 Vue.use(ElementUI);
 Vue.use(Loading);
+if (!development) {
+  console.log = () => {};
+}
 let tempData, locale;
 if (typeof window._naboxAccount === 'string') {
   tempData = window._naboxAccount && JSON.parse(window._naboxAccount);
