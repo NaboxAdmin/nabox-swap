@@ -79,7 +79,7 @@
                   </span>
                 </div>
               </div>
-              <div class="text-left mt-3 size-36 font-500">{{ currentChainAsset && currentChainAsset.balance }} {{ currentChainAsset && currentChainAsset.symbol }}</div>
+              <div class="text-left mt-3 size-36 font-500">{{ currentChainAvailable || 0 }} {{ currentChainSymbol }}</div>
             </div>
             <div class="account-cont mt-4">
               <div class="account-info_pop">
@@ -93,7 +93,7 @@
                   </span>
                 </div>
               </div>
-              <div class="text-left mt-3 size-36 font-500">{{ nerveChainAsset && nerveChainAsset.balance || 0 }} {{ nerveChainAsset && nerveChainAsset.symbol }}</div>
+              <div class="text-left mt-3 size-36 font-500">{{ nerveChainAvailable || 0 }} {{ nerveChainSymbol }}</div>
             </div>
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
@@ -146,7 +146,7 @@
 import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
-import { copys, divisionDecimals, supportChainList, tofix } from '../../api/util';
+import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
 
 // eslint-disable-next-line no-unused-vars
 const lang = localStorage.getItem('locale') || 'cn';
@@ -181,7 +181,11 @@ export default {
       isSwap: false,
       isVaults: false,
       isLiquidity: false,
-      isL2Farm: false
+      isL2Farm: false,
+      currentChainSymbol: '',
+      nerveChainSymbol: '',
+      currentChainAvailable: 0,
+      nerveChainAvailable: 0
     };
   },
   computed: {
@@ -497,25 +501,6 @@ export default {
       this.$emit('l2FarmClick');
       this.showPop = false;
     },
-    async getMainAssetInfo(assetInfo) {
-      const { chain, address, assetId, chainId, contractAddress } = assetInfo;
-      const data = {
-        chain,
-        address,
-        chainId,
-        assetId,
-        contractAddress,
-        refresh: true
-      };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data
-      });
-      if (res.code === 1000) {
-        res.data.balance = res.data && this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1), 6, false);
-        return res.data;
-      }
-    },
     async initAssetInfo() {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const tempAsset = {
@@ -532,8 +517,23 @@ export default {
         chainId: config && config['NERVE'].chainId,
         contractAddress: ''
       };
-      this.currentChainAsset = await this.getMainAssetInfo(tempAsset);
-      this.nerveChainAsset = await this.getMainAssetInfo(nerveAsset);
+      let tempCurrentAvailable, tempNerveAvailable;
+      this.currentChainSymbol = config[this.currentChain].symbol;
+      this.nerveChainSymbol = config['NERVE'].symbol;
+      if (this.currentChain === 'NERVE') {
+        tempCurrentAvailable = await this.getNerveAssetBalance(nerveAsset);
+        tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
+        this.currentChainAvailable = this.numberFormat(tofix(divisionDecimals(tempCurrentAvailable, config && config['NERVE'].decimals || 18), 6, -1), 6, false);
+      } else if (this.currentChain === 'NULS') {
+        tempCurrentAvailable = await this.getNulsAssetBalance(tempAsset);
+        tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
+        this.currentChainAvailable = this.numberFormat(tofix(divisionDecimals(tempCurrentAvailable, config && config['NULS'].decimals || 18), 6, -1), 6, false);
+      } else {
+        tempCurrentAvailable = await this.getHeterogeneousAssetBalance(tempAsset);
+        tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
+        this.currentChainAvailable = this.numberFormat(tofix(tempCurrentAvailable, 6, -1), 6, false);
+      }
+      this.nerveChainAvailable = this.numberFormat(tofix(divisionDecimals(tempNerveAvailable, config && config['NERVE'].decimals || 18), 6, -1), 6, false);
     }
   }
 };

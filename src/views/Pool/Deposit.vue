@@ -247,7 +247,8 @@ export default {
               symbol: item.symbol,
               registerChain: item.chain,
               userBalance: tofix(divisionDecimals(res.result[index].balance || 0, item.decimals || 8), 6, -1),
-              chainId: res.result[index].assetChainId
+              chainId: res.result[index].assetChainId,
+              decimals: item.decimals
             }));
           } else {
             this.lpAssetsList = await Promise.all(this.liquidityInfo.lpCoinList.map(async(item) => {
@@ -280,44 +281,31 @@ export default {
       if (!refresh) {
         this.availableLoading = true;
       }
-      const params = {
-        chain: 'NERVE',
-        address: this.nerveAddress,
-        chainId: currentAsset.chainId,
-        assetId: currentAsset.assetId,
-        refresh: true,
-        contractAddress: ''
+      currentAsset = {
+        ...currentAsset
       };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: params
-      });
-      if (res.code === 1000) {
-        this.currentAssetInfo = res.data;
-        this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
-        this.currentAvailable = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
-      }
+      this.userAvailable = await this.getNerveAssetBalance(currentAsset);
+      this.currentAvailable = this.numberFormat(tofix(this.userAvailable, 6, -1));
+      this.currentAssetInfo = {
+        ...currentAsset,
+        balance: this.userAvailable
+      };
       this.availableLoading = false;
     },
     // 获取已添加流动性资产信息
     async getAddedLiquidity() {
       const params = {
-        chain: 'NERVE',
-        address: this.nerveAddress,
         chainId: this.liquidityInfo.chainId,
         assetId: this.liquidityInfo.assetId,
-        refresh: true,
+        decimals: this.liquidityInfo.decimals,
         contractAddress: this.liquidityInfo.contractAddress || ''
       };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: params
-      });
-      if (res.code === 1000) {
-        this.addedLiquidityInfo = res.data;
-        this.addedLiquidityInfo['balance'] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 4, -1));
-        this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
-      }
+      const addedLiquidityBalance = await this.getNerveAssetBalance(params);
+      this.addedLiquidityInfo = {
+        ...this.liquidityInfo,
+        balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+      };
+      this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
     },
     async submit() {
       if (this.canNext) return false;

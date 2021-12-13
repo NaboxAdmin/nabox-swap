@@ -4,7 +4,7 @@
     <div class="d-flex align-items-center size-26 text-90 justify-content-end">
       {{ $t("swap.swap4") }}：
       <span v-if="availableLoading"><i class="el-icon-loading"/></span>
-      <span v-else-if="addedLiquidityInfo && addedLiquidityInfo.balance">{{ addedLiquidityInfo && addedLiquidityInfo.balance || 0.0 }}</span>
+      <span v-else-if="addedLiquidityInfo">{{ addedLiquidityInfo && addedLiquidityInfo.balance || 0 }}</span>
       <span v-else>--</span>
     </div>
     <div class="input-cont mt-2 d-flex align-items-center">
@@ -266,21 +266,32 @@ export default {
         address: this.nerveAddress,
         chainId: this.liquidityInfo.chainId,
         assetId: this.liquidityInfo.assetId,
+        decimals: this.liquidityInfo.decimals,
         refresh: true,
         contractAddress: this.liquidityInfo.contractAddress || ''
       };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: params
-      });
-      if (res.code === 1000) {
-        this.addedLiquidityInfo = res.data;
-        this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
-        this.addedLiquidityInfo['balance'] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
-        this.addedBalance = this.numberFormat(tofix(res.data.balance, 4, -1), 4);
-        this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
-      }
+      const addedLiquidityBalance = await this.getNerveAssetBalance(params);
+      console.log(addedLiquidityBalance, 'addedLiquidityBalance');
+      this.addedLiquidityInfo = {
+        ...this.liquidityInfo,
+        balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+      };
+      console.log(this.addedLiquidityInfo, 'added');
+      this.userAvailable = addedLiquidityBalance;
+      this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
+      this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
       this.availableLoading = false;
+      // const res = await this.$request({
+      //   url: '/wallet/address/asset',
+      //   data: params
+      // });
+      // if (res.code === 1000) {
+      //   this.addedLiquidityInfo = res.data;
+      //   this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
+      //   this.addedLiquidityInfo['balance'] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
+      //   this.addedBalance = this.numberFormat(tofix(res.data.balance, 4, -1), 4);
+      //   this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
+      // }
     },
     // 获取资产信息
     async getAssetInfo(currentAsset) {

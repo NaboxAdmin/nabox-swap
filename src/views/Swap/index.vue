@@ -730,7 +730,9 @@ export default {
             ...params
           }
         });
-        await this.getAssetInfo(params);
+        this.available = this.$store.state.network === 'NULS' ? await this.getNulsAssetBalance(asset) : await this.getNerveAssetBalance(asset);
+        console.log(this.available, 'availableavailableavailable');
+        // await this.getAssetInfo(params);
       } else {
         try {
           const transfer = new ETransfer({

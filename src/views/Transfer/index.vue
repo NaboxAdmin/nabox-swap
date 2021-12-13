@@ -133,9 +133,20 @@
   </div>
 </template>
 <script>
-import { debounce, divisionDecimals, getCurrentAccount, supportChainList, Times, timesDecimals, Minus, Plus, tofix, formatFloatNumber } from '@/api/util';
+import {
+  debounce,
+  divisionDecimals,
+  formatFloatNumber,
+  getCurrentAccount,
+  Minus,
+  Plus,
+  supportChainList,
+  Times,
+  timesDecimals,
+  tofix
+} from '@/api/util';
 import { MAIN_INFO, NULS_INFO } from '@/config';
-import { crossFee, ETransfer, getSymbolUSD, NTransfer } from '@/api/api';
+import { crossFee, ETransfer, getBatchERC20Balance, getSymbolUSD, NTransfer } from '@/api/api';
 import { getContractCallData } from '@/api/nulsContractValidate';
 import Modal from './Modal/Modal';
 import { Loading } from '@/components';
@@ -242,7 +253,7 @@ export default {
       });
       this.allTransferFeeAssets = accountInfo.data.map(item => ({
         ...item,
-        userBalance: this.numberFormat(tofix(divisionDecimals(item.balance, item.decimals), 6, -1) || 0, 6)
+        balance: this.numberFormat(tofix(divisionDecimals(item.balance, item.decimals), 6, -1) || 0, 6)
       }));
       this.currentFeeAsset = this.allTransferFeeAssets.find(asset => mainAsset.symbol === asset.symbol);
       this.transferFeeAssets = this.allTransferFeeAssets.filter(item => item.registerChain !== this.currentFeeChain && item.registerChain !== 'NULS'); // 主资产信息
@@ -295,10 +306,53 @@ export default {
           data
         });
         if (res.code === 1000 && res.data) {
+          // const tempList = res.data.map(asset => ({
+          //   ...asset,
+          //   userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
+          // }));
           const tempList = res.data.map(asset => ({
             ...asset,
-            userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
+            showBalanceLoading: true
           }));
+          this.transferAssets = [...tempList];
+          if (this.toNerve) {
+            const config = JSON.parse(sessionStorage.getItem('config'));
+            const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
+            const fromAddress = this.currentAccount['address'][this.fromNetwork];
+            const RPCUrl = config[this.fromNetwork]['apiUrl'];
+            const addresses = this.transferAssets.map(asset => {
+              if (asset.contractAddress) {
+                return asset.contractAddress;
+              }
+              return batchQueryContract;
+            });
+            const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
+            this.transferAssets.forEach((item, index) => {
+              balanceData.forEach(data => {
+                if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
+                  this.transferAssets[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
+                  this.transferAssets[index].showBalanceLoading = false;
+                }
+              });
+            });
+          } else {
+            const tempParams = this.transferAssets.map(item => ({
+              chainId: item.chainId,
+              assetId: item.assetId,
+              contractAddress: item.contractAddress || ''
+            }));
+            const params = [MAIN_INFO.chainId, this.currentAccount['address']['NERVE'], tempParams];
+            const url = MAIN_INFO.batchRPC;
+            const res = await this.$post(url, 'getBalanceList', params);
+            if (res.result && res.result.length !== 0) {
+              this.transferAssets.forEach((asset, index) => {
+                res.result.forEach(() => {
+                  this.transferAssets[index].balance = res.result[index].balance && tofix(divisionDecimals(res.result[index].balance, asset.decimals), 6, -1) || 0;
+                  this.transferAssets[index].showBalanceLoading = false;
+                });
+              });
+            }
+          }
           this.transferAssets = (tempList.length > 0 && tempList.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
           // .filter(item => item.nulsCross && item.heterogeneousList)
           if (!this.currentCoin) {
@@ -347,68 +401,50 @@ export default {
         if (!refresh) {
           this.availableLoading = true;
         }
-        const { chainId, assetId, contractAddress } = assetInfo;
         const tempNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
-        const address = this.currentAccount.address[tempNetwork];
         if (tempNetwork === 'NERVE') {
-          const data = {
-            address,
-            assetId,
-            chainId,
-            chain: tempNetwork,
-            refresh: true
-          };
-          const res = await this.$request({
-            url: '/wallet/address/asset',
-            data
-          });
-          if (res.code === 1000) {
-            // this.currentCoin = res.data;
-            this.clearGetAllowanceTimer();
-            // asset.assetId为0 则为异构链上token资产
-            if (res.data && res.data.assetId === 0 && tempNetwork !== 'NULS') {
-              await this.checkCrossInAuthStatus();
-            } else {
-              this.crossInAuth = false;
-            }
-            this.available = res.data && divisionDecimals(res.data.balance, res.data.decimals) || 0;
-            this.userAvailable = res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1) || 0;
-            this.availableLoading = false;
-            !this.toNerve && !refresh && await this.getTransferFee();
-          }
+          this.available = await this.getNerveAssetBalance(assetInfo);
+          this.userAvailable = tofix(this.available, 6, -1) || 0;
+          this.availableLoading = false;
+          !this.toNerve && !refresh && await this.getTransferFee();
         } else {
-          const data = {
-            address,
-            assetId,
-            chainId,
-            contractAddress,
-            chain: tempNetwork,
-            refresh: true
-          };
-          const res = await this.$request({
-            url: '/wallet/address/asset',
-            data
-          });
-          if (res.code === 1000) {
-            // this.currentCoin = res.data;
-            this.clearGetAllowanceTimer();
-            // assset.assetId为0 则为异构链上token资产
-            if (res.data && res.data.assetId === 0 && tempNetwork !== 'NULS') {
-              await this.checkCrossInAuthStatus();
-            } else {
-              this.crossInAuth = false;
-            }
-            this.available = res.data && divisionDecimals(res.data.balance, res.data.decimals) || 0;
-            this.userAvailable = res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1);
-            this.availableLoading = false;
-            !this.toNerve && !refresh && await this.getTransferFee();
-          } else {
-            this.availableLoading = false;
-          }
+          this.available = await this.getHeterogeneousAssetBalance(assetInfo);
+          this.userAvailable = tofix(this.available, 6, -1);
+          this.availableLoading = false;
+          !this.toNerve && !refresh && await this.getTransferFee();
         }
       } catch (e) {
         this.availableLoading = false;
         console.log(e);
+      }
+    },
+    // 获取NERVE上面的资产信息
+    async getNerveAssetBalance(assetInfo) {
+      const { chainId, assetId, contractAddress } = assetInfo;
+      const tempParams = [{
+        chainId,
+        assetId,
+        contractAddress
+      }];
+      const params = [MAIN_INFO.chainId, this.currentAccount['address']['NERVE'], tempParams];
+      const url = MAIN_INFO.batchRPC;
+      const res = await this.$post(url, 'getBalanceList', params);
+      if (res.result && res.result.length !== 0) {
+        const tempAsset = res.result[0];
+        return divisionDecimals(tempAsset.balance, this.currentCoin.decimals);
+      } else {
+        return 0;
+      }
+    },
+    async getHeterogeneousAssetBalance(assetInfo) {
+      const transfer = new ETransfer({
+        chain: this.fromNetwork
+      });
+      const { contractAddress, decimals } = assetInfo;
+      if (assetInfo.contractAddress) {
+        return await transfer.getERC20Balance(contractAddress, decimals, this.fromAddress);
+      } else {
+        return await transfer.getEthBalance(this.fromAddress);
       }
     },
     // nerve to
@@ -417,7 +453,8 @@ export default {
       this.transferCount = '';
       this.showFeeLoading = false;
       this.transferFee = '';
-      this.available = 0;
+      this.available = '';
+      this.userAvailable = '';
       this.amountMsg = '';
       this.currentCoin = null;
       // this.getCurrentAssetInfo();
@@ -529,6 +566,7 @@ export default {
           }
         } else {
           const { value } = this.splitFeeSymbol(this.transferFee);
+          console.log(value, 'valuevaluevalue');
           if (!this.checkFee(value, isMainAsset)) {
             flag = false;
           }
@@ -561,7 +599,7 @@ export default {
       const tempNetwork = this.toNerve ? this.fromNetwork : this.currentFeeChain;
       // const fromChainInfo = !this.toNerve && this.storeAccountInfo.filter(v => v.chain === tempNetwork)[0];
       // const fromChainBalance = !this.toNerve && divisionDecimals(fromChainInfo.balance, fromChainInfo.decimals);
-      const feeChainBalance = !this.toNerve && divisionDecimals(this.currentFeeAsset.balance, this.currentFeeAsset.decimals) || 0;
+      const feeChainBalance = !this.toNerve && this.currentFeeAsset.balance || 0;
       if (this.toNerve) {
         if (isMainAsset) {
           if (Minus(Plus(this.transferCount, fee), this.available) > 0) flag = false;
@@ -570,8 +608,8 @@ export default {
           if (Minus(this.transferCount, this.available) > 0) flag = false;
         }
       } else {
+        console.log(isMainAsset, feeChainBalance, 'isMainAsset');
         if (isMainAsset && this.currentFeeAsset.chain === tempNetwork) {
-          console.log('2234');
           if (Minus(Plus(this.transferCount, fee), this.available) > 0) flag = false;
         } else {
           if (Minus(feeChainBalance, fee) < 0 || Minus(this.transferCount, this.available) > 0) flag = false;

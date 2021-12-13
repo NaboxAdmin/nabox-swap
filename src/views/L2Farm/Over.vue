@@ -305,27 +305,6 @@ export default {
         }
       }
     },
-    // 获取资产信息
-    async getAssetInfo(currentAsset) {
-      if (!currentAsset) return '';
-      const { chainId, assetId, contractAddress, chain } = currentAsset;
-      const params = {
-        chain,
-        address: this.currentAccount && this.currentAccount.address[chain],
-        chainId,
-        assetId,
-        refresh: true,
-        contractAddress: contractAddress || ''
-      };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: params
-      });
-      if (res.code === 1000) {
-        res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
-        return res.data;
-      }
-    },
     formatContent(lockDay) {
       const isEn = this.$store.state.lang === 'en';
       return !isEn ? `执行解锁操作后，收益将在${lockDay}天后解锁，你可以在下方将已解锁的Token领取到你的账户地址` : `After executing the unlocking operation, the reward will be unlocked in ${lockDay} days and then you can claim the unlocked Token to your address`;

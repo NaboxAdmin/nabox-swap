@@ -1,9 +1,10 @@
 import nuls from 'nuls-sdk-js';
 import nerve from 'nerve-sdk-js';
 import { ethers } from 'ethers';
-import { Plus, htmlEncode, timesDecimals, Minus } from './util';
-import { request } from '../network/http';
-import { ETHNET } from '@/config';
+import { Plus, htmlEncode, timesDecimals, Minus, divisionDecimals } from './util';
+import { request, post } from '../network/http';
+import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
+import { getCurrentAccount } from '@/api/util';
 import BufferReader from 'nerve-sdk-js/lib/utils/bufferreader';
 import txs from 'nerve-sdk-js/lib/model/txs';
 import { MultiCall } from './Multicall1';
@@ -477,14 +478,51 @@ export class NTransfer {
         refresh: true
       };
       // console.log(data);
-      const res = await request({ url: '/wallet/address/asset', data: data });
+      const nonce = this.chain === 'NERVE' ? await this.getNerveAssetNonce(data) : await this.getNulsAssetNonce(data);
+      // const res = await request({ url: '/wallet/address/asset', data: data });
       // console.log(res);
-      if (res.code === 1000) {
-        return res.data.nonce;
+      if (nonce) {
+        return nonce;
       }
       return null;
     } catch (e) {
       console.error(e);
+    }
+  }
+  // 获取NERVE资产的nonce值
+  async getNerveAssetNonce(assetInfo) {
+    const { chainId, assetId, contractAddress, address } = assetInfo;
+    const tempParams = [{
+      chainId,
+      assetId,
+      contractAddress
+    }];
+    const currentAccount = getCurrentAccount(address);
+    const params = [MAIN_INFO.chainId, currentAccount['address']['NERVE'], tempParams];
+    const url = MAIN_INFO.batchRPC;
+    const res = await post(url, 'getBalanceList', params);
+    if (res.result && res.result.length !== 0) {
+      return res.result[0].nonce;
+    } else {
+      return null;
+    }
+  }
+  // 获取NULS资产的nonce值
+  async getNulsAssetNonce(assetInfo) {
+    const { chainId, assetId, contractAddress, address } = assetInfo;
+    const tempParams = [{
+      chainId,
+      assetId,
+      contractAddress
+    }];
+    const currentAccount = getCurrentAccount(address);
+    const params = [NULS_INFO.chainId, currentAccount['address']['NULS'], tempParams];
+    const url = NULS_INFO.batchRPC;
+    const res = await post(url, 'getBalanceList', params);
+    if (res.result && res.result.length !== 0) {
+      return res.result[0].nonce;
+    } else {
+      return null;
     }
   }
   // 获取资产上面的nerve信息
@@ -865,12 +903,3 @@ export async function getSymbolUSD(chain) {
   return null;
 }
 
-export const swapScale = 1.1;
-
-export const swapSymbolConfig = {
-  ETH: 'ETH',
-  BNB: 'BNB(BSC)',
-  HT: 'HT(HECO)',
-  OKT: 'OKT(OKT)',
-  NULS: 'NULS'
-};

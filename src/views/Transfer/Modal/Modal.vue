@@ -1,5 +1,5 @@
 <template>
-  <div :class="{'show_modal': showModal}" class="mask-cont">
+  <div :class="{'show_modal': showModal}" class="mask-cont" @click="$emit('update:showModal', false)">
     <div :class="{'show_modal-cont': showModal}" class="modal-cont">
       <div class="header-cont size-36 font-500 mt-2">
         {{ $t('modal.modal1') }}
@@ -26,7 +26,10 @@
                   <span v-if="type==='assets'" class="sign size-16">{{ item.registerChain }}</span>
                 </span>
               </div>
-              <span class="text-3a font-500 size-30">{{ (item.userBalance || 0) | numberFormat }}</span>
+              <template>
+                <Loading v-if="item.showBalanceLoading"/>
+                <span v-else class="text-3a font-500 size-30">{{ (item.balance || 0) | numberFormat }}</span>
+              </template>
             </div>
           </div>
         </div>
@@ -37,8 +40,11 @@
 </template>
 
 <script>
+import { Loading } from '@/components';
+
 export default {
   name: 'Modal',
+  components: { Loading },
   props: {
     assetList: {
       type: Array,

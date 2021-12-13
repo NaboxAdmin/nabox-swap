@@ -289,27 +289,6 @@ export default {
         }
       }
     },
-    // 获取资产信息
-    async getAssetInfo(currentAsset) {
-      if (!currentAsset) return '';
-      const { chainId, assetId, contractAddress, chain } = currentAsset;
-      const params = {
-        chain,
-        address: this.currentAccount && this.currentAccount.address[chain],
-        chainId,
-        assetId,
-        refresh: true,
-        contractAddress: contractAddress || ''
-      };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: params
-      });
-      if (res.code === 1000) {
-        res.data.balance = res.data && divisionDecimals(res.data.balance, res.data.decimals);
-        return res.data;
-      }
-    },
     formatContent(lockDay) {
       const isEn = this.$store.state.lang === 'en';
       return !isEn ? `执行收获操作${lockDay}天后，你可以将收益领取到你的地址` : `${lockDay} days after the harvesting operation, you can claim the rewards to your address`;

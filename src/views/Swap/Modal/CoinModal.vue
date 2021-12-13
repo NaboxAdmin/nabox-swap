@@ -206,7 +206,6 @@ export default {
           symbol: v.swftInfo && v.swftInfo.coinCode || v.symbol,
           symbolImg: v.swftInfo && v.swftInfo.coinCode.split('(')[0] || v.symbol,
           showBalanceLoading: true,
-          showBatchBalanceLoading: true,
           ...v.swftInfo
         }));
         // 当前选择的资产是否支持跨链
@@ -310,12 +309,22 @@ export default {
         }
         this.showLoading = false;
         this.allList = [...this.showCoinList];
-        if (tempNetwork === 'NULS' || tempNetwork === 'NERVE') {
+        if (tempNetwork === 'NULS') {
+          const tempData = await this.getNulsBatchData(this.allList);
           for (let i = 0; i < this.allList.length; i++) {
             const asset = this.allList[i];
-            this.allList[i].balance = await this.getBalance(asset);
+            this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
             this.allList[i].showBalanceLoading = false;
           }
+          this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
+        } else if (tempNetwork === 'NERVE') {
+          const tempData = await this.getNerveBatchData(this.allList);
+          for (let i = 0; i < this.allList.length; i++) {
+            const asset = this.allList[i];
+            this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
+            this.allList[i].showBalanceLoading = false;
+          }
+          this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
         } else {
           const config = JSON.parse(sessionStorage.getItem('config'));
           const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
@@ -341,59 +350,6 @@ export default {
         }
       } else {
         this.showLoading = false;
-      }
-    },
-    // 获取钱包余额
-    async getBalance(asset) {
-      console.log(asset, 'asset');
-      if (asset.chain === 'NERVE' || asset.chain === 'NULS') {
-        const account = getCurrentAccount(this.fromAddress);
-        const params = {
-          chain: asset.chain,
-          address: account['address'][asset.chain],
-          chainId: asset.chainId,
-          assetId: asset.assetId,
-          contractAddress: asset.contractAddress
-        };
-        // 关注资产
-        await this.$request({
-          url: '/wallet/address/asset/focus',
-          data: {
-            focus: true,
-            ...params
-          }
-        });
-        return await this.getAssetInfo(params);
-      } else {
-        try {
-          const transfer = new ETransfer({
-            chain: this.picList[this.currentIndex] || ''
-          });
-          if (asset.contractAddress) {
-            const tempAvailable = await transfer.getERC20Balance(asset.contractAddress, asset.decimals, this.fromAddress);
-            return tempAvailable && tofix(tempAvailable, 6, -1);
-          } else {
-            const tempAvailable = await transfer.getEthBalance(this.fromAddress);
-            return tempAvailable && tofix(tempAvailable, 6, -1);
-          }
-        } catch (e) {
-          return 0;
-        }
-      }
-    },
-    // nerve nuls链上获取资产信息
-    async getAssetInfo(params) {
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: {
-          refresh: true,
-          ...params
-        }
-      });
-      if (res.code === 1000) {
-        return divisionDecimals(res.data.balance, res.data.decimals);
-      } else {
-        return 0;
       }
     }
   }
