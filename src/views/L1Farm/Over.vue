@@ -18,10 +18,9 @@
             <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
           </div>
           <div class="farm-info mt-4 d-flex align-items-center">
-            <div class="d-flex direction-column mr-100">
+            <div class="d-flex direction-column mr-100 min-200">
               <span class="text-90 size-26">
-                <!--{{ item.syrupAsset && item.syrupAsset.symbol }}-->
-                {{ $t("vaults.over2") }}
+                {{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}
               </span>
               <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             </div>

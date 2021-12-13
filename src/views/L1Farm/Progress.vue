@@ -24,7 +24,7 @@
           <div class="farm-info mt-4 d-flex align-items-center">
             <div class="d-flex direction-column mr-100 min-200">
               <span class="text-90 size-26">
-                {{ $t("vaults.over2") }}
+                {{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}
               </span>
               <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             </div>
@@ -278,7 +278,7 @@ export default {
   margin-right: 40px;
 }
 .min-200 {
-  min-width: 200px;
+  min-width: 250px;
 }
 .arrow-icon {
   width: 30px;

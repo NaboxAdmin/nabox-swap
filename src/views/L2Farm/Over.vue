@@ -19,9 +19,9 @@
           </div>
           <div class="farm-info mt-4 d-flex align-items-center">
             <div class="d-flex direction-column mr-100">
-              <span class="text-90 size-26">
+              <span class="text-90 size-26 min-200">
                 <!--{{ item.syrupAsset && item.syrupAsset.symbol }}-->
-                {{ $t("vaults.over2") }}
+                {{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}
               </span>
               <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             </div>
@@ -64,7 +64,7 @@
               v-if="!item.needReceiveAuth && !item.lockCandy"
               :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
               class="item-btn size-30"
-              @click.stop="receiveClick(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
+              @click.stop="receiveClick(item.farmKey, item)">{{ $t("tips.tips30") }}</span>
             <span
               v-else-if="!item.needReceiveAuth && item.lockCandy"
               :class="{ active_btn: !item.pendingReward || item.pendingReward === 0 || item.pendingReward === '0' }"
