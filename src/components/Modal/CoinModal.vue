@@ -43,8 +43,8 @@
 </template>
 
 <script>
-import { networkToChain, valideNetwork } from '../../views/index/component/Swap';
-import { divisionDecimals } from '../../api/util';
+import { networkToChain, valideNetwork } from '@/views/Swap';
+import { divisionDecimals } from '@/api/util';
 
 export default {
   name: 'CoinModal',

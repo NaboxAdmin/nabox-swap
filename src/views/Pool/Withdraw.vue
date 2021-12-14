@@ -186,8 +186,8 @@ export default {
     },
     // 选择需要撤出流动性的资产
     selectAsset(asset) {
-      // this.currentWithdrawAssetInfo = asset;
-      this.getAssetInfo(asset);
+      this.currentWithdrawAssetInfo = { ...asset };
+      // this.getAssetInfo(asset);
       this.showModal = false;
     },
     // 获取pool流动性信息
@@ -206,7 +206,6 @@ export default {
         if (!this.currentWithdrawAssetInfo) {
           this.currentWithdrawAssetInfo = res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.find(item => item.chain === currentNetwork) || res.data.lpCoinList[0]);
         }
-        // await this.getAssetInfo(this.currentAsset);
         !refresh && await this.getAddedLiquidity();
         if (this.assetTimer) {
           clearInterval(this.assetTimer);
@@ -228,6 +227,7 @@ export default {
             this.lpAssetsList = this.liquidityInfo.lpCoinList.map((item, index) => ({
               ...res.result[index],
               symbol: item.symbol,
+              decimals: item.decimals,
               registerChain: item.chain,
               userBalance: tofix(divisionDecimals(res.result[index].balance || 0, item.decimals || 8), 6, -1),
               chainId: res.result[index].assetChainId
@@ -271,29 +271,16 @@ export default {
         contractAddress: this.liquidityInfo.contractAddress || ''
       };
       const addedLiquidityBalance = await this.getNerveAssetBalance(params);
-      console.log(addedLiquidityBalance, 'addedLiquidityBalance');
       this.addedLiquidityInfo = {
         ...this.liquidityInfo,
         balance: this.numberFormat(addedLiquidityBalance, 4, -1)
       };
-      console.log(this.addedLiquidityInfo, 'added');
       this.userAvailable = addedLiquidityBalance;
       this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
       this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
       this.availableLoading = false;
-      // const res = await this.$request({
-      //   url: '/wallet/address/asset',
-      //   data: params
-      // });
-      // if (res.code === 1000) {
-      //   this.addedLiquidityInfo = res.data;
-      //   this.userAvailable = divisionDecimals(res.data.balance, res.data.decimals);
-      //   this.addedLiquidityInfo['balance'] = this.numberFormat(tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1));
-      //   this.addedBalance = this.numberFormat(tofix(res.data.balance, 4, -1), 4);
-      //   this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
-      // }
     },
-    // 获取资产信息
+    // @FIXME 暂时去掉 获取资产信息
     async getAssetInfo(currentAsset) {
       if (!currentAsset) return '';
       const params = {
@@ -301,7 +288,6 @@ export default {
         address: this.nerveAddress,
         chainId: currentAsset.chainId,
         assetId: currentAsset.assetId,
-        refresh: true,
         contractAddress: ''
       };
       const res = await this.$request({
@@ -322,7 +308,6 @@ export default {
       });
       try {
         const { symbol, contractAddress } = this.currentWithdrawAssetInfo;
-        // console.log(this.currentWithdrawAssetInfo, "this.currentWithdrawAssetInfo");
         const { chainId, assetId } = this.addedLiquidityInfo;
         const { address, decimals } = this.liquidityInfo;
         const amounts = nerve.swap.tokenAmount(chainId, assetId, timesDecimals(this.withdrawCount, decimals));

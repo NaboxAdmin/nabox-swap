@@ -732,7 +732,6 @@ export default {
         });
         this.available = this.$store.state.network === 'NULS' ? await this.getNulsAssetBalance(asset) : await this.getNerveAssetBalance(asset);
         console.log(this.available, 'availableavailableavailable');
-        // await this.getAssetInfo(params);
       } else {
         try {
           const transfer = new ETransfer({
@@ -758,19 +757,6 @@ export default {
       }
       this.balanceLoading = false;
       this.balanceRequest = false;
-    },
-    // nerve nuls链上获取资产信息
-    async getAssetInfo(params) {
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data: {
-          refresh: true,
-          ...params
-        }
-      });
-      if (res.code === 1000) {
-        this.available = divisionDecimals(res.data.balance, res.data.decimals);
-      }
     },
     async fromAmountInput() {
       // debugger

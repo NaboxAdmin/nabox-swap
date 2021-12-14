@@ -619,25 +619,16 @@ export default {
     },
     /**
      * 查询nerve链上nuls余额
-     * @param address //nerveAddress
+     * @param address // nerveAddress
      */
     async getNulsInfo(address) {
       const data = {
         address,
         assetId: NULS_INFO.assetId,
         chainId: NULS_INFO.chainId,
-        chain: 'NERVE',
-        refresh: true
+        decimals: NULS_INFO.decimal || 8
       };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data
-      });
-      let balance = 0;
-      if (res.code === 1000) {
-        balance = divisionDecimals(res.data.balance, res.data.decimals);
-      }
-      return balance;
+      return await this.getNerveAssetBalance(data);
     },
     // nerve转出到异构链手续费
     async getCrossOutFee() {
