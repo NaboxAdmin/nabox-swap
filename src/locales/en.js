@@ -79,8 +79,8 @@ const en = {
   },
   pool: {
     join1: 'Receive',
-    join2: 'Full network pool',
-    join3: 'Your share',
+    join2: 'Total',
+    join3: 'My',
     join4: 'Confirm',
     join5: 'You can get the corresponding amount of USDTN after adding liquidity',
     join6: 'Deposit',

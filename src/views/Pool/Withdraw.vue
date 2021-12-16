@@ -38,35 +38,35 @@
         <span class="font-500 size-36 m-w180 word-break">{{ withdrawCount || "0" }}</span>
       </div>
     </div>
-    <div>
-      <div class="d-flex mt-5 size-28 align-items-center space-between" @click="showDropList = !showDropList">
-        <span class="text-90">{{ $t("pool.join2") }}</span>
-        <span class="text-3a d-flex align-items-center">
-          <span>${{ liquidityInfo && liquidityInfo.total | numberFormatLetter }}</span>
-          <span :class="{'rotate_x': showDropList}" class="drop_down ml-1">
-            <img src="@/assets/image/drop_down_black.png" alt="">
-          </span>
-        </span>
-      </div>
-      <template v-if="showDropList">
+    <div class="mt-5">
+      <template v-if="true">
         <div
           v-for="item in lpCoinList"
           :key="item.assetId"
           class="d-flex size-28 align-items-center text-90 space-between justify-content-end mt-2">
-          <span class="d-flex align-items-center ml-4">
+          <span class="d-flex align-items-center">
             <span class="icon-cont mr-2">
               <img :src="getPicture(item.chain)" alt="" @error="pictureError">
             </span>
             <span>{{ item.chain }}</span>
           </span>
-          <span class="text-3a mr-3">${{ item.balance | numberFormatLetter }}</span>
+          <span class="text-3a">${{ item.balance | numberFormatLetter }}</span>
         </div>
       </template>
     </div>
-    <div class="d-flex mt-4 size-28 align-items-center space-between">
+    <div class="d-flex mt-3 size-28 align-items-center space-between">
+      <span class="text-90">{{ $t("pool.join2") }}</span>
+      <span class="text-3a d-flex align-items-center">
+        <span>${{ liquidityInfo && liquidityInfo.total | numberFormatLetter }}</span>
+        <!--        <span :class="{'rotate_x': showDropList}" class="drop_down ml-1">-->
+        <!--          <img src="@/assets/image/drop_down_black.png" alt="">-->
+        <!--        </span>-->
+      </span>
+    </div>
+    <div class="d-flex mt-2 size-28 align-items-center space-between">
       <span class="text-90 w-85">{{ $t("pool.join3") }}</span>
       <span class="text-3a d-flex direction-column text-right">
-        <span>${{ addedBalance || 0 }}({{ poolRate | rateFormat }})</span>
+        <span>${{ addedBalance || 0 | numberFormatLetter }}({{ poolRate | rateFormat }})</span>
         <!--        <span>{{ liquidityInfo && liquidityInfo.symbol || "USDTN" }}  |  {{ poolRate | rateFormat }}</span>-->
       </span>
     </div>

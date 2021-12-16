@@ -79,8 +79,8 @@ const cn = {
   },
   pool: {
     join1: '将获得',
-    join2: '全网资金池',
-    join3: '你的份额',
+    join2: '全网',
+    join3: '我的',
     join4: '确认',
     join5: '加入流动性后，可获得对应数量的USDTN',
     join6: '加入',
