@@ -22,7 +22,7 @@
                 <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol) || pictureError" alt="" @error="pictureError">
               </div>
               <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
-                {{ chooseFromAsset.symbolImg }}
+                {{ chooseFromAsset.symbol }}
               </div>
             </div>
           </template>
@@ -32,10 +32,10 @@
           <div class="space-cont"/>
           <div class="input-item align-items-center d-flex flex-1">
             <input
-              v-model="fromAmount"
+              v-model="amountIn"
               class="flex-1"
               placeholder="0"
-              @input="fromAmountInput"
+              @input="amountInInput"
               @focus="amountFocus('from')">
             <span class="text-primary size-28 cursor-pointer" @click="maxAmount">{{ $t("swap.swap3") }}</span>
           </div>
@@ -59,7 +59,7 @@
                 <img :src="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
               </div>
               <div class="w-90 text-truncate direction-column size-30 ml-1 text-3a">
-                {{ chooseToAsset.symbolImg }}
+                {{ chooseToAsset.symbol }}
               </div>
             </div>
             <div class="icon-cont" @click.stop="openModal('receive')">
@@ -69,7 +69,7 @@
           <div class="space-cont"/>
           <div class="input-item align-items-center d-flex flex-1">
             <input
-              v-model="toAmount"
+              v-model="amountOut"
               class="flex-1"
               placeholder="0"
               @input="toAmountInput"
@@ -225,6 +225,8 @@ import {
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import { NULS_INFO } from '@/config';
+import { encodeParameters } from './util/iSwap';
+import ISwap from './util/iSwap';
 
 export const valideNetwork = supportChainList.map(v => {
   return v.SwftChain;
@@ -238,6 +240,8 @@ valideNetwork.map(v => {
     assetId: chain.assetId
   };
 });
+const iSwap = new ISwap();
+
 export default {
   name: 'Swap',
   components: {
@@ -247,6 +251,7 @@ export default {
   },
   data() {
     this.getFeeDebounce = debounce(this.getStableTransferFee, 500);
+    this.getSwapInfoDebounce = debounce(this.getEstimateFeeInfo, 500);
     return {
       showModal: false,
       showLoading: false,
@@ -304,7 +309,12 @@ export default {
       showOrderDetail: false,
       swftError: false,
       fromContractAddress: '',
-      toContractAddress: ''
+      toContractAddress: '',
+      // todo: 新增参数
+      channelConfigList: [],
+      amountIn: '', // 输入
+      amountOut: '', // 输出
+      inputType: 'amountIn'
     };
   },
   computed: {
@@ -344,9 +354,7 @@ export default {
           this.fromAmount = '';
           this.toAmount = '';
           this.stableFromAsset = val.supportMemo;
-          // this.stableFromAsset && this.getBalance(val);
         }
-        // this.getExchangeRate();
       },
       deep: true
     },
@@ -366,7 +374,6 @@ export default {
       handler(val) {
         if (val) {
           this.toAmount = '';
-          // !this.stableFromAsset && !this.stableToAsset && this.getExchangeRate();
         }
       },
       deep: true
@@ -447,7 +454,7 @@ export default {
     // setTimeout 0 不然获取不到地址
     setTimeout(() => {
       this.getOrderList(this.$store.state.fromAddress);
-      this.getCoins();
+      this.getSwapAssetList();
     }, 0);
     this.getLiquidityInfo(); // 获取当前池子的余额
     if (!this.$store.state.isDapp) {
@@ -455,6 +462,11 @@ export default {
         this.getOrderList(this.$store.state.fromAddress);
       }, 20000);
     }
+    this.initSwapConfig();
+    this.getChanelConfig();
+    // encodeParameters();
+    // const iSwap = new ISwap();
+    // iSwap.getTradeInfo();
   },
   beforeDestroy() {
     if (this.rateTimer) clearInterval(this.rateTimer);
@@ -467,6 +479,25 @@ export default {
     this.orderTimer = null;
   },
   methods: {
+    async initSwapConfig() {
+      const dexConfig = await iSwap.getRouterList();
+      const tempConfig = JSON.stringify(dexConfig);
+      localStorage.setItem('iSwapConfig', tempConfig);
+      // console.log(dexConfig, 'dexConfig');
+    },
+    // 获取当前支持的通道
+    async getChanelConfig() {
+      this.channelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
+      // const res = await this.$request({
+      //   url: '/swap/channel',
+      //   method: 'get'
+      // });
+      // if (res.code === 1000 && res.data) {
+      //   console.log(res.data, 'channelConfigList');
+      //   localStorage.setItem('channelConfig', JSON.stringify(res.data));
+      //   this.channelConfigList = res.data;
+      // }
+    },
     // 查询当前支持的usdtn列表
     async getUsdtnAssets() {
       try {
@@ -559,41 +590,40 @@ export default {
       this.showOrderDetail = true;
       this.$store.commit('changeSwap', false);
     },
-    // 获取swft支持的闪兑列表
-    async getCoins() {
-      const assetConfig = JSON.parse(sessionStorage.getItem('config'));
-      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-      const tempValideNetwork = valideNetwork.length === 0 && tempSupportChainList.map(item => item.SwftChain) || valideNetwork;
-      const mainAssetSymbol = assetConfig[this.fromNetwork].symbol;
-      const res = await this.$request({
-        url: '/swap/exchange/coins',
-        data: {
-          chain: this.fromNetwork || '',
-          address: this.fromAddress
+    // 获取当前支持的兑换的列表
+    async getSwapAssetList() {
+      try {
+        // this.showLoading = true;
+        const data = {
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/assets',
+          data
+        });
+        if (res.code === 1000 && res.data.length > 0) {
+          console.log(res.data, 'res.data');
+          const tempList = res.data.length > 0 && res.data.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
+          const tempFromCoin = tempList.find(item => item.contractAddress === this.fromContractAddress);
+          const tempToCoin = tempList.find(item => item.contractAddress === this.toContractAddress);
+          if (this.fromContractAddress && this.toContractAddress && tempFromCoin && tempToCoin) {
+            this.chooseFromAsset = tempFromCoin;
+            await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
+            this.chooseToAsset = tempToCoin;
+            await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
+          } else {
+            this.chooseFromAsset = tempList.find(item => item.symbol === 'USDT') || tempList[0];
+          }
+          this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
         }
-      });
-      if (res.code === 1000) {
-        const coins = res.data.filter(v => tempValideNetwork.indexOf(v.chain) > -1);
-        const tempCoins = coins.map(item => ({
-          ...item,
-          balance: divisionDecimals(item.balance, item.decimals),
-          symbol: item.swftInfo && item.swftInfo.coinCode,
-          symbolImg: item.swftInfo && item.swftInfo.coinCode.split('(')[0],
-          ...item.swftInfo
-        }));
-        this.supportList = tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1);
-        const tempFromCoin = this.supportList.find(item => item.contractAddress === this.fromContractAddress);
-        const tempToCoin = this.supportList.find(item => item.contractAddress === this.toContractAddress);
-        if (this.fromContractAddress && this.toContractAddress && tempFromCoin && tempToCoin) {
-          this.chooseFromAsset = tempFromCoin;
-          await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
-          this.chooseToAsset = tempToCoin;
-          await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
-        } else {
-          this.chooseFromAsset = this.supportList.find(item => item.symbolImg === 'USDT') || this.supportList.find(item => item.symbolImg === mainAssetSymbol);
-        }
-        this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
+      } catch (e) {
+        console.log(e, 'error');
       }
+    },
+    // 获取最优兑换通道
+    async getBestSwapChannel(isTemp) {
+      const swapAmount = isTemp ? 1 : this.amountIn;
+      console.log(swapAmount, 'swapAmount');
     },
     // 当前选择的币
     async selectCoin({ coin, type, network }) {
@@ -758,81 +788,164 @@ export default {
       this.balanceLoading = false;
       this.balanceRequest = false;
     },
-    async fromAmountInput() {
-      // debugger
-      this.amount = this.fromAmount;
-      if (this.$store.state.network === this.currentNetwork && ((this.usdtnFromAsset && this.stableToAsset) || (this.stableFromAsset && this.usdtnToAsset))) { // usdtn <=> usdt
-        if (this.fromAmount) {
-          this.checkUsdtnFee();
-          this.platformList = ['SwapBox'].map(item => ({
-            asset: this.chooseToAsset || '',
-            platform: item,
-            isBest: true,
-            fee: this.usdtnFee,
-            minReceive: Minus(this.numberFormat(tofix(this.fromAmount, 6, -1)), this.usdtnFee || 0) < 0 ? '0' : Minus(this.numberFormat(tofix(this.fromAmount, 6, -1)), this.usdtnFee || 0),
-            swapRate: 1,
-            isChoose: true
-          }));
-          if (this.usdtnFee) {
-            this.toAmount = Minus(this.fromAmount, this.usdtnFee);
+    // async fromAmountInput() {
+    //   // debugger
+    //   this.amount = this.fromAmount;
+    //   if (this.$store.state.network === this.currentNetwork && ((this.usdtnFromAsset && this.stableToAsset) || (this.stableFromAsset && this.usdtnToAsset))) { // usdtn <=> usdt
+    //     if (this.fromAmount) {
+    //       this.checkUsdtnFee();
+    //       this.platformList = ['SwapBox'].map(item => ({
+    //         asset: this.chooseToAsset || '',
+    //         platform: item,
+    //         isBest: true,
+    //         fee: this.usdtnFee,
+    //         minReceive: Minus(this.numberFormat(tofix(this.fromAmount, 6, -1)), this.usdtnFee || 0) < 0 ? '0' : Minus(this.numberFormat(tofix(this.fromAmount, 6, -1)), this.usdtnFee || 0),
+    //         swapRate: 1,
+    //         isChoose: true
+    //       }));
+    //       if (this.usdtnFee) {
+    //         this.toAmount = Minus(this.fromAmount, this.usdtnFee);
+    //       }
+    //       this.currentPlatform = this.platformList[0];
+    //     } else {
+    //       this.toAmount = '';
+    //       this.currentPlatform = null;
+    //     }
+    //   } else if (this.stableFromAsset && this.stableToAsset) { // 稳定币兑换
+    //     if (this.fromAmount) {
+    //       await this.getFeeDebounce();
+    //       this.stableFeeLoading = false;
+    //       if (this.stableFee && this.currentPlatform && this.currentPlatform.platform === 'SwapBox') {
+    //         this.toAmount = Minus(this.fromAmount, this.stableFee);
+    //       } else if (this.stableFee && this.currentPlatform && this.currentPlatform.platform !== 'SwapBox') {
+    //         this.toAmount = Minus(this.fromAmount, this.withdrawFee);
+    //       } else {
+    //         this.toAmount = this.fromAmount;
+    //       }
+    //     } else {
+    //       this.toAmount = '';
+    //       this.stableFee = '';
+    //       this.currentPlatform = null;
+    //     }
+    //   } else { // swft兑换
+    //     if (this.chooseToAsset && this.chooseFromAsset && !isNaN(Number(this.fromAmount)) && Number(this.fromAmount)) {
+    //       // await this.getExchangeRate(true);
+    //       // if (this.chooseFromAsset && Minus(Plus(this.fromAmount, this.transferFee), this.available) > 0) {
+    //       //   this.amountMsg = `${this.chooseFromAsset.symbol}${this.$t("tips.tips20")}`;
+    //       // } else {
+    //       //   this.amountMsg = '';
+    //       // }
+    //       this.amount = this.formatFloat(this.fromAmount);
+    //       if (this.focusType === 'from') {
+    //         this.toAmount = this.swapRate
+    //           ? this.numberFormat(this.formatFloat(Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) < 0 ? 0
+    //             : Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0)), 8, true) : '';
+    //       }
+    //       this.platformList = this.withdrawFee && ['swft'].map(item => ({
+    //         asset: this.chooseToAsset || '',
+    //         platform: item,
+    //         isBest: true,
+    //         fee: this.withdrawFee,
+    //         minReceive: Minus(this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)), this.getPlatformFee('swft')) < 0 ? '0' : this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)),
+    //         swapRate: this.swapRate,
+    //         isChoose: true
+    //       }));
+    //       this.currentPlatform = this.getBestPlatform(this.platformList);
+    //       // if (this.chooseToAsset) {
+    //       //   this.platformList.push(swftPlatform);
+    //       //   this.currentPlatform = swftPlatform;
+    //       //   this.checkAmount();
+    //       // }
+    //     } else {
+    //       this.toAmount = '';
+    //       this.currentPlatform = null;
+    //     }
+    //   }
+    // },
+    async amountInInput() {
+      this.inputType = 'amountIn';
+      if (this.chooseFromAsset && this.chooseToAsset) {
+        console.log(this.channelConfigList, 'channelConfigList');
+        const tempChannelConfig = Promise.all(this.channelConfigList.map(async item => {
+          let currentCofig = {};
+          switch (item.channel) {
+            case 'ISWAP':
+              console.log(123);
+              currentCofig = await this.getSwapInfoDebounce();
+              break;
+            default:
+              return null;
           }
-          this.currentPlatform = this.platformList[0];
-        } else {
-          this.toAmount = '';
-          this.currentPlatform = null;
-        }
-      } else if (this.stableFromAsset && this.stableToAsset) { // 稳定币兑换
-        if (this.fromAmount) {
-          await this.getFeeDebounce();
-          this.stableFeeLoading = false;
-          if (this.stableFee && this.currentPlatform && this.currentPlatform.platform === 'SwapBox') {
-            this.toAmount = Minus(this.fromAmount, this.stableFee);
-          } else if (this.stableFee && this.currentPlatform && this.currentPlatform.platform !== 'SwapBox') {
-            this.toAmount = Minus(this.fromAmount, this.withdrawFee);
-          } else {
-            this.toAmount = this.fromAmount;
-          }
-        } else {
-          this.toAmount = '';
-          this.stableFee = '';
-          this.currentPlatform = null;
-        }
-      } else { // swft兑换
-        if (this.chooseToAsset && this.chooseFromAsset && !isNaN(Number(this.fromAmount)) && Number(this.fromAmount)) {
-          // await this.getExchangeRate(true);
-          // if (this.chooseFromAsset && Minus(Plus(this.fromAmount, this.transferFee), this.available) > 0) {
-          //   this.amountMsg = `${this.chooseFromAsset.symbol}${this.$t("tips.tips20")}`;
-          // } else {
-          //   this.amountMsg = '';
-          // }
-          this.amount = this.formatFloat(this.fromAmount);
-          if (this.focusType === 'from') {
-            this.toAmount = this.swapRate
-              ? this.numberFormat(this.formatFloat(Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) < 0 ? 0
-                : Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0)), 8, true) : '';
-          }
-          this.platformList = this.withdrawFee && ['swft'].map(item => ({
-            asset: this.chooseToAsset || '',
-            platform: item,
-            isBest: true,
-            fee: this.withdrawFee,
-            minReceive: Minus(this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)), this.getPlatformFee('swft')) < 0 ? '0' : this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)),
-            swapRate: this.swapRate,
-            isChoose: true
-          }));
-          this.currentPlatform = this.getBestPlatform(this.platformList);
-          // if (this.chooseToAsset) {
-          //   this.platformList.push(swftPlatform);
-          //   this.currentPlatform = swftPlatform;
-          //   this.checkAmount();
-          // }
-        } else {
-          this.toAmount = '';
-          this.currentPlatform = null;
-        }
+          return currentCofig;
+        }));
       }
     },
-
+    async amountOutInput() {
+      console.log('amountOutInput');
+    },
+    // 获取iSwap费率信息
+    async getEstimateFeeInfo() {
+      const feeInfoParams = {
+        inToken: {
+          amount: this.amountIn,
+          chain: this.chooseFromAsset.chainId,
+          address: this.chooseFromAsset.address || '',
+          decimals: this.chooseFromAsset.decimals || 18,
+          symbol: this.chooseFromAsset.symbol,
+          dexInfo: this.getDexInfo(this.chooseFromAsset, 'in')
+        },
+        outToken: {
+          amount: this.amountOut || '',
+          chain: this.chooseToAsset.chainId,
+          address: this.chooseToAsset.address || '',
+          decimals: this.chooseToAsset.decimals || 18,
+          symbol: this.chooseToAsset.symbol,
+          dexInfo: this.getDexInfo(this.chooseToAsset, 'out')
+        },
+        direct: this.inputType === 'amountIn' ? 'src' : 'dest',
+        channel: 'ISWAP',
+        single: 'false',
+        from: this.fromAddress,
+        version: 'V4-swap'
+      };
+      const res = await iSwap.getEstimateFeeInfo(feeInfoParams);
+      // if (res) {
+      //   if (this.inputType === 'amountIn') {
+      //     this.amountOut = res.amountOut;
+      //   } else {
+      //     this.amountIn = res.amount;
+      //   }
+      //   this.swapInfoMap = res;
+      // }
+      console.log(res);
+      return res;
+    },
+    /**
+     * 根据chain获取当前最优的dex
+     * @param token 当前选择的token资产
+     * @param type {'in' | 'out'} 当前类型
+     */
+    getDexInfo(token, type) {
+      const { chainId, symbol } = token;
+      console.log(chainId, symbol);
+      const iSwapConfig = JSON.parse(localStorage.getItem('iSwapConfig'));
+      const dexInfo = iSwapConfig[chainId];
+      console.log(dexInfo, 'dexInfo');
+      const dexToken = iSwapConfig[chainId]['token'];
+      if (type === 'in') {
+        const dexName = dexToken[symbol];
+        return {
+          routerAddress: dexName ? dexInfo['dex'][dexName].routerAddress : dexInfo['defaultDex'].routerAddress,
+          factoryAddress: dexName ? dexInfo['dex'][dexName].factoryAddress : dexInfo['defaultDex'].factoryAddress
+        };
+      } else {
+        const dexName = dexToken[symbol];
+        return {
+          routerAddress: dexName ? dexInfo['dex'][dexName].routerAddress : dexInfo['defaultDex'].routerAddress,
+          factoryAddress: dexName ? dexInfo['dex'][dexName].factoryAddress : dexInfo['defaultDex'].factoryAddress
+        };
+      }
+    },
     async toAmountInput() {
       if (this.$store.state.network === this.currentNetwork && ((this.usdtnFromAsset && this.stableToAsset) || (this.stableFromAsset && this.usdtnToAsset))) {
         if (this.toAmount) {

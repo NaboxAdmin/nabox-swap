@@ -49,8 +49,9 @@
 </template>
 
 <script>
-import { divisionDecimals, getCurrentAccount, tofix } from '@/api/util';
-import { ETransfer, getBatchERC20Balance } from '@/api/api';
+import { divisionDecimals, tofix } from '@/api/util';
+import { getBatchERC20Balance } from '@/api/api';
+import { bscData, hecoData } from '../util/tempData';
 
 export default {
   name: 'CoinModal',
@@ -120,9 +121,12 @@ export default {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
-              this.getCoins(this.picList[this.currentIndex]);
+              // this.getSwapAssetList(this.picList[this.currentIndex]);
+              this.getTempSwapAssetList(this.picList[this.currentIndex]);
+              // this.getCoins(this.picList[this.currentIndex]);
             }, 0);
           } else {
+            console.log(123123);
             if (this.picList.findIndex(item => item === this.fromNetwork) === -1) {
               this.currentIndex = chainConfig.findIndex(item => item === this.fromNetwork);
               this.picList = chainConfig;
@@ -130,7 +134,9 @@ export default {
               this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
             }
             this.timer = setTimeout(() => {
-              this.getCoins(this.fromNetwork);
+              // this.getSwapAssetList(this.fromNetwork);
+              this.getTempSwapAssetList(this.fromNetwork);
+              // this.getCoins(this.fromNetwork);
             }, 0);
           }
         }
@@ -145,6 +151,18 @@ export default {
     });
   },
   methods: {
+    getTempSwapAssetList(chain) {
+      console.log(chain, 'chain');
+      if (chain === 'Heco') {
+        this.showCoinList = hecoData;
+        this.allList = [...this.showCoinList];
+        console.log(this.showCoinList, 'showCoinList');
+      } else {
+        this.showCoinList = bscData;
+        this.allList = [...this.showCoinList];
+        console.log(this.showCoinList, 'showCoinList');
+      }
+    },
     maskClick() {
       this.$emit('update:showModal', false);
     },
@@ -180,6 +198,84 @@ export default {
       this.currentIndex = i;
       this.showCoinList = [];
       await this.getCoins(item);
+    },
+    // 获取当前支持的兑换的列表
+    async getSwapAssetList(chain) {
+      try {
+        this.showLoading = true;
+        const data = {
+          chain: chain || this.fromNetwork || ''
+        };
+        const res = await this.$request({
+          url: '/swap/assets',
+          data
+        });
+        if (res.code === 1000 && res.data.length > 0) {
+          console.log(res.data, 'res.data');
+          let tempCoins = res.data.map(coin => ({
+            ...coin,
+            showBalanceLoading: true
+          }));
+          if (!this.fromAsset && this.modalType === 'receive') {
+            tempCoins = [];
+          } else if (this.fromAsset && this.modalType === 'receive') {
+            tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
+            console.log(tempCoins, 'tempCoins');
+          }
+          const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
+          const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
+          this.showCoinList = [...tempList];
+          this.allList = [...this.showCoinList];
+          console.log(JSON.stringify(this.allList));
+          localStorage.setItem('showList', JSON.stringify(this.allList));
+          this.showLoading = false;
+          if (tempNetwork === 'NULS') {
+            const tempData = await this.getNulsBatchData(this.allList);
+            for (let i = 0; i < this.allList.length; i++) {
+              const asset = this.allList[i];
+              this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
+              this.allList[i].showBalanceLoading = false;
+            }
+            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
+          } else if (tempNetwork === 'NERVE') {
+            const tempData = await this.getNerveBatchData(this.allList);
+            for (let i = 0; i < this.allList.length; i++) {
+              const asset = this.allList[i];
+              this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
+              this.allList[i].showBalanceLoading = false;
+            }
+            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
+          } else {
+            const config = JSON.parse(sessionStorage.getItem('config'));
+            const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
+            const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]];
+            const RPCUrl = config[this.picList[this.currentIndex]]['apiUrl'];
+            const addresses = this.allList.map(asset => {
+              if (asset.contractAddress) {
+                return asset.contractAddress;
+              }
+              return batchQueryContract;
+            });
+            const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
+            this.allList.forEach((item, index) => {
+              balanceData.forEach(data => {
+                if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
+                  this.allList[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
+                  this.allList[index].showBalanceLoading = false;
+                }
+              });
+            });
+            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
+            // console.log(this.allList, "allList")
+          }
+        } else {
+          this.showCoinList = [];
+        }
+        console.log(this.showCoinList, '213');
+      } catch (e) {
+        console.log(e, 'error');
+        this.showLoading = false;
+      }
     },
     // 获取swft支持的闪兑列表
     async getCoins(val) {
