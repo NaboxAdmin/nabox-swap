@@ -40,19 +40,22 @@ export default class ISwap {
   }
   // 获取iSwap费率信息
   async getEstimateFeeInfo(params) {
-    const res = await this.$request({
+    const res = await request({
       url: '/api/swap/estimate-fee-info',
-      data: params
+      data: params,
+      customUrl
     });
     if (res.code === 0) {
-      console.log(res.data);
+      return res.data;
     }
+    return null;
   }
   // 生成跨链swap订单
   async generateCrossChainSwapOrder(params) {
-    const res = await this.$request({
+    const res = await request({
       url: '/api/swap/estimate-fee-info',
-      data: params
+      data: params,
+      customUrl
     });
     if (res.code === 0) {
       console.log(res.data);

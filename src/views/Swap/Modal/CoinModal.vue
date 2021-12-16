@@ -29,9 +29,9 @@
             <div v-for="item in showCoinList" :key="item.coinId" class="list-item cursor-pointer">
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
                 <div class="coin-item">
-                  <span class="coin-icon">
-                    <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">
-                  </span>
+                  <!--                  <span class="coin-icon">-->
+                  <!--                    <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">-->
+                  <!--                  </span>-->
                   <span class="text-3a font-500">{{ item.symbol }}</span>
                 </div>
                 <span v-if="item.showBalanceLoading" class="box_loading">

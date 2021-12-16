@@ -225,7 +225,6 @@ import {
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import { NULS_INFO } from '@/config';
-import { encodeParameters } from './util/iSwap';
 import ISwap from './util/iSwap';
 
 export const valideNetwork = supportChainList.map(v => {
@@ -487,7 +486,11 @@ export default {
     },
     // 获取当前支持的通道
     async getChanelConfig() {
-      this.channelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
+      this.channelConfigList = [
+        {
+          channel: 'ISWAP'
+        }
+      ];
       // const res = await this.$request({
       //   url: '/swap/channel',
       //   method: 'get'
@@ -864,21 +867,30 @@ export default {
     // },
     async amountInInput() {
       this.inputType = 'amountIn';
-      if (this.chooseFromAsset && this.chooseToAsset) {
+      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn) {
         console.log(this.channelConfigList, 'channelConfigList');
-        const tempChannelConfig = Promise.all(this.channelConfigList.map(async item => {
-          let currentCofig = {};
-          switch (item.channel) {
-            case 'ISWAP':
-              console.log(123);
-              currentCofig = await this.getSwapInfoDebounce();
-              break;
-            default:
-              return null;
+        const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
+        const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
+          let currentConfig = {};
+          if (item.channel === 'ISWAP') {
+            currentConfig = await this.getEstimateFeeInfo();
+            return {
+              ...currentConfig,
+              channel: item.channel,
+              isBest: false,
+              isCurrent: false,
+              swapRate: this.computedSwapRate(isCross, isCross ? currentConfig.inToken.amount : currentConfig.amount, isCross ? currentConfig.outToken.amount : currentConfig.amountOut)
+            };
           }
-          return currentCofig;
+          return null;
         }));
+        const tempChannel = this.getBestPlatform(tempChannelConfig);
+        console.log(tempChannel, 'tempChannel');
+        console.log(tempChannelConfig, 'tempChannelConfig');
       }
+    },
+    computedSwapRate(isCross, amountIn, amountOut) {
+      return `1${this.chooseFromAsset.symbol}≈${tofix(Division(amountOut, amountIn), 4, -1)}${this.chooseToAsset.symbol}`;
     },
     async amountOutInput() {
       console.log('amountOutInput');
@@ -888,27 +900,27 @@ export default {
       const feeInfoParams = {
         inToken: {
           amount: this.amountIn,
-          chain: this.chooseFromAsset.chainId,
-          address: this.chooseFromAsset.address || '',
+          chain: 56,
+          address: this.chooseFromAsset.contractAddress || '',
           decimals: this.chooseFromAsset.decimals || 18,
           symbol: this.chooseFromAsset.symbol,
           dexInfo: this.getDexInfo(this.chooseFromAsset, 'in')
         },
         outToken: {
           amount: this.amountOut || '',
-          chain: this.chooseToAsset.chainId,
-          address: this.chooseToAsset.address || '',
+          chain: 56,
+          address: this.chooseToAsset.contractAddress || '',
           decimals: this.chooseToAsset.decimals || 18,
           symbol: this.chooseToAsset.symbol,
           dexInfo: this.getDexInfo(this.chooseToAsset, 'out')
         },
         direct: this.inputType === 'amountIn' ? 'src' : 'dest',
         channel: 'ISWAP',
-        single: 'false',
+        single: this.chooseFromAsset.chain === this.chooseToAsset.chain,
         from: this.fromAddress,
         version: 'V4-swap'
       };
-      const res = await iSwap.getEstimateFeeInfo(feeInfoParams);
+      console.log(feeInfoParams, 'feeInfoParams');
       // if (res) {
       //   if (this.inputType === 'amountIn') {
       //     this.amountOut = res.amountOut;
@@ -917,8 +929,7 @@ export default {
       //   }
       //   this.swapInfoMap = res;
       // }
-      console.log(res);
-      return res;
+      return await iSwap.getEstimateFeeInfo(feeInfoParams);
     },
     /**
      * 根据chain获取当前最优的dex
@@ -929,9 +940,8 @@ export default {
       const { chainId, symbol } = token;
       console.log(chainId, symbol);
       const iSwapConfig = JSON.parse(localStorage.getItem('iSwapConfig'));
-      const dexInfo = iSwapConfig[chainId];
-      console.log(dexInfo, 'dexInfo');
-      const dexToken = iSwapConfig[chainId]['token'];
+      const dexInfo = iSwapConfig[56];
+      const dexToken = dexInfo['token'];
       if (type === 'in') {
         const dexName = dexToken[symbol];
         return {
