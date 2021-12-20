@@ -122,11 +122,10 @@ export default {
             this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
               // this.getSwapAssetList(this.picList[this.currentIndex]);
-              this.getTempSwapAssetList(this.picList[this.currentIndex]);
+              this.getTempSwapAssetList('Heco');
               // this.getCoins(this.picList[this.currentIndex]);
             }, 0);
           } else {
-            console.log(123123);
             if (this.picList.findIndex(item => item === this.fromNetwork) === -1) {
               this.currentIndex = chainConfig.findIndex(item => item === this.fromNetwork);
               this.picList = chainConfig;
@@ -189,7 +188,7 @@ export default {
       this.$emit('select', { coin, type: this.modalType, network: this.picList[this.currentIndex] });
     },
     // 点击nav
-    async navClick(item, i) {
+    async navClick(chain, i) {
       if (this.currentIndex === i) return false;
       this.$nextTick(() => {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0);
@@ -197,7 +196,7 @@ export default {
       this.searchVal = '';
       this.currentIndex = i;
       this.showCoinList = [];
-      await this.getCoins(item);
+      await this.getCoins(chain);
     },
     // 获取当前支持的兑换的列表
     async getSwapAssetList(chain) {

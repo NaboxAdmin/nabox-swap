@@ -74,7 +74,7 @@
   }
 }
 .swap-info {
-  margin-top: 25px;
+  //margin-top: 82px;
 }
 .mt-42 {
   margin-top: 42px;
@@ -90,8 +90,12 @@
   }
 }
 .btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: 98px;
   margin-top: 82px;
+  margin-bottom: 82px;
   color: #FFFFFF;
   text-align: center;
   line-height: 98px;

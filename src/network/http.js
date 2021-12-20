@@ -26,7 +26,12 @@ export async function request(params) {
   const { url, method = 'post', data, customUrl } = params;
   const baseUrl = customUrl || config.SWAP_BOX_API_URL;
   const language = localStorage.getItem('locale') === 'cn' ? 'CHS' : 'EN';
-  const newData = method === 'post' ? { data: { language, ...data }} : { params: { language, ...data }};
+  let newData;
+  if (!customUrl) {
+    newData = method === 'post' ? { data: { language, ...data }} : { params: { language, ...data }};
+  } else {
+    newData = method === 'post' ? { data: { ...data }} : { params: { ...data }};
+  }
   return new Promise((resolve, reject) => {
     axios({ url: baseUrl + url, method: method, ...newData }).then(
       response => {

@@ -1,10 +1,19 @@
 import { request } from '@/network/http';
-import { ISWAP_VERSION } from './swapConfig';
+import { contractConfig, ISWAP_VERSION, iSwapContractAbiConfig } from './swapConfig';
 import Web3 from 'web3';
+import { ETransfer } from '@/api/api';
+import { ethers } from 'ethers';
+import { sendRequest } from '@/network/cancelRequest';
 
 const customUrl = 'https://api.iswap.com';
 
 export default class ISwap {
+  constructor({ chain }) {
+    console.log(chain, 'chain');
+    const transfer = new ETransfer();
+    this.wallet = transfer.provider.getSigner();
+    this.iSwapContractAddress = contractConfig[chain];
+  }
   async getRouterList() {
     const res = await request({
       url: '/api/common/router/list',
@@ -40,7 +49,7 @@ export default class ISwap {
   }
   // 获取iSwap费率信息
   async getEstimateFeeInfo(params) {
-    const res = await request({
+    const res = await sendRequest({
       url: '/api/swap/estimate-fee-info',
       data: params,
       customUrl
@@ -53,13 +62,14 @@ export default class ISwap {
   // 生成跨链swap订单
   async generateCrossChainSwapOrder(params) {
     const res = await request({
-      url: '/api/swap/estimate-fee-info',
+      url: '/api/swap/order',
       data: params,
       customUrl
     });
     if (res.code === 0) {
-      console.log(res.data);
+      return res.data;
     }
+    return null;
   }
   dexFormat(nameList, tokenList) {
     const tempData = {};
@@ -70,17 +80,60 @@ export default class ISwap {
     });
     return tempData;
   }
+  /**
+   * 链内兑换token->token ETH->token token->ETH
+   * @param routerAddress 当前dex的routerAddress
+   * @param amountIn 输入的金额
+   * @param amountOutMin 最低收到
+   * @param paths 路径
+   * @param to 接收地址
+   * @param deadline 过期时间
+   * @param channel 当前的通道
+   */
+  _swapExactTokensForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
+    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
+    return contract.swapExactTokensForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel);
+  }
+  _swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
+    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
+    return contract.swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel);
+  }
+  _swapExactTokensForETHSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
+    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
+    return contract.swapExactTokensForETHSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel);
+  }
+
+  /**
+   * 跨链兑换 token->token ETH->token
+   * @param orderId 订单号
+   * @param gasFee gas
+   * @param crossChainFee 跨链手续费
+   * @param dstChainId 目标链nativeId
+   * @param channel 通道
+   * @param srcPath 源链兑换地址
+   * @param srcChainSwapCallData 源链编码数据
+   * @param dstChainSwapInfo 目标链编码数据
+   * @private
+   */
+  _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
+    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
+    return contract.swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo);
+  }
+  _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
+    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
+    return contract.swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo);
+  }
 }
 
-export function encodeParameters(RPCUrl, parameter) {
-  const { amount0In, amount0OutMin, deadline } = parameter;
+export function encodeParameters(RPCUrl, parameter, type) {
   const web3 = new Web3(RPCUrl || window.ethereum);
   const ABI = web3.eth.abi;
   const deadlines = Math.floor((Date.now() + 1000 * 60 * 10) / 1000);
-  // const amount0In = '100000000000000000000';
-  // const amount0OutMin = '99000000000000000000';
-  console.log(deadline, Date.now(), 'deadline');
-  const parameterString = ABI.encodeParameters(['address', 'uint256', 'uint256', 'uint256'], ['0xED7d5F38C79115ca12fe6C0041abb22F0A06C300', amount0In, amount0OutMin, deadlines]);
-  console.log(parameterString, 'parameterString');
-  console.log(web3, '===web3===');
+  if (type === 'src') {
+    const { amount0In, amount0OutMin, fromAssetDex } = parameter;
+    return ABI.encodeParameters(['address', 'uint256', 'uint256', 'uint256'], [fromAssetDex.routerAddress, amount0In, amount0OutMin, deadlines]);
+  } else {
+    const { amount0OutMin, fromAddress, toAssetDex } = parameter;
+    return ABI.encodeParameters(['address', 'uint256', 'address'], [toAssetDex.routerAddress, amount0OutMin, fromAddress]);
+  }
 }
