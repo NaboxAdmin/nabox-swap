@@ -6,9 +6,6 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 function generateReqKey(config) {
   const { method, url, params, data } = config;
-  console.log([method, url, Qs.stringify(data)].join(
-    '&'
-  ));
   //  Qs.stringify(data)
   return [method, url, Qs.stringify(params)].join('&');
 }

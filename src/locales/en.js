@@ -65,7 +65,8 @@ const en = {
     swap31: '【The fee is 0.02% of the transaction amount, it will be charged as 1U if less than 1U】',
     swap32: 'Expected',
     swap33: 'Impact',
-    swap34: 'Cross-chain fee'
+    swap34: 'Cross-chain fee',
+    swap35: 'Price calculating'
   },
   transfer: {
     transfer1: 'From',

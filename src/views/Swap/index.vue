@@ -1,5 +1,6 @@
 <template>
-  <div v-loading="showApproveLoading">
+  <div>
+    <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'">
         <div class="d-flex align-items-center space-between text-90 size-28">
@@ -19,7 +20,7 @@
               @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
             <div v-else class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')">
               <div class="image-cont">
-                <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol) || pictureError" alt="" @error="pictureError">
+                <img :src="chooseFromAsset.icon" alt="" @error="pictureError">
               </div>
               <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
                 {{ chooseFromAsset.symbol }}
@@ -79,9 +80,14 @@
       </div>
       <div v-if="needAuth" class="btn size-30 cursor-pointer" @click="approveERC20">
         <span class="mr-2">{{ $t("vaults.over6") }}</span>
-        <Loading v-if="showApproveLoading" :is-active="false"/>
+        <Loading v-if="approvingLoading" :is-active="false"/>
       </div>
-      <div v-else :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ showComputedLoading ? '计算中' : $t("swap.swap8") }}</div>
+      <div v-else-if="showComputedLoading" class="btn size-30 cursor-pointer opacity_btn">
+        <span>
+          {{ $t("swap.swap35") }}<span class="point_cont"/>
+        </span>
+      </div>
+      <div v-else :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ $t("swap.swap8") }}</div>
       <div v-if="currentChannel && !showComputedLoading" class="swap-info d-flex direction-column">
         <div v-if="currentChannel.swapRate" class="d-flex space-between size-28">
           <span class="text-90">{{ $t("swap.swap5") }}</span>
@@ -226,7 +232,7 @@ import {
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
-import { ISWAP_VERSION } from './util/swapConfig';
+import { ISWAP_VERSION, ISWAP_USDT_CONFIG } from './util/swapConfig';
 
 export const valideNetwork = supportChainList.map(v => {
   return v.SwftChain;
@@ -251,7 +257,7 @@ export default {
   },
   data() {
     this.getFeeDebounce = debounce(this.getStableTransferFee, 500);
-    this.amountInDebounce = debounce(this.amountInInput, 0);
+    this.amountInDebounce = debounce(this.amountInInput, 500);
     this.amountOutDebounce = debounce(this.amountOutInput, 500);
     return {
       showModal: false,
@@ -325,7 +331,9 @@ export default {
       approvingLoading: false,
       slippage: 1, // 滑点
       fromAssetDex: null,
-      toAssetDex: null
+      toAssetDex: null,
+      limitMin: '', // 最小限制
+      limitMax: '' // 最大限制
     };
   },
   computed: {
@@ -381,10 +389,6 @@ export default {
           } else {
             this.amountIn = oldVal;
           }
-        } else {
-          this.amountOut = '';
-          this.amountMsg = '';
-          this.currentChannel = null;
         }
       },
       deep: true
@@ -401,9 +405,6 @@ export default {
           } else {
             this.amountOut = oldVal;
           }
-        } else {
-          this.amountIn = '';
-          this.currentChannel = null;
         }
       },
       deep: true
@@ -451,9 +452,9 @@ export default {
       this.getOrderList(this.$store.state.fromAddress);
       this.getSwapAssetList();
     }, 0);
-    this.getLiquidityInfo(); // 获取当前池子的余额
-    this.initSwapConfig();
+    // this.getLiquidityInfo(); // 获取当前池子的余额
     this.getChanelConfig();
+    this.initISwapConfig();
     console.log(this.fromNetwork, 'from');
     // encodeParameters();
     // const iSwap = new ISwap();
@@ -535,28 +536,59 @@ export default {
         this.checkCrossInAuthStatus();
       }, 3000);
     },
-    async initSwapConfig() {
+
+    async initISwapConfig() {
       const dexConfig = await this.iSwap.getRouterList();
       const tempConfig = JSON.stringify(dexConfig);
-      localStorage.setItem('iSwapConfig', tempConfig);
-      // console.log(dexConfig, 'dexConfig');
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      const nativeId = tempSupportChainList.find(item => item.chain === this.fromNetwork).nativeId;
+      const limitInfo = await this.iSwap.getTradeLimit({
+        chainId: nativeId,
+        version: ISWAP_VERSION,
+        symbol: ISWAP_USDT_CONFIG[nativeId]
+      });
+      if (limitInfo) {
+        this.limitMin = limitInfo.normalMin;
+        this.limitMax = limitInfo.normalMax;
+        console.log(limitInfo);
+        this.orginChannelConfigList = this.orginChannelConfigList && this.orginChannelConfigList.map(channel => {
+          if (channel.channel === 'ISWAP') {
+            return {
+              ...channel,
+              limitMin: limitInfo.normalMin,
+              limitMax: limitInfo.normalMax
+            };
+          }
+          return {
+            ...channel,
+            limitMin: 0,
+            limitMax: 0
+          };
+        });
+      }
     },
     // 获取当前支持的通道
     async getChanelConfig() {
-      this.channelConfigList = [
-        {
-          channel: 'ISWAP'
-        }
-      ];
-      // const res = await this.$request({
-      //   url: '/swap/channel',
-      //   method: 'get'
-      // });
-      // if (res.code === 1000 && res.data) {
-      //   console.log(res.data, 'channelConfigList');
-      //   localStorage.setItem('channelConfig', JSON.stringify(res.data));
-      //   this.channelConfigList = res.data;
-      // }
+      // this.orginChannelConfigList = [
+      //   {
+      //     channel: 'ISWAP'
+      //   }
+      // ];
+      // this.channelConfigList = [
+      //   {
+      //     channel: 'ISWAP'
+      //   }
+      // ];
+      const res = await this.$request({
+        url: '/swap/channel',
+        method: 'get'
+      });
+      if (res.code === 1000 && res.data) {
+        console.log(res.data, 'channelConfigList');
+        localStorage.setItem('channelConfig', JSON.stringify(res.data));
+        this.orginChannelConfigList = res.data;
+        this.channelConfigList = res.data;
+      }
     },
     // 查询当前支持的usdtn列表
     async getUsdtnAssets() {
@@ -645,6 +677,9 @@ export default {
             this.chooseFromAsset = tempList.find(item => item.symbol === 'USDT') || tempList[0];
           }
           this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
+          if (this.chooseFromAsset && this.chooseFromAsset.assetId === 0 && this.fromNetwork !== 'NULS') {
+            await this.checkCrossInAuthStatus();
+          }
         }
       } catch (e) {
         console.log(e, 'error');
@@ -656,21 +691,35 @@ export default {
       this.showModal = false;
       switch (type) {
         case 'send':
+          this.currentChannel = null;
           this.chooseFromAsset = coin;
-          console.log(this.chooseFromAsset);
-          if (this.chooseFromAsset.assetId === 0 && this.fromNetwork !== 'NULS') {
-            // await this.checkCrossInAuthStatus();
-          }
+          await this.getBalance(this.chooseFromAsset, true);
           if (this.chooseToAsset && this.inputType === 'amountIn' && this.amountIn) {
+            this.amountOut = '';
             this.amountInDebounce();
           } else if (this.chooseToAsset && this.inputType === 'amountOut' && this.amountOut) {
+            this.amountIn = '';
             this.amountOutDebounce();
+          }
+          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.switchAsset = true;
+          }
+          // todo：验证授权权限
+          if (this.chooseFromAsset.assetId === 0 && this.fromNetwork !== 'NULS') {
+            await this.checkCrossInAuthStatus();
           }
           break;
         case 'receive': // 选择接受资产
           this.chooseToAsset = coin;
           if (this.chooseFromAsset && this.inputType === 'amountIn' && this.amountIn) {
+            this.amountOut = '';
             this.amountInDebounce();
+          } else if (this.chooseToAsset && this.inputType === 'amountOut' && this.amountOut) {
+            this.amountIn = '';
+            this.amountOutDebounce();
+          }
+          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.switchAsset = true;
           }
           break;
         default:
@@ -759,93 +808,45 @@ export default {
       this.balanceLoading = false;
       this.balanceRequest = false;
     },
-    // async fromAmountInput() {
-    //   // debugger
-    //   this.amount = this.fromAmount;
-    //   if (this.$store.state.network === this.currentNetwork && ((this.usdtnFromAsset && this.stableToAsset) || (this.stableFromAsset && this.usdtnToAsset))) { // usdtn <=> usdt
-    //     if (this.fromAmount) {
-    //       this.checkUsdtnFee();
-    //       this.platformList = ['SwapBox'].map(item => ({
-    //         asset: this.chooseToAsset || '',
-    //         platform: item,
-    //         isBest: true,
-    //         fee: this.usdtnFee,
-    //         minReceive: Minus(this.numberFormat(tofix(this.fromAmount, 6, -1)), this.usdtnFee || 0) < 0 ? '0' : Minus(this.numberFormat(tofix(this.fromAmount, 6, -1)), this.usdtnFee || 0),
-    //         swapRate: 1,
-    //         isChoose: true
-    //       }));
-    //       if (this.usdtnFee) {
-    //         this.toAmount = Minus(this.fromAmount, this.usdtnFee);
-    //       }
-    //       this.currentChannel = this.platformList[0];
-    //     } else {
-    //       this.toAmount = '';
-    //       this.currentChannel = null;
-    //     }
-    //   } else if (this.stableFromAsset && this.stableToAsset) { // 稳定币兑换
-    //     if (this.fromAmount) {
-    //       await this.getFeeDebounce();
-    //       this.stableFeeLoading = false;
-    //       if (this.stableFee && this.currentChannel && this.currentChannel.platform === 'SwapBox') {
-    //         this.toAmount = Minus(this.fromAmount, this.stableFee);
-    //       } else if (this.stableFee && this.currentChannel && this.currentChannel.platform !== 'SwapBox') {
-    //         this.toAmount = Minus(this.fromAmount, this.withdrawFee);
-    //       } else {
-    //         this.toAmount = this.fromAmount;
-    //       }
-    //     } else {
-    //       this.toAmount = '';
-    //       this.stableFee = '';
-    //       this.currentChannel = null;
-    //     }
-    //   } else { // swft兑换
-    //     if (this.chooseToAsset && this.chooseFromAsset && !isNaN(Number(this.fromAmount)) && Number(this.fromAmount)) {
-    //       // await this.getExchangeRate(true);
-    //       // if (this.chooseFromAsset && Minus(Plus(this.fromAmount, this.transferFee), this.available) > 0) {
-    //       //   this.amountMsg = `${this.chooseFromAsset.symbol}${this.$t("tips.tips20")}`;
-    //       // } else {
-    //       //   this.amountMsg = '';
-    //       // }
-    //       this.amount = this.formatFloat(this.fromAmount);
-    //       if (this.focusType === 'from') {
-    //         this.toAmount = this.swapRate
-    //           ? this.numberFormat(this.formatFloat(Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0) < 0 ? 0
-    //             : Minus(Times(this.swapRate, this.amount), this.withdrawFee || 0)), 8, true) : '';
-    //       }
-    //       this.platformList = this.withdrawFee && ['swft'].map(item => ({
-    //         asset: this.chooseToAsset || '',
-    //         platform: item,
-    //         isBest: true,
-    //         fee: this.withdrawFee,
-    //         minReceive: Minus(this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)), this.getPlatformFee('swft')) < 0 ? '0' : this.numberFormat(tofix(Minus(Times(this.fromAmount, this.swapRate), this.withdrawFee), 6, -1)),
-    //         swapRate: this.swapRate,
-    //         isChoose: true
-    //       }));
-    //       this.currentChannel = this.getBestPlatform(this.platformList);
-    //       // if (this.chooseToAsset) {
-    //       //   this.platformList.push(swftPlatform);
-    //       //   this.currentChannel = swftPlatform;
-    //       //   this.checkAmount();
-    //       // }
-    //     } else {
-    //       this.toAmount = '';
-    //       this.currentChannel = null;
-    //     }
-    //   }
-    // },
     async amountInInput() {
       this.inputType = 'amountIn';
-      //  && this.checkBalance()
-      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn) {
+      console.log(this.checkBalance(), 'checkBalance');
+      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && this.checkBalance()) {
+        this.amountOut = '';
+        this.getOptionalChannel('amountIn');
         const tempChannel = await this.getChannelList();
-        console.log(tempChannel, 'tempChannel');
-        this.amountOut = tofix(tempChannel.amountOut || 0, 6, -1);
-        this.currentChannel = tempChannel;
+        if (tempChannel) {
+          this.amountOut = this.numberFormat(tofix(tempChannel.amountOut || 0, 6, -1), 6);
+          this.currentChannel = tempChannel;
+        } else {
+          this.currentChannel = null;
+        }
+      } else {
+        if (!this.amountIn) { this.amountMsg = ''; }
+        this.amountOut = '';
+        this.currentChannel = null;
       }
     },
+    getOptionalChannel(type) {
+      this.channelConfigList = this.orginChannelConfigList.filter(channel => {
+        if (channel.limitMin && channel.limitMax && type === 'amountIn') {
+          return Minus(this.amountIn, channel.limitMin) >= 0 && Minus(this.amountIn, channel.limitMax) <= 0;
+        } else if (channel.limitMin && channel.limitMax && type === 'amountOut') {
+          return Minus(this.amountOut, channel.limitMin) >= 0 && Minus(this.amountOut, channel.limitMax) <= 0;
+        }
+        return channel;
+      });
+    },
     checkBalance() {
-      if (Minus(this.amountIn, this.available) > 0) {
-        this.amountMsg = `${this.chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
+      const { amountIn, available, limitMin, limitMax, chooseFromAsset } = this;
+      if (Minus(amountIn, available) > 0) {
+        this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
+        return false;
+      } else if (Minus(amountIn, limitMin) < 0) {
+        this.amountMsg = `${this.$t('tips.tips3')}${this.numberFormat(tofix(Division(limitMin, 10), 4, -1), 4)}${chooseFromAsset.symbol}`;
+        return false;
+      } else if (Minus(this.amountIn, this.limitMax) > 0) {
+        this.amountMsg = `${this.$t('tips.tips4')}${this.numberFormat(tofix(Division(limitMax, 10), 4, -1), 4)}${chooseFromAsset.symbol}`;
         return false;
       }
       return true;
@@ -856,11 +857,21 @@ export default {
     async amountOutInput() {
       this.inputType = 'amountOut';
       if (this.chooseFromAsset && this.chooseToAsset && this.amountOut) {
+        this.amountIn = '';
+        this.getOptionalChannel('amountOut');
         const tempChannel = await this.getChannelList();
-        console.log(tempChannel, 'tempChannel');
-        this.amountIn = tofix(tempChannel.amount || 0, 6, -1);
-        this.checkBalance();
-        this.currentChannel = tempChannel;
+        if (tempChannel) {
+          this.amountIn = this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
+          this.checkBalance();
+          this.currentChannel = tempChannel;
+        } else {
+          this.amountMsg = '';
+          this.currentChannel = null;
+        }
+      } else {
+        if (!this.amountMsg) { this.amountMsg = ''; }
+        this.amountIn = '';
+        this.currentChannel = null;
       }
     },
     // 获取当前支持的config
@@ -868,6 +879,7 @@ export default {
       try {
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
+        this.amountMsg = '';
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
           let currentConfig = {};
           if (item.channel === 'ISWAP') {
@@ -893,12 +905,14 @@ export default {
           }
           return null;
         }));
-        console.log(tempChannelConfig, 'tempChannelConfig');
         this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig);
       } catch (e) {
-        this.showComputedLoading = false;
-        console.log(e, 'error');
+        console.log(e.message, 'error');
+        this.$message.warning({ message: e.message, offset: 30 });
+        if (e.message.indexOf('Network Error')) {
+          this.showComputedLoading = false;
+        }
       }
     },
     // 获取iSwap费率信息
@@ -966,59 +980,12 @@ export default {
         };
       }
     },
-    // async toAmountInput() {
-    //   if (this.$store.state.network === this.currentNetwork && ((this.usdtnFromAsset && this.stableToAsset) || (this.stableFromAsset && this.usdtnToAsset))) {
-    //     if (this.toAmount) {
-    //       this.fromAmount = Plus(this.toAmount, this.usdtnFee || 0);
-    //       this.fromAmountInput();
-    //     } else {
-    //       this.fromAmount = '';
-    //       this.stableFee = '';
-    //     }
-    //   } else if (this.stableToAsset && this.stableFromAsset) { // 稳定币
-    //     if (this.toAmount) {
-    //       this.fromAmount = Plus(this.toAmount, this.stableFee || 0);
-    //       this.getFeeDebounce();
-    //       this.fromAmountInput();
-    //       this.checkAmount();
-    //       this.checkLpBalance();
-    //     } else {
-    //       this.fromAmount = '';
-    //       this.stableFee = '';
-    //     }
-    //   } else { // swft
-    //     if (this.chooseToAsset) {
-    //       this.fromAmount = this.swapRate ? this.numberFormat(tofix(Division(Plus(this.toAmount, this.withdrawFee), this.swapRate), 8, -1), 8, true) : '';
-    //       this.amount = this.fromAmount;
-    //       this.fromAmountInput();
-    //       const transformFeeAmount = Times(this.fee, this.swapRate); // swft收取的手续费转换为to资产数量
-    //       this.estimatedAmount = Minus(this.toAmount, Plus(transformFeeAmount, this.withdrawalFee)).toFixed();
-    //       this.checkAmount();
-    //     } else {
-    //       this.toAmount = '';
-    //     }
-    //   }
-    // },
     // 最大
-    maxAmount() {
-      this.focusType = 'from';
-      if (this.stableToAsset && this.stableFromAsset) {
-        if (this.chooseFromAsset && this.available !== '0') {
-          this.fromAmount = this.numberFormat(tofix(this.available, 8, -1), 8, true);
-          this.toAmount = this.numberFormat(tofix(Minus(this.fromAmount, this.stableFee || 0), 8, -1), 8, true);
-          this.getFeeDebounce();
-        }
-      } else {
-        if (this.chooseFromAsset && this.available != '0') {
-          this.fromAmount = this.numberFormat(tofix(Minus(this.available, this.transferFee || 0), 8, -1), 8, true);
-          this.amount = this.numberFormat(tofix(Minus(this.available, this.transferFee || 0), 8, -1), 8, true);
-        }
-        if (this.swapRate && this.available !== '0') {
-          this.toAmount = this.numberFormat(tofix(Times(this.fromAmount, this.swapRate), 8, -1), 8, true);
-        }
-        this.chooseToAsset && this.fromAmountInput();
-        this.chooseToAsset && this.checkAmount();
-      }
+    async maxAmount() {
+      if (!this.available) return false;
+      this.inputType = 'amountIn';
+      this.amountIn = this.numberFormat(tofix(this.available, 6, -1), 6);
+      await this.amountInInput();
     },
     // 获取平台的手续费
     getPlatformFee(platform, stableFee = 0) {
@@ -1047,38 +1014,24 @@ export default {
     // 切换当前选择的平台
     getBestPlatform(platformList) {
       if (platformList.length === 0) return false;
-      if (this.inputType === 'amountIn') {
-        const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
-        console.log(tempList, 'tempList');
-        this.channelConfigList = platformList.map(item => {
-          if (item.channel === tempList.channel) {
-            return {
-              ...item,
-              isBest: true,
-              isChoose: true
-            };
-          }
+      const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
+      console.log(tempList, 'tempList');
+      this.channelConfigList = platformList.map(item => {
+        if (item.channel === tempList.channel) {
           return {
             ...item,
-            isBest: false,
-            isChoose: false
+            isBest: true,
+            isChoose: true
           };
-        });
-        console.log(this.channelConfigList, 'this.channelConfigList');
-        return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
-      } else {
-        const tempList = platformList.reduce((p, v) => p.mostSold < v.mostSold ? p : v);
-        this.channelConfigList.forEach(item => {
-          if (item.channel === tempList.channel) {
-            item.isBest = true;
-            item.isChoose = true;
-          } else {
-            item.isBest = false;
-            item.isChoose = false;
-          }
-        });
-        return tempList;
-      }
+        }
+        return {
+          ...item,
+          isBest: false,
+          isChoose: false
+        };
+      });
+      console.log(this.channelConfigList, 'this.channelConfigList');
+      return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
     },
     // 检查稳定币手续费是否足够
     checkStableFee() {
@@ -1135,9 +1088,6 @@ export default {
     // 同连切换资产
     async switchAssetClick() {
       if (!this.switchAsset) return false;
-      if (this.chooseToAsset.isSupportAdvanced !== 'Y') {
-        this.$toast('tips.tips23');
-      }
       const tempFromAsset = { ...this.chooseFromAsset };
       const tempToAsset = { ...this.chooseToAsset };
       const tempToAmount = this.toAmount;
@@ -1146,7 +1096,11 @@ export default {
       this.chooseFromAsset = { ...tempToAsset };
       this.currentChannel = null;
       await this.getBalance(this.chooseFromAsset, true);
-      // this.fromAmountInput();
+      if (this.inputType == 'amountIn') {
+        await this.amountInInput();
+      } else {
+        await this.amountInInput();
+      }
     },
     // 订单详情
     toOrderDetail(item) {
@@ -1186,7 +1140,6 @@ export default {
       this.withdrawFee = '';
       this.currentChannel = null;
       this.swftError = false;
-      this.platformConfig = ['SwapBox', 'swft'];
     },
     changeShowDetail() {
       this.showOrderDetail = false;
@@ -1209,5 +1162,24 @@ export default {
 }
 .m-3 {
   margin: 30px;
+}
+
+.point_cont{
+  height: 5px;
+  width: 5px;
+  display: inline-block;
+  border-radius: 50%;
+  animation: dotting 1.4s infinite step-start;
+}
+@keyframes dotting {
+  25%{
+    box-shadow: 6px 0 0 #FFFFFF;
+  }
+  50%{
+    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF;
+  }
+  75%{
+    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF, 34px 0 0 #FFFFFF;
+  }
 }
 </style>

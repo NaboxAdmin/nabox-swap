@@ -121,9 +121,8 @@ export default {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
-              // this.getSwapAssetList(this.picList[this.currentIndex]);
-              this.getTempSwapAssetList('Heco');
-              // this.getCoins(this.picList[this.currentIndex]);
+              this.getSwapAssetList(this.picList[this.currentIndex]);
+              // this.getTempSwapAssetList('Heco');
             }, 0);
           } else {
             if (this.picList.findIndex(item => item === this.fromNetwork) === -1) {
@@ -133,9 +132,8 @@ export default {
               this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
             }
             this.timer = setTimeout(() => {
-              // this.getSwapAssetList(this.fromNetwork);
-              this.getTempSwapAssetList(this.fromNetwork);
-              // this.getCoins(this.fromNetwork);
+              this.getSwapAssetList(this.fromNetwork);
+              // this.getTempSwapAssetList(this.fromNetwork);
             }, 0);
           }
         }
@@ -196,7 +194,7 @@ export default {
       this.searchVal = '';
       this.currentIndex = i;
       this.showCoinList = [];
-      await this.getCoins(chain);
+      await this.getSwapAssetList(chain);
     },
     // 获取当前支持的兑换的列表
     async getSwapAssetList(chain) {
@@ -209,8 +207,7 @@ export default {
           url: '/swap/assets',
           data
         });
-        if (res.code === 1000 && res.data.length > 0) {
-          console.log(res.data, 'res.data');
+        if (res.code === 1000) {
           let tempCoins = res.data.map(coin => ({
             ...coin,
             showBalanceLoading: true
@@ -218,14 +215,19 @@ export default {
           if (!this.fromAsset && this.modalType === 'receive') {
             tempCoins = [];
           } else if (this.fromAsset && this.modalType === 'receive') {
-            tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
-            console.log(tempCoins, 'tempCoins');
+            if (this.picList[this.currentIndex] === this.fromNetwork) {
+              tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
+            }
+          } else if (this.toAsset && this.modalType === 'send') {
+            if (this.picList[this.currentIndex] === this.fromNetwork) {
+              tempCoins = tempCoins.filter(coin => coin.symbol !== this.toAsset.symbol);
+            }
           }
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
           const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
           this.showCoinList = [...tempList];
           this.allList = [...this.showCoinList];
-          console.log(JSON.stringify(this.allList));
+          // console.log(JSON.stringify(this.allList));
           localStorage.setItem('showList', JSON.stringify(this.allList));
           this.showLoading = false;
           if (tempNetwork === 'NULS') {

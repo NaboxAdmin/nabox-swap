@@ -119,9 +119,14 @@
                   <span>{{ item.createTime }}</span>
                   <span class="status-icon">
                     <!--swap订单-->
-                    <i v-if="orderType === 3 && item.status !== 5 && item.status !== 4" class="el-icon-loading" style="color: #6EB6A9"/>
+                    <!--<i v-if="orderType === 3 && item.status !== 5 && item.status !== 4" class="el-icon-loading" style="color: #6EB6A9"/>
                     <i v-else-if="orderType === 3 && item.status === 4" class="el-icon-success" style="color: #6EB6A9"/>
-                    <i v-else-if="orderType === 3 && item.status === 5" class="el-icon-error" style="color: #eb7d62"/>
+                    <i v-else-if="orderType === 3 && item.status === 5" class="el-icon-error" style="color: #eb7d62"/>-->
+                    <!--iswap订单-->
+                    <template>
+                      <i v-if="orderType === 3 && item.srcState === 0 && item.destState === 2" class="el-icon-success" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 3 && item.srcState !== 0 && item.destState !== 2" class="el-icon-loading" style="color: #6EB6A9"/>
+                    </template>
                     <!--L1网络订单-->
                     <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
                     <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>
@@ -147,6 +152,9 @@ import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
 import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
+import { sendRequest } from '@/network/cancelRequest';
+import { ISWAP_VERSION } from '../../views/Swap/util/swapConfig';
+import ISwap from '../../views/Swap/util/iSwap';
 
 // eslint-disable-next-line no-unused-vars
 const lang = localStorage.getItem('locale') || 'cn';
@@ -402,41 +410,80 @@ export default {
       this.flag = true;
       this.orderLoading = true;
       this.orderType = 3;
-      const params = {
-        address: val
-      };
-      const res = await this.$request({
-        url: '/swap/get/list',
-        data: params
+      const iSwap = new ISwap({
+        chain: this.fromNetwork
       });
-      if (res.code === 1000) {
-        this.orderList = res.data.map(item => {
-          return {
-            ...item,
-            createTime: this.formatTime(item.createTime)
-          };
-        });
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      const nativeId = tempSupportChainList.find(item => item.chain === this.fromNetwork).nativeId;
+      const data = {
+        version: ISWAP_VERSION,
+        address: val,
+        chainId: nativeId
+        // offset: 0,
+        // limit: 10,
+        // direct: ''
+      };
+      const orderList = iSwap.getISwapOrderList(data);
+      if (orderList) {
+        this.orderList = orderList;
+      } else {
+        this.orderList = [];
       }
+      // const params = {
+      //   address: val
+      // };
+      // const res = await this.$request({
+      //   url: '/swap/get/list',
+      //   data: params
+      // });
+      // if (res.code === 1000) {
+      //   this.orderList = res.data.map(item => {
+      //     return {
+      //       ...item,
+      //       createTime: this.formatTime(item.createTime)
+      //     };
+      //   });
+      // }
       this.orderLoading = false;
     },
     async getOrderStatus(val) {
-      this.flag = true;
-      const params = {
-        address: val
-      };
-      const res = await this.$request({
-        url: '/swap/get/list',
-        data: params
+      const iSwap = new ISwap({
+        chain: this.fromNetwork
       });
-      if (res.code === 1000 && res.data) {
-        if (res.data.length > 0) {
-          this.showLoading = res.data.some(item => item.status < 4);
-        } else {
-          this.showLoading = false;
-        }
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      const nativeId = tempSupportChainList.find(item => item.chain === this.fromNetwork).nativeId;
+      const data = {
+        version: ISWAP_VERSION,
+        address: val,
+        chainId: nativeId
+        // offset: 0,
+        // limit: 10,
+        // direct: ''
+      };
+      const orderList = iSwap.getISwapOrderList(data);
+      if (orderList.length > 0) {
+        this.showLoading = res.data.some(item => item.srcState !== 0 && item.destState !== 2);
       } else {
         this.showLoading = false;
       }
+      // FIXME 查询swap兑换订单
+      // this.flag = true;
+      // const params = {
+      //   address: val
+      // };
+      // const res = await this.$request({
+      //   url: '/swap/get/list',
+      //   data: params
+      // });
+      // if (res.code === 1000 && res.data) {
+      //   if (res.data.length > 0) {
+      //     this.showLoading = res.data.some(item => item.srcState < 4);
+      //   } else {
+      //     this.showLoading = false;
+      //   }
+      // } else {
+      //   this.showLoading = false;
+      // }
     },
     // 获取L2订单列表
     async getL2OrderList() {

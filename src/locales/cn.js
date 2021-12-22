@@ -65,7 +65,8 @@ const cn = {
     swap31: '【费用为交易金额的0.02%，若不满1U则按照1U收取】',
     swap32: '预计收到',
     swap33: '价格影响',
-    swap34: '跨链手续费'
+    swap34: '跨链手续费',
+    swap35: '价格计算中'
   },
   transfer: {
     transfer1: '从',

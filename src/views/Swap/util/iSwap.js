@@ -47,10 +47,41 @@ export default class ISwap {
     }
     return null;
   }
+  // 获取iSwap限额信息
+  async getTradeLimit(params) {
+    const res = await sendRequest({
+      method: 'get',
+      url: '/api/common/trade/limit',
+      data: params,
+      customUrl
+    });
+    if (res.code === 0) {
+      return res.data[0];
+    }
+    return null;
+  }
   // 获取iSwap费率信息
   async getEstimateFeeInfo(params) {
-    const res = await sendRequest({
-      url: '/api/swap/estimate-fee-info',
+    try {
+      const res = await sendRequest({
+        url: '/api/swap/estimate-fee-info',
+        data: params,
+        customUrl
+      });
+      if (res.code === 0) {
+        return res.data;
+      } else {
+        throw ('Network Error');
+      }
+      return null;
+    } catch (e) {
+      throw e;
+    }
+  }
+  // 生成跨链swap订单
+  async generateCrossChainSwapOrder(params) {
+    const res = await request({
+      url: '/api/swap/order',
       data: params,
       customUrl
     });
@@ -59,10 +90,10 @@ export default class ISwap {
     }
     return null;
   }
-  // 生成跨链swap订单
-  async generateCrossChainSwapOrder(params) {
-    const res = await request({
-      url: '/api/swap/order',
+  async getISwapOrderList(params) {
+    const res = await sendRequest({
+      method: 'get',
+      url: '/api/swap/tx/list',
       data: params,
       customUrl
     });

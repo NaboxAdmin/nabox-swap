@@ -16,7 +16,7 @@
         <div class="down-icon">
           <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"/><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"/></svg>
         </div>
-        <div class="detail-info mt-2">{{ orderInfo.amountOut }} {{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.symbol }}</div>
+        <div class="detail-info mt-2">{{ orderInfo && orderInfo.currentChannel.minReceive | numberFormat }} {{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.symbol }}</div>
       </div>
       <div class="dash_cont"/>
       <div class="order-detail_info">
@@ -42,11 +42,12 @@
           </div>
         </div>
         <!--手续费-->
-        <div class="d-flex align-items-center space-between mt-5">
+        <div v-if="orderInfo && orderInfo.currentChannel.crossChainFee" class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-3a">
-              {{ orderInfo.currentChannel.crossChainFee || '0' }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}
+              <span>{{ orderInfo.currentChannel.crossChainFee || '0' }}</span>
+              <span>{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span>
             </span>
           </div>
         </div>
@@ -173,6 +174,7 @@ export default {
               // debugger;
               transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
             }
+            console.log(transferResult, 'transferResulttransferResulttransferResult');
             if (transferResult.hash) {
               this.$message({
                 type: 'success',
@@ -312,6 +314,16 @@ export default {
           offset: 30
         });
       }
+    },
+    getOrderList() {
+      const params = {
+        version: '',
+        address: '',
+        chainId: '',
+        offset: 0,
+        limit: '',
+        direct: ''
+      };
     },
     // 稳定币转账
     async stableTransfer(txData, usdtnTransfer = false) {

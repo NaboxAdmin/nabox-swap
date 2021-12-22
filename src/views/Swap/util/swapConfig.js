@@ -4,7 +4,7 @@ export const contractConfig = {
   Heco: '0x0d2b9ddC064BA358bB2a4960EbF7C616bb0fB7D7',
   BSC: '0x158605f71d08a50f9FEC5c5a59232348f337f3A3',
   Polygon: '0xC2952a8741E6aD595901dD3E23fa154192457492',
-  OEC: '0x1A1CD02fd7EDE2D54FddFFEdc1B8b9bbE96Af6e1',
+  OKExChain: '0x1A1CD02fd7EDE2D54FddFFEdc1B8b9bbE96Af6e1',
   Ethereum: '0x3c528E392b2e726b05f4952fd91A716537501204'
 };
 
@@ -233,6 +233,14 @@ export const iSwapContractAbiConfig = [
     'type': 'function'
   }
 ];
+
+export const ISWAP_USDT_CONFIG = {
+  1: 'USDT',
+  56: 'USDT',
+  66: 'USDT',
+  128: 'USDT',
+  137: 'USDT'
+};
 
 // const srcChainSwapInfo = ABI.encodeParameters(
 //   ['address', 'uint256', 'uint256', 'uint256'],

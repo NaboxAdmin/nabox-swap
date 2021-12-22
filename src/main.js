@@ -101,6 +101,7 @@ async function getConfig(network) {
             assetId: item.mainAsset.assetId || '',
             decimals: item.mainAsset.decimals || '',
             rpcUrl: item.apiUrl,
+            nativeId: item.nativeId || '',
             // rpcUrl: networkRpc[item.chain],
             origin: networkOrigin[item.chain],
             hashLink: item.txUrl,
