@@ -61,12 +61,12 @@
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
-              <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
-              <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
+              <span class="size-40 word-break w-330 mt-2">{{ item.syrupTokenBalance == '0' ? '0' : (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ item.syrupTokenBalance != '0' && item.syrupUsdPrice || 0 }}</span>
             </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
-              :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' }"
+              :class="{ active_btn: !item.reward || item.reward===0 || item.reward === '0' || item.syrupTokenBalance == '0' }"
               class="item-btn size-30"
               @click.stop="receiveClick(item.farmKey, item)">{{ $t("tips.tips30") }}</span>
             <span
