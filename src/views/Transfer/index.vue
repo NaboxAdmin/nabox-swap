@@ -961,16 +961,24 @@ export default {
         } else {
           if (res) {
             this.txHex = res.raw;
-            broadcastData.txHash = res.hash;
+            // broadcastData.txHash = res.hash;
             if (res.hash) {
+            //   this.$message({
+            //     message: this.$t('tips.tips10'),
+            //     type: 'success',
+            //     offset: 30
+            //   });
+              this.formatArrayLength({ type: 'L1', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
+                duration: 2000,
                 offset: 30
               });
+              this.reset();
               this.transferLoading = false;
               this.reset();
-              await this.broadcastToNerveHex(broadcastData);
+              // await this.broadcastToNerveHex(broadcastData);
             } else {
               throw this.$t('tips.tips15');
             }
@@ -989,23 +997,28 @@ export default {
     },
     // 广播nerve跨链转出交易
     async broadcastHex(data) {
-      const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress } = data;
-      const params = {
-        fromChain,
-        toChain,
-        assetId,
-        chainId,
-        amount,
-        contractAddress,
-        fromAddress,
-        toAddress,
-        txHex: this.txHex
-      };
-      const res = await this.$request({
-        url: '/swap/cross',
-        data: params
-      });
-      if (res.code === 1000 && res.data) {
+      // const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress } = data;
+      // const params = {
+      //   fromChain,
+      //   toChain,
+      //   assetId,
+      //   chainId,
+      //   amount,
+      //   contractAddress,
+      //   fromAddress,
+      //   toAddress,
+      //   txHex: this.txHex
+      // };
+      // const res = await this.$request({
+      //   url: '/swap/cross',
+      //   data: params
+      // });
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const url = config['NERVE'].apiUrl;
+      const chainId = config['NERVE'].chainId;
+      const res = await this.$post(url, 'broadcastTx', [chainId, this.txHex]);
+      if (res.result && res.result.hash) {
+        this.formatArrayLength({ type: 'L2', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',

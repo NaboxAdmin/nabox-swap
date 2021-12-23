@@ -155,6 +155,7 @@ import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
 import { sendRequest } from '@/network/cancelRequest';
 import { ISWAP_VERSION } from '../../views/Swap/util/swapConfig';
 import ISwap from '../../views/Swap/util/iSwap';
+import { MAIN_INFO } from '../../config';
 
 // eslint-disable-next-line no-unused-vars
 const lang = localStorage.getItem('locale') || 'cn';
@@ -298,7 +299,7 @@ export default {
     this.fromAddress && this.getOrderStatus(this.fromAddress);
     this.statusTimer = setInterval(() => {
       this.fromAddress && this.getOrderStatus(this.fromAddress);
-    }, 15000);
+    }, 10000);
   },
   mounted() {
     window.addEventListener('click', () => {
@@ -387,8 +388,8 @@ export default {
       this.orderType = 1;
       this.orderLoading = false;
       this.orderList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
-      this.getTxStatus();
-      console.log(this.orderList.length, 'this.orderList');
+      // this.getTxStatus();
+      // console.log(this.orderList.length, 'this.orderList');
     },
     // 获取异构链交易信息
     async getTxOrderList(val) {
@@ -456,25 +457,32 @@ export default {
       this.orderLoading = false;
     },
     async getOrderStatus(val) {
-      const iSwap = new ISwap({
-        chain: this.fromNetwork
-      });
-      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-      const nativeId = tempSupportChainList.find(item => item.chain === this.fromNetwork).nativeId;
-      const data = {
-        version: ISWAP_VERSION,
-        address: val,
-        chainId: nativeId
-        // offset: 0,
-        // limit: 10,
-        // direct: ''
-      };
-      const orderList = iSwap.getISwapOrderList(data);
-      if (orderList.length > 0) {
-        this.showLoading = res.data.some(item => item.srcState !== 0 && item.destState !== 2);
+      console.log('==getOrderStatus==');
+      const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
+      if (commonTxList.length > 0) {
+        this.showLoading = commonTxList.some(item => item.status === 0);
       } else {
         this.showLoading = false;
       }
+      // const iSwap = new ISwap({
+      //   chain: this.fromNetwork
+      // });
+      // const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      // const nativeId = tempSupportChainList.find(item => item.chain === this.fromNetwork).nativeId;
+      // const data = {
+      //   version: ISWAP_VERSION,
+      //   address: val,
+      //   chainId: nativeId
+      //   // offset: 0,
+      //   // limit: 10,
+      //   // direct: ''
+      // };
+      // const orderList = iSwap.getISwapOrderList(data);
+      // if (orderList.length > 0) {
+      //   this.showLoading = res.data.some(item => item.srcState !== 0 && item.destState !== 2);
+      // } else {
+      //   this.showLoading = false;
+      // }
       // FIXME 查询swap兑换订单
       // this.flag = true;
       // const params = {
@@ -494,21 +502,42 @@ export default {
       //   this.showLoading = false;
       // }
     },
-    getTxStatus() {
+    async getTxStatus() {
       const config = JSON.parse(sessionStorage.getItem('config'));
-      console.log(config);
       const txList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
+      const tempList = txList.filter(item => item.status === 0);
       const l1Url = config[this.fromNetwork].apiUrl;
+      const l2Url = config['NERVE'].apiUrl;
       if (txList.length !== 0) {
-        const tempTxList = Promise.all(txList.map(async tx => {
-          if (tx.type === 'L1') {
+        const tempTxList = await Promise.all(txList.map(async tx => {
+          if (tx.type === 'L1' && tx.status === 0) {
             const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
-            if (res) {
-              console.log(res);
+            if (res && res.result) {
+              return {
+                ...tx,
+                status: res.result.status === '0x1' ? 1 : -1
+              };
+            }
+          } else if (tx.type === 'L2' && tx.status === 0) {
+            const params = [MAIN_INFO.chainId, tx.txHash];
+            const res = await this.$post(l2Url, 'getTx', params);
+            const heterogeneousRes = await this.$post(l2Url, 'findByWithdrawalTxHash', params);
+            console.log(res, 'res', heterogeneousRes, 'heterogeneousRes');
+            if (res && res.result && heterogeneousRes && heterogeneousRes.result) {
+              return {
+                ...tx,
+                status: res.result.status == '1' ? 1 : -1
+              };
             }
           }
+          return { ...tx };
         }));
+        localStorage.setItem('tradeHashList', JSON.stringify(tempTxList));
+        this.getTxList();
+        return tempTxList;
+        console.log(tempTxList, 'tempTxList');
       }
+      return [];
     },
     // 获取L2订单列表
     async getL2OrderList() {
@@ -534,8 +563,8 @@ export default {
     },
     // 跳转查看当前的交易详情
     linkToUrl(hash, item) {
-      if (this.orderType === 2 || this.orderType === 1) {
-        const chain = this.orderType === 2 ? 'NERVE' : this.currentChain;
+      if (this.orderType === 1) {
+        const chain = item.type === 'L2' ? 'NERVE' : this.currentChain;
         this.isMobile ? window.location.href = `${this.hashLinkList[chain]}${hash}` : window.open(`${this.hashLinkList[chain]}${hash}`);
       } else {
         this.toOrderDetail(item);

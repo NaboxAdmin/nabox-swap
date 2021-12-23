@@ -148,6 +148,56 @@
 .mt-05 {
   margin-top: 5px;
 }
+.slippage-modal {
+  padding: 40px;
+  border-radius: 20px;
+  //transform: translateY(-320px);
+  background-color: #FFFFFF;
+  width: 630px;
+  .header-cont {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3A3C44;
+    margin-bottom: 50px;
+    .back-icon {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-60%);
+      width: 34px;
+      height: 30px;
+    }
+  }
+  .slippage-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px;
+    span {
+      font-size: 30px;
+      color: #333333;
+      height: 72px;
+      width: 138px;
+      border: 1px solid #AAB2C9;
+      border-radius: 20px;
+      line-height: 72px;
+      text-align: center;
+      &.active_slippage {
+        background-color: #6EB6A9;
+        color: #FFFFFF;
+      }
+      input {
+        width: 70px;
+        height: 60px;
+        border: 0;
+        font-size: 30px;
+        text-align: center;
+      }
+    }
+  }
+}
 .route-cont {
   padding: 40px;
   border-radius: 20px;

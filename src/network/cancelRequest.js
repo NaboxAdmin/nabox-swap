@@ -15,7 +15,7 @@ function addPendingRequest(config) {
   config.cancelToken =
         config.cancelToken ||
         new axios.CancelToken((cancel) => {
-          if (!pendingRequest.has(requestKey)) {
+          if (!pendingRequest.has(requestKey) && requestKey.indexOf('/api/swap/estimate-fee-info') !== -1) {
             pendingRequest.set(requestKey, cancel);
           }
         });

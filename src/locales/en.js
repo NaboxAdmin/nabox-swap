@@ -29,7 +29,8 @@ const en = {
     tips27: 'The received income will be locked for 90 days',
     tips28: 'You can unlock your Nabox by staking NABOX-BUSD LP and you can check the unlocking speed of different amounts of LP through the calculator',
     tips29: 'Audit by',
-    tips30: 'Harvest'
+    tips30: 'Harvest',
+    tips31: 'Please enter a number greater than 0 and less than 100'
   },
   swap: {
     swap1: 'From',
@@ -66,7 +67,8 @@ const en = {
     swap32: 'Expected',
     swap33: 'Impact',
     swap34: 'Cross-chain fee',
-    swap35: 'Price calculating'
+    swap35: 'Price calculating',
+    swap36: 'Slippage'
   },
   transfer: {
     transfer1: 'From',

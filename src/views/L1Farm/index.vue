@@ -435,6 +435,7 @@ export default {
             duration: 2000,
             offset: 30
           });
+          this.reset();
           this.showLoading = false;
           this.showPop = false;
         } else {

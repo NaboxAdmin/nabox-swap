@@ -3,6 +3,12 @@
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'">
+        <div class="size-30 mb-3 d-flex align-items-center space-between">
+          <span class="text-3a font-500">{{ $t('navBar.navBar5') }}</span>
+          <span class="slippage-cont" @click="showSlippage=true">
+            <img src="@/assets/image/slippage.png" alt="">
+          </span>
+        </div>
         <div class="d-flex align-items-center space-between text-90 size-28">
           <div>{{ $t("swap.swap1") }}<span v-if="chooseFromAsset" class="size-20 sign">{{ chooseFromAsset.chain }}</span></div>
           <div>{{ $t("swap.swap4") }}：
@@ -209,6 +215,26 @@
           </div>
         </div>
       </pop-modal>
+      <pop-modal :prevent-boo="false" :show="showSlippage" :custom-class="true">
+        <div class="slippage-modal">
+          <div class="header-cont size-36 font-500 mt-2">
+            {{ $t('swap.swap36') }}
+            <div class="back-icon cursor-pointer" @click="showSlippage=false">
+              <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"/></svg>
+            </div>
+          </div>
+          <div class="slippage-switch">
+            <span
+              v-for="(item, index) in slippageList"
+              :key="item"
+              :class="{ active_slippage: index===currentIndex }"
+              class="font-500"
+              @click="slippageClick(item, index)">{{ item }}%</span>
+            <span><input v-model="slippage" type="number" @input="slippageInput">%</span>
+          </div>
+          <div v-if="slippageMsg" class="text-red pl-1 mt-1">{{ slippageMsg }}</div>
+        </div>
+      </pop-modal>
     </div>
     <ConfirmOrder v-if="showOrderDetail" @back="changeShowDetail" @confirm="confirmChange"/>
   </div>
@@ -260,6 +286,7 @@ export default {
     this.amountInDebounce = debounce(this.amountInInput, 500);
     this.amountOutDebounce = debounce(this.amountOutInput, 500);
     return {
+      slippageList: ['0.5', '1', '2'],
       showModal: false,
       showLoading: false,
       modalType: '',
@@ -329,11 +356,14 @@ export default {
       getAllowanceTimer: null,
       showApproveLoading: false,
       approvingLoading: false,
-      slippage: 1, // 滑点
+      slippage: 0.5, // 滑点
       fromAssetDex: null,
       toAssetDex: null,
       limitMin: '', // 最小限制
-      limitMax: '' // 最大限制
+      limitMax: '', // 最大限制
+      showSlippage: true,
+      currentIndex: 0,
+      slippageMsg: ''
     };
   },
   computed: {
@@ -471,6 +501,22 @@ export default {
     this.orderTimer = null;
   },
   methods: {
+    // 滑点设置
+    slippageInput() {
+      if (this.slippage && this.slippage > 0 && Minus(this.slippage, 100) < 0) {
+        this.slippageMsg = '';
+        this.currentIndex = this.slippageList.indexOf(this.slippage);
+      } else {
+        this.slippageMsg = $t('tips.tips31');
+      }
+      if (this.slippageList.indexOf(this.slippage) !== -1) {
+        this.slippageList = [...this.slippageList];
+      }
+    },
+    slippageClick(item, index) {
+      this.currentIndex = index;
+      this.slippage = item;
+    },
     // 查询异构链token资产授权情况
     async checkCrossInAuthStatus() {
       const transfer = new ETransfer();
@@ -888,7 +934,7 @@ export default {
               return {
                 ...currentConfig,
                 iSwapConfig: currentConfig,
-                minReceive: isCross ? tofix(Times(currentConfig.outToken.amountOut, Division(Minus(100, this.slippage), 100)), this.chooseToAsset.decimals, -1) : tofix(Times(currentConfig.amountOut, Division(Minus(100, this.slippage), 100)), this.chooseToAsset.decimals, -1), // 最低收到
+                minReceive: isCross ? tofix(Times(currentConfig.outToken.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '0.5'), 100)), this.chooseToAsset.decimals, -1) : tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '0.5'), 100)), this.chooseToAsset.decimals, -1), // 最低收到
                 mostSold: isCross ? currentConfig.inToken.amount : currentConfig.amount, // 最多卖出
                 amount: isCross ? currentConfig.inToken.amount : currentConfig.amount,
                 crossChainFee: isCross ? this.numberFormat(tofix(currentConfig.inToken.feeAmount, 4, -1), 4) : 0, // 跨链手续费
@@ -1162,6 +1208,15 @@ export default {
 }
 .m-3 {
   margin: 30px;
+}
+
+.slippage-cont {
+  height: 30px;
+  width: 30px;
+  img {
+    height: 100%;
+    width: 100%;
+  }
 }
 
 .point_cont{

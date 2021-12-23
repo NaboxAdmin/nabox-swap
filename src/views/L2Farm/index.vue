@@ -607,8 +607,8 @@ export default {
         txHash
       };
       const config = JSON.parse(sessionStorage.getItem('config'));
-      const url = config[this.currentFarm.chain].apiUrl;
-      const chainId = config[this.currentFarm.chain].chainId;
+      const url = config['NERVE'].apiUrl;
+      const chainId = config['NERVE'].chainId;
       console.log(txHex, '---txHex---');
       if (txHex) {
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);

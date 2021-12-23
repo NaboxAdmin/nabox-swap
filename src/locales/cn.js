@@ -29,7 +29,8 @@ const cn = {
     tips27: '领取的收益将在90天内处于锁定状态',
     tips28: '你可以通过质押NABOX-BUSD LP来解锁Nabox，可通过计算器查看不同数量LP的解锁速度',
     tips29: '审计机构',
-    tips30: '收获'
+    tips30: '收获',
+    tips31: '请输入大于0小于100的数字'
   },
   swap: {
     swap1: '从',
@@ -66,7 +67,8 @@ const cn = {
     swap32: '预计收到',
     swap33: '价格影响',
     swap34: '跨链手续费',
-    swap35: '价格计算中'
+    swap35: '价格计算中',
+    swap36: '滑点'
   },
   transfer: {
     transfer1: '从',
