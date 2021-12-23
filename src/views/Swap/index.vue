@@ -423,6 +423,20 @@ export default {
       },
       deep: true
     },
+    slippage: {
+      handler(newVal, oldVal) {
+        if (newVal && !isNaN(newVal)) {
+          const decimals = 2;
+          const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
+          if (patrn.exec(newVal) || newVal === '') {
+            this.slippage = newVal;
+          } else {
+            this.slippage = oldVal;
+          }
+        }
+      },
+      deep: true
+    },
     amountOut: {
       handler(newVal, oldVal) {
         // debugger;
