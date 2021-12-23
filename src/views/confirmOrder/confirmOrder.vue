@@ -404,7 +404,7 @@ export default {
           numbers: fromAmount,
           fromAddress: address,
           decimals,
-          nerveAddress: txData.nerveAddress,
+          nerveAddress: txData.swapNerveAddress,
           contractAddress
         };
         const res = await transfer.crossIn(params);
