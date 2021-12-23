@@ -41,7 +41,7 @@
         class="farm-detail_info"
         @click.stop>
         <div class="d-flex align-items-center space-between">
-          <span class="text-90 size-28">{{ $t("navBar.navBar2") }}</span>
+          <span class="text-90 size-28">{{ $t("airdrop.airdrop3") }}</span>
           <div class="d-flex align-items-center size-28">
             <span class="text-3a">${{ item.tvl }}</span>
           </div>
