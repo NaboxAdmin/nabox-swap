@@ -449,7 +449,7 @@ export default {
     this.getUsdtnAssets();
     // setTimeout 0 不然获取不到地址
     setTimeout(() => {
-      this.getOrderList(this.$store.state.fromAddress);
+      // this.getOrderList(this.$store.state.fromAddress);
       this.getSwapAssetList();
     }, 0);
     // this.getLiquidityInfo(); // 获取当前池子的余额
@@ -842,10 +842,10 @@ export default {
       if (Minus(amountIn, available) > 0) {
         this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
         return false;
-      } else if (Minus(amountIn, limitMin) < 0) {
+      } else if (Minus(amountIn, limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
         this.amountMsg = `${this.$t('tips.tips3')}${this.numberFormat(tofix(Division(limitMin, 10), 4, -1), 4)}${chooseFromAsset.symbol}`;
         return false;
-      } else if (Minus(this.amountIn, this.limitMax) > 0) {
+      } else if (Minus(this.amountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
         this.amountMsg = `${this.$t('tips.tips4')}${this.numberFormat(tofix(Division(limitMax, 10), 4, -1), 4)}${chooseFromAsset.symbol}`;
         return false;
       }
@@ -1148,7 +1148,7 @@ export default {
     async confirmChange() {
       this.showOrderDetail = false;
       this.reset();
-      await this.getCoins();
+      await this.getSwapAssetList();
     }
   }
 };

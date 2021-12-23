@@ -185,6 +185,17 @@ export default {
       } else {
         return [];
       }
+    },
+    formatArrayLength(arr, data) {
+      const length = arr.length;
+      const tempArr = [...arr];
+      if (length < 20) {
+        tempArr.unshift(data);
+      } else {
+        tempArr.slice(0, length - 1);
+        tempArr.unshift(data);
+      }
+      return tempArr;
     }
   }
 };

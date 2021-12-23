@@ -362,6 +362,7 @@ export default {
         url: '/swap/lp/add',
         data: { txHex }
       });
+      // TODO:前端保存交易记录
       if (res.code === 1000) {
         this.$message({
           message: this.$t('tips.tips10'),

@@ -612,6 +612,7 @@ export default {
       console.log(txHex, '---txHex---');
       if (txHex) {
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+        // TODO:前端保存交易记录
         if (res.result && res.result.hash) {
           // console.log(res.result.hash, "res.result.hashres.result.hash");
           params.txHash = res.result.hash;

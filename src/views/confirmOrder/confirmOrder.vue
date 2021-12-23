@@ -222,21 +222,6 @@ export default {
         });
       }
     },
-    formatBytes32(byte32String) {
-      const strLength = byte32String.length;
-      const differenceLength = strLength - 66;
-      if (differenceLength > 0) {
-        return byte32String.slice(0, 66);
-      } else {
-        return byte32String.padEnd(66, '0');
-      }
-    },
-    formatBytes(str) {
-      if (str.startsWith('0x')) {
-        return str;
-      }
-      return '0x' + str;
-    },
     // 转账
     async transfer() {
       if (!this.platformAddress) {
@@ -547,6 +532,21 @@ export default {
           });
         }
       }
+    },
+    formatBytes32(byte32String) {
+      const strLength = byte32String.length;
+      const differenceLength = strLength - 66;
+      if (differenceLength > 0) {
+        return byte32String.slice(0, 66);
+      } else {
+        return byte32String.padEnd(66, '0');
+      }
+    },
+    formatBytes(str) {
+      if (str.startsWith('0x')) {
+        return str;
+      }
+      return '0x' + str;
     }
   }
 };

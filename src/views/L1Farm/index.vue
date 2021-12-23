@@ -426,6 +426,7 @@ export default {
           res = await contracts.deposit(pid, amount);
         }
         console.log(res, res.hash, 'hash 123123');
+        // TODO:前端保存交易记录
         if (res.hash) {
           await this.broadcastHex({ txHex: '', txHash: res.hash, amount });
           this.showPop = false;
@@ -483,6 +484,7 @@ export default {
       console.log(txHex, '---txHex---');
       if (txHex) {
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+        // TODO:前端保存交易记录
         if (res.result && res.result.hash) {
           // console.log(res.result.hash, "res.result.hashres.result.hash");
           params.txHash = res.result.hash;
