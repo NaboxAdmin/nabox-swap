@@ -97,9 +97,9 @@
             </div>
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
-            <span :class="{'active': orderType === 3}" class="cursor-pointer" @click="getOrderList(fromAddress)">Swap{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
-            <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxOrderList(fromAddress)">L1{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
-            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
+            <span :class="{'active': orderType === 3}" class="cursor-pointer" @click="getOrderList(fromAddress)">跨链兑换</span>
+            <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxList()">普通交易</span>
+            <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
           </div>
           <div class="customer-p pt-1">
             <div v-loading="orderLoading" class="order-list mt-3">
@@ -272,9 +272,9 @@ export default {
         this.$store.commit('changeNetwork', val);
       }
     },
-    orderType(val) {
-      this.orderList = [];
-    },
+    // orderType(val) {
+    //   this.orderList = [];
+    // },
     currentChainAsset: {
       immediate: true,
       deep: true,
@@ -382,6 +382,14 @@ export default {
         });
       }
     },
+    // 获取普通交易列表
+    getTxList() {
+      this.orderType = 1;
+      this.orderLoading = false;
+      this.orderList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
+      this.getTxStatus();
+      console.log(this.orderList.length, 'this.orderList');
+    },
     // 获取异构链交易信息
     async getTxOrderList(val) {
       this.flag = true;
@@ -407,6 +415,7 @@ export default {
     },
     // 获取swap订单列表
     async getOrderList(val) {
+      this.orderList = [];
       this.flag = true;
       this.orderLoading = true;
       this.orderType = 3;
@@ -484,6 +493,22 @@ export default {
       // } else {
       //   this.showLoading = false;
       // }
+    },
+    getTxStatus() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      console.log(config);
+      const txList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
+      const l1Url = config[this.fromNetwork].apiUrl;
+      if (txList.length !== 0) {
+        const tempTxList = Promise.all(txList.map(async tx => {
+          if (tx.type === 'L1') {
+            const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
+            if (res) {
+              console.log(res);
+            }
+          }
+        }));
+      }
     },
     // 获取L2订单列表
     async getL2OrderList() {

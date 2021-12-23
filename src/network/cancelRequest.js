@@ -7,7 +7,7 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
 function generateReqKey(config) {
   const { method, url, params, data } = config;
   //  Qs.stringify(data)
-  return [method, url, Qs.stringify(params)].join('&');
+  return [method, url, Qs.stringify(params), Qs.stringify(data)].join('&');
 }
 
 function addPendingRequest(config) {

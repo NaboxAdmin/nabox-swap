@@ -86,8 +86,8 @@ export default {
     superLong(str, len = 5) {
       return superLong(str, len);
     },
-    formatTime(time) {
-      const date = new Date(time.replace(/-/g, '/')); // 兼容iOS
+    formatTime(time, isTime = true) {
+      const date = new Date(isTime ? time.replace(/-/g, '/') : time); // 兼容iOS
       const months = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1;
       const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
       const hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
@@ -186,16 +186,18 @@ export default {
         return [];
       }
     },
-    formatArrayLength(arr, data) {
-      const length = arr.length;
-      const tempArr = [...arr];
+    formatArrayLength(data) {
+      const tradeHashList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
+      console.log(tradeHashList, 'tradeHashList');
+      const length = tradeHashList.length;
+      const tempArr = [...tradeHashList];
       if (length < 20) {
         tempArr.unshift(data);
       } else {
         tempArr.slice(0, length - 1);
         tempArr.unshift(data);
       }
-      return tempArr;
+      localStorage.setItem('tradeHashList', JSON.stringify(tempArr));
     }
   }
 };

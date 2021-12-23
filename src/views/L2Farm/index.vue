@@ -614,26 +614,12 @@ export default {
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
         // TODO:前端保存交易记录
         if (res.result && res.result.hash) {
-          // console.log(res.result.hash, "res.result.hashres.result.hash");
-          params.txHash = res.result.hash;
-          const result = await this.$request({
-            url: '/swap/vaults/add',
-            data: params
+          this.formatArrayLength({ type: 'L2', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+          this.$message({
+            message: this.$t('tips.tips10'),
+            type: 'success', duration: 2000,
+            offset: 30
           });
-          if (result.code === 1000) {
-            this.$message({
-              message: this.$t('tips.tips10'),
-              type: 'success', duration: 2000,
-              offset: 30
-            });
-          } else {
-            this.$message({
-              message: this.$t('tips.tips15'),
-              type: 'warning',
-              offset: 30,
-              duration: 2000
-            });
-          }
           this.reset();
           this.showLoading = false;
         } else {
