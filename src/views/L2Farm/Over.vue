@@ -286,10 +286,10 @@ export default {
             stakedAsset,
             syrupAsset,
             profitNumber: item.profit.split('%')[0] || '0',
-            amount: this.numberFormat(tofix(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), 2, -1), 2),
-            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
-            stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 2, -1), 2),
+            amount: this.numberFormat(tofix(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), 4, -1), 4),
+            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
+            syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4),
+            stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 4, -1), 4),
             showDetail: false
           };
         }

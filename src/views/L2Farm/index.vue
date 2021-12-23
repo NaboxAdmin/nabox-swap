@@ -390,10 +390,10 @@ export default {
             stakedAsset,
             syrupAsset,
             approveLoading: this.farmList && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
-            amount: this.numberFormat(tofix(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), 2, -1), 2),
-            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-            syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
-            stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 2, -1), 2),
+            amount: this.numberFormat(tofix(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), 4, -1), 4),
+            reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
+            syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4),
+            stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 4, -1), 4),
             showDetail: false
           };
         }
@@ -612,27 +612,14 @@ export default {
       console.log(txHex, '---txHex---');
       if (txHex) {
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+        // TODO:前端保存交易记录
         if (res.result && res.result.hash) {
-          // console.log(res.result.hash, "res.result.hashres.result.hash");
-          params.txHash = res.result.hash;
-          const result = await this.$request({
-            url: '/swap/vaults/add',
-            data: params
+          this.formatArrayLength({ type: 'L2', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+          this.$message({
+            message: this.$t('tips.tips10'),
+            type: 'success', duration: 2000,
+            offset: 30
           });
-          if (result.code === 1000) {
-            this.$message({
-              message: this.$t('tips.tips10'),
-              type: 'success', duration: 2000,
-              offset: 30
-            });
-          } else {
-            this.$message({
-              message: this.$t('tips.tips15'),
-              type: 'warning',
-              offset: 30,
-              duration: 2000
-            });
-          }
           this.reset();
           this.showLoading = false;
         } else {

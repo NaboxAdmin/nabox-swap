@@ -368,13 +368,13 @@ export default {
           showDetail: false,
           amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
           approveLoading: this.farmList && this.farmList[index] && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
-          unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-          lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2)),
-          reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-          pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 2, -1), 2),
-          syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2),
-          stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 2, -1), 2),
-          unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 2, -1), 2)
+          unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
+          lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4)),
+          reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
+          pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
+          syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4),
+          stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 4, -1), 4),
+          unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4)
         };
       })));
       this.farmLoading = false;
