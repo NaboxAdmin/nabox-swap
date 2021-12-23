@@ -507,7 +507,7 @@ export default {
         this.slippageMsg = '';
         this.currentIndex = this.slippageList.indexOf(this.slippage);
       } else {
-        this.slippageMsg = $t('tips.tips31');
+        this.slippageMsg = this.$t('tips.tips31');
       }
       if (this.slippageList.indexOf(this.slippage) !== -1) {
         this.slippageList = [...this.slippageList];
