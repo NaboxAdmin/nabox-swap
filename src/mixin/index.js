@@ -188,13 +188,12 @@ export default {
     },
     formatArrayLength(data) {
       const tradeHashList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
-      console.log(tradeHashList, 'tradeHashList');
       const length = tradeHashList.length;
-      const tempArr = [...tradeHashList];
+      let tempArr = [...tradeHashList];
       if (length < 20) {
         tempArr.unshift(data);
       } else {
-        tempArr.slice(0, length - 1);
+        tempArr = tempArr.slice(0, 19);
         tempArr.unshift(data);
       }
       localStorage.setItem('tradeHashList', JSON.stringify(tempArr));

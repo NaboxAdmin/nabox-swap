@@ -30,7 +30,9 @@ const cn = {
     tips28: '你可以通过质押NABOX-BUSD LP来解锁Nabox，可通过计算器查看不同数量LP的解锁速度',
     tips29: '审计机构',
     tips30: '收获',
-    tips31: '请输入大于0小于100的数字'
+    tips31: '请输入大于0小于100的数字',
+    tips32: '普通交易',
+    tips33: '跨链交易'
   },
   swap: {
     swap1: '从',

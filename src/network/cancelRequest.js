@@ -7,7 +7,7 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
 function generateReqKey(config) {
   const { method, url, params, data } = config;
   //  Qs.stringify(data)
-  return [method, url, Qs.stringify(params), Qs.stringify(data)].join('&');
+  return [method, url, Qs.stringify(params)].join('&');
 }
 
 function addPendingRequest(config) {
@@ -15,7 +15,7 @@ function addPendingRequest(config) {
   config.cancelToken =
         config.cancelToken ||
         new axios.CancelToken((cancel) => {
-          if (!pendingRequest.has(requestKey) && requestKey.indexOf('/api/swap/estimate-fee-info') !== -1) {
+          if (!pendingRequest.has(requestKey)) {
             pendingRequest.set(requestKey, cancel);
           }
         });
@@ -23,7 +23,8 @@ function addPendingRequest(config) {
 
 function removePendingRequest(config) {
   const requestKey = generateReqKey(config);
-  if (pendingRequest.has(requestKey)) {
+
+  if (pendingRequest.has(requestKey) && requestKey.indexOf('/api/swap/estimate-fee-info') > -1) {
     const cancel = pendingRequest.get(requestKey);
     cancel(requestKey);
     pendingRequest.delete(requestKey);

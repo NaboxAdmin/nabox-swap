@@ -108,16 +108,16 @@ export default {
     // 调用合约发送iSwap交易
     async sendISwapTransaction() {
       try {
-        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex } = this.orderInfo;
+        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, crossChainFee, slippage } = this.orderInfo;
         const config = JSON.parse(sessionStorage.getItem('config'));
         const RPCUrl = config[this.fromNetwork]['apiUrl'];
         const web3 = new Web3(RPCUrl || window.ethereum);
+        const fromMainAssetSymbol = config[fromAsset.chain].symbol;
         const iSwap = new ISwap({
           chain: this.fromNetwork || fromAsset.chain
         });
         const isCross = fromAsset.chain !== toAsset.chain;
         if (isCross) {
-          console.log(this.orderInfo.fromAsset, 'this.orderInfo.fromAsset');
           const { nativeId, contractAddress } = this.orderInfo.fromAsset;
           const srcPath = currentChannel.inToken.router.map(item => item.address).join(',');
           const destPath = currentChannel.outToken.router.map(item => item.address).join(',');
@@ -134,8 +134,6 @@ export default {
           };
           const srcChainSwapInfo = encodeParameters(RPCUrl, srcChainParams, 'src');
           const destChainSwapInfo = encodeParameters(RPCUrl, destChainParams, 'dest');
-          console.log(srcChainSwapInfo, 'srcChainSwapInfo');
-          console.log(destChainSwapInfo, 'destChainSwapInfo');
           const params = {
             version: ISWAP_VERSION,
             srcChainId: nativeId,
@@ -154,38 +152,67 @@ export default {
             destChainSwapInfo,
             isReturnEth: false
           };
-          console.log(params, 'params');
           const res = await iSwap.generateCrossChainSwapOrder(params);
           if (res) {
-            const dstChainId = toAsset.nativeId;
-            const orderId = (res.orderId).toString();
-            const crossChainFee = (res.crossChainFee).toString();
-            const gasFee = (res.gasFee).toString();
-            const channel = this.formatBytes32(web3.utils.fromAscii(res.channel));
-            const srcChainSwapCallData = this.formatBytes(res.srcChainSwapInfo);
-            const dstChainSwapInfo = this.formatBytes(res.destChainSwapInfo);
-            console.log(srcChainSwapCallData, 'srcChainSwapCallData');
-            console.log(orderId, 'orderId');
-            const srcPathArr = res.srcPath.split(',');
-            let transferResult;
-            if (fromAsset.symbol === ISWAP_ETH) {
-              transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
+            // 先存到nabox后台
+            const naboxParams = {
+              orderId: res.orderId,
+              channel: currentChannel.channel,
+              platform: 'NABOX',
+              fromChain: fromAsset.chain,
+              toChain: toAsset.chain,
+              fromAddress: address,
+              toAddress: toAddress,
+              chainId: fromAsset.chainId,
+              assetId: fromAsset.assetId,
+              contractAddress: fromAsset.contractAddress || '',
+              swapChainId: toAsset.chainId,
+              swapAssetId: toAsset.assetId,
+              swapContractAddress: toAsset.contractAddress || '',
+              amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+              fee: currentChannel.crossChainFee,
+              slippage,
+              pairAddress: ''
+            };
+            console.log(naboxParams, 'naboxParams');
+            const swapRes = await this.$request({
+              url: '/swap/cross/tx/save',
+              data: naboxParams
+            });
+            if (swapRes.code === 1000) {
+              const dstChainId = toAsset.nativeId;
+              const orderId = (res.orderId).toString();
+              const crossChainFee = this.numberFormat((res.crossChainFee).toString());
+              const gasFee = this.numberFormat((res.gasFee).toString());
+              const channel = this.formatBytes32(web3.utils.fromAscii(res.channel));
+              const srcChainSwapCallData = this.formatBytes(res.srcChainSwapInfo);
+              const dstChainSwapInfo = this.formatBytes(res.destChainSwapInfo);
+              const srcPathArr = res.srcPath.split(',');
+              let transferResult;
+              if (fromAsset.symbol === fromMainAssetSymbol) {
+                transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
+              } else {
+                transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
+              }
+              if (transferResult.hash) {
+                this.$message({
+                  type: 'success',
+                  message: this.$t('tips.tips24'),
+                  offset: 30,
+                  duration: 1500
+                });
+                this.confirmLoading = false;
+                this.$emit('confirm');
+                await this.recordHash(res.orderId, transferResult.hash);
+              }
             } else {
-              // debugger;
-              transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
-            }
-            console.log(transferResult, 'transferResulttransferResulttransferResult');
-            if (transferResult.hash) {
               this.$message({
-                type: 'success',
-                message: this.$t('tips.tips24'),
-                offset: 30,
-                duration: 1500
+                type: 'warning',
+                message: res.msg
               });
               this.confirmLoading = false;
             }
           }
-          console.log('跨链兑换');
         } else {
           const { currentDex, currentChannel, toAddress } = this.orderInfo;
           const paths = currentChannel.router.map(item => item.address);
@@ -195,14 +222,15 @@ export default {
           const amountOutMin = timesDecimals(this.orderInfo.amountOut, toAsset.decimals);
           const deadline = Math.floor((Date.now() + 1000 * 60 * deadTimes) / 1000);
           let transferResult;
-          if (fromAsset.symbol === ISWAP_ETH) {
-            transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokens(currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
-          } else if (toAsset.symbol === ISWAP_ETH) {
+          if (fromAsset.symbol === fromMainAssetSymbol) {
+            transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokens(currentDex.routerAddress, amountOutMin, paths, toAddress, deadline, channelBytes32);
+          } else if (toAsset.symbol === fromMainAssetSymbol) {
             transferResult = await iSwap._swapExactTokensForETHSupportingFeeOnTransferTokens(currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
           } else {
             transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokens(currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
           }
           if (transferResult.hash) {
+            this.formatArrayLength({ type: 'L1', chain: this.fromNetwork, txHash: transferResult.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
             this.$message({
               type: 'success',
               message: this.$t('tips.tips24'),
@@ -210,6 +238,7 @@ export default {
               duration: 1500
             });
             this.confirmLoading = false;
+            this.$emit('confirm');
           }
         }
       } catch (e) {
@@ -221,6 +250,17 @@ export default {
           offset: 30
         });
       }
+    },
+    // 记录一次交易hash
+    async recordHash(orderId, hash) {
+      const params = {
+        orderId,
+        txHash: hash
+      };
+      const res = await this.$request({
+        url: '/swap/cross/tx/update',
+        data: params
+      });
     },
     // 转账
     async transfer() {

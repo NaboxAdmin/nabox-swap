@@ -48,4 +48,8 @@ body {
   border-radius: 20px; // 滚动条的背景区域的圆角
   background: #fff; // 滚动条的背景颜色
 }
+.el-message {
+  min-width: 700px !important;
+  max-width: 700px !important;
+}
 </style>

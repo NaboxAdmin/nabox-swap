@@ -266,13 +266,20 @@ export default {
                 }
               });
             });
-            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
-            // console.log(this.allList, "allList")
+            if (this.searchVal) {
+              this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])].filter(v => {
+                const search = val.toUpperCase();
+                const symbol = v.symbol.toUpperCase();
+                const contractAddress = v.contractAddress.toUpperCase();
+                return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1;
+              });
+            } else {
+              this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
+            }
           }
         } else {
           this.showCoinList = [];
         }
-        console.log(this.showCoinList, '213');
       } catch (e) {
         console.log(e, 'error');
         this.showLoading = false;

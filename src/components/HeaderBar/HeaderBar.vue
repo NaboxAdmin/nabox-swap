@@ -97,8 +97,8 @@
             </div>
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
-            <span :class="{'active': orderType === 3}" class="cursor-pointer" @click="getOrderList(fromAddress)">跨链兑换</span>
-            <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxList()">普通交易</span>
+            <span :class="{'active': orderType === 3}" class="cursor-pointer" @click="getOrderList(fromAddress)">{{ $t('tips.tips33') }}</span>
+            <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
             <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
           </div>
           <div class="customer-p pt-1">
@@ -194,7 +194,8 @@ export default {
       currentChainSymbol: '',
       nerveChainSymbol: '',
       currentChainAvailable: 0,
-      nerveChainAvailable: 0
+      nerveChainAvailable: 0,
+      commonOrderList: [] // 普通交易
     };
   },
   computed: {
@@ -384,10 +385,11 @@ export default {
       }
     },
     // 获取普通交易列表
-    getTxList() {
-      this.orderType = 1;
+    getTxList(switchType = true) {
+      this.orderType = switchType && 1;
       this.orderLoading = false;
-      this.orderList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
+      const tempList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
+      this.orderList = tempList.filter(item => item.chain === 'NERVE' || item.chain === this.fromNetwork);
       // this.getTxStatus();
       // console.log(this.orderList.length, 'this.orderList');
     },
@@ -433,7 +435,8 @@ export default {
         // limit: 10,
         // direct: ''
       };
-      const orderList = iSwap.getISwapOrderList(data);
+      // iSwap.getISwapOrderList(data);
+      const orderList = null;
       if (orderList) {
         this.orderList = orderList;
       } else {
@@ -505,9 +508,9 @@ export default {
     async getTxStatus() {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const txList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
-      const tempList = txList.filter(item => item.status === 0);
-      const l1Url = config[this.fromNetwork].apiUrl;
-      const l2Url = config['NERVE'].apiUrl;
+      const tempList = txList.filter(item => item.status === 0 && (item.chain === 'NERVE' || item.chain === this.fromNetwork));
+      const l1Url = config && config[this.fromNetwork].apiUrl;
+      const l2Url = config && config['NERVE'].apiUrl;
       if (txList.length !== 0) {
         const tempTxList = await Promise.all(txList.map(async tx => {
           if (tx.type === 'L1' && tx.status === 0) {
@@ -522,7 +525,6 @@ export default {
             const params = [MAIN_INFO.chainId, tx.txHash];
             const res = await this.$post(l2Url, 'getTx', params);
             const heterogeneousRes = await this.$post(l2Url, 'findByWithdrawalTxHash', params);
-            console.log(res, 'res', heterogeneousRes, 'heterogeneousRes');
             if (res && res.result && heterogeneousRes && heterogeneousRes.result) {
               return {
                 ...tx,
@@ -533,9 +535,8 @@ export default {
           return { ...tx };
         }));
         localStorage.setItem('tradeHashList', JSON.stringify(tempTxList));
-        this.getTxList();
+        this.orderType === 1 && this.getTxList();
         return tempTxList;
-        console.log(tempTxList, 'tempTxList');
       }
       return [];
     },

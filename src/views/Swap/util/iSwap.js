@@ -125,9 +125,9 @@ export default class ISwap {
     const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
     return contract.swapExactTokensForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel);
   }
-  _swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
+  _swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountOutMin, paths, to, deadline, channel) {
     const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
-    return contract.swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel);
+    return contract.swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountOutMin, paths, to, deadline, channel);
   }
   _swapExactTokensForETHSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
     const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);

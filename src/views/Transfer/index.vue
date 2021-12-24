@@ -968,7 +968,7 @@ export default {
             //     type: 'success',
             //     offset: 30
             //   });
-              this.formatArrayLength({ type: 'L1', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+              this.formatArrayLength({ type: 'L1', chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -1018,7 +1018,7 @@ export default {
       const chainId = config['NERVE'].chainId;
       const res = await this.$post(url, 'broadcastTx', [chainId, this.txHex]);
       if (res.result && res.result.hash) {
-        this.formatArrayLength({ type: 'L2', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+        this.formatArrayLength({ type: 'L2', chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',

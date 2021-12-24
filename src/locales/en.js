@@ -30,7 +30,9 @@ const en = {
     tips28: 'You can unlock your Nabox by staking NABOX-BUSD LP and you can check the unlocking speed of different amounts of LP through the calculator',
     tips29: 'Audit by',
     tips30: 'Harvest',
-    tips31: 'Please enter a number greater than 0 and less than 100'
+    tips31: 'Please enter a number greater than 0 and less than 100',
+    tips32: 'Ordinary',
+    tips33: 'Cross-chain'
   },
   swap: {
     swap1: 'From',
