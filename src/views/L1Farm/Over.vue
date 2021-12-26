@@ -164,7 +164,7 @@ export default {
       handler(newVal, oldVal) {
         if (newVal && oldVal) {
           oldVal.forEach((item, index) => {
-            if (item.showDetail) {
+            if (item.showDetail && this.farmList[index]) {
               this.farmList[index].showDetail = item.showDetail;
             }
           });
@@ -282,7 +282,7 @@ export default {
     },
     showDetailInfo(farm) {
       for (const item of this.farmList) {
-        if (item.farmKey === farm.farmKey) {
+        if (`${item.farmKey}-${item.pid}` === `${farm.farmKey}-${farm.pid}`) {
           farm.showDetail = !farm.showDetail;
         } else {
           item.showDetail = false;
