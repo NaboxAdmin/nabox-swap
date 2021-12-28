@@ -110,11 +110,11 @@
                   class="d-flex align-items-center mb-3 cursor-pointer space-between"
                   @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">
                   <template>
-                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ item.type === 2 ? $t("popUp.popUp3") : $t("popUp.popUp4") }}</span>
-                    <span v-else-if="orderType===2" class="w-240 text-primary flex-1">
-                      {{ item.type === 1 ? $t("popUp.popUp1") + 'L2' : item.type === 2 ? $t("popUp.popUp2") + 'L2' : item.type===3 ? $t("popUp.popUp7") : item.type===4 ? $t("popUp.popUp6") : item.type === 5 ? $t("popUp.popUp8") : "" }}
+                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ $t("navBar.navBar5") }}</span>
+                    <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">
+                      <span class="mr-1 m-width">{{ superLong(item.txHash) }}</span>
+                      <span class="sign">{{ item.type }}</span>
                     </span>
-                    <span v-else class="w-240 text-primary flex-1">{{ superLong(item.txHash) }}</span>
                   </template>
                   <span>{{ item.createTime }}</span>
                   <span class="status-icon">
@@ -124,8 +124,9 @@
                     <i v-else-if="orderType === 3 && item.status === 5" class="el-icon-error" style="color: #eb7d62"/>-->
                     <!--iswap订单-->
                     <template>
-                      <i v-if="orderType === 3 && item.srcState === 0 && item.destState === 2" class="el-icon-success" style="color: #6EB6A9"/>
-                      <i v-if="orderType === 3 && item.srcState !== 0 && item.destState !== 2" class="el-icon-loading" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 3 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 3 && item.status < 3" class="el-icon-loading" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 3 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
                     </template>
                     <!--L1网络订单-->
                     <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
@@ -137,7 +138,7 @@
                     <i v-if="orderType === 2 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>
                   </span>
                 </div>
-                <div v-if="orderList.length === 0" class="text-center size-28 mb-3">No Data</div>
+                <div v-if="orderList.length === 0" class="text-center size-28 mb-3">{{ $t('modal.modal3') }}</div>
               </div>
             </div>
           </div>
@@ -418,55 +419,51 @@ export default {
     },
     // 获取swap订单列表
     async getOrderList(val) {
-      this.orderList = [];
-      this.flag = true;
-      this.orderLoading = true;
-      this.orderType = 3;
-      const iSwap = new ISwap({
-        chain: this.fromNetwork
-      });
-      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-      const nativeId = tempSupportChainList.find(item => item.chain === this.fromNetwork).nativeId;
-      const data = {
-        version: ISWAP_VERSION,
-        address: val,
-        chainId: nativeId
-        // offset: 0,
-        // limit: 10,
-        // direct: ''
-      };
-      // iSwap.getISwapOrderList(data);
-      const orderList = null;
-      if (orderList) {
-        this.orderList = orderList;
-      } else {
+      try {
         this.orderList = [];
+        this.flag = true;
+        this.orderLoading = true;
+        this.orderType = 3;
+        const params = {
+          address: val,
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/tx/query',
+          data: params
+        });
+        if (res.code === 1000) {
+          this.orderList = res.data.map(item => {
+            return {
+              ...item,
+              createTime: this.formatTime(item.createTime)
+            };
+          });
+        }
+        this.orderLoading = false;
+      } catch (e) {
+        console.log(e, 'error');
+        this.orderLoading = false;
       }
-      // const params = {
-      //   address: val
-      // };
-      // const res = await this.$request({
-      //   url: '/swap/get/list',
-      //   data: params
-      // });
-      // if (res.code === 1000) {
-      //   this.orderList = res.data.map(item => {
-      //     return {
-      //       ...item,
-      //       createTime: this.formatTime(item.createTime)
-      //     };
-      //   });
-      // }
-      this.orderLoading = false;
     },
     async getOrderStatus(val) {
       console.log('==getOrderStatus==');
       const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
-      if (commonTxList.length > 0) {
-        this.showLoading = commonTxList.some(item => item.status === 0);
+      let swapTxList; // 获取当前订单的状态
+      const params = {
+        address: val,
+        chain: this.fromNetwork
+      };
+      const res = await this.$request({
+        url: '/swap/tx/query',
+        data: params
+      });
+      if (res.code === 1000) {
+        swapTxList = res.data;
       } else {
-        this.showLoading = false;
+        swapTxList = [];
       }
+      this.showLoading = commonTxList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
       // const iSwap = new ISwap({
       //   chain: this.fromNetwork
       // });
@@ -573,7 +570,7 @@ export default {
     },
     // 订单详情
     toOrderDetail(item) {
-      this.$router.push({ path: '/orderDetail', query: { txHash: item.txHash }});
+      this.$router.push({ path: '/orderDetail', query: { orderId: item.orderId }});
     },
     swapClick() {
       this.$emit('swapClick');
@@ -645,5 +642,18 @@ export default {
 @import "HeaderBar.scss";
 .bg-f0 {
   background-color: #F0F7F7 !important;
+}
+.m-width {
+  min-width: 230px;
+}
+.sign {
+  font-size: 10px;
+  //margin-left: 13px;
+  padding: 1px 11px;
+  background: #E7F2F0;
+  border-radius: 4px;
+  text-align: center;
+  //line-height: 26px;
+  color: #6EB6A9;
 }
 </style>

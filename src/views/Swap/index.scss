@@ -179,7 +179,7 @@
       font-size: 30px;
       color: #333333;
       height: 72px;
-      width: 138px;
+      width: 118px;
       border: 1px solid #AAB2C9;
       border-radius: 20px;
       line-height: 72px;
@@ -188,12 +188,19 @@
         background-color: #6EB6A9;
         color: #FFFFFF;
       }
+      &:last-child {
+        width: 188px;
+      }
       input {
         width: 70px;
         height: 60px;
         border: 0;
         font-size: 30px;
         text-align: center;
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+        }
       }
     }
   }

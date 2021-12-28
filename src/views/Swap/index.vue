@@ -3,7 +3,7 @@
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'">
-        <div class="size-30 mb-3 d-flex align-items-center space-between">
+        <div class="size-36 mb-3 d-flex align-items-center space-between">
           <span class="text-3a font-500">{{ $t('navBar.navBar5') }}</span>
           <span class="slippage-cont" @click="showSlippage=true">
             <img src="@/assets/image/slippage.png" alt="">
@@ -166,7 +166,6 @@
         v-if="showModal"
         :show-modal.sync="showModal"
         :modal-type="modalType"
-        :coin-list="dialogCoinList"
         :from-chain="chooseFromAsset && chooseFromAsset.symbol || ''"
         :from-asset="chooseFromAsset"
         :to-asset="chooseToAsset"
@@ -293,8 +292,6 @@ export default {
       modalType: '',
       supportList: [],
       transferFee: 0, // 发送交易需要消耗的手续费
-      dialogCoinList: [], // 模态框展示的列表
-      fromCoinList: [],
       coinList: [], // 当前支持的币
       chooseFromAsset: null, // 当前选择的资产
       chooseToAsset: null, // 需要兑换的资产
@@ -455,16 +452,20 @@ export default {
       },
       deep: true
     },
-    currentConfig: {
+    currentChannel: {
       handler(newVal) {
         if (newVal) {
-          if (newVal.impact > 100) {
-            this.btnErrorMsg = '价格波动太高';
-          } else if (newVal.amountOut < 0) {
-            this.btnErrorMsg = '交易金额低于目标链gas';
+          console.log(newVal, 'newVal');
+          if (newVal.impact > 20) {
+            this.btnErrorMsg = this.$t('tips.tips35');
+          } else if (newVal.minReceive < 0) {
+            this.btnErrorMsg = this.$t('tips.tips36');
+          } else {
+            this.btnErrorMsg = '';
           }
         }
-      }
+      },
+      deep: true
     }
   },
   created() {
@@ -832,6 +833,8 @@ export default {
           // todo：验证授权权限
           if (asset.assetId === 0) {
             await this.checkCrossInAuthStatus();
+          } else {
+            this.needAuth = false;
           }
         } catch (e) {
           console.log(e, 'error');
@@ -849,14 +852,20 @@ export default {
     },
     async amountInInput() {
       this.inputType = 'amountIn';
-      //  && this.checkBalance()
-      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn) {
+      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && this.checkBalance()) {
         this.amountOut = '';
-        this.getOptionalChannel('amountIn');
+        // this.getOptionalChannel('amountIn');
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
           this.amountOut = tempChannel.amountOut < 0 ? '' : this.numberFormat(tofix(tempChannel.amountOut || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
+          if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+            this.amountMsg = `${this.$t('tips.tips3')}${this.limitMin}USDT`;
+          } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+            this.amountMsg = `${this.$t('tips.tips4')}${this.limitMax}USDT`;
+          } else {
+            this.amountMsg = '';
+          }
         } else {
           this.currentChannel = null;
         }
@@ -881,12 +890,6 @@ export default {
       if (Minus(amountIn, available) > 0) {
         this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
         return false;
-      } else if (Minus(amountIn, limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-        this.amountMsg = `${this.$t('tips.tips3')}${this.numberFormat(tofix(Division(limitMin, 10), 4, -1), 4)}${chooseFromAsset.symbol}`;
-        return false;
-      } else if (Minus(this.amountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-        this.amountMsg = `${this.$t('tips.tips4')}${this.numberFormat(tofix(Division(limitMax, 10), 4, -1), 4)}${chooseFromAsset.symbol}`;
-        return false;
       }
       return true;
     },
@@ -895,14 +898,23 @@ export default {
     },
     async amountOutInput() {
       this.inputType = 'amountOut';
-      if (this.chooseFromAsset && this.chooseToAsset && this.amountOut) {
+      if (this.chooseFromAsset && this.chooseToAsset && this.amountOut && Number(this.amountOut) !== 0) {
         this.amountIn = '';
-        this.getOptionalChannel('amountOut');
+        // this.getOptionalChannel('amountOut');
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
           this.amountIn = tempChannel.amount < 0 ? '' : this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
-          this.checkBalance();
+          if (!this.checkBalance()) {
+            return false;
+          }
           this.currentChannel = tempChannel;
+          if (Minus(this.currentChannel.usdtAmountOut, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+            this.amountMsg = `${this.$t('tips.tips3')}${this.limitMin}USDT`;
+          } else if (Minus(this.currentChannel.usdtAmountOut, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+            this.amountMsg = `${this.$t('tips.tips4')}${this.limitMax}USDT`;
+          } else {
+            this.amountMsg = '';
+          }
         } else {
           this.amountMsg = '';
           this.currentChannel = null;
@@ -926,6 +938,7 @@ export default {
             if (currentConfig) {
               return {
                 ...currentConfig,
+                icon: item.icon || '',
                 iSwapConfig: currentConfig,
                 minReceive: isCross ? tofix(Times(currentConfig.outToken.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '0.5'), 100)), this.chooseToAsset.decimals, -1) : tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '0.5'), 100)), this.chooseToAsset.decimals, -1), // 最低收到
                 mostSold: isCross ? currentConfig.inToken.amount : currentConfig.amount, // 最多卖出
@@ -935,6 +948,8 @@ export default {
                 impact: currentConfig.impact || 0,
                 amountOut: isCross ? currentConfig.outToken.amountOut : currentConfig.amountOut,
                 channel: item.channel,
+                usdtAmountIn: this.inputType === 'amountIn' && currentConfig.inToken && currentConfig.inToken.amountOut || '',
+                usdtAmountOut: this.inputType === 'amountOut' && currentConfig.outToken && currentConfig.outToken.amount || '',
                 isBest: false,
                 isCurrent: false,
                 swapRate: this.computedSwapRate(isCross, isCross ? currentConfig.inToken.amount : currentConfig.amount, isCross ? currentConfig.outToken.amountOut : currentConfig.amountOut)
@@ -948,16 +963,18 @@ export default {
         return this.getBestPlatform(tempChannelConfig);
       } catch (e) {
         console.log(e.message, 'error');
-        e.message.indexOf('/api/swap/estimate-fee-info') === -1 && this.$message.warning({ message: e.message, offset: 30 });
-        if (e.message.indexOf('Network Error')) {
+        if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
+          this.$message.warning({ message: e.message, offset: 30 });
           this.showComputedLoading = false;
         }
+        // if (e.message.indexOf('Network Error') > -1) {
+        //   this.showComputedLoading = false;
+        // }
       }
     },
     // 获取iSwap费率信息
     async getEstimateFeeInfo() {
       // TODO: 部分资产返回的decimals字段有问题
-      console.log(this.chooseFromAsset, 'this.chooseFromAsset');
       const feeInfoParams = {
         inToken: {
           amount: this.inputType === 'amountIn' ? this.amountIn : '',
@@ -1004,24 +1021,25 @@ export default {
       const { symbol, nativeId } = token;
       const iSwapConfig = JSON.parse(localStorage.getItem('iSwapConfig'));
       const dexInfo = iSwapConfig[nativeId];
+      console.log(dexInfo, 'dexInfo');
       const dexToken = dexInfo['token'];
       if (type === 'in') {
         const dexName = dexToken[symbol];
         return {
-          routerAddress: dexName ? dexInfo['dex'][dexName].routerAddress : dexInfo['defaultDex'].routerAddress,
-          factoryAddress: dexName ? dexInfo['dex'][dexName].factoryAddress : dexInfo['defaultDex'].factoryAddress
+          routerAddress: dexName ? (dexInfo['dex'][dexName] && dexInfo['dex'][dexName].routerAddress || dexInfo['defaultDex'].routerAddress) : dexInfo['defaultDex'].routerAddress,
+          factoryAddress: dexName ? (dexInfo['dex'][dexName] && dexInfo['dex'][dexName].factoryAddress || dexInfo['defaultDex'].factoryAddress) : dexInfo['defaultDex'].factoryAddress
         };
       } else {
         const dexName = dexToken[symbol];
         return {
-          routerAddress: dexName ? dexInfo['dex'][dexName].routerAddress : dexInfo['defaultDex'].routerAddress,
-          factoryAddress: dexName ? dexInfo['dex'][dexName].factoryAddress : dexInfo['defaultDex'].factoryAddress
+          routerAddress: dexName ? (dexInfo['dex'][dexName] && dexInfo['dex'][dexName].routerAddress || dexInfo['defaultDex'].routerAddress) : dexInfo['defaultDex'].routerAddress,
+          factoryAddress: dexName ? (dexInfo['dex'][dexName] && dexInfo['dex'][dexName].factoryAddress || dexInfo['defaultDex'].factoryAddress) : dexInfo['defaultDex'].factoryAddress
         };
       }
     },
     // 最大
     async maxAmount() {
-      if (!this.available) return false;
+      if (!this.available || this.available == 0) return false;
       this.inputType = 'amountIn';
       this.amountIn = this.numberFormat(tofix(this.available, 6, -1), 6);
       await this.amountInInput();
@@ -1054,7 +1072,6 @@ export default {
     getBestPlatform(platformList) {
       if (platformList.length === 0) return false;
       const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
-      console.log(tempList, 'tempList');
       this.channelConfigList = platformList.map(item => {
         if (item.channel === tempList.channel) {
           return {
@@ -1069,7 +1086,7 @@ export default {
           isChoose: false
         };
       });
-      console.log(this.channelConfigList, 'this.channelConfigList');
+      console.log(this.channelConfigList, '==channelConfigList==');
       return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
     },
     // 检查稳定币手续费是否足够
@@ -1150,11 +1167,6 @@ export default {
       this.focusType = type;
     },
     async openModal(type) {
-      if (type === 'send') {
-        this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork && v.isSupportAdvanced === 'Y');
-      } else {
-        this.dialogCoinList = this.supportList;
-      }
       this.modalType = type;
       this.showModal = true;
     },
@@ -1169,10 +1181,11 @@ export default {
     },
     // 重置
     reset() {
-      this.chooseFromAsset = null;
-      this.chooseToAsset = null;
-      this.fromAmount = '';
-      this.toAmount = '';
+      // this.chooseFromAsset = null;
+      // this.chooseToAsset = null;
+      this.approvingLoading = false;
+      this.amountIn = '';
+      this.amountOut = '';
       this.swapRate = '';
       this.amount = '';
       this.available = '';
@@ -1187,7 +1200,8 @@ export default {
     async confirmChange() {
       this.showOrderDetail = false;
       this.reset();
-      await this.getSwapAssetList();
+      await this.getBalance(this.chooseFromAsset, true);
+      // await this.getSwapAssetList();
     }
   }
 };
@@ -1204,8 +1218,8 @@ export default {
 }
 
 .slippage-cont {
-  height: 30px;
-  width: 30px;
+  height: 40px;
+  width: 40px;
   img {
     height: 100%;
     width: 100%;

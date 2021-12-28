@@ -297,12 +297,16 @@ export default {
         // this.availableLoading = true;
         const tempNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
         const data = {
-          fromChain: this.toNerve ? this.fromNetwork : 'NERVE',
+          chain: this.toNerve ? this.fromNetwork : 'NERVE',
           toChain: this.toNerve ? 'NERVE' : this.fromNetwork,
-          address: this.toNerve ? this.fromAddress : this.nerveAddress
+          cross: true
+          // address: this.toNerve ? this.fromAddress : this.nerveAddress
         };
+        if (this.toNerve) {
+          delete data['toChain'];
+        }
         const res = await this.$request({
-          url: '/swap/cross/assets',
+          url: '/asset/query/chain',
           data
         });
         if (res.code === 1000 && res.data) {
@@ -315,7 +319,7 @@ export default {
             showBalanceLoading: true
           }));
           this.transferAssets = [...tempList];
-          if (this.toNerve) {
+          if (this.toNerve && this.fromNetwork !== 'NULS') {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
             const fromAddress = this.currentAccount['address'][this.fromNetwork];
@@ -335,6 +339,22 @@ export default {
                 }
               });
             });
+          } else if (this.toNerve && this.fromNetwork === 'NULS') {
+            const tempParams = this.transferAssets.map(item => ({
+              chainId: item.chainId,
+              assetId: item.assetId,
+              contractAddress: item.contractAddress || ''
+            }));
+            const res = await this.getNulsBatchData(tempParams);
+            console.log(res, '12321');
+            if (res.length > 0) {
+              this.transferAssets.forEach((asset, index) => {
+                res.result.forEach(() => {
+                  this.transferAssets[index].balance = res.result[index].balance && tofix(divisionDecimals(res.result[index].balance, asset.decimals), 6, -1) || 0;
+                  this.transferAssets[index].showBalanceLoading = false;
+                });
+              });
+            }
           } else {
             const tempParams = this.transferAssets.map(item => ({
               chainId: item.chainId,
@@ -968,7 +988,7 @@ export default {
             //     type: 'success',
             //     offset: 30
             //   });
-              this.formatArrayLength({ type: 'L1', chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+              this.formatArrayLength({ type: 'L1', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -1018,7 +1038,7 @@ export default {
       const chainId = config['NERVE'].chainId;
       const res = await this.$post(url, 'broadcastTx', [chainId, this.txHex]);
       if (res.result && res.result.hash) {
-        this.formatArrayLength({ type: 'L2', chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+        this.formatArrayLength({ type: 'L2', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',

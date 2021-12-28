@@ -29,9 +29,9 @@
             <div v-for="item in showCoinList" :key="item.coinId" class="list-item cursor-pointer">
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
                 <div class="coin-item">
-                  <!--                  <span class="coin-icon">-->
-                  <!--                    <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">-->
-                  <!--                  </span>-->
+                  <span class="coin-icon">
+                    <img :src="item.icon || pictureError" alt="" @error="pictureError">
+                  </span>
                   <span class="text-3a font-500">{{ item.symbol }}</span>
                 </div>
                 <span v-if="item.showBalanceLoading" class="box_loading">
@@ -63,10 +63,6 @@ export default {
     showModal: {
       type: Boolean,
       default: false
-    },
-    coinList: {
-      type: Array,
-      default: () => []
     },
     supportAdvanced: {
       type: Boolean,
@@ -226,7 +222,7 @@ export default {
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
           const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
           this.showCoinList = [...tempList];
-          this.allList = [...this.showCoinList];
+          this.allList = [...tempList];
           // console.log(JSON.stringify(this.allList));
           localStorage.setItem('showList', JSON.stringify(this.allList));
           this.showLoading = false;
@@ -268,7 +264,7 @@ export default {
             });
             if (this.searchVal) {
               this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])].filter(v => {
-                const search = val.toUpperCase();
+                const search = this.searchVal.toUpperCase();
                 const symbol = v.symbol.toUpperCase();
                 const contractAddress = v.contractAddress.toUpperCase();
                 return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1;

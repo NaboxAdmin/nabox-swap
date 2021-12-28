@@ -4,14 +4,14 @@
     <div class="position-cont_nav"/>
     <div class="order-cont">
       <div class="icon-cont">
-        <img v-if="detailInfo && (detailInfo.status == 0 || detailInfo.status == 1 || detailInfo.status == 2 || detailInfo.status == 3)" src="../../assets/image/confirmming.png" alt="">
-        <img v-if="detailInfo && detailInfo.status == 5" src="../../assets/image/error.png" alt="">
-        <img v-if="detailInfo && detailInfo.status == 4" src="../../assets/image/success.png" alt="">
+        <img v-if="detailInfo && (detailInfo.status == 0 || detailInfo.status == 1 || detailInfo.status == 2)" src="../../assets/image/confirmming.png" alt="">
+        <img v-if="detailInfo && detailInfo.status == 4" src="../../assets/image/error.png" alt="">
+        <img v-if="detailInfo && detailInfo.status == 3" src="../../assets/image/success.png" alt="">
       </div>
       <div
-        :class="[detailInfo && detailInfo.status === 4 && 'text-18', detailInfo && detailInfo.status === 5 && 'text-danger', detailInfo && (detailInfo.status !== 5 && detailInfo.status !== 4) && 'text-ec',]"
+        :class="[detailInfo && detailInfo.status === 3 && 'text-18', detailInfo && detailInfo.status === 4 && 'text-danger', detailInfo && (detailInfo.status !== 3 && detailInfo.status !== 4) && 'text-ec',]"
         class="status-cont size-24 text-center">
-        {{ detailInfo && stableOrderStatus(detailInfo.status) }}
+        {{ detailInfo && iSwapOrderStatus(detailInfo.status) }}
       </div>
       <div class="pt-57 d-flex align-items-center justify-content-center">
         <div v-if="detailInfo" class="coin-icon">
@@ -67,8 +67,8 @@
           <!--          </div>-->
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
-              <span class="text-3a">
-                {{ detailInfo && detailInfo.fee | numberFormat }}{{ (detailInfo && detailInfo.platform === 'nabox') && (detailInfo && detailInfo.symbol) || (detailInfo && detailInfo.swapSymbol) }}
+              <span class="text-0">
+                {{ detailInfo && detailInfo.fee | numberFormat }}USDT
               </span>
             </span>
           </div>
@@ -91,7 +91,8 @@ export default {
   components: { NavBar },
   data() {
     return {
-      detailInfo: null
+      detailInfo: null,
+      orderTimer: null
     };
   },
   computed: {
@@ -104,14 +105,21 @@ export default {
     document.querySelector('body').setAttribute('style', 'font-size:12px');
   },
   created() {
-    if (this.$route.query.txHash) {
-      this.txHash = this.$route.query.txHash;
-      this.getOrderDetail(this.$route.query.txHash);
+    if (this.$route.query.orderId) {
+      this.orderId = this.$route.query.orderId;
+      this.getOrderDetail(this.$route.query.orderId);
+      this.orderTimer = setInterval(() => {
+        this.getOrderDetail(this.$route.query.orderId);
+      }, 10000);
     }
   },
   beforeDestroy() {
     document.querySelector('body').removeAttribute('style');
     document.querySelector('body').setAttribute('style', 'font-size:12px');
+    if (this.orderTimer) {
+      this.orderTimer = null;
+      clearInterval(this.orderTimer);
+    }
   },
   methods: {
     stableOrderStatus(val) {
@@ -132,20 +140,36 @@ export default {
           return this.$t('swap.swap26');
       }
     },
-    async getOrderDetail(txHash) {
+    iSwapOrderStatus(val) {
+      switch (val) {
+        case 0:
+          return this.$t('swap.swap37');
+        case 1:
+          return this.$t('swap.swap38');
+        case 2:
+          return this.$t('swap.swap39');
+        case 3:
+          return this.$t('swap.swap40');
+        case 4:
+          return this.$t('swap.swap41');
+        default:
+          return this.$t('swap.swap41');
+      }
+    },
+    async getOrderDetail(orderId) {
       const params = {
-        txHash
+        orderId
       };
       const res = await this.$request({
-        url: '/swap/get/tx',
+        url: '/swap/tx/orderId',
         data: params
       });
       if (res.code === 1000) {
         const tempData = {
           ...res.data,
-          fee: divisionDecimals(res.data.fee, res.data.decimal),
+          // fee: divisionDecimals(res.data.fee, res.data.decimal),
           amount: divisionDecimals(res.data.amount, res.data.decimal),
-          swapSuccAmount: res.data.swapSuccAmount && divisionDecimals(res.data.swapSuccAmount, res.data.swapDecimal) || 0
+          swapSuccAmount: res.data.swapSuccAmount && divisionDecimals(res.data.swapSuccAmount, res.data.swapDecimal) || 0 // fixme iswap
         };
         this.detailInfo = tempData;
       }

@@ -45,7 +45,8 @@ export default class ISwap {
       });
       return dexConfig;
     }
-    return null;
+    const tempConfiig = localStorage.getItem('iSwapConfig') && JSON.parse(localStorage.getItem('iSwapConfig')) || [];
+    return tempConfiig;
   }
   // 获取iSwap限额信息
   async getTradeLimit(params) {

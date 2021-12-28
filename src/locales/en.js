@@ -2,8 +2,8 @@ const en = {
   tips: {
     tips1: 'Metamask not detected',
     tips2: 'Failed to check balance',
-    tips3: 'Minimum exchange amount: ',
-    tips4: 'Maximum exchange amount: ',
+    tips3: 'Minimum swap amount is ',
+    tips4: 'Maximum swap amount is ',
     tips5: 'Failed to create order',
     tips6: 'Successful transaction',
     tips7: 'Transaction failed',
@@ -32,7 +32,10 @@ const en = {
     tips30: 'Harvest',
     tips31: 'Please enter a number greater than 0 and less than 100',
     tips32: 'Ordinary',
-    tips33: 'Cross-chain'
+    tips33: 'Cross-chain',
+    tips34: 'Order timed out, please re-create order',
+    tips35: 'High Price Volatility',
+    tips36: 'Swap amount is lower than Gas'
   },
   swap: {
     swap1: 'From',
@@ -70,7 +73,12 @@ const en = {
     swap33: 'Impact',
     swap34: 'Cross-chain fee',
     swap35: 'Price calculating',
-    swap36: 'Slippage'
+    swap36: 'Slippage',
+    swap37: 'Order creation',
+    swap38: 'User has initiated a transaction',
+    swap39: 'Processing swap',
+    swap40: 'Swap successful',
+    swap41: 'Swap failed'
   },
   transfer: {
     transfer1: 'From',
@@ -124,7 +132,7 @@ const en = {
   modal: {
     modal1: 'Select',
     modal2: 'Enter a name or address to search',
-    modal3: 'No data yet'
+    modal3: 'No data'
   },
   popUp: {
     popUp1: 'Transfer in ',

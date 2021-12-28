@@ -77,7 +77,9 @@ export default {
       confirmLoading: false,
       platformAddress: '', // 平台地址
       getAllowanceTimer: null,
-      crossInAuth: false
+      crossInAuth: false,
+      swapOrderTimer: null,
+      orderTimes: 300000
     };
   },
   computed: {
@@ -87,8 +89,21 @@ export default {
   },
   created() {
     this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
+    // this.cutdownTime();
   },
   methods: {
+    cutdownTime() {
+      const cutdown = () => {
+        this.orderTimes -= 1000;
+        console.log(this.orderTimes, 'orderTimes');
+        if (this.orderTimes < 0) {
+          this.clearInterval(this.swapOrderTimer);
+        }
+      };
+      this.swapOrderTimer = setInterval(() => {
+        cutdown();
+      }, 1000);
+    },
     // 确认订单
     async confirmOrder() {
       try {
@@ -107,6 +122,13 @@ export default {
     },
     // 调用合约发送iSwap交易
     async sendISwapTransaction() {
+      // if (this.orderTimes < 0 || this.orderTimes === 0) {
+      //   this.$message({
+      //     type: 'warnning',
+      //     message: this.$t('tips.tips34')
+      //   });
+      //   return false;
+      // }
       try {
         const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, crossChainFee, slippage } = this.orderInfo;
         const config = JSON.parse(sessionStorage.getItem('config'));
@@ -121,14 +143,13 @@ export default {
           const { nativeId, contractAddress } = this.orderInfo.fromAsset;
           const srcPath = currentChannel.inToken.router.map(item => item.address).join(',');
           const destPath = currentChannel.outToken.router.map(item => item.address).join(',');
-          console.log(toAssetDex, fromAssetDex, 'fromAssetDex');
           const srcChainParams = {
             amount0In: timesDecimals(currentChannel.amount, fromAsset.decimals),
-            amount0OutMin: timesDecimals(currentChannel.minReceive, fromAsset.decimals),
+            amount0OutMin: timesDecimals(currentChannel.minReceive, toAsset.decimals),
             fromAssetDex
           };
           const destChainParams = {
-            amount0OutMin: timesDecimals(currentChannel.minReceive, fromAsset.decimals),
+            amount0OutMin: timesDecimals(currentChannel.minReceive, toAsset.decimals),
             fromAddress: this.fromAddress,
             toAssetDex
           };
@@ -154,7 +175,7 @@ export default {
           };
           const res = await iSwap.generateCrossChainSwapOrder(params);
           if (res) {
-            // 先存到nabox后台
+          // 先存到nabox后台
             const naboxParams = {
               orderId: res.orderId,
               channel: currentChannel.channel,
@@ -174,7 +195,6 @@ export default {
               slippage,
               pairAddress: ''
             };
-            console.log(naboxParams, 'naboxParams');
             const swapRes = await this.$request({
               url: '/swap/cross/tx/save',
               data: naboxParams
@@ -258,7 +278,7 @@ export default {
         txHash: hash
       };
       const res = await this.$request({
-        url: '/swap/cross/tx/update',
+        url: '/swap/tx/hash/update',
         data: params
       });
     },
