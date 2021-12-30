@@ -37,16 +37,22 @@
             <span class="ml-4">{{ superLong(detailInfo && detailInfo.fromAddress) }}</span>
           </div>
         </div>
-        <div class="d-flex align-items-center space-between mt-5">
+        <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">To</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="size-20 sign">{{ detailInfo && detailInfo.toChain }}</span>
             <span class="ml-4">{{ superLong(detailInfo && detailInfo.toAddress) }}</span>
           </div>
         </div>
-        <div class="d-flex align-items-center space-between mt-5">
+        <div class="d-flex align-items-center space-between mt-4">
+          <span class="text-aa">{{ $t('swap.swap42') }}</span>
+          <div class="d-flex align-items-center justify-content-end">
+            <span class="ml-4" @click="copyOrderId(detailInfo && detailInfo.orderId)">{{ superLong(detailInfo && detailInfo.orderId) }}</span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ detailInfo && detailInfo.platform === 'SWFT' ? $t('order.order5') : $t('order.order8') }}</span>
-          <span @click="copyOrderId(detailInfo && detailInfo.orderId || detailInfo.txHash)">{{ detailInfo && detailInfo.platform === 'SWFT' ? superLong(detailInfo.orderId) : superLong(detailInfo && detailInfo.txHash) }}</span>
+          <span @click="copyOrderId(detailInfo && detailInfo.txHash)">{{ detailInfo && detailInfo.platform === 'SWFT' ? superLong(detailInfo.orderId) : superLong(detailInfo && detailInfo.txHash) }}</span>
         </div>
         <!--汇率-->
         <!--        <div class="d-flex align-items-center space-between mt-5">-->
@@ -59,7 +65,7 @@
         <!--          </div>-->
         <!--        </div>-->
         <!--手续费-->
-        <div class="d-flex align-items-center space-between mt-5">
+        <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
           <!--          <div class="d-flex align-items-center justify-content-end" v-if="!detailInfo.fee">-->
           <!--            <span  class="ml-4 text-ec"><span class="text-3a" v-if="orderInfo.withdrawFee">-->
@@ -73,7 +79,7 @@
             </span>
           </div>
         </div>
-        <div class="d-flex align-items-center space-between mt-5">
+        <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('order.order7') }}</span>
           <span>{{ detailInfo && detailInfo.createTime }}</span>
         </div>
@@ -85,6 +91,7 @@
 <script>
 import { NavBar } from '@/components';
 import { divisionDecimals, copys } from '@/api/util';
+import { tofix } from '../../api/util';
 
 export default {
   name: 'OrderDetail',
@@ -168,10 +175,13 @@ export default {
         const tempData = {
           ...res.data,
           // fee: divisionDecimals(res.data.fee, res.data.decimal),
-          amount: divisionDecimals(res.data.amount, res.data.decimal),
-          swapSuccAmount: res.data.swapSuccAmount && divisionDecimals(res.data.swapSuccAmount, res.data.swapDecimal) || 0 // fixme iswap
+          amount: this.numberFormat(tofix(divisionDecimals(res.data.amount, res.data.decimal), 6, -1), 6),
+          swapSuccAmount: this.numberFormat(tofix(res.data.swapSuccAmount && divisionDecimals(res.data.swapSuccAmount, res.data.swapDecimal), 6, -1), 6) || 0
         };
         this.detailInfo = tempData;
+        if (res.data.status > 2) {
+          clearInterval(this.orderTimer);
+        }
       }
     },
     copyOrderId(val) {

@@ -364,7 +364,7 @@ export default {
       const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
       // TODO:前端保存交易记录
       if (res.result && res.result.hash) {
-        this.formatArrayLength({ type: 'L2', chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+        this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',

@@ -255,6 +255,16 @@ export default {
         ...item,
         balance: this.numberFormat(tofix(divisionDecimals(item.balance, item.decimals), 6, -1) || 0, 6)
       }));
+      const tempParams = this.allTransferFeeAssets.map(item => ({
+        chainId: item.chainId,
+        assetId: item.assetId,
+        contractAddress: item.contractAddress
+      }));
+      const tempData = await this.getNerveBatchData(tempParams);
+      for (let i = 0; i < this.allTransferFeeAssets.length; i++) {
+        const asset = this.allTransferFeeAssets[i];
+        this.allTransferFeeAssets[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
+      }
       this.currentFeeAsset = this.allTransferFeeAssets.find(asset => mainAsset.symbol === asset.symbol);
       this.transferFeeAssets = this.allTransferFeeAssets.filter(item => item.registerChain !== this.currentFeeChain && item.registerChain !== 'NULS'); // 主资产信息
     },
@@ -310,10 +320,6 @@ export default {
           data
         });
         if (res.code === 1000 && res.data) {
-          // const tempList = res.data.map(asset => ({
-          //   ...asset,
-          //   userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
-          // }));
           const tempList = res.data.map(asset => ({
             ...asset,
             showBalanceLoading: true
@@ -619,6 +625,7 @@ export default {
       const tempNetwork = this.toNerve ? this.fromNetwork : this.currentFeeChain;
       // const fromChainInfo = !this.toNerve && this.storeAccountInfo.filter(v => v.chain === tempNetwork)[0];
       // const fromChainBalance = !this.toNerve && divisionDecimals(fromChainInfo.balance, fromChainInfo.decimals);
+      console.log(this.currentFeeAsset, 'currentFeeAsset');
       const feeChainBalance = !this.toNerve && this.currentFeeAsset.balance || 0;
       if (this.toNerve) {
         if (isMainAsset) {
@@ -988,7 +995,7 @@ export default {
             //     type: 'success',
             //     offset: 30
             //   });
-              this.formatArrayLength({ type: 'L1', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+              this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -1038,7 +1045,7 @@ export default {
       const chainId = config['NERVE'].chainId;
       const res = await this.$post(url, 'broadcastTx', [chainId, this.txHex]);
       if (res.result && res.result.hash) {
-        this.formatArrayLength({ type: 'L2', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+        this.formatArrayLength('NERVE', { type: 'L2', userAddress: this.fromAddress, chain: 'NERVE', isPure: false, txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',
@@ -1087,6 +1094,7 @@ export default {
           this.fromAddress
         );
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',

@@ -2,8 +2,8 @@ const en = {
   tips: {
     tips1: 'Metamask not detected',
     tips2: 'Failed to check balance',
-    tips3: 'Minimum swap amount is ',
-    tips4: 'Maximum swap amount is ',
+    tips3: 'The value of the swap token must be greater than ',
+    tips4: 'The value of the swap token must be less than ',
     tips5: 'Failed to create order',
     tips6: 'Successful transaction',
     tips7: 'Transaction failed',
@@ -78,7 +78,8 @@ const en = {
     swap38: 'User has initiated a transaction',
     swap39: 'Processing swap',
     swap40: 'Swap successful',
-    swap41: 'Swap failed'
+    swap41: 'Swap failed',
+    swap42: 'OrderId'
   },
   transfer: {
     transfer1: 'From',
@@ -88,7 +89,7 @@ const en = {
     transfer5: 'available',
     transfer6: 'Max',
     transfer7: 'Fees',
-    transfer8: 'Authorization',
+    transfer8: 'Approve',
     transfer9: 'Next',
     transfer10: 'Use other asset'
   },

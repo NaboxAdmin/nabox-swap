@@ -186,17 +186,41 @@ export default {
         return [];
       }
     },
-    formatArrayLength(data) {
+    formatArrayLength(chain, data) {
+      console.log('123131314343');
       const tradeHashList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
-      const length = tradeHashList.length;
-      let tempArr = [...tradeHashList];
-      if (length < 20) {
-        tempArr.unshift(data);
+      const l1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[chain] || [];
+      const l2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const tradeHashMap = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'));
+      const l1Length = l1HashList.length;
+      const l2Length = l2HashList.length;
+      let tempArr = [...l1HashList];
+      let tempL2Arr = [...l2HashList];
+      console.log(data, 'datatata');
+      if (data.type === 'L1') {
+        if (l1Length < 100) {
+          tempArr.unshift(data);
+        } else {
+          tempArr = tempArr.slice(0, 99);
+          tempArr.unshift(data);
+        }
       } else {
-        tempArr = tempArr.slice(0, 19);
-        tempArr.unshift(data);
+        if (l2Length < 100) {
+          tempL2Arr.unshift(data);
+        } else {
+          tempL2Arr = tempL2Arr.slice(0, 99);
+          tempL2Arr.unshift(data);
+        }
       }
-      localStorage.setItem('tradeHashList', JSON.stringify(tempArr));
+      // console.log(tempArr, 'tempArr');
+      const tempTradeHashList = {
+        ...tradeHashMap
+      };
+      console.log(tempTradeHashList[chain]);
+      tempTradeHashList[chain] = [...tempArr];
+      console.log(tempTradeHashList, 'tempTradeHashList');
+      localStorage.setItem('l2HashList', JSON.stringify(tempL2Arr));
+      localStorage.setItem('tradeHashMap', JSON.stringify(tempTradeHashList));
     }
   }
 };

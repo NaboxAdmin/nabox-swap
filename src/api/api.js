@@ -1,7 +1,7 @@
 import nuls from 'nuls-sdk-js';
 import nerve from 'nerve-sdk-js';
 import { ethers } from 'ethers';
-import { Plus, htmlEncode, timesDecimals, Minus, divisionDecimals } from './util';
+import { Plus, htmlEncode, timesDecimals, Minus, divisionDecimals, Times } from './util';
 import { request, post } from '../network/http';
 import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import { getCurrentAccount } from '@/api/util';
@@ -778,6 +778,15 @@ export class ETransfer {
   getGasPrice(gasLimit) {
     return this.provider.getGasPrice().then(gasPrice => {
       return ethers.utils.formatEther(gasPrice.mul(gasLimit).toString()).toString();
+    });
+  }
+
+  // 获取gasLimit
+  getGasLimit(tx) {
+    return this.provider.estimateGas(tx).then(gasLimit => {
+      // const tempGasLimit = Times(gasLimit.toString(), 1.5).toString();
+      const tempGasLimit = gasLimit.mul(15).div(10);
+      return tempGasLimit;
     });
   }
 

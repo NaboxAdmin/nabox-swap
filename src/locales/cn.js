@@ -2,8 +2,8 @@ const cn = {
   tips: {
     tips1: '未检测到Metamask',
     tips2: '查询余额失败',
-    tips3: '最小兑换数量: ',
-    tips4: '最大兑换数量: ',
+    tips3: '兑换的代币价值需大于',
+    tips4: '兑换的代币价值需小于: ',
     tips5: '创建订单失败',
     tips6: '交易成功',
     tips7: '交易失败',
@@ -78,7 +78,8 @@ const cn = {
     swap38: '用户已发起交易',
     swap39: '处理兑换中',
     swap40: '兑换成功',
-    swap41: '兑换失败'
+    swap41: '兑换失败',
+    swap42: '订单号'
   },
   transfer: {
     transfer1: '从',

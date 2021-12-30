@@ -9,9 +9,8 @@ const customUrl = 'https://api.iswap.com';
 
 export default class ISwap {
   constructor({ chain }) {
-    console.log(chain, 'chain');
-    const transfer = new ETransfer();
-    this.wallet = transfer.provider.getSigner();
+    this.transfer = new ETransfer();
+    this.wallet = this.transfer.provider.getSigner();
     this.iSwapContractAddress = contractConfig[chain];
   }
   async getRouterList() {
@@ -122,17 +121,45 @@ export default class ISwap {
    * @param deadline 过期时间
    * @param channel 当前的通道
    */
-  _swapExactTokensForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
-    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
-    return contract.swapExactTokensForTokensSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel);
+  async _swapExactTokensForTokensSupportingFeeOnTransferTokens(from, routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
+    console.log('==token->token==');
+    const amount = ethers.utils.parseEther('0').toHexString();
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions.swapExactTokensForTokensSupportingFeeOnTransferTokens.encode([routerAddress, amountIn, amountOutMin, paths, to, deadline, channel]);
+    const transactionParameters = await this.setGasLimit({
+      from,
+      to: this.iSwapContractAddress,
+      value: amount,
+      data
+    });
+    return await this.transfer.sendTransaction(transactionParameters);
   }
-  _swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountOutMin, paths, to, deadline, channel) {
-    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
-    return contract.swapExactETHForTokensSupportingFeeOnTransferTokens(routerAddress, amountOutMin, paths, to, deadline, channel);
+  async _swapExactETHForTokensSupportingFeeOnTransferTokens(from, routerAddress, amountOutMin, paths, to, deadline, channel, orderInfo) {
+    console.log('==ETH->token==');
+    const amount = ethers.utils.parseEther(orderInfo.amountIn).toHexString();
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions.swapExactETHForTokensSupportingFeeOnTransferTokens.encode([routerAddress, amountOutMin, paths, to, deadline, channel]);
+    const transactionParameters = await this.setGasLimit({
+      from,
+      to: this.iSwapContractAddress,
+      value: amount,
+      data
+    });
+    return await this.transfer.sendTransaction(transactionParameters);
   }
-  _swapExactTokensForETHSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
-    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
-    return contract.swapExactTokensForETHSupportingFeeOnTransferTokens(routerAddress, amountIn, amountOutMin, paths, to, deadline, channel);
+
+  async _swapExactTokensForETHSupportingFeeOnTransferTokens(from, routerAddress, amountIn, amountOutMin, paths, to, deadline, channel) {
+    console.log('==token->ETH==');
+    const amount = ethers.utils.parseEther('0').toHexString();
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions.swapExactTokensForETHSupportingFeeOnTransferTokens.encode([routerAddress, amountIn, amountOutMin, paths, to, deadline, channel]);
+    const transactionParameters = await this.setGasLimit({
+      from,
+      to: this.iSwapContractAddress,
+      value: amount,
+      data
+    });
+    return await this.transfer.sendTransaction(transactionParameters);
   }
 
   /**
@@ -147,13 +174,41 @@ export default class ISwap {
    * @param dstChainSwapInfo 目标链编码数据
    * @private
    */
-  _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
-    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
-    return contract.swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo);
+  async _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
+    console.log('==token->token==');
+    const amount = ethers.utils.parseEther('0').toHexString();
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions.swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
+    const transactionParameters = await this.setGasLimit({
+      from,
+      to: this.iSwapContractAddress,
+      value: amount,
+      data
+    });
+    return await this.transfer.sendTransaction(transactionParameters);
   }
-  _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
-    const contract = new ethers.Contract(this.iSwapContractAddress, iSwapContractAbiConfig, this.wallet);
-    return contract.swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo);
+  async _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo, orderInfo) {
+    console.log('==ETH->token==');
+    const amount = ethers.utils.parseEther(orderInfo.amountIn).toHexString();
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions.swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
+    const transactionParameters = this.setGasLimit({
+      from,
+      to: this.iSwapContractAddress,
+      value: amount,
+      data
+    });
+    return await this.transfer.sendTransaction(transactionParameters);
+  }
+
+  async setGasLimit(tx) {
+    const gasLimit = await this.transfer.getGasLimit(tx);
+    const tempTx = {
+      ...tx,
+      gasLimit
+    };
+    delete tempTx['from'];
+    return tempTx;
   }
 }
 

@@ -389,8 +389,10 @@ export default {
     getTxList(switchType = true) {
       this.orderType = switchType && 1;
       this.orderLoading = false;
-      const tempList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
-      this.orderList = tempList.filter(item => item.chain === 'NERVE' || item.chain === this.fromNetwork);
+      const tempL1List = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[this.fromNetwork] || [];
+      const tempL2List = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const allList = tempL1List.concat(tempL2List).filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
+      this.orderList = [...(allList.sort((a, b) => b.createTimes - a.createTimes) || [])];
       // this.getTxStatus();
       // console.log(this.orderList.length, 'this.orderList');
     },
@@ -447,65 +449,37 @@ export default {
       }
     },
     async getOrderStatus(val) {
-      console.log('==getOrderStatus==');
-      const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
-      let swapTxList; // 获取当前订单的状态
-      const params = {
-        address: val,
-        chain: this.fromNetwork
-      };
-      const res = await this.$request({
-        url: '/swap/tx/query',
-        data: params
-      });
-      if (res.code === 1000) {
-        swapTxList = res.data;
-      } else {
-        swapTxList = [];
+      try {
+        console.log('==getOrderStatus==');
+        const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
+        const tempList = commonTxList.filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
+        let swapTxList; // 获取当前订单的状态
+        const params = {
+          address: val,
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/tx/query',
+          data: params
+        });
+        if (res.code === 1000) {
+          swapTxList = res.data;
+        } else {
+          swapTxList = [];
+        }
+        this.showLoading = tempList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
+      } catch (e) {
+        console.log(e);
       }
-      this.showLoading = commonTxList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
-      // const iSwap = new ISwap({
-      //   chain: this.fromNetwork
-      // });
-      // const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-      // const nativeId = tempSupportChainList.find(item => item.chain === this.fromNetwork).nativeId;
-      // const data = {
-      //   version: ISWAP_VERSION,
-      //   address: val,
-      //   chainId: nativeId
-      //   // offset: 0,
-      //   // limit: 10,
-      //   // direct: ''
-      // };
-      // const orderList = iSwap.getISwapOrderList(data);
-      // if (orderList.length > 0) {
-      //   this.showLoading = res.data.some(item => item.srcState !== 0 && item.destState !== 2);
-      // } else {
-      //   this.showLoading = false;
-      // }
-      // FIXME 查询swap兑换订单
-      // this.flag = true;
-      // const params = {
-      //   address: val
-      // };
-      // const res = await this.$request({
-      //   url: '/swap/get/list',
-      //   data: params
-      // });
-      // if (res.code === 1000 && res.data) {
-      //   if (res.data.length > 0) {
-      //     this.showLoading = res.data.some(item => item.srcState < 4);
-      //   } else {
-      //     this.showLoading = false;
-      //   }
-      // } else {
-      //   this.showLoading = false;
-      // }
     },
     async getTxStatus() {
       const config = JSON.parse(sessionStorage.getItem('config'));
-      const txList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
-      const tempList = txList.filter(item => item.status === 0 && (item.chain === 'NERVE' || item.chain === this.fromNetwork));
+      const tradeHashMap = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'));
+      const tempL1List = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[this.fromNetwork] || [];
+      const tempL2List = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const allList = tempL1List.concat(tempL2List);
+      const txList = [...(allList.sort((a, b) => b.balance - a.balance) || [])];
+      // const tempList = txList.filter(item => item.status === 0 && item.userAddress === this.fromAddress);
       const l1Url = config && config[this.fromNetwork].apiUrl;
       const l2Url = config && config['NERVE'].apiUrl;
       if (txList.length !== 0) {
@@ -518,7 +492,7 @@ export default {
                 status: res.result.status === '0x1' ? 1 : -1
               };
             }
-          } else if (tx.type === 'L2' && tx.status === 0) {
+          } else if (tx.type === 'L2' && tx.status === 0 && !tx.isPure) {
             const params = [MAIN_INFO.chainId, tx.txHash];
             const res = await this.$post(l2Url, 'getTx', params);
             const heterogeneousRes = await this.$post(l2Url, 'findByWithdrawalTxHash', params);
@@ -528,10 +502,26 @@ export default {
                 status: res.result.status == '1' ? 1 : -1
               };
             }
+          } else if (tx.type === 'L2' && tx.status === 0 && tx.isPure) {
+            const params = [MAIN_INFO.chainId, tx.txHash];
+            const res = await this.$post(l2Url, 'getTx', params);
+            if (res && res.result) {
+              return {
+                ...tx,
+                status: res.result.status == '1' ? 1 : -1
+              };
+            }
           }
           return { ...tx };
         }));
-        localStorage.setItem('tradeHashList', JSON.stringify(tempTxList));
+        const formatL1List = tempTxList.filter(item => item.type === 'L1');
+        const formatL2List = tempTxList.filter(item => item.type === 'L2');
+        const formatTradeHashMap = {
+          ...tradeHashMap
+        };
+        formatTradeHashMap[this.fromNetwork] = formatL1List;
+        localStorage.setItem('l2HashList', JSON.stringify(formatL2List));
+        localStorage.setItem('tradeHashMap', JSON.stringify(formatTradeHashMap));
         this.orderType === 1 && this.getTxList();
         return tempTxList;
       }

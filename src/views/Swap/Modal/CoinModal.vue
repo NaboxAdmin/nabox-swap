@@ -215,7 +215,7 @@ export default {
               tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
             }
           } else if (this.toAsset && this.modalType === 'send') {
-            if (this.picList[this.currentIndex] === this.fromNetwork) {
+            if (this.toAsset.chain === this.fromNetwork) {
               tempCoins = tempCoins.filter(coin => coin.symbol !== this.toAsset.symbol);
             }
           }

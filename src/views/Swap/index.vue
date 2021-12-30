@@ -243,7 +243,7 @@
 import CoinModal from './Modal/CoinModal';
 import PopUp from '@/components/PopUp/PopUp';
 import ConfirmOrder from '@/views/confirmOrder/confirmOrder';
-import { Loading } from '@/components';
+import Loading from '@/components/Loading/Loading';
 import {
   debounce,
   Division,
@@ -353,15 +353,16 @@ export default {
       getAllowanceTimer: null,
       showApproveLoading: false,
       approvingLoading: false,
-      slippage: 0.5, // 滑点
+      slippage: 2, // 滑点
       fromAssetDex: null,
       toAssetDex: null,
       limitMin: '', // 最小限制
       limitMax: '', // 最大限制
       showSlippage: false,
-      currentIndex: 0,
+      currentIndex: 2,
       slippageMsg: '',
-      btnErrorMsg: ''
+      btnErrorMsg: '',
+      crossTransaction: false
     };
   },
   computed: {
@@ -473,6 +474,12 @@ export default {
       this.fromContractAddress = this.$route.query.fromContractAddress;
       this.toContractAddress = this.$route.query.toContractAddress;
     }
+    // const transfer = new ETransfer({
+    //   chain: this.fromNetwork
+    // });
+    // // const price = transfer.getGasLimit('210000');
+    //
+    // console.log(transfer.getGasLimit());
     this.iSwap = new ISwap({ chain: this.fromNetwork });
     // this.getUsdtnAssets();
     // setTimeout 0 不然获取不到地址
@@ -529,6 +536,7 @@ export default {
     },
     // 异构链token资产转入nerve授权
     async approveERC20() {
+      if (this.approvingLoading) return false;
       this.showApproveLoading = true;
       try {
         const transfer = new ETransfer();
@@ -541,6 +549,7 @@ export default {
           this.fromAddress
         );
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',
@@ -735,6 +744,10 @@ export default {
           this.currentChannel = null;
           this.chooseFromAsset = coin;
           await this.getBalance(this.chooseFromAsset, true);
+          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.crossTransaction = true;
+            this.switchAsset = true;
+          }
           if (this.chooseToAsset && this.inputType === 'amountIn' && this.amountIn) {
             this.amountOut = '';
             this.amountInDebounce();
@@ -742,21 +755,18 @@ export default {
             this.amountIn = '';
             this.amountOutDebounce();
           }
-          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
-            this.switchAsset = true;
-          }
           break;
         case 'receive': // 选择接受资产
           this.chooseToAsset = coin;
+          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.switchAsset = true;
+          }
           if (this.chooseFromAsset && this.inputType === 'amountIn' && this.amountIn) {
             this.amountOut = '';
             this.amountInDebounce();
           } else if (this.chooseToAsset && this.inputType === 'amountOut' && this.amountOut) {
             this.amountIn = '';
             this.amountOutDebounce();
-          }
-          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
-            this.switchAsset = true;
           }
           break;
         default:
@@ -852,17 +862,17 @@ export default {
     },
     async amountInInput() {
       this.inputType = 'amountIn';
-      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && this.checkBalance()) {
+      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && this.checkBalance() && !this.availableLoading) {
         this.amountOut = '';
-        // this.getOptionalChannel('amountIn');
+        this.getOptionalChannel();
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
           this.amountOut = tempChannel.amountOut < 0 ? '' : this.numberFormat(tofix(tempChannel.amountOut || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
           if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            this.amountMsg = `${this.$t('tips.tips3')}${this.limitMin}USDT`;
+            this.amountMsg = `${this.$t('tips.tips3')}$${this.limitMin}`;
           } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            this.amountMsg = `${this.$t('tips.tips4')}${this.limitMax}USDT`;
+            this.amountMsg = `${this.$t('tips.tips4')}$${this.limitMax}`;
           } else {
             this.amountMsg = '';
           }
@@ -875,14 +885,12 @@ export default {
         this.currentChannel = null;
       }
     },
-    getOptionalChannel(type) {
+    getOptionalChannel() {
       this.channelConfigList = this.orginChannelConfigList.filter(channel => {
-        if (channel.limitMin && channel.limitMax && type === 'amountIn') {
-          return Minus(this.amountIn, channel.limitMin) >= 0 && Minus(this.amountIn, channel.limitMax) <= 0;
-        } else if (channel.limitMin && channel.limitMax && type === 'amountOut') {
-          return Minus(this.amountOut, channel.limitMin) >= 0 && Minus(this.amountOut, channel.limitMax) <= 0;
+        if (this.crossTransaction) {
+          return channel.crossSwap === true;
         }
-        return channel;
+        return channel.swap === true;
       });
     },
     checkBalance() {
@@ -900,7 +908,7 @@ export default {
       this.inputType = 'amountOut';
       if (this.chooseFromAsset && this.chooseToAsset && this.amountOut && Number(this.amountOut) !== 0) {
         this.amountIn = '';
-        // this.getOptionalChannel('amountOut');
+        this.getOptionalChannel();
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
           this.amountIn = tempChannel.amount < 0 ? '' : this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
@@ -956,6 +964,8 @@ export default {
               };
             }
             return null;
+          } else if (item.channel === 'DODO') {
+            currentConfig = {};
           }
           return null;
         }));
@@ -999,7 +1009,7 @@ export default {
         from: this.fromAddress,
         version: ISWAP_VERSION
       };
-      this.currentDex = this.getDexInfo(this.chooseToAsset, 'out');
+      this.currentDex = this.getDexInfo(this.chooseFromAsset, 'in');
       this.fromAssetDex = this.getDexInfo(this.chooseFromAsset, 'in');
       this.toAssetDex = this.getDexInfo(this.chooseToAsset, 'out');
       // if (res) {
@@ -1037,6 +1047,10 @@ export default {
         };
       }
     },
+    // 获取DODO费率信息
+    // getDodoSwapRoute() {
+    //
+    // },
     // 最大
     async maxAmount() {
       if (!this.available || this.available == 0) return false;
@@ -1144,6 +1158,7 @@ export default {
     // 同连切换资产
     async switchAssetClick() {
       if (!this.switchAsset) return false;
+      this.amountMsg = '';
       const tempFromAsset = { ...this.chooseFromAsset };
       const tempToAsset = { ...this.chooseToAsset };
       const tempToAmount = this.toAmount;
@@ -1223,6 +1238,24 @@ export default {
   img {
     height: 100%;
     width: 100%;
+  }
+}
+
+.box_loading {
+  height: 30px;
+  width: 30px;
+  animation: rotate_loading 1.5s linear infinite;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+@keyframes rotate_loading {
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(359deg);
   }
 }
 

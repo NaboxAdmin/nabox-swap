@@ -16,7 +16,7 @@
         <div class="down-icon">
           <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"/><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"/></svg>
         </div>
-        <div class="detail-info mt-2">{{ orderInfo && orderInfo.currentChannel.minReceive | numberFormat }} {{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.symbol }}</div>
+        <div class="detail-info mt-2">{{ orderInfo && orderInfo.amountOut | numberFormat }} {{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.symbol }}</div>
       </div>
       <div class="dash_cont"/>
       <div class="order-detail_info">
@@ -122,13 +122,6 @@ export default {
     },
     // 调用合约发送iSwap交易
     async sendISwapTransaction() {
-      // if (this.orderTimes < 0 || this.orderTimes === 0) {
-      //   this.$message({
-      //     type: 'warnning',
-      //     message: this.$t('tips.tips34')
-      //   });
-      //   return false;
-      // }
       try {
         const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, crossChainFee, slippage } = this.orderInfo;
         const config = JSON.parse(sessionStorage.getItem('config'));
@@ -175,7 +168,7 @@ export default {
           };
           const res = await iSwap.generateCrossChainSwapOrder(params);
           if (res) {
-          // 先存到nabox后台
+            // 先存到nabox后台
             const naboxParams = {
               orderId: res.orderId,
               channel: currentChannel.channel,
@@ -193,7 +186,8 @@ export default {
               amount: timesDecimals(amountIn, fromAsset.decimals || 18),
               fee: currentChannel.crossChainFee,
               slippage,
-              pairAddress: ''
+              pairAddress: '',
+              swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18)
             };
             const swapRes = await this.$request({
               url: '/swap/cross/tx/save',
@@ -210,9 +204,9 @@ export default {
               const srcPathArr = res.srcPath.split(',');
               let transferResult;
               if (fromAsset.symbol === fromMainAssetSymbol) {
-                transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
+                transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo, this.orderInfo);
               } else {
-                transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
+                transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
               }
               if (transferResult.hash) {
                 this.$message({
@@ -236,21 +230,22 @@ export default {
         } else {
           const { currentDex, currentChannel, toAddress } = this.orderInfo;
           const paths = currentChannel.router.map(item => item.address);
-          const deadTimes = 5;
+          console.log(paths, 'paths');
+          const deadTimes = 30;
           const channelBytes32 = this.formatBytes32(web3.utils.fromAscii(currentChannel.channel));
           const amountIn = timesDecimals(this.orderInfo.amountIn, fromAsset.decimals);
-          const amountOutMin = timesDecimals(this.orderInfo.amountOut, toAsset.decimals);
+          const amountOutMin = timesDecimals(currentChannel.minReceive, toAsset.decimals);
           const deadline = Math.floor((Date.now() + 1000 * 60 * deadTimes) / 1000);
           let transferResult;
           if (fromAsset.symbol === fromMainAssetSymbol) {
-            transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokens(currentDex.routerAddress, amountOutMin, paths, toAddress, deadline, channelBytes32);
+            transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountOutMin, paths, toAddress, deadline, channelBytes32, this.orderInfo);
           } else if (toAsset.symbol === fromMainAssetSymbol) {
-            transferResult = await iSwap._swapExactTokensForETHSupportingFeeOnTransferTokens(currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
+            transferResult = await iSwap._swapExactTokensForETHSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
           } else {
-            transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokens(currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
+            transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
           }
           if (transferResult.hash) {
-            this.formatArrayLength({ type: 'L1', chain: this.fromNetwork, txHash: transferResult.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transferResult.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
             this.$message({
               type: 'success',
               message: this.$t('tips.tips24'),

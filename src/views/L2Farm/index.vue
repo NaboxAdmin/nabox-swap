@@ -532,10 +532,11 @@ export default {
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
         // TODO:前端保存交易记录
         if (res.result && res.result.hash) {
-          this.formatArrayLength({ type: 'L2', chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+          this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips10'),
-            type: 'success', duration: 2000,
+            type: 'success',
+            duration: 2000,
             offset: 30
           });
           this.reset();
@@ -566,6 +567,7 @@ export default {
           this.currentAccount.address.Ethereum
         );
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',

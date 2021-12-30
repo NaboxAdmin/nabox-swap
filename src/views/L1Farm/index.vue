@@ -217,8 +217,8 @@ export default {
           this.currentFarmHash,
           this.currentAccount.address.Ethereum
         );
-        console.log(res, res.hash, 'hash 123123');
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',
@@ -428,7 +428,7 @@ export default {
         }
         // TODO:前端保存交易记录
         if (res.hash) {
-          this.formatArrayLength({ type: 'L1', chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips10'),
             type: 'success',
@@ -495,8 +495,8 @@ export default {
           farmHash,
           this.currentAccount.address.Ethereum
         );
-        console.log(res, res.hash, 'hash 123123');
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',
