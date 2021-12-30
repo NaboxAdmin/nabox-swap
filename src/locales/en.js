@@ -2,8 +2,8 @@ const en = {
   tips: {
     tips1: 'Metamask not detected',
     tips2: 'Failed to check balance',
-    tips3: 'Minimum exchange amount: ',
-    tips4: 'Maximum exchange amount: ',
+    tips3: 'The value of the swap token must be greater than ',
+    tips4: 'The value of the swap token must be less than ',
     tips5: 'Failed to create order',
     tips6: 'Successful transaction',
     tips7: 'Transaction failed',
@@ -29,7 +29,13 @@ const en = {
     tips27: 'The received income will be locked for 90 days',
     tips28: 'You can unlock your Nabox by staking NABOX-BUSD LP and you can check the unlocking speed of different amounts of LP through the calculator',
     tips29: 'Audit by',
-    tips30: 'Harvest'
+    tips30: 'Harvest',
+    tips31: 'Please enter a number greater than 0 and less than 100',
+    tips32: 'Ordinary',
+    tips33: 'Cross-chain',
+    tips34: 'Order timed out, please re-create order',
+    tips35: 'High Price Volatility',
+    tips36: 'Swap amount is lower than Gas'
   },
   swap: {
     swap1: 'From',
@@ -63,7 +69,17 @@ const en = {
     swap29: 'You need at least ',
     swap30: ' as a handling fee',
     swap31: '【The fee is 0.02% of the transaction amount, it will be charged as 1U if less than 1U】',
-    swap32: 'Expected'
+    swap32: 'Expected',
+    swap33: 'Impact',
+    swap34: 'Cross-chain fee',
+    swap35: 'Price calculating',
+    swap36: 'Slippage',
+    swap37: 'Order creation',
+    swap38: 'User has initiated a transaction',
+    swap39: 'Processing swap',
+    swap40: 'Swap successful',
+    swap41: 'Swap failed',
+    swap42: 'OrderId'
   },
   transfer: {
     transfer1: 'From',
@@ -73,7 +89,7 @@ const en = {
     transfer5: 'available',
     transfer6: 'Max',
     transfer7: 'Fees',
-    transfer8: 'Authorization',
+    transfer8: 'Approve',
     transfer9: 'Next',
     transfer10: 'Use other asset'
   },
@@ -117,7 +133,7 @@ const en = {
   modal: {
     modal1: 'Select',
     modal2: 'Enter a name or address to search',
-    modal3: 'No data yet'
+    modal3: 'No data'
   },
   popUp: {
     popUp1: 'Transfer in ',

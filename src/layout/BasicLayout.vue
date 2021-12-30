@@ -308,7 +308,7 @@ export default {
       sessionStorage.removeItem('network');
       this.$store.commit('changeShowSign', true);
       this.$store.commit('changeShowConnect', true);
-      this.$router.push({ path: '/' });
+      window.location.hash.indexOf('swap') === -1 && this.$router.push({ path: '/' });
       this.address = '';
     },
     // 监听网络改变

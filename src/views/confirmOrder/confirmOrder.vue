@@ -5,18 +5,18 @@
     <div v-loading="confirmLoading" class="order-cont">
       <div class="d-flex align-items-center justify-content-center">
         <div v-if="orderInfo" class="coin-icon">
-          <img :src="getPicture(orderInfo.fromAsset.symbolImg)" alt="" @error="pictureError">
+          <img :src="orderInfo.fromAsset.icon || getPicture(orderInfo.fromAsset.symbol)" alt="" @error="pictureError">
         </div>
         <div class="coin-icon">
-          <img :src="getPicture(orderInfo.toAsset.symbolImg)" alt="" @error="pictureError">
+          <img :src="orderInfo.toAsset.icon || getPicture(orderInfo.toAsset.symbol)" alt="" @error="pictureError">
         </div>
       </div>
       <div v-if="orderInfo" class="order-info">
-        <div class="detail-info mt-4">{{ orderInfo && orderInfo.fromAmount }} {{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</div>
+        <div class="detail-info mt-4">{{ orderInfo && orderInfo.amountIn }} {{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</div>
         <div class="down-icon">
           <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"/><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"/></svg>
         </div>
-        <div class="detail-info mt-2">{{ orderInfo.toAmount }} {{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.symbol }}</div>
+        <div class="detail-info mt-2">{{ orderInfo && orderInfo.amountOut | numberFormat }} {{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.symbol }}</div>
       </div>
       <div class="dash_cont"/>
       <div class="order-detail_info">
@@ -37,32 +37,17 @@
         <!--汇率-->
         <div class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap5') }}</span>
-          <div v-if="orderInfo.swapRate" class="d-flex align-items-center justify-content-end w-75">
-            <span class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
-          </div>
-          <div v-else class="d-flex align-items-center justify-content-end w-75">
-            <span class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>
+          <div class="d-flex align-items-center justify-content-end w-75">
+            <span class="ml-4">{{ orderInfo && orderInfo.currentChannel.swapRate }}</span>
           </div>
         </div>
         <!--手续费-->
-        <div class="d-flex align-items-center space-between mt-5">
+        <div v-if="orderInfo && orderInfo.currentChannel.crossChainFee" class="d-flex align-items-center space-between mt-5">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
-          <div v-if="orderInfo.withdrawFee" class="d-flex align-items-center justify-content-end">
-            <span class="ml-4 text-ec"><span v-if="orderInfo.withdrawFee" class="text-3a">
-            <span v-if="orderInfo.transferFee">{{ orderInfo.transferFee | numberFormat }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span> {{ orderInfo.withdrawFee }}{{ orderInfo.toAsset && orderInfo.toAsset.symbol }}</span></span>
-          </div>
-          <div v-else-if="orderInfo.stableFee" class="d-flex align-items-center justify-content-end">
-            <span class="ml-4 text-ec">
-              <span class="text-3a">
-                {{ orderInfo.stableFee }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}
-              </span>
-            </span>
-          </div>
-          <div v-else class="d-flex align-items-center justify-content-end">
-            <span class="ml-4 text-ec">
-              <span class="text-3a">
-                {{ orderInfo.usdtnFee }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}
-              </span>
+          <div class="d-flex align-items-center justify-content-end">
+            <span class="ml-4 text-3a">
+              <span>{{ orderInfo.currentChannel.crossChainFee || '0' }}</span>
+              <span>{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span>
             </span>
           </div>
         </div>
@@ -78,6 +63,10 @@ import NavBar from '@/components/NavBar/NavBar';
 import { MAIN_INFO, NULS_INFO } from '@/config';
 import { timesDecimals, getCurrentAccount } from '@/api/util';
 import { ETransfer, NTransfer } from '@/api/api';
+import ISwap from '../Swap/util/iSwap';
+import { ISWAP_ETH, ISWAP_VERSION } from '../Swap/util/swapConfig';
+import { encodeParameters } from '../Swap/util/iSwap';
+import Web3 from 'web3';
 
 export default {
   name: 'ConfirmOrder',
@@ -88,7 +77,9 @@ export default {
       confirmLoading: false,
       platformAddress: '', // 平台地址
       getAllowanceTimer: null,
-      crossInAuth: false
+      crossInAuth: false,
+      swapOrderTimer: null,
+      orderTimes: 300000
     };
   },
   computed: {
@@ -96,225 +87,195 @@ export default {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     }
   },
-  beforeCreate() {
-    // console.log(sessionStorage.getItem('network'), JSON.parse(sessionStorage.getItem('swapInfo')), 123123);
-    if (sessionStorage.getItem('network') === JSON.parse(sessionStorage.getItem('swapInfo')).fromNetwork) {
-      // document.querySelector('body').setAttribute('style', 'background-color:#6EB6A9;font-size:12px')
-    }
-  },
   created() {
-    const orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
-    const storageNetwork = sessionStorage.getItem('network');
-    if (Object.keys(this.$route.query).length > 0) {
-      this.orderInfo = JSON.parse(decodeURIComponent(this.$route.query.orderInfo));
-      const assetInfo = {
-        chain: this.orderInfo.fromNetwork,
-        address: this.orderInfo.address,
-        chainId: this.orderInfo.fromAsset.chainId,
-        assetId: this.orderInfo.fromAsset.assetId,
-        contractAddress: this.orderInfo.fromAsset.contractAddress
-      };
-      this.getAssetDetailInfo(assetInfo);
-    } else {
-      this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
-      const assetInfo = {
-        chain: this.orderInfo.fromNetwork,
-        address: this.orderInfo.address,
-        chainId: this.orderInfo.fromAsset.chainId,
-        assetId: this.orderInfo.fromAsset.assetId,
-        contractAddress: this.orderInfo.fromAsset.contractAddress
-      };
-      this.getAssetDetailInfo(assetInfo);
-    }
-    if (orderInfo.fromNetwork !== storageNetwork) {
-      this.$router.go(-1);
-    }
-  },
-  beforeDestroy() {
-    // document.querySelector('body').removeAttribute('style');
-    // document.querySelector('body').setAttribute('style', 'font-size:12px');
-    if (this.getAllowanceTimer) {
-      clearTimeout(this.getAllowanceTimer);
-      this.getAllowanceTimer = null;
-    }
+    this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
+    // this.cutdownTime();
   },
   methods: {
-    // 获取资产详情
-    async getAssetDetailInfo(assetInfo) {
-      const data = {
-        chain: assetInfo.chain,
-        address: assetInfo.address,
-        chainId: assetInfo.chainId,
-        assetId: assetInfo.assetId,
-        contractAddress: assetInfo.contractAddress,
-        refresh: true
+    cutdownTime() {
+      const cutdown = () => {
+        this.orderTimes -= 1000;
+        console.log(this.orderTimes, 'orderTimes');
+        if (this.orderTimes < 0) {
+          this.clearInterval(this.swapOrderTimer);
+        }
       };
-      const res = await this.$request({
-        url: '/wallet/address/asset',
-        data
-      });
-      if (res.data && res.code === 1000) {
-        this.currentAssetInfo = res.data;
-        if (res.data.assetId === 0 && this.orderInfo.fromNetwork !== 'NULS') {
-          await this.checkCrossInAuthStatus();
-        } else {
-          this.crossInAuth = false;
-        }
-      }
+      this.swapOrderTimer = setInterval(() => {
+        cutdown();
+      }, 1000);
     },
-    // 查询异构链token资产授权情况
-    async checkCrossInAuthStatus() {
-      const transfer = new ETransfer();
-      const heterogeneousInfo = this.currentAssetInfo.heterogeneousList.filter(
-        (v) => v.chainName === this.orderInfo.fromNetwork
-      )[0];
-      const contractAddress = this.currentAssetInfo.contractAddress;
-      const needAuth = await transfer.getERC20Allowance(
-        contractAddress,
-        heterogeneousInfo.heterogeneousChainMultySignAddress,
-        this.fromAddress
-      );
-      this.crossInAuth = needAuth;
-      if (!needAuth && this.getAllowanceTimer) {
-        this.clearGetAllowanceTimer();
-      }
-    },
-
-    // 异构链token资产转入nerve授权
-    async approveERC20() {
-      this.confirmLoading = true;
-      try {
-        const transfer = new ETransfer();
-        const heterogeneousInfo = this.currentAssetInfo.heterogeneousList.filter(
-          (v) => v.chainName === this.orderInfo.fromNetwork
-        )[0];
-        const contractAddress = this.currentAssetInfo.contractAddress;
-        const res = await transfer.approveERC20(
-          contractAddress,
-          heterogeneousInfo.heterogeneousChainMultySignAddress,
-          this.fromAddress
-        );
-        if (res.hash) {
-          this.$message({
-            message: this.$t('tips.tips14'),
-            type: 'success',
-            duration: 2000,
-            offset: 30
-          });
-          this.setGetAllowanceTimer();
-        } else {
-          this.$message({
-            message: JSON.stringify(res),
-            type: 'warning',
-            duration: 2000,
-            offset: 30
-          });
-        }
-        this.confirmLoading = false;
-      } catch (e) {
-        console.log(e);
-        this.$message.warning({ message: e.message, offset: 30 });
-        this.confirmLoading = false;
-      }
-    },
-
-    clearGetAllowanceTimer() {
-      if (!this.getAllowanceTimer) return;
-      clearInterval(this.getAllowanceTimer);
-      this.getAllowanceTimer = null;
-    },
-
-    setGetAllowanceTimer() {
-      this.getAllowanceTimer = setInterval(() => {
-        this.checkCrossInAuthStatus();
-      }, 3000);
-    },
-
     // 确认订单
     async confirmOrder() {
-      this.confirmLoading = true;
-      console.log(this.orderInfo, 'this.orderInfo');
-      console.log(this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset), 'this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.usdtnToAsset)');
-      if (this.orderInfo.usdtnFee && (this.orderInfo.usdtnFromAsset || this.orderInfo.usdtnToAsset)) {
-        // console.log(this.orderInfo.usdtnFee, this.orderInfo.usdtnFromAsset, '1231231')
-        const params = {
-          fromChain: this.orderInfo.fromNetwork
-        };
-        const res = await this.$request({
-          url: '/swap/conf',
-          data: params
-        });
-        if (res.code === 1000 && res.data) {
-          const tempData = res.data;
-          await this.stableTransfer(tempData, true);
+      try {
+        this.confirmLoading = true;
+        const { currentChannel } = this.orderInfo;
+        switch (currentChannel.channel) {
+          case 'ISWAP':
+            this.sendISwapTransaction();
+            break;
+          default:
+            return false;
         }
-        this.confirmLoading = false;
-      } else if (this.orderInfo.currentPlatform.platform === 'SwapBox') { // 稳定币确认订单
-        // console.log('NaboxPool');
-        // const params = {
-        //   fromChain: this.orderInfo && this.orderInfo.fromNetwork,
-        //   contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
-        //   pairAddress: this.orderInfo && this.orderInfo.pairAddress,
-        //   fromAddress: this.orderInfo && this.orderInfo.address,
-        //   amount: this.orderInfo && this.orderInfo.fromAmount,
-        //   auth: '1561ced6ef90f5d60ce669ba'
-        // }
-        const params = {
-          fromChain: this.orderInfo.fromNetwork
-        };
-        const res = await this.$request({
-          url: '/swap/conf',
-          data: params
-        });
-        if (res.code === 1000 && res.data) {
-          const tempData = res.data;
-          await this.stableTransfer(tempData);
-        }
-        this.confirmLoading = false;
-      } else {
-        const depositCoin = {
-          chain: this.orderInfo && this.orderInfo.fromAsset.chain,
-          chainId: this.orderInfo && this.orderInfo.fromAsset.chainId,
-          assetId: this.orderInfo && this.orderInfo.fromAsset.assetId,
-          contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
-          symbol: this.orderInfo && this.orderInfo.fromAsset.symbol,
-          coinCode: this.orderInfo && this.orderInfo.fromAsset.coinCode,
-          amount: this.orderInfo && this.orderInfo.fromAmount
-        };
-        const receiveCoin = {
-          chain: this.orderInfo && this.orderInfo.toAsset.chain,
-          chainId: this.orderInfo && this.orderInfo.toAsset.chainId,
-          assetId: this.orderInfo && this.orderInfo.toAsset.assetId,
-          contractAddress: this.orderInfo && this.orderInfo.toAsset.contractAddress,
-          symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
-          coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
-          // amount: this.orderInfo && this.orderInfo.toAmount && timesDecimals(this.orderInfo.toAmount, this.orderInfo.toAsset.decimals),
-          amount: this.orderInfo && this.orderInfo.toAmount
-        };
-        const toChain = this.orderInfo && this.orderInfo.toAsset.chain;
-        const params = {
-          sendAddress: this.orderInfo.address,
-          receiveAddress: this.currentAccount['address'][toChain],
-          depositCoin,
-          receiveCoin
-        };
-        const res = await this.$request({
-          url: '/swap/swft/order',
-          data: params
-        });
-        if (res.code === 1000 && res.data) {
-          this.platformAddress = res.data.platformAddr;
-          this.orderId = res.data.orderId;
-          await this.transfer();
-        } else {
-          this.$message({
-            type: 'warning',
-            message: res.msg,
-            offset: 30
-          });
-        }
-        this.confirmLoading = false;
+      } catch (e) {
+        console.log(e, 'error');
       }
+    },
+    // 调用合约发送iSwap交易
+    async sendISwapTransaction() {
+      try {
+        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, crossChainFee, slippage } = this.orderInfo;
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const RPCUrl = config[this.fromNetwork]['apiUrl'];
+        const web3 = new Web3(RPCUrl || window.ethereum);
+        const fromMainAssetSymbol = config[fromAsset.chain].symbol;
+        const iSwap = new ISwap({
+          chain: this.fromNetwork || fromAsset.chain
+        });
+        const isCross = fromAsset.chain !== toAsset.chain;
+        if (isCross) {
+          const { nativeId, contractAddress } = this.orderInfo.fromAsset;
+          const srcPath = currentChannel.inToken.router.map(item => item.address).join(',');
+          const destPath = currentChannel.outToken.router.map(item => item.address).join(',');
+          const srcChainParams = {
+            amount0In: timesDecimals(currentChannel.amount, fromAsset.decimals),
+            amount0OutMin: timesDecimals(currentChannel.minReceive, toAsset.decimals),
+            fromAssetDex
+          };
+          const destChainParams = {
+            amount0OutMin: timesDecimals(currentChannel.minReceive, toAsset.decimals),
+            fromAddress: this.fromAddress,
+            toAssetDex
+          };
+          const srcChainSwapInfo = encodeParameters(RPCUrl, srcChainParams, 'src');
+          const destChainSwapInfo = encodeParameters(RPCUrl, destChainParams, 'dest');
+          const params = {
+            version: ISWAP_VERSION,
+            srcChainId: nativeId,
+            destChainId: toAsset.nativeId,
+            fromAsset: contractAddress,
+            amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+            fromUser: this.fromAddress,
+            toUser: this.fromAddress,
+            gasFee: timesDecimals(currentChannel.outToken.relayerGas, toAsset.decimals || 18),
+            crossChainFee: timesDecimals(currentChannel.originCrossChainFee, fromAsset.decimals || 18),
+            rewardsMin: 0,
+            channel: 'ISWAP',
+            srcPath,
+            destPath,
+            srcChainSwapInfo,
+            destChainSwapInfo,
+            isReturnEth: false
+          };
+          const res = await iSwap.generateCrossChainSwapOrder(params);
+          if (res) {
+            // 先存到nabox后台
+            const naboxParams = {
+              orderId: res.orderId,
+              channel: currentChannel.channel,
+              platform: 'NABOX',
+              fromChain: fromAsset.chain,
+              toChain: toAsset.chain,
+              fromAddress: address,
+              toAddress: toAddress,
+              chainId: fromAsset.chainId,
+              assetId: fromAsset.assetId,
+              contractAddress: fromAsset.contractAddress || '',
+              swapChainId: toAsset.chainId,
+              swapAssetId: toAsset.assetId,
+              swapContractAddress: toAsset.contractAddress || '',
+              amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+              fee: currentChannel.crossChainFee,
+              slippage,
+              pairAddress: '',
+              swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18)
+            };
+            const swapRes = await this.$request({
+              url: '/swap/cross/tx/save',
+              data: naboxParams
+            });
+            if (swapRes.code === 1000) {
+              const dstChainId = toAsset.nativeId;
+              const orderId = (res.orderId).toString();
+              const crossChainFee = this.numberFormat((res.crossChainFee).toString());
+              const gasFee = this.numberFormat((res.gasFee).toString());
+              const channel = this.formatBytes32(web3.utils.fromAscii(res.channel));
+              const srcChainSwapCallData = this.formatBytes(res.srcChainSwapInfo);
+              const dstChainSwapInfo = this.formatBytes(res.destChainSwapInfo);
+              const srcPathArr = res.srcPath.split(',');
+              let transferResult;
+              if (fromAsset.symbol === fromMainAssetSymbol) {
+                transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo, this.orderInfo);
+              } else {
+                transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
+              }
+              if (transferResult.hash) {
+                this.$message({
+                  type: 'success',
+                  message: this.$t('tips.tips24'),
+                  offset: 30,
+                  duration: 1500
+                });
+                this.confirmLoading = false;
+                this.$emit('confirm');
+                await this.recordHash(res.orderId, transferResult.hash);
+              }
+            } else {
+              this.$message({
+                type: 'warning',
+                message: res.msg
+              });
+              this.confirmLoading = false;
+            }
+          }
+        } else {
+          const { currentDex, currentChannel, toAddress } = this.orderInfo;
+          const paths = currentChannel.router.map(item => item.address);
+          console.log(paths, 'paths');
+          const deadTimes = 30;
+          const channelBytes32 = this.formatBytes32(web3.utils.fromAscii(currentChannel.channel));
+          const amountIn = timesDecimals(this.orderInfo.amountIn, fromAsset.decimals);
+          const amountOutMin = timesDecimals(currentChannel.minReceive, toAsset.decimals);
+          const deadline = Math.floor((Date.now() + 1000 * 60 * deadTimes) / 1000);
+          let transferResult;
+          if (fromAsset.symbol === fromMainAssetSymbol) {
+            transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountOutMin, paths, toAddress, deadline, channelBytes32, this.orderInfo);
+          } else if (toAsset.symbol === fromMainAssetSymbol) {
+            transferResult = await iSwap._swapExactTokensForETHSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
+          } else {
+            transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
+          }
+          if (transferResult.hash) {
+            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transferResult.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+            this.$message({
+              type: 'success',
+              message: this.$t('tips.tips24'),
+              offset: 30,
+              duration: 1500
+            });
+            this.confirmLoading = false;
+            this.$emit('confirm');
+          }
+        }
+      } catch (e) {
+        console.log(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: e.message,
+          offset: 30
+        });
+      }
+    },
+    // 记录一次交易hash
+    async recordHash(orderId, hash) {
+      const params = {
+        orderId,
+        txHash: hash
+      };
+      const res = await this.$request({
+        url: '/swap/tx/hash/update',
+        data: params
+      });
     },
     // 转账
     async transfer() {
@@ -393,6 +354,16 @@ export default {
           offset: 30
         });
       }
+    },
+    getOrderList() {
+      const params = {
+        version: '',
+        address: '',
+        chainId: '',
+        offset: 0,
+        limit: '',
+        direct: ''
+      };
     },
     // 稳定币转账
     async stableTransfer(txData, usdtnTransfer = false) {
@@ -616,6 +587,21 @@ export default {
           });
         }
       }
+    },
+    formatBytes32(byte32String) {
+      const strLength = byte32String.length;
+      const differenceLength = strLength - 66;
+      if (differenceLength > 0) {
+        return byte32String.slice(0, 66);
+      } else {
+        return byte32String.padEnd(66, '0');
+      }
+    },
+    formatBytes(str) {
+      if (str.startsWith('0x')) {
+        return str;
+      }
+      return '0x' + str;
     }
   }
 };

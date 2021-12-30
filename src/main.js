@@ -101,6 +101,7 @@ async function getConfig(network) {
             assetId: item.mainAsset.assetId || '',
             decimals: item.mainAsset.decimals || '',
             rpcUrl: item.apiUrl,
+            nativeId: item.nativeId || '',
             // rpcUrl: networkRpc[item.chain],
             origin: networkOrigin[item.chain],
             hashLink: item.txUrl,
@@ -108,8 +109,18 @@ async function getConfig(network) {
           };
         }
       });
-      // console.log(supportChainList, 'supportChainList')
       sessionStorage.setItem('supportChainList', JSON.stringify(supportChainList));
+    }
+    const chains = Object.keys(config);
+    if (!localStorage.getItem('tradeHashMap')) {
+      const tradeHashMap = {};
+      chains.forEach(chain => {
+        tradeHashMap[chain] = [];
+      });
+      localStorage.setItem('tradeHashMap', JSON.stringify(tradeHashMap));
+    }
+    if (!localStorage.getItem('l2HashList')) {
+      localStorage.setItem('l2HashList', JSON.stringify([]));
     }
     sessionStorage.setItem('config', JSON.stringify(config));
   } catch (e) {

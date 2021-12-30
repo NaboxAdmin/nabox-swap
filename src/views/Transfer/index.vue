@@ -255,6 +255,16 @@ export default {
         ...item,
         balance: this.numberFormat(tofix(divisionDecimals(item.balance, item.decimals), 6, -1) || 0, 6)
       }));
+      const tempParams = this.allTransferFeeAssets.map(item => ({
+        chainId: item.chainId,
+        assetId: item.assetId,
+        contractAddress: item.contractAddress
+      }));
+      const tempData = await this.getNerveBatchData(tempParams);
+      for (let i = 0; i < this.allTransferFeeAssets.length; i++) {
+        const asset = this.allTransferFeeAssets[i];
+        this.allTransferFeeAssets[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
+      }
       this.currentFeeAsset = this.allTransferFeeAssets.find(asset => mainAsset.symbol === asset.symbol);
       this.transferFeeAssets = this.allTransferFeeAssets.filter(item => item.registerChain !== this.currentFeeChain && item.registerChain !== 'NULS'); // 主资产信息
     },
@@ -297,25 +307,25 @@ export default {
         // this.availableLoading = true;
         const tempNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
         const data = {
-          fromChain: this.toNerve ? this.fromNetwork : 'NERVE',
+          chain: this.toNerve ? this.fromNetwork : 'NERVE',
           toChain: this.toNerve ? 'NERVE' : this.fromNetwork,
-          address: this.toNerve ? this.fromAddress : this.nerveAddress
+          cross: true
+          // address: this.toNerve ? this.fromAddress : this.nerveAddress
         };
+        if (this.toNerve) {
+          delete data['toChain'];
+        }
         const res = await this.$request({
-          url: '/swap/cross/assets',
+          url: '/asset/query/chain',
           data
         });
         if (res.code === 1000 && res.data) {
-          // const tempList = res.data.map(asset => ({
-          //   ...asset,
-          //   userBalance: this.numberFormat(tofix(divisionDecimals(asset.balance, asset.decimals), 6, -1) || 0, 6)
-          // }));
           const tempList = res.data.map(asset => ({
             ...asset,
             showBalanceLoading: true
           }));
           this.transferAssets = [...tempList];
-          if (this.toNerve) {
+          if (this.toNerve && this.fromNetwork !== 'NULS') {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
             const fromAddress = this.currentAccount['address'][this.fromNetwork];
@@ -335,6 +345,22 @@ export default {
                 }
               });
             });
+          } else if (this.toNerve && this.fromNetwork === 'NULS') {
+            const tempParams = this.transferAssets.map(item => ({
+              chainId: item.chainId,
+              assetId: item.assetId,
+              contractAddress: item.contractAddress || ''
+            }));
+            const res = await this.getNulsBatchData(tempParams);
+            console.log(res, '12321');
+            if (res.length > 0) {
+              this.transferAssets.forEach((asset, index) => {
+                res.result.forEach(() => {
+                  this.transferAssets[index].balance = res.result[index].balance && tofix(divisionDecimals(res.result[index].balance, asset.decimals), 6, -1) || 0;
+                  this.transferAssets[index].showBalanceLoading = false;
+                });
+              });
+            }
           } else {
             const tempParams = this.transferAssets.map(item => ({
               chainId: item.chainId,
@@ -599,6 +625,7 @@ export default {
       const tempNetwork = this.toNerve ? this.fromNetwork : this.currentFeeChain;
       // const fromChainInfo = !this.toNerve && this.storeAccountInfo.filter(v => v.chain === tempNetwork)[0];
       // const fromChainBalance = !this.toNerve && divisionDecimals(fromChainInfo.balance, fromChainInfo.decimals);
+      console.log(this.currentFeeAsset, 'currentFeeAsset');
       const feeChainBalance = !this.toNerve && this.currentFeeAsset.balance || 0;
       if (this.toNerve) {
         if (isMainAsset) {
@@ -961,16 +988,24 @@ export default {
         } else {
           if (res) {
             this.txHex = res.raw;
-            broadcastData.txHash = res.hash;
+            // broadcastData.txHash = res.hash;
             if (res.hash) {
+            //   this.$message({
+            //     message: this.$t('tips.tips10'),
+            //     type: 'success',
+            //     offset: 30
+            //   });
+              this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
+                duration: 2000,
                 offset: 30
               });
+              this.reset();
               this.transferLoading = false;
               this.reset();
-              await this.broadcastToNerveHex(broadcastData);
+              // await this.broadcastToNerveHex(broadcastData);
             } else {
               throw this.$t('tips.tips15');
             }
@@ -989,23 +1024,28 @@ export default {
     },
     // 广播nerve跨链转出交易
     async broadcastHex(data) {
-      const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress } = data;
-      const params = {
-        fromChain,
-        toChain,
-        assetId,
-        chainId,
-        amount,
-        contractAddress,
-        fromAddress,
-        toAddress,
-        txHex: this.txHex
-      };
-      const res = await this.$request({
-        url: '/swap/cross',
-        data: params
-      });
-      if (res.code === 1000 && res.data) {
+      // const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress } = data;
+      // const params = {
+      //   fromChain,
+      //   toChain,
+      //   assetId,
+      //   chainId,
+      //   amount,
+      //   contractAddress,
+      //   fromAddress,
+      //   toAddress,
+      //   txHex: this.txHex
+      // };
+      // const res = await this.$request({
+      //   url: '/swap/cross',
+      //   data: params
+      // });
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const url = config['NERVE'].apiUrl;
+      const chainId = config['NERVE'].chainId;
+      const res = await this.$post(url, 'broadcastTx', [chainId, this.txHex]);
+      if (res.result && res.result.hash) {
+        this.formatArrayLength('NERVE', { type: 'L2', userAddress: this.fromAddress, chain: 'NERVE', isPure: false, txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',
@@ -1054,6 +1094,7 @@ export default {
           this.fromAddress
         );
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',

@@ -86,8 +86,8 @@ export default {
     superLong(str, len = 5) {
       return superLong(str, len);
     },
-    formatTime(time) {
-      const date = new Date(time.replace(/-/g, '/')); // 兼容iOS
+    formatTime(time, isTime = true) {
+      const date = new Date(isTime ? time.replace(/-/g, '/') : time); // 兼容iOS
       const months = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1;
       const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
       const hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
@@ -185,6 +185,42 @@ export default {
       } else {
         return [];
       }
+    },
+    formatArrayLength(chain, data) {
+      console.log('123131314343');
+      const tradeHashList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
+      const l1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[chain] || [];
+      const l2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const tradeHashMap = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'));
+      const l1Length = l1HashList.length;
+      const l2Length = l2HashList.length;
+      let tempArr = [...l1HashList];
+      let tempL2Arr = [...l2HashList];
+      console.log(data, 'datatata');
+      if (data.type === 'L1') {
+        if (l1Length < 100) {
+          tempArr.unshift(data);
+        } else {
+          tempArr = tempArr.slice(0, 99);
+          tempArr.unshift(data);
+        }
+      } else {
+        if (l2Length < 100) {
+          tempL2Arr.unshift(data);
+        } else {
+          tempL2Arr = tempL2Arr.slice(0, 99);
+          tempL2Arr.unshift(data);
+        }
+      }
+      // console.log(tempArr, 'tempArr');
+      const tempTradeHashList = {
+        ...tradeHashMap
+      };
+      console.log(tempTradeHashList[chain]);
+      tempTradeHashList[chain] = [...tempArr];
+      console.log(tempTradeHashList, 'tempTradeHashList');
+      localStorage.setItem('l2HashList', JSON.stringify(tempL2Arr));
+      localStorage.setItem('tradeHashMap', JSON.stringify(tempTradeHashList));
     }
   }
 };

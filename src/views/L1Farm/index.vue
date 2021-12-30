@@ -217,8 +217,8 @@ export default {
           this.currentFarmHash,
           this.currentAccount.address.Ethereum
         );
-        console.log(res, res.hash, 'hash 123123');
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',
@@ -361,6 +361,7 @@ export default {
         item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
         const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
+        console.log(tokens[3].pendingToken, divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals).toString(), 'tokens[3].pendingToken');
         return {
           ...item,
           stakedAsset,
@@ -425,15 +426,24 @@ export default {
         } else {
           res = await contracts.deposit(pid, amount);
         }
-        console.log(res, res.hash, 'hash 123123');
+        // TODO:前端保存交易记录
         if (res.hash) {
-          await this.broadcastHex({ txHex: '', txHash: res.hash, amount });
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+          this.$message({
+            message: this.$t('tips.tips10'),
+            type: 'success',
+            duration: 2000,
+            offset: 30
+          });
+          this.reset();
+          this.showLoading = false;
           this.showPop = false;
         } else {
           this.$message({
             message: res.message || res,
             offset: 30,
-            type: 'warning' });
+            type: 'warning'
+          });
         }
       } catch (e) {
         console.log(e);
@@ -463,82 +473,6 @@ export default {
         this.timer = null;
       }
     },
-    // 广播nerve nuls跨链转账交易
-    async broadcastHex({ txHex, txHash, amount }) {
-      const isPledge = this.vaultsType === 'increase'; // 是否为质押
-      const { chainId: tempChainId, assetId, contractAddress, decimals } = isPledge ? this.assetsItem : this.assetsItem.syrupAsset;
-      const params = {
-        chain: this.currentFarm.chain,
-        address: this.currentAccount.address[this.currentFarm.chain],
-        type: isPledge ? 3 : 4, // 3质押 4撤出质押
-        chainId: tempChainId,
-        assetId: assetId,
-        contractAddress: contractAddress || '',
-        amount: amount || timesDecimals(this.lpCount, decimals),
-        txHash
-      };
-      const config = JSON.parse(sessionStorage.getItem('config'));
-      const url = config[this.currentFarm.chain].apiUrl;
-      const chainId = config[this.currentFarm.chain].chainId;
-      console.log(txHex, '---txHex---');
-      if (txHex) {
-        const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-        if (res.result && res.result.hash) {
-          // console.log(res.result.hash, "res.result.hashres.result.hash");
-          params.txHash = res.result.hash;
-          const result = await this.$request({
-            url: '/swap/vaults/add',
-            data: params
-          });
-          if (result.code === 1000) {
-            this.$message({
-              message: this.$t('tips.tips10'),
-              type: 'success', duration: 2000,
-              offset: 30
-            });
-          } else {
-            this.$message({
-              message: this.$t('tips.tips15'),
-              type: 'warning',
-              offset: 30,
-              duration: 2000
-            });
-          }
-          this.reset();
-          this.showLoading = false;
-        } else {
-          console.error(res.error);
-          this.$message({
-            message: this.$t('tips.tips15'),
-            offset: 30,
-            type: 'warning'
-          });
-          this.reset();
-        }
-      } else {
-        const result = await this.$request({
-          url: '/swap/vaults/add',
-          data: params
-        });
-        if (result.code === 1000) {
-          this.$message({
-            message: this.$t('tips.tips10'),
-            type: 'success',
-            offset: 30,
-            duration: 2000
-          });
-        } else {
-          this.$message({
-            message: this.$t('tips.tips15'),
-            type: 'warning',
-            offset: 30,
-            duration: 2000
-          });
-        }
-        this.reset();
-        this.showLoading = false;
-      }
-    },
     // 获取领取的资产是否需要授权
     async getReceiveAuth(syrupAsset, farmHash) {
       const transfer = new ETransfer();
@@ -561,8 +495,8 @@ export default {
           farmHash,
           this.currentAccount.address.Ethereum
         );
-        console.log(res, res.hash, 'hash 123123');
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',

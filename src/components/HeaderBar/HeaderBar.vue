@@ -97,9 +97,9 @@
             </div>
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
-            <span :class="{'active': orderType === 3}" class="cursor-pointer" @click="getOrderList(fromAddress)">Swap{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
-            <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxOrderList(fromAddress)">L1{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
-            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>
+            <span :class="{'active': orderType === 3}" class="cursor-pointer" @click="getOrderList(fromAddress)">{{ $t('tips.tips33') }}</span>
+            <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
+            <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
           </div>
           <div class="customer-p pt-1">
             <div v-loading="orderLoading" class="order-list mt-3">
@@ -110,18 +110,24 @@
                   class="d-flex align-items-center mb-3 cursor-pointer space-between"
                   @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">
                   <template>
-                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ item.type === 2 ? $t("popUp.popUp3") : $t("popUp.popUp4") }}</span>
-                    <span v-else-if="orderType===2" class="w-240 text-primary flex-1">
-                      {{ item.type === 1 ? $t("popUp.popUp1") + 'L2' : item.type === 2 ? $t("popUp.popUp2") + 'L2' : item.type===3 ? $t("popUp.popUp7") : item.type===4 ? $t("popUp.popUp6") : item.type === 5 ? $t("popUp.popUp8") : "" }}
+                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ $t("navBar.navBar5") }}</span>
+                    <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">
+                      <span class="mr-1 m-width">{{ superLong(item.txHash) }}</span>
+                      <span class="sign">{{ item.type }}</span>
                     </span>
-                    <span v-else class="w-240 text-primary flex-1">{{ superLong(item.txHash) }}</span>
                   </template>
                   <span>{{ item.createTime }}</span>
                   <span class="status-icon">
                     <!--swap订单-->
-                    <i v-if="orderType === 3 && item.status !== 5 && item.status !== 4" class="el-icon-loading" style="color: #6EB6A9"/>
+                    <!--<i v-if="orderType === 3 && item.status !== 5 && item.status !== 4" class="el-icon-loading" style="color: #6EB6A9"/>
                     <i v-else-if="orderType === 3 && item.status === 4" class="el-icon-success" style="color: #6EB6A9"/>
-                    <i v-else-if="orderType === 3 && item.status === 5" class="el-icon-error" style="color: #eb7d62"/>
+                    <i v-else-if="orderType === 3 && item.status === 5" class="el-icon-error" style="color: #eb7d62"/>-->
+                    <!--iswap订单-->
+                    <template>
+                      <i v-if="orderType === 3 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 3 && item.status < 3" class="el-icon-loading" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 3 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
+                    </template>
                     <!--L1网络订单-->
                     <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
                     <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>
@@ -132,7 +138,7 @@
                     <i v-if="orderType === 2 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>
                   </span>
                 </div>
-                <div v-if="orderList.length === 0" class="text-center size-28 mb-3">No Data</div>
+                <div v-if="orderList.length === 0" class="text-center size-28 mb-3">{{ $t('modal.modal3') }}</div>
               </div>
             </div>
           </div>
@@ -147,6 +153,10 @@ import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
 import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
+import { sendRequest } from '@/network/cancelRequest';
+import { ISWAP_VERSION } from '../../views/Swap/util/swapConfig';
+import ISwap from '../../views/Swap/util/iSwap';
+import { MAIN_INFO } from '../../config';
 
 // eslint-disable-next-line no-unused-vars
 const lang = localStorage.getItem('locale') || 'cn';
@@ -185,7 +195,8 @@ export default {
       currentChainSymbol: '',
       nerveChainSymbol: '',
       currentChainAvailable: 0,
-      nerveChainAvailable: 0
+      nerveChainAvailable: 0,
+      commonOrderList: [] // 普通交易
     };
   },
   computed: {
@@ -264,9 +275,9 @@ export default {
         this.$store.commit('changeNetwork', val);
       }
     },
-    orderType(val) {
-      this.orderList = [];
-    },
+    // orderType(val) {
+    //   this.orderList = [];
+    // },
     currentChainAsset: {
       immediate: true,
       deep: true,
@@ -290,7 +301,7 @@ export default {
     this.fromAddress && this.getOrderStatus(this.fromAddress);
     this.statusTimer = setInterval(() => {
       this.fromAddress && this.getOrderStatus(this.fromAddress);
-    }, 15000);
+    }, 10000);
   },
   mounted() {
     window.addEventListener('click', () => {
@@ -374,6 +385,17 @@ export default {
         });
       }
     },
+    // 获取普通交易列表
+    getTxList(switchType = true) {
+      this.orderType = switchType && 1;
+      this.orderLoading = false;
+      const tempL1List = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[this.fromNetwork] || [];
+      const tempL2List = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const allList = tempL1List.concat(tempL2List).filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
+      this.orderList = [...(allList.sort((a, b) => b.createTimes - a.createTimes) || [])];
+      // this.getTxStatus();
+      // console.log(this.orderList.length, 'this.orderList');
+    },
     // 获取异构链交易信息
     async getTxOrderList(val) {
       this.flag = true;
@@ -399,44 +421,111 @@ export default {
     },
     // 获取swap订单列表
     async getOrderList(val) {
-      this.flag = true;
-      this.orderLoading = true;
-      this.orderType = 3;
-      const params = {
-        address: val
-      };
-      const res = await this.$request({
-        url: '/swap/get/list',
-        data: params
-      });
-      if (res.code === 1000) {
-        this.orderList = res.data.map(item => {
-          return {
-            ...item,
-            createTime: this.formatTime(item.createTime)
-          };
+      try {
+        this.orderList = [];
+        this.flag = true;
+        this.orderLoading = true;
+        this.orderType = 3;
+        const params = {
+          address: val,
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/tx/query',
+          data: params
         });
+        if (res.code === 1000) {
+          this.orderList = res.data.map(item => {
+            return {
+              ...item,
+              createTime: this.formatTime(item.createTime)
+            };
+          });
+        }
+        this.orderLoading = false;
+      } catch (e) {
+        console.log(e, 'error');
+        this.orderLoading = false;
       }
-      this.orderLoading = false;
     },
     async getOrderStatus(val) {
-      this.flag = true;
-      const params = {
-        address: val
-      };
-      const res = await this.$request({
-        url: '/swap/get/list',
-        data: params
-      });
-      if (res.code === 1000 && res.data) {
-        if (res.data.length > 0) {
-          this.showLoading = res.data.some(item => item.status < 4);
+      try {
+        console.log('==getOrderStatus==');
+        const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
+        const tempList = commonTxList.filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
+        let swapTxList; // 获取当前订单的状态
+        const params = {
+          address: val,
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/tx/query',
+          data: params
+        });
+        if (res.code === 1000) {
+          swapTxList = res.data;
         } else {
-          this.showLoading = false;
+          swapTxList = [];
         }
-      } else {
-        this.showLoading = false;
+        this.showLoading = tempList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
+      } catch (e) {
+        console.log(e);
       }
+    },
+    async getTxStatus() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const tradeHashMap = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'));
+      const tempL1List = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[this.fromNetwork] || [];
+      const tempL2List = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const allList = tempL1List.concat(tempL2List);
+      const txList = [...(allList.sort((a, b) => b.balance - a.balance) || [])];
+      // const tempList = txList.filter(item => item.status === 0 && item.userAddress === this.fromAddress);
+      const l1Url = config && config[this.fromNetwork].apiUrl;
+      const l2Url = config && config['NERVE'].apiUrl;
+      if (txList.length !== 0) {
+        const tempTxList = await Promise.all(txList.map(async tx => {
+          if (tx.type === 'L1' && tx.status === 0) {
+            const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
+            if (res && res.result) {
+              return {
+                ...tx,
+                status: res.result.status === '0x1' ? 1 : -1
+              };
+            }
+          } else if (tx.type === 'L2' && tx.status === 0 && !tx.isPure) {
+            const params = [MAIN_INFO.chainId, tx.txHash];
+            const res = await this.$post(l2Url, 'getTx', params);
+            const heterogeneousRes = await this.$post(l2Url, 'findByWithdrawalTxHash', params);
+            if (res && res.result && heterogeneousRes && heterogeneousRes.result) {
+              return {
+                ...tx,
+                status: res.result.status == '1' ? 1 : -1
+              };
+            }
+          } else if (tx.type === 'L2' && tx.status === 0 && tx.isPure) {
+            const params = [MAIN_INFO.chainId, tx.txHash];
+            const res = await this.$post(l2Url, 'getTx', params);
+            if (res && res.result) {
+              return {
+                ...tx,
+                status: res.result.status == '1' ? 1 : -1
+              };
+            }
+          }
+          return { ...tx };
+        }));
+        const formatL1List = tempTxList.filter(item => item.type === 'L1');
+        const formatL2List = tempTxList.filter(item => item.type === 'L2');
+        const formatTradeHashMap = {
+          ...tradeHashMap
+        };
+        formatTradeHashMap[this.fromNetwork] = formatL1List;
+        localStorage.setItem('l2HashList', JSON.stringify(formatL2List));
+        localStorage.setItem('tradeHashMap', JSON.stringify(formatTradeHashMap));
+        this.orderType === 1 && this.getTxList();
+        return tempTxList;
+      }
+      return [];
     },
     // 获取L2订单列表
     async getL2OrderList() {
@@ -462,8 +551,8 @@ export default {
     },
     // 跳转查看当前的交易详情
     linkToUrl(hash, item) {
-      if (this.orderType === 2 || this.orderType === 1) {
-        const chain = this.orderType === 2 ? 'NERVE' : this.currentChain;
+      if (this.orderType === 1) {
+        const chain = item.type === 'L2' ? 'NERVE' : this.currentChain;
         this.isMobile ? window.location.href = `${this.hashLinkList[chain]}${hash}` : window.open(`${this.hashLinkList[chain]}${hash}`);
       } else {
         this.toOrderDetail(item);
@@ -471,7 +560,7 @@ export default {
     },
     // 订单详情
     toOrderDetail(item) {
-      this.$router.push({ path: '/orderDetail', query: { txHash: item.txHash }});
+      this.$router.push({ path: '/orderDetail', query: { orderId: item.orderId }});
     },
     swapClick() {
       this.$emit('swapClick');
@@ -543,5 +632,18 @@ export default {
 @import "HeaderBar.scss";
 .bg-f0 {
   background-color: #F0F7F7 !important;
+}
+.m-width {
+  min-width: 230px;
+}
+.sign {
+  font-size: 10px;
+  //margin-left: 13px;
+  padding: 1px 11px;
+  background: #E7F2F0;
+  border-radius: 4px;
+  text-align: center;
+  //line-height: 26px;
+  color: #6EB6A9;
 }
 </style>

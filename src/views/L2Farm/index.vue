@@ -229,57 +229,50 @@ export default {
     async harvestReward({ farmHash, farm, candyLock }) {
       // console.log(farm, 'farm')
       this.vaultsType = 'decrease';
-      if (farm.chain !== 'NERVE') {
-        this.currentFarm = farm;
-        this.currentFarmHash = farmHash;
+      try {
+        this.showLoading = true;
         this.assetsItem = farm;
-        await this.LPOperation(2, '0', 'receive');
-      } else {
-        try {
-          this.showLoading = true;
-          this.assetsItem = farm;
-          this.currentFarm = farm;
-          const { chainId, assetId } = farm.syrupToken;
-          const transferInfo = {
-            from: this.nerveAddress,
-            to: this.nerveAddress,
-            assetsChainId: chainId,
-            assetsId: assetId,
-            amount: 0,
-            fee: 0
-          };
-          const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
-          const fromAddress = this.nerveAddress;
-          const token = nerve.swap.token(chainId, assetId);
-          const farmHash = farm.farmKey || '';
-          const amount = 0;
-          const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
-          const tAssemble = nerve.deserializationTx(tempTxData.hex);
-          const data = {
-            tAssemble,
-            inputs: inputs,
-            outputs: outputs,
-            txData: {},
-            pub: this.currentAccount.pub,
-            signAddress: this.currentAccount.address.Ethereum
-          };
-          const txHex = await transfer.getTxHex(data);
-          if (txHex) {
-            await this.broadcastHex({ txHex, txHash: '', amount: '0' });
-            await this.getFarmInfo(true, true);
-            this.showLoading = false;
-          }
-        } catch (e) {
-          console.log(e);
-          this.$message({
-            type: 'warning',
-            message: e.message || e,
-            offset: 30,
-            customClass: 'messageClass'
-          });
+        this.currentFarm = farm;
+        const { chainId, assetId } = farm.syrupToken;
+        const transferInfo = {
+          from: this.nerveAddress,
+          to: this.nerveAddress,
+          assetsChainId: chainId,
+          assetsId: assetId,
+          amount: 0,
+          fee: 0
+        };
+        const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
+        const fromAddress = this.nerveAddress;
+        const token = nerve.swap.token(chainId, assetId);
+        const farmHash = farm.farmKey || '';
+        const amount = 0;
+        const tempTxData = await nerve.swap.farmWithdraw(fromAddress, token, amount, farmHash, '');
+        const tAssemble = nerve.deserializationTx(tempTxData.hex);
+        const data = {
+          tAssemble,
+          inputs: inputs,
+          outputs: outputs,
+          txData: {},
+          pub: this.currentAccount.pub,
+          signAddress: this.currentAccount.address.Ethereum
+        };
+        const txHex = await transfer.getTxHex(data);
+        if (txHex) {
+          await this.broadcastHex({ txHex, txHash: '', amount: '0' });
+          await this.getFarmInfo(true, true);
           this.showLoading = false;
-          this.showPop = false;
         }
+      } catch (e) {
+        console.log(e);
+        this.$message({
+          type: 'warning',
+          message: e.message || e,
+          offset: 30,
+          customClass: 'messageClass'
+        });
+        this.showLoading = false;
+        this.showPop = false;
       }
     },
     // 最大
@@ -413,77 +406,14 @@ export default {
       if (!this.lpCount || this.lpCount === '0' || this.amountMsg) return false;
       switch (this.vaultsType) {
         case 'decrease':
-          if (this.assetsItem.chain === 'NERVE') {
-            await this.decreaseClick();
-          } else {
-            await this.LPOperation(1, this.lpCount, 'withdraw');
-          }
+          await this.decreaseClick();
           break;
         case 'increase':
-          if (this.assetsItem.chain === 'NERVE') {
-            await this.increaseClick();
-          } else {
-            await this.LPOperation(0, this.lpCount, 'add');
-          }
+          await this.increaseClick();
           break;
         default:
           return false;
       }
-    },
-    // 合约farm 添加 - 0、减少 - 1 lp, 领取收益 -2
-    async LPOperation(type, value, option) {
-      this.showLoading = true;
-      try {
-        let stakeTokenDecimals;
-        const transfer = new ETransfer();
-        switch (option) {
-          case 'add':
-            stakeTokenDecimals = this.assetsItem.decimals;
-            break;
-          case 'withdraw':
-            stakeTokenDecimals = this.assetsItem.stakedAsset.decimals;
-            break;
-          case 'receive':
-            stakeTokenDecimals = this.assetsItem.syrupAsset.decimals;
-            break;
-        }
-        // const { decimals: stakeTokenDecimals } = this.vaultsType === "increase" ? this.assetsItem : this.assetsItem.syrupAsset;
-        const wallet = transfer.provider.getSigner();
-        const contracts = new ethers.Contract(this.currentFarmHash, txAbi, wallet);
-        let res;
-        const amount = timesDecimals(value, stakeTokenDecimals);
-        const pid = this.currentFarm.pid || 0;
-        if (type === 0) {
-          res = await contracts.deposit(pid, amount);
-        } else if (type === 1) {
-          res = await contracts.withdraw(pid, amount);
-        } else {
-          res = await contracts.deposit(pid, amount);
-        }
-        if (res.hash) {
-          await this.broadcastHex({ txHex: '', txHash: res.hash, amount });
-          this.showPop = false;
-        } else {
-          this.$message({
-            message: res.message || res,
-            offset: 30,
-            type: 'warning' });
-        }
-      } catch (e) {
-        console.log(e);
-        this.reset();
-        this.showLoading = false;
-        this.showPop = false;
-        this.$message({
-          message: e.message || e,
-          offset: 30,
-          type: 'warning'
-        });
-      }
-    },
-    // 完成解锁
-    confirmUnlocked() {
-      console.log('完成解锁');
     },
     // nerve加入矿池
     async increaseClick() {
@@ -594,30 +524,19 @@ export default {
     },
     // 广播nerve nuls跨链转账交易
     async broadcastHex({ txHex, txHash, amount }) {
-      const isPledge = this.vaultsType === 'increase'; // 是否为质押
-      const { chainId: tempChainId, assetId, contractAddress, decimals } = isPledge ? this.assetsItem : this.assetsItem.syrupAsset;
-      const params = {
-        chain: this.currentFarm.chain,
-        address: this.currentAccount.address[this.currentFarm.chain],
-        type: isPledge ? 3 : 4, // 3质押 4撤出质押
-        chainId: tempChainId,
-        assetId: assetId,
-        contractAddress: contractAddress || '',
-        amount: amount || timesDecimals(this.lpCount, decimals),
-        txHash
-      };
       const config = JSON.parse(sessionStorage.getItem('config'));
-      const url = config[this.currentFarm.chain].apiUrl;
-      const chainId = config[this.currentFarm.chain].chainId;
+      const url = config['NERVE'].apiUrl;
+      const chainId = config['NERVE'].chainId;
       console.log(txHex, '---txHex---');
       if (txHex) {
         const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
         // TODO:前端保存交易记录
         if (res.result && res.result.hash) {
-          this.formatArrayLength({ type: 'L2', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false) });
+          this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips10'),
-            type: 'success', duration: 2000,
+            type: 'success',
+            duration: 2000,
             offset: 30
           });
           this.reset();
@@ -630,29 +549,8 @@ export default {
             type: 'warning'
           });
           this.reset();
+          this.showLoading = false;
         }
-      } else {
-        const result = await this.$request({
-          url: '/swap/vaults/add',
-          data: params
-        });
-        if (result.code === 1000) {
-          this.$message({
-            message: this.$t('tips.tips10'),
-            type: 'success',
-            offset: 30,
-            duration: 2000
-          });
-        } else {
-          this.$message({
-            message: this.$t('tips.tips15'),
-            type: 'warning',
-            offset: 30,
-            duration: 2000
-          });
-        }
-        this.reset();
-        this.showLoading = false;
       }
     },
     // 质押资产授权
@@ -669,6 +567,7 @@ export default {
           this.currentAccount.address.Ethereum
         );
         if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',

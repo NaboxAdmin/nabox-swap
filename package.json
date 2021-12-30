@@ -29,6 +29,7 @@
     "nuls-sdk-js": "^2.4.8",
     "postcss-px2rem-exclude": "^0.0.6",
     "qrcodejs2": "^0.0.2",
+    "qs": "^6.10.2",
     "shelljs": "^0.8.3",
     "vant": "^2.7.1",
     "vue": "^2.6.11",
