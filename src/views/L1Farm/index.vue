@@ -361,7 +361,6 @@ export default {
         item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
         const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
         const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
-        console.log(tokens[3].pendingToken, divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals).toString(), 'tokens[3].pendingToken');
         return {
           ...item,
           stakedAsset,

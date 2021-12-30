@@ -206,11 +206,8 @@ export default {
     l1ChainList() {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
       const tempList = tempSupportChainList.filter(chain => chain.label !== 'NULS' && chain.label !== 'NERVE');
-      // const tempList = supportChainList;
-      console.log(tempList, 'tempList');
       return tempList.map(chain => ({
         chainId: chain[ETHNET],
-        // rpcUrls: chain.rpcUrl ? [chain.rpcUrl[ETHNET]] : [],
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         icon: chain.icon,
         chainName: chain.value,
