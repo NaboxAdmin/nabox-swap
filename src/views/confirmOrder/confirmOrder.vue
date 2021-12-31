@@ -67,6 +67,7 @@ import ISwap from '../Swap/util/iSwap';
 import { ISWAP_ETH, ISWAP_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
+import Dodo from '../Swap/util/Dodo';
 
 export default {
   name: 'ConfirmOrder',
@@ -111,12 +112,16 @@ export default {
         const { currentChannel } = this.orderInfo;
         switch (currentChannel.channel) {
           case 'ISWAP':
-            this.sendISwapTransaction();
+            await this.sendISwapTransaction();
+            break;
+          case 'DODO':
+            await this.sendDodoTransaction();
             break;
           default:
             return false;
         }
       } catch (e) {
+        this.confirmLoading = false;
         console.log(e, 'error');
       }
     },
@@ -156,7 +161,7 @@ export default {
             amount: timesDecimals(amountIn, fromAsset.decimals || 18),
             fromUser: this.fromAddress,
             toUser: this.fromAddress,
-            gasFee: timesDecimals(currentChannel.outToken.relayerGas, toAsset.decimals || 18),
+            gasFee: timesDecimals(currentChannel.outToken.relayerGas, fromAsset.decimals || 18),
             crossChainFee: timesDecimals(currentChannel.originCrossChainFee, fromAsset.decimals || 18),
             rewardsMin: 0,
             channel: 'ISWAP',
@@ -266,13 +271,39 @@ export default {
         });
       }
     },
+    // 调用合约发送DODO交易
+    async sendDodoTransaction() {
+      try {
+        const dodo = new Dodo();
+        const transactionRes = await dodo.sendDodoTransaction(this.orderInfo);
+        if (transactionRes.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+          this.$message({
+            type: 'success',
+            message: this.$t('tips.tips24'),
+            offset: 30,
+            duration: 1500
+          });
+          this.confirmLoading = false;
+          this.$emit('confirm');
+        }
+      } catch (e) {
+        console.error(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: e.message,
+          offset: 30
+        });
+      }
+    },
     // 记录一次交易hash
     async recordHash(orderId, hash) {
       const params = {
         orderId,
         txHash: hash
       };
-      const res = await this.$request({
+      await this.$request({
         url: '/swap/tx/hash/update',
         data: params
       });
@@ -437,7 +468,7 @@ export default {
     },
     // 同链usdtn兑换
     async broadcastUsdtnTransfer(txHash) {
-      const { fromAsset, toAsset, decimals, fromAmount, address, fromNetwork, currentPlatform } = this.orderInfo;
+      const { fromAsset, toAsset, decimals, fromAmount, address, fromNetwork } = this.orderInfo;
       const fromCoin = {
         chainId: fromAsset.chainId,
         assetId: fromAsset.assetId,

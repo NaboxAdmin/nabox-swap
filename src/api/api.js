@@ -479,8 +479,6 @@ export class NTransfer {
       };
       // console.log(data);
       const nonce = this.chain === 'NERVE' ? await this.getNerveAssetNonce(data) : await this.getNulsAssetNonce(data);
-      // const res = await request({ url: '/wallet/address/asset', data: data });
-      // console.log(res);
       if (nonce) {
         return nonce;
       }
@@ -784,6 +782,7 @@ export class ETransfer {
   // 获取gasLimit
   getGasLimit(tx) {
     return this.provider.estimateGas(tx).then(gasLimit => {
+      console.log(gasLimit, 'gasLimit gasLimit gasLimit');
       // const tempGasLimit = Times(gasLimit.toString(), 1.5).toString();
       const tempGasLimit = gasLimit.mul(15).div(10);
       return tempGasLimit;

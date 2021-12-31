@@ -187,7 +187,6 @@ export default {
     // 选择需要撤出流动性的资产
     selectAsset(asset) {
       this.currentWithdrawAssetInfo = { ...asset };
-      // this.getAssetInfo(asset);
       this.showModal = false;
     },
     // 获取pool流动性信息

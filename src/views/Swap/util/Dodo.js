@@ -1,19 +1,14 @@
 import { sendRequest } from '@/network/cancelRequest';
+import { ETransfer } from '@/api/api';
+import { ethers } from 'ethers';
+
 const dodoBaseUrl = 'https://route-api.dodoex.io/dodoapi';
 
-class Dodo {
+export default class Dodo {
+  constructor() {
+    this.transfer = new ETransfer();
+  }
   async getDodoRoute(params) {
-    const data = {
-      fromTokenAddress: '',
-      fromTokenDecimals: ''
-      toTokenAddress: '',
-      toTokenDecimals: '',
-      fromAmount: '',
-      slippage: '',
-      userAddr: '',
-      chainId: '',
-      rpc: '' // 当前的rpc地址
-    };
     try {
       const res = await sendRequest({
         method: 'get',
@@ -23,11 +18,35 @@ class Dodo {
       });
       if (res.status === 200) {
         return res.data;
-      } else {
-        throw 'Network Error';
       }
+      return null;
     } catch (e) {
-      throw e;
+      console.error(e, 'error');
     }
+  }
+
+  async sendDodoTransaction(orderInfo) {
+    const { fromAsset, amountIn, currentChannel, address: from } = orderInfo;
+    const tempAmountIn = fromAsset.contractAddress ? '0' : amountIn;
+    const amount = ethers.utils.parseEther(tempAmountIn).toHexString();
+    console.log(from, currentChannel.transactionToAddress, amount, currentChannel.transactionData, '123');
+    const transactionParameters = await this.setGasLimit({
+      from,
+      to: currentChannel.transactionToAddress,
+      value: amount,
+      data: currentChannel.transactionData
+    });
+    console.log(transactionParameters, 'transactionParameters');
+    return await this.transfer.sendTransaction(transactionParameters);
+  }
+
+  async setGasLimit(tx) {
+    const gasLimit = await this.transfer.getGasLimit(tx);
+    const tempTx = {
+      ...tx,
+      gasLimit
+    };
+    delete tempTx['from'];
+    return tempTx;
   }
 }

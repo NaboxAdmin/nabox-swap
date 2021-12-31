@@ -131,7 +131,7 @@
               <span v-if="currentChannel && currentChannel.isBest" class="sign size-22 mr-1">{{ $t("swap.swap19") }}</span>
               <span class="d-flex align-items-center cursor-pointer" @click="showPop=true">
                 <span class="coin-icon_small">
-                  <img src="@/assets/image/SwapBox.png" alt="">
+                  <img :src="currentChannel.icon" alt="">
                 </span>{{ currentChannel.channel }}
               </span>
             </span>
@@ -200,7 +200,7 @@
                   <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
                   <div class="d-flex align-items-center">
                     <div class="route-icon">
-                      <img src="@/assets/image/SwapBox.png" alt="">
+                      <img :src="item.icon" alt="">
                     </div>
                     <span class="size-26">{{ item.channel }}</span>
                     <span v-if="item.isBest" class="sign size-22">{{ $t('swap.swap19') }}</span>
@@ -259,6 +259,7 @@ import { ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
 import { ISWAP_VERSION, ISWAP_USDT_CONFIG } from './util/swapConfig';
 import { contractConfig } from './util/swapConfig';
+import Dodo from './util/Dodo';
 
 export const valideNetwork = supportChainList.map(v => {
   return v.SwftChain;
@@ -454,9 +455,16 @@ export default {
       deep: true
     },
     currentChannel: {
-      handler(newVal) {
+      async handler(newVal) {
         if (newVal) {
           console.log(newVal, 'newVal');
+          this.needAuth = false;
+          this.approvingLoading = false;
+          if (newVal.channel === 'ISWAP') {
+            this.chooseFromAsset.contractAddress && await this.checkAssetAuthStatus();
+          } else if (newVal.channel === 'DODO') {
+            newVal.approveAddress && await this.checkAssetAuthStatus();
+          }
           if (newVal.impact > 20) {
             this.btnErrorMsg = this.$t('tips.tips35');
           } else if (newVal.minReceive < 0) {
@@ -474,17 +482,10 @@ export default {
       this.fromContractAddress = this.$route.query.fromContractAddress;
       this.toContractAddress = this.$route.query.toContractAddress;
     }
-    // const transfer = new ETransfer({
-    //   chain: this.fromNetwork
-    // });
-    // // const price = transfer.getGasLimit('210000');
-    //
-    // console.log(transfer.getGasLimit());
     this.iSwap = new ISwap({ chain: this.fromNetwork });
     // this.getUsdtnAssets();
     // setTimeout 0 不然获取不到地址
     setTimeout(() => {
-      // this.getOrderList(this.$store.state.fromAddress);
       this.getSwapAssetList();
     }, 0);
     // this.getLiquidityInfo(); // 获取当前池子的余额
@@ -519,14 +520,13 @@ export default {
       this.slippage = item;
     },
     // 查询异构链token资产授权情况
-    async checkCrossInAuthStatus() {
+    async checkAssetAuthStatus() {
       const transfer = new ETransfer();
-      const config = JSON.parse(sessionStorage.getItem('config'));
-      const multySignAddress = contractConfig[this.fromNetwork];
       const contractAddress = this.chooseFromAsset.contractAddress;
+      const authContractAddress = this.getAuthContractAddress();
       const needAuth = await transfer.getERC20Allowance(
         contractAddress,
-        multySignAddress,
+        authContractAddress,
         this.fromAddress
       );
       this.needAuth = needAuth;
@@ -540,12 +540,11 @@ export default {
       this.showApproveLoading = true;
       try {
         const transfer = new ETransfer();
-        const config = JSON.parse(sessionStorage.getItem('config'));
-        const multySignAddress = contractConfig[this.fromNetwork];
+        const authContractAddress = this.getAuthContractAddress();
         const contractAddress = this.chooseFromAsset.contractAddress;
         const res = await transfer.approveERC20(
           contractAddress,
-          multySignAddress,
+          authContractAddress,
           this.fromAddress
         );
         if (res.hash) {
@@ -582,8 +581,18 @@ export default {
 
     setGetAllowanceTimer() {
       this.getAllowanceTimer = setInterval(() => {
-        this.checkCrossInAuthStatus();
+        this.checkAssetAuthStatus();
       }, 3000);
+    },
+
+    getAuthContractAddress() {
+      let authContractAddress;
+      if (this.currentChannel.channel === 'ISWAP') {
+        authContractAddress = contractConfig[this.fromNetwork];
+      } else if (this.currentChannel.channel === 'DODO') {
+        authContractAddress = this.currentChannel.approveAddress;
+      }
+      return authContractAddress;
     },
 
     async initISwapConfig() {
@@ -624,9 +633,15 @@ export default {
       });
       if (res.code === 1000 && res.data) {
         console.log(res.data, 'channelConfigList');
+        const tempDodoConfig = {
+          channel: 'DODO',
+          swap: true,
+          crossSwap: false,
+          icon: 'https://dodoex.github.io/docs/zh/img/logo.svg'
+        };
         localStorage.setItem('channelConfig', JSON.stringify(res.data));
-        this.orginChannelConfigList = res.data;
-        this.channelConfigList = res.data;
+        this.orginChannelConfigList = res.data.concat([tempDodoConfig]);
+        this.channelConfigList = res.data.concat([tempDodoConfig]);
       }
     },
     // 查询当前支持的usdtn列表
@@ -745,8 +760,10 @@ export default {
           this.chooseFromAsset = coin;
           await this.getBalance(this.chooseFromAsset, true);
           if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
-            this.crossTransaction = true;
+            this.crossTransaction = false;
             this.switchAsset = true;
+          } else {
+            this.crossTransaction = true;
           }
           if (this.chooseToAsset && this.inputType === 'amountIn' && this.amountIn) {
             this.amountOut = '';
@@ -759,7 +776,10 @@ export default {
         case 'receive': // 选择接受资产
           this.chooseToAsset = coin;
           if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.crossTransaction = false;
             this.switchAsset = true;
+          } else {
+            this.crossTransaction = true;
           }
           if (this.chooseFromAsset && this.inputType === 'amountIn' && this.amountIn) {
             this.amountOut = '';
@@ -820,13 +840,6 @@ export default {
         this.balanceLoading = true;
       }
       if (this.$store.state.network === 'NERVE' || this.$store.state.network === 'NULS') {
-        const params = {
-          chain: this.fromNetwork,
-          address: this.fromAddress,
-          chainId: asset.chainId,
-          assetId: asset.assetId,
-          contractAddress: asset.contractAddress
-        };
         this.available = this.$store.state.network === 'NULS' ? await this.getNulsAssetBalance(asset) : await this.getNerveAssetBalance(asset);
       } else {
         try {
@@ -839,12 +852,6 @@ export default {
           } else {
             const tempAvailable = await transfer.getEthBalance(this.fromAddress);
             this.available = tempAvailable && tofix(tempAvailable, 6, -1);
-          }
-          // todo：验证授权权限
-          if (asset.assetId === 0) {
-            await this.checkCrossInAuthStatus();
-          } else {
-            this.needAuth = false;
           }
         } catch (e) {
           console.log(e, 'error');
@@ -894,7 +901,7 @@ export default {
       });
     },
     checkBalance() {
-      const { amountIn, available, limitMin, limitMax, chooseFromAsset } = this;
+      const { amountIn, available, chooseFromAsset } = this;
       if (Minus(amountIn, available) > 0) {
         this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
         return false;
@@ -946,9 +953,9 @@ export default {
             if (currentConfig) {
               return {
                 ...currentConfig,
-                icon: item.icon || '',
+                icon: item.icon || 'https://www.iswap.com/favicon.svg',
                 iSwapConfig: currentConfig,
-                minReceive: isCross ? tofix(Times(currentConfig.outToken.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '0.5'), 100)), this.chooseToAsset.decimals, -1) : tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '0.5'), 100)), this.chooseToAsset.decimals, -1), // 最低收到
+                minReceive: isCross ? tofix(Times(currentConfig.outToken.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1) : tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1), // 最低收到
                 mostSold: isCross ? currentConfig.inToken.amount : currentConfig.amount, // 最多卖出
                 amount: isCross ? currentConfig.inToken.amount : currentConfig.amount,
                 crossChainFee: isCross ? this.numberFormat(tofix(currentConfig.inToken.feeAmount, 4, -1), 4) : 0, // 跨链手续费
@@ -965,12 +972,30 @@ export default {
             }
             return null;
           } else if (item.channel === 'DODO') {
-            currentConfig = {};
+            currentConfig = await this.getDodoSwapRoute();
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                amount: this.amountIn,
+                channel: item.channel,
+                amountOut: currentConfig.resAmount,
+                minReceive: tofix(Times(currentConfig.resAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+                impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
+                isBest: false,
+                isCurrent: false,
+                swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.resAmount),
+                approveAddress: currentConfig.targetApproveAddr || '',
+                transactionData: currentConfig.data,
+                transactionToAddress: currentConfig.to
+              };
+            }
+            return null;
           }
           return null;
         }));
         this.showComputedLoading = false;
-        return this.getBestPlatform(tempChannelConfig);
+        console.log(tempChannelConfig, 'tempChannelConfig');
+        return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
         console.log(e.message, 'error');
         if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
@@ -984,7 +1009,6 @@ export default {
     },
     // 获取iSwap费率信息
     async getEstimateFeeInfo() {
-      // TODO: 部分资产返回的decimals字段有问题
       const feeInfoParams = {
         inToken: {
           amount: this.inputType === 'amountIn' ? this.amountIn : '',
@@ -1031,7 +1055,6 @@ export default {
       const { symbol, nativeId } = token;
       const iSwapConfig = JSON.parse(localStorage.getItem('iSwapConfig'));
       const dexInfo = iSwapConfig[nativeId];
-      console.log(dexInfo, 'dexInfo');
       const dexToken = dexInfo['token'];
       if (type === 'in') {
         const dexName = dexToken[symbol];
@@ -1048,9 +1071,23 @@ export default {
       }
     },
     // 获取DODO费率信息
-    // getDodoSwapRoute() {
-    //
-    // },
+    async getDodoSwapRoute() {
+      const supportChainList = JSON.parse(sessionStorage.getItem('supportChainList'));
+      const rpc = supportChainList.find(item => item.chain === this.fromNetwork).apiUrl;
+      const data = {
+        fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        fromTokenDecimals: this.chooseFromAsset.decimals || 18,
+        toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        toTokenDecimals: this.chooseToAsset.decimals || 18,
+        fromAmount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals),
+        slippage: this.slippage,
+        userAddr: this.fromAddress,
+        chainId: this.chooseFromAsset.nativeId || '',
+        rpc // 当前的rpc地址
+      };
+      const dodo = new Dodo();
+      return await dodo.getDodoRoute(data);
+    },
     // 最大
     async maxAmount() {
       if (!this.available || this.available == 0) return false;
@@ -1119,8 +1156,13 @@ export default {
     // 选择最优路径
     routeClick(platform) {
       this.currentChannel = platform;
-      for (const item of this.platformList) {
-        item.isChoose = item.platform === platform.platform;
+      for (const item of this.channelConfigList) {
+        item.isChoose = item.channel === platform.channel;
+      }
+      if (this.inputType === 'amountIn') {
+        this.amountOut = this.currentChannel.amountOut;
+      } else {
+        this.amountIn = this.currentChannel.amount;
       }
       this.showPop = false;
     },
@@ -1161,14 +1203,13 @@ export default {
       this.amountMsg = '';
       const tempFromAsset = { ...this.chooseFromAsset };
       const tempToAsset = { ...this.chooseToAsset };
-      const tempToAmount = this.toAmount;
-      const tempFromAmount = this.fromAmount;
       this.chooseToAsset = { ...tempFromAsset };
       this.chooseFromAsset = { ...tempToAsset };
+      console.log(this.crossTransaction, 'crossTransaction');
       this.currentChannel = null;
-      this.inputType == 'amountIn' ? this.amountOut = '' : this.amountIn = '';
+      this.inputType === 'amountIn' ? this.amountOut = '' : this.amountIn = '';
       await this.getBalance(this.chooseFromAsset, true);
-      if (this.inputType == 'amountIn') {
+      if (this.inputType === 'amountIn') {
         await this.amountInInput();
       } else {
         await this.amountOutInput();

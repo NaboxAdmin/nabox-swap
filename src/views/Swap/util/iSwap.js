@@ -44,8 +44,7 @@ export default class ISwap {
       });
       return dexConfig;
     }
-    const tempConfiig = localStorage.getItem('iSwapConfig') && JSON.parse(localStorage.getItem('iSwapConfig')) || [];
-    return tempConfiig;
+    return localStorage.getItem('iSwapConfig') && JSON.parse(localStorage.getItem('iSwapConfig')) || [];
   }
   // 获取iSwap限额信息
   async getTradeLimit(params) {
@@ -188,7 +187,7 @@ export default class ISwap {
     return await this.transfer.sendTransaction(transactionParameters);
   }
   async _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo, orderInfo) {
-    console.log('==ETH->token==');
+    console.log('==cross: ETH->token==');
     const amount = ethers.utils.parseEther(orderInfo.amountIn).toHexString();
     const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
     const data = iface.functions.swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
