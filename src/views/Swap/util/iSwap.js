@@ -202,6 +202,8 @@ export default class ISwap {
 
   async setGasLimit(tx) {
     const gasLimit = await this.transfer.getGasLimit(tx);
+    const gasPrice = await this.transfer.getGasPrice(gasLimit);
+    console.log(gasPrice, 'gasPrice gasPrice gasPrice');
     const tempTx = {
       ...tx,
       gasLimit

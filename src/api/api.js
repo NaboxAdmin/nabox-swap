@@ -1,8 +1,8 @@
 import nuls from 'nuls-sdk-js';
 import nerve from 'nerve-sdk-js';
 import { ethers } from 'ethers';
-import { Plus, htmlEncode, timesDecimals, Minus, divisionDecimals, Times } from './util';
-import { request, post } from '../network/http';
+import { htmlEncode, Minus, Plus, timesDecimals } from './util';
+import { post, request } from '../network/http';
 import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import { getCurrentAccount } from '@/api/util';
 import BufferReader from 'nerve-sdk-js/lib/utils/bufferreader';
@@ -782,10 +782,8 @@ export class ETransfer {
   // 获取gasLimit
   getGasLimit(tx) {
     return this.provider.estimateGas(tx).then(gasLimit => {
-      console.log(gasLimit, 'gasLimit gasLimit gasLimit');
       // const tempGasLimit = Times(gasLimit.toString(), 1.5).toString();
-      const tempGasLimit = gasLimit.mul(15).div(10);
-      return tempGasLimit;
+      return gasLimit.mul(15).div(10);
     });
   }
 
