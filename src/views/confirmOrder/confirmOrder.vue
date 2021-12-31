@@ -64,7 +64,7 @@ import { MAIN_INFO, NULS_INFO } from '@/config';
 import { timesDecimals, getCurrentAccount } from '@/api/util';
 import { ETransfer, NTransfer } from '@/api/api';
 import ISwap from '../Swap/util/iSwap';
-import { ISWAP_ETH, ISWAP_VERSION } from '../Swap/util/swapConfig';
+import { ISWAP_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';

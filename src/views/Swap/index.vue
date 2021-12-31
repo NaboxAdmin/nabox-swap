@@ -1160,9 +1160,9 @@ export default {
         item.isChoose = item.channel === platform.channel;
       }
       if (this.inputType === 'amountIn') {
-        this.amountOut = this.currentChannel.amountOut;
+        this.amountOut = this.numberFormat(tofix(this.currentChannel.amountOut, 6, -1), 6);
       } else {
-        this.amountIn = this.currentChannel.amount;
+        this.amountIn = this.numberFormat(tofix(this.currentChannel.amount, 6, -1), 6);
       }
       this.showPop = false;
     },
