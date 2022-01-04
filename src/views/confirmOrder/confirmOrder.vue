@@ -221,7 +221,6 @@ export default {
         } else {
           const { currentDex, currentChannel, toAddress } = this.orderInfo;
           const paths = currentChannel.router.map(item => item.address);
-          console.log(paths, 'paths');
           const deadTimes = 30;
           const channelBytes32 = this.formatBytes32(web3.utils.fromAscii(currentChannel.channel));
           const amountIn = timesDecimals(this.orderInfo.amountIn, fromAsset.decimals);
