@@ -176,7 +176,6 @@ export default {
       showFeeLoading: false,
       transferLoading: false,
       amountMsg: '',
-      USDTasset: null, // 当前稳定比资产信息
       availableLoading: false,
       transactionInfo: null,
       assetTimer: null,
@@ -380,7 +379,6 @@ export default {
             }
           }
           this.transferAssets = (tempList.length > 0 && tempList.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
-          // .filter(item => item.nulsCross && item.heterogeneousList)
           if (!this.currentCoin) {
             this.currentCoin = !this.currentCoin && (this.transferAssets.find(asset => asset.symbol === 'USDT' && asset.registerChain === this.fromNetwork) || this.transferAssets[0]) || this.currentCoin;
           }
@@ -592,7 +590,6 @@ export default {
           }
         } else {
           const { value } = this.splitFeeSymbol(this.transferFee);
-          console.log(value, 'valuevaluevalue');
           if (!this.checkFee(value, isMainAsset)) {
             flag = false;
           }
@@ -988,13 +985,7 @@ export default {
         } else {
           if (res) {
             this.txHex = res.raw;
-            // broadcastData.txHash = res.hash;
             if (res.hash) {
-            //   this.$message({
-            //     message: this.$t('tips.tips10'),
-            //     type: 'success',
-            //     offset: 30
-            //   });
               this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
               this.$message({
                 message: this.$t('tips.tips10'),

@@ -302,3 +302,57 @@
  .w-90 {
    width: 100px;
  }
+
+.w-75 {
+  width: 85%;
+  text-align: right;
+}
+.m-3 {
+  margin: 30px;
+}
+
+.slippage-cont {
+  height: 40px;
+  width: 40px;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.box_loading {
+  height: 30px;
+  width: 30px;
+  animation: rotate_loading 1.5s linear infinite;
+  img {
+    height: 100%;
+    width: 100%;
+  }
+}
+@keyframes rotate_loading {
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}
+
+.point_cont{
+  height: 5px;
+  width: 5px;
+  display: inline-block;
+  border-radius: 50%;
+  animation: dotting 1.4s infinite step-start;
+}
+@keyframes dotting {
+  25%{
+    box-shadow: 6px 0 0 #FFFFFF;
+  }
+  50%{
+    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF;
+  }
+  75%{
+    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF, 34px 0 0 #FFFFFF;
+  }
+}

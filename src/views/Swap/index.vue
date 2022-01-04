@@ -138,30 +138,6 @@
           </span>
         </div>
       </div>
-      <!--FIXME:取消在APP内部显示-->
-      <div v-if="!isDapp" class="order-list">
-        <div class="list-item">
-          <div class="size-36 font-bold">{{ $t('swap.swap11') }}</div>
-          <div
-            v-for="(item, index) in orderList"
-            v-if="orderList.length > 0"
-            :key="item.id"
-            class="size-28 mt-5 d-flex align-items-center space-between"
-            @click="toOrderDetail(item)">
-            <span>{{ item.amount }} {{ item.symbol }} {{ $t('swap.swap14') }} {{ item.swapSuccAmount }} {{ item.swapSymbol }}</span>
-            <span>{{ item.createTime }}</span>
-            <template>
-              <i v-if="item.status !== 5 && item.status !== 4" class="el-icon-loading" style="color: #6EB6A9"/>
-              <i v-else-if="item.status === 4" class="el-icon-success" style="color: #6EB6A9"/>
-              <i v-else-if="item.status === 5" class="el-icon-error" style="color: #eb7d62"/>
-            </template>
-            <!--          <span v-if="index===0" class="order-icon">-->
-            <!--                  <svg t="1626399518824" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1288" width="17" height="17"><path d="M709.570095 118.362074a37.044619 37.044619 0 0 1-16.865843-3.614109A424.657824 424.657824 0 0 0 630.059694 90.352729 37.64697 37.64697 0 0 1 650.539646 18.974073a543.923426 543.923426 0 0 1 74.992765 27.406994 37.64697 37.64697 0 0 1-15.962316 71.981007zM870.699128 859.8568a38.550498 38.550498 0 0 1-24.696413-9.035273 37.948146 37.948146 0 0 1-2.710582-53.308109 426.163703 426.163703 0 0 0 63.24691-96.376244 37.64697 37.64697 0 1 1 67.764547 32.828158 518.624662 518.624662 0 0 1-74.089238 112.940911 37.345794 37.345794 0 0 1-29.515224 12.950557z m113.543262-265.03467h-3.614109a37.64697 37.64697 0 0 1-33.731685-40.959904q1.807055-20.781128 1.807054-41.562255a430.68134 430.68134 0 0 0-6.324691-73.788062 37.64697 37.64697 0 1 1 74.390413-12.649382A517.721135 517.721135 0 0 1 1023.997591 511.998795c0 16.263491 0 32.526982-2.409407 48.489298a37.64697 37.64697 0 0 1-37.345794 34.334037z m-60.235152-282.201689a37.345794 37.345794 0 0 1-32.526983-18.672897 451.763643 451.763643 0 0 0-70.475128-90.352729A37.64697 37.64697 0 1 1 873.40971 150.587881a508.685862 508.685862 0 0 1 82.522158 107.218571 37.345794 37.345794 0 0 1-13.854085 51.19988 34.936388 34.936388 0 0 1-18.974073 3.614109zM673.429004 995.687069a37.64697 37.64697 0 0 1-12.649382-72.884534 473.448298 473.448298 0 0 0 60.235152-28.009346 37.64697 37.64697 0 1 1 36.442267 65.656316A493.024722 493.024722 0 0 1 686.379561 993.880014a38.851673 38.851673 0 0 1-12.950557 1.807055zM511.998795 1023.997591a511.998795 511.998795 0 0 1 0-1023.997591 37.64697 37.64697 0 0 1 0 75.29394 436.704855 436.704855 0 0 0-69.872776 867.687371l-9.938801-16.263492a37.64697 37.64697 0 0 1 64.752789-38.851673l47.284595 79.209226A37.345794 37.345794 0 0 1 511.998795 1023.997591z" fill="#333333" p-id="1289"></path><path d="M680.356046 667.405488a37.044619 37.044619 0 0 1-21.383479-6.927042L490.31414 542.116371a38.249322 38.249322 0 0 1-15.962315-30.117576V227.3877a37.64697 37.64697 0 0 1 75.293941 0v264.733495l152.394935 106.61622a37.64697 37.64697 0 0 1-21.684655 68.668073z" fill="#333333" p-id="1290"></path></svg>-->
-            <!--                </span>-->
-          </div>
-          <div v-if="orderList.length === 0" class="text-center mt-3 size-28">{{ $t('swap.swap15') }}</div>
-        </div>
-      </div>
       <CoinModal
         v-if="showModal"
         :show-modal.sync="showModal"
@@ -249,7 +225,6 @@ import {
   Division,
   divisionDecimals,
   Minus,
-  Plus,
   supportChainList,
   Times,
   timesDecimals,
@@ -291,58 +266,26 @@ export default {
       showModal: false,
       showLoading: false,
       modalType: '',
-      supportList: [],
       transferFee: 0, // 发送交易需要消耗的手续费
-      coinList: [], // 当前支持的币
       chooseFromAsset: null, // 当前选择的资产
       chooseToAsset: null, // 需要兑换的资产
       available: 0, // 当前可用余额
       fromAmount: '', // 需要兑换的数量
-      toAmount: '', // 兑换数量
-      min: '', // 最小兑换数量
-      max: '', // 最大兑换数量
       amount: '',
       swapRate: '', // 兑换汇率
       amountMsg: '', // 提示
-      feeLoading: false, // 手续费加载
-      withdrawFee: '', // 提现需要的手续费
-      fee: '', // swft收取的手续费
-      estimatedAmount: '', // 扣除手续费过后预计收到的资产数量
-      rateLoading: false, // 汇率加载
-      isFirstRequest: false, // 是否为第一次请求
-      times: 10000, // 轮询时间
-      feeTimer: null,
-      rateTimer: null,
-      amountTimer: null,
       focusType: '',
-      orderList: [],
-      stableFromAsset: null,
-      stableToAsset: null,
-      stableFee: '', // 稳定币兑换手续费
-      stableFeeLoading: false,
-      orderTimer: null,
       balanceRequest: true,
       balanceLoading: false, // 余额加载
       showPop: false,
-      lpCoinList: [], // nerve上面的流动性池子
-      currentFromLpBalance: null, // 当前选择的from的稳定币余额
-      currentToLpBalance: null, // 当前选择的to的稳定币余额
-      checkLpBalanceBoo: true,
-      checkLpStableFeeBoo: true,
       currentChannel: null, // 当前最优平台
-      platformList: [], // 当前可选择的swapPlatform
-      platformConfig: ['SwapBox', 'swft'], // 当前支持的通道
-      lpCountFull: true, // 流动性是否足够
       switchAsset: false, // 同链切换
-      usdtnFromAsset: null, // usdtn from资产
-      usdtnToAsset: null, // usdtn to资产
       USDTN_info: {}, // 当前支持的USDTN资产
       USDT_info: {}, // 当前的USDT资产
       currentNetwork: '', // 当前兑换资产选择的网络
       showOrderDetail: false,
       fromContractAddress: '',
       toContractAddress: '',
-      // todo: 新增参数
       channelConfigList: [],
       amountIn: '', // 输入
       amountOut: '', // 输出
@@ -379,15 +322,6 @@ export default {
     }
   },
   watch: {
-    chooseToAsset: {
-      immediate: true,
-      handler(val) {
-        if (val) {
-          this.toAmount = '';
-        }
-      },
-      deep: true
-    },
     amountIn: {
       handler(newVal, oldVal) {
         if (newVal && !isNaN(newVal)) {
@@ -435,25 +369,6 @@ export default {
       },
       deep: true
     },
-    stableFee: {
-      handler(val) {
-        if (this.stableFromAsset && this.stableToAsset && this.toAmount && this.fromAmount && this.currentChannel && this.currentChannel.platform === 'SwapBox') {
-          if (this.focusType === 'from') {
-            this.toAmount = Minus(this.fromAmount, val);
-          } else {
-            this.fromAmount = Plus(this.toAmount, val);
-          }
-          this.checkStableFee();
-        } else {
-          if (this.focusType === 'from') {
-            this.toAmount = Minus(this.fromAmount, this.withdrawFee || 0);
-          } else {
-            this.fromAmount = Plus(this.toAmount, this.withdrawFee || 0);
-          }
-        }
-      },
-      deep: true
-    },
     currentChannel: {
       async handler(newVal) {
         if (newVal) {
@@ -491,16 +406,6 @@ export default {
     // this.getLiquidityInfo(); // 获取当前池子的余额
     this.getChanelConfig();
     this.initISwapConfig();
-  },
-  beforeDestroy() {
-    if (this.rateTimer) clearInterval(this.rateTimer);
-    if (this.feeTimer) clearInterval(this.feeTimer);
-    if (this.amountTimer) clearInterval(this.amountTimer);
-    if (this.orderTimer) clearInterval(this.orderTimer);
-    this.rateTimer = null;
-    this.feeTimer = null;
-    this.amountTimer = null;
-    this.orderTimer = null;
   },
   methods: {
     // 滑点设置
@@ -687,8 +592,6 @@ export default {
       if (!this.canNext) return false;
       const {
         currentChannel,
-        stableFromAsset,
-        stableToAsset,
         chooseFromAsset,
         chooseToAsset,
         amountIn,
@@ -709,8 +612,6 @@ export default {
         fromNetwork,
         amountIn,
         amountOut,
-        stableFromAsset,
-        stableToAsset,
         currentChannel,
         currentDex,
         toAssetDex,
@@ -791,47 +692,6 @@ export default {
           break;
         default:
           return false;
-      }
-    },
-    // 获取稳定币交易的手续费
-    async getStableTransferFee() {
-      this.stableFeeLoading = true;
-      const params = {
-        fromChain: this.fromNetwork,
-        toChain: this.chooseToAsset && this.chooseToAsset.chain,
-        pairAddress: this.chooseFromAsset && this.chooseFromAsset.pairAddress,
-        contractAddress: this.chooseFromAsset && this.chooseFromAsset.contractAddress,
-        amount: this.fromAmount && timesDecimals(this.fromAmount, this.chooseFromAsset.decimals),
-        auth: '1561ced6ef90f5d60ce669ba'
-      };
-      const res = this.fromAmount && await this.$request({
-        methods: 'post',
-        url: '/swap/cross/fee',
-        data: params
-      });
-      if (res.code === 1000 && res.data) {
-        this.stableFee = this.chooseFromAsset && divisionDecimals(res.data.fee, this.chooseFromAsset.decimals);
-        // this.checkStableFee();
-        this.stableFeeLoading = false;
-        await this.checkLpBalance();
-        // 获取当前支持的兑换平台
-        this.platformList = this.platformConfig.map(item => ({
-          asset: this.chooseToAsset || '',
-          platform: item,
-          isBest: item === 'SwapBox',
-          fee: this.getPlatformFee(item, this.stableFee),
-          minReceive: (Minus(this.fromAmount, this.getPlatformFee(item, this.stableFee)) < 0) ? '0' : Minus(this.fromAmount, this.getPlatformFee(item, this.stableFee)),
-          swapRate: item === 'SwapBox' ? 1 : this.swapRate
-        }));
-        if (this.lpCountFull) {
-          this.currentChannel = this.getBestPlatform(this.platformList);
-        } else {
-          this.currentChannel = this.getBestPlatform(this.platformList, this.lpCountFull);
-        }
-      } else {
-        this.checkStableFee();
-        this.stableFeeLoading = false;
-        return '';
       }
     },
     // 获取钱包余额
@@ -1036,14 +896,6 @@ export default {
       this.currentDex = this.getDexInfo(this.chooseFromAsset, 'in');
       this.fromAssetDex = this.getDexInfo(this.chooseFromAsset, 'in');
       this.toAssetDex = this.getDexInfo(this.chooseToAsset, 'out');
-      // if (res) {
-      //   if (this.inputType === 'amountIn') {
-      //     this.amountOut = res.amountOut;
-      //   } else {
-      //     this.amountIn = res.amount;
-      //   }
-      //   this.swapInfoMap = res;
-      // }
       return await this.iSwap.getEstimateFeeInfo(feeInfoParams);
     },
     /**
@@ -1095,30 +947,6 @@ export default {
       this.amountIn = this.numberFormat(tofix(this.available, 6, -1), 6);
       await this.amountInInput();
     },
-    // 获取平台的手续费
-    getPlatformFee(platform, stableFee = 0) {
-      let tempFee;
-      switch (platform) {
-        case 'SwapBox':
-          tempFee = stableFee;
-          break;
-        case 'swft':
-          tempFee = this.withdrawFee || 0;
-          break;
-        default:
-          tempFee = 0;
-      }
-      return tempFee || 0;
-    },
-    // 检查稳定币池子是否足够
-    async checkLpBalance() {
-      const toNetwork = this.chooseToAsset && this.chooseToAsset.mainNetwork;
-      const currentLpAsset = this.lpCoinList.find(item => item.chain === toNetwork);
-      const currentLpBalance = currentLpAsset && divisionDecimals(currentLpAsset.balance, currentLpAsset.decimals);
-      if (this.toAmount && Minus(currentLpBalance, 0) >= 0) {
-        this.lpCountFull = Minus(this.toAmount, currentLpBalance) <= 0;
-      }
-    },
     // 切换当前选择的平台
     getBestPlatform(platformList) {
       if (platformList.length === 0) return false;
@@ -1140,19 +968,6 @@ export default {
       console.log(this.channelConfigList, '==channelConfigList==');
       return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
     },
-    // 检查稳定币手续费是否足够
-    checkStableFee() {
-      if (!this.chooseFromAsset || !this.chooseToAsset) return false;
-      // console.log(Minus(Plus(this.fromAmount, 0), this.available) > 0, (Minus(this.fromAmount, this.stableFee) <= 0), "checkStableFee")
-      if (Minus(Plus(this.fromAmount, 0), this.available) > 0) { // 余额不足
-        this.amountMsg = this.chooseFromAsset.symbol + this.$t('tips.tips20');
-      } else if (!(Minus(Plus(this.fromAmount, 0), this.available) > 0) && (Minus(this.fromAmount, this.stableFee) <= 0)) { // 最小兑换数量
-        this.amountMsg = `${this.$t('tips.tips3')}${Plus(this.stableFee, 0)}`;
-      } else {
-        // this.checkLpBalance();
-        this.amountMsg = '';
-      }
-    },
     // 选择最优路径
     routeClick(platform) {
       this.currentChannel = platform;
@@ -1165,37 +980,6 @@ export default {
         this.amountIn = this.numberFormat(tofix(this.currentChannel.amount, 6, -1), 6);
       }
       this.showPop = false;
-    },
-    // 获取pool流动性信息
-    async getLiquidityInfo() {
-      const res = await this.$request({
-        method: 'get',
-        url: '/swap/usdn/info'
-      });
-      if (res.code === 1000 && res.data) {
-        this.lpCoinList = res.data.lpCoinList;
-      }
-    },
-    // 获取订单列表
-    async getOrderList(val) {
-      this.flag = true;
-      const params = {
-        address: val
-      };
-      const res = await this.$request({
-        url: '/swap/get/list',
-        data: params
-      });
-      if (res.code === 1000) {
-        this.orderList = res.data.map(item => {
-          return {
-            ...item,
-            createTime: this.formatTime(item.createTime),
-            amount: divisionDecimals(item.amount, item.decimal),
-            swapSuccAmount: item.swapSuccAmount && divisionDecimals(item.swapSuccAmount, item.swapDecimal) || 0
-          };
-        });
-      }
     },
     // 同连切换资产
     async switchAssetClick() {
@@ -1226,27 +1010,14 @@ export default {
       this.modalType = type;
       this.showModal = true;
     },
-    // 格式化
-    formatFloat(float) {
-      if (!float) return '';
-      const _float = parseFloat(float);
-      if (_float === 0) {
-        return 0;
-      }
-      return tofix(float, 8);
-    },
     // 重置
     reset() {
-      // this.chooseFromAsset = null;
-      // this.chooseToAsset = null;
       this.approvingLoading = false;
       this.amountIn = '';
       this.amountOut = '';
-      this.swapRate = '';
       this.amount = '';
       this.available = '';
       this.transferFee = '';
-      this.withdrawFee = '';
       this.currentChannel = null;
     },
     changeShowDetail() {
@@ -1257,7 +1028,6 @@ export default {
       this.showOrderDetail = false;
       this.reset();
       await this.getBalance(this.chooseFromAsset, true);
-      // await this.getSwapAssetList();
     }
   }
 };
@@ -1265,57 +1035,4 @@ export default {
 
 <style lang="scss" scoped>
 @import "./index";
-.w-75 {
-  width: 85%;
-  text-align: right;
-}
-.m-3 {
-  margin: 30px;
-}
-
-.slippage-cont {
-  height: 40px;
-  width: 40px;
-  img {
-    height: 100%;
-    width: 100%;
-  }
-}
-
-.box_loading {
-  height: 30px;
-  width: 30px;
-  animation: rotate_loading 1.5s linear infinite;
-  img {
-    height: 100%;
-    width: 100%;
-  }
-}
-@keyframes rotate_loading {
-  50% {
-    transform: rotate(180deg);
-  }
-  100% {
-    transform: rotate(359deg);
-  }
-}
-
-.point_cont{
-  height: 5px;
-  width: 5px;
-  display: inline-block;
-  border-radius: 50%;
-  animation: dotting 1.4s infinite step-start;
-}
-@keyframes dotting {
-  25%{
-    box-shadow: 6px 0 0 #FFFFFF;
-  }
-  50%{
-    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF;
-  }
-  75%{
-    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF, 34px 0 0 #FFFFFF;
-  }
-}
 </style>

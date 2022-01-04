@@ -201,6 +201,35 @@ export default class ISwap {
     return await this.transfer.sendTransaction(transactionParameters);
   }
 
+  /**
+   * 生成交易序列化参数
+   * @param method
+   * @param params
+   * @param amountIn
+   * @param from
+   * @returns {Promise<*&{gasLimit: *}>}
+   */
+  async generateParameters(method, params, amountIn, from) {
+    const amount = ethers.utils.parseEther(amountIn).toHexString();
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions[method].encode(params);
+    return this.setGasLimit({
+      from,
+      to: this.iSwapContractAddress,
+      value: amount,
+      data
+    });
+  }
+
+  /**
+   * 设置gasLimit
+   * @param tx
+   * @param tx.from {string} 用户地址
+   * @param tx.to {string} 用户地址
+   * @param tx.value {string} 用户地址
+   * @param tx.data {string} 序列化Data
+   * @returns {Promise<*&{gasLimit: *}>}
+   */
   async setGasLimit(tx) {
     const gasLimit = await this.transfer.getGasLimit(tx);
     const tempTx = {
@@ -212,6 +241,13 @@ export default class ISwap {
   }
 }
 
+/**
+ * 序列化iSwap请求参数
+ * @param RPCUrl
+ * @param parameter
+ * @param type
+ * @returns {*}
+ */
 export function encodeParameters(RPCUrl, parameter, type) {
   const web3 = new Web3(RPCUrl || window.ethereum);
   const ABI = web3.eth.abi;
