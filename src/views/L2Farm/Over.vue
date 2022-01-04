@@ -144,7 +144,7 @@ export default {
   props: {
     networkType: {
       type: String,
-      default: 'L1'
+      default: 'L2'
     }
   },
   data() {
@@ -166,16 +166,6 @@ export default {
           });
         }
       }
-    },
-    networkType: {
-      handler(newVal) {
-        if (newVal) {
-          console.log(123123);
-          // this.getFarmInfo(false);
-        }
-      },
-      immediate: true,
-      deep: true
     }
   },
   created() {
@@ -222,13 +212,7 @@ export default {
         data
       });
       if (res.code === 1000) {
-        // this.farmList = res.data;
-        let tempList = res.data.filter(item => item.chain === 'NERVE' || item.chain === this.$store.state.network);
-        if (this.networkType === 'L1') {
-          tempList = res.data.filter(item => item.chain === this.$store.state.network);
-        } else {
-          tempList = res.data.filter(item => item.chain === 'NERVE');
-        }
+        const tempList = res.data.filter(item => item.chain === 'NERVE');
         await this.getStakeAccount(tempList);
         this.isFirstRequest = false;
       }

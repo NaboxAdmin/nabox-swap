@@ -634,9 +634,9 @@ export default {
   min-width: 230px;
 }
 .sign {
-  font-size: 10px;
+  font-size: 16px;
   //margin-left: 13px;
-  padding: 1px 11px;
+  padding: 5px 11px;
   background: #E7F2F0;
   border-radius: 4px;
   text-align: center;

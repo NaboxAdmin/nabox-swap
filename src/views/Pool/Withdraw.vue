@@ -164,6 +164,7 @@ export default {
   methods: {
     maxCount() {
       const currentPollTotal = this.currentWithdrawAsset && this.currentWithdrawAsset.total;
+      if (!currentPollTotal || !Number(currentPollTotal)) return false;
       this.withdrawCount = this.userAvailable;
       if (Minus(this.withdrawCount, currentPollTotal) < 0) {
         this.amountMsg = this.$t('pool.join9');
