@@ -803,10 +803,8 @@ export default {
         assetsId,
         amount,
         fee: baseCrossFee
-        // type: 10
       };
-      // 跨链转入
-      // 提现
+      // 跨链转入 / 提现
       let crossOutInfo;
       if (this.withdrawalFee) {
         const decimals = this.toNerve ? MAIN_INFO.decimal : this.currentFeeAsset.decimals;
@@ -829,7 +827,6 @@ export default {
           fee: 0,
           proposalPrice,
           txData
-          // type: 43
         };
       }
       if (tempFromNetwork === 'NERVE') {
@@ -964,27 +961,13 @@ export default {
     // 执行转账
     async runTransfer() {
       this.transferLoading = true;
-      const { fromChain, toChain, fromAddress, toAddress, chainId, assetId, contractAddress, amount, symbol } = this.transferInfo;
-      const broadcastData = {
-        fromChain,
-        toChain,
-        fromAddress,
-        toAddress,
-        chainId,
-        assetId,
-        contractAddress,
-        symbol,
-        amount,
-        txHash: '' // 第一条交易hash
-      };
       try {
-        //  调用metamask转账/签名hash
+        // 调用metamask转账/签名hash
         const res = await this.transactionInfo.fn();
         if (!this.toNerve) {
-          await this.broadcastHex(broadcastData);
+          await this.broadcastHex();
         } else {
           if (res) {
-            this.txHex = res.raw;
             if (res.hash) {
               this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
               this.$message({
@@ -1012,23 +995,7 @@ export default {
       }
     },
     // 广播nerve跨链转出交易
-    async broadcastHex(data) {
-      // const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress } = data;
-      // const params = {
-      //   fromChain,
-      //   toChain,
-      //   assetId,
-      //   chainId,
-      //   amount,
-      //   contractAddress,
-      //   fromAddress,
-      //   toAddress,
-      //   txHex: this.txHex
-      // };
-      // const res = await this.$request({
-      //   url: '/swap/cross',
-      //   data: params
-      // });
+    async broadcastHex() {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const url = config['NERVE'].apiUrl;
       const chainId = config['NERVE'].chainId;

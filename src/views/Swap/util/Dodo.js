@@ -29,14 +29,12 @@ export default class Dodo {
     const { fromAsset, amountIn, currentChannel, address: from } = orderInfo;
     const tempAmountIn = fromAsset.contractAddress ? '0' : amountIn;
     const amount = ethers.utils.parseEther(tempAmountIn).toHexString();
-    console.log(from, currentChannel.transactionToAddress, amount, currentChannel.transactionData, '123');
     const transactionParameters = await this.setGasLimit({
       from,
       to: currentChannel.transactionToAddress,
       value: amount,
       data: currentChannel.transactionData
     });
-    console.log(transactionParameters, 'transactionParameters');
     return await this.transfer.sendTransaction(transactionParameters);
   }
 

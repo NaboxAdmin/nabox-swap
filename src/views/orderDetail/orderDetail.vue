@@ -4,7 +4,7 @@
     <div class="position-cont_nav"/>
     <div class="order-cont">
       <div class="icon-cont">
-        <img v-if="detailInfo && (detailInfo.status == 0 || detailInfo.status == 1 || detailInfo.status == 2)" src="../../assets/image/confirmming.png" alt="">
+        <img v-if="detailInfo && detailInfo.status < 3" src="../../assets/image/confirmming.png" alt="">
         <img v-if="detailInfo && detailInfo.status == 4" src="../../assets/image/error.png" alt="">
         <img v-if="detailInfo && detailInfo.status == 3" src="../../assets/image/success.png" alt="">
       </div>
@@ -54,23 +54,9 @@
           <span class="text-aa">{{ detailInfo && detailInfo.platform === 'SWFT' ? $t('order.order5') : $t('order.order8') }}</span>
           <span @click="copyOrderId(detailInfo && detailInfo.txHash)">{{ detailInfo && detailInfo.platform === 'SWFT' ? superLong(detailInfo.orderId) : superLong(detailInfo && detailInfo.txHash) }}</span>
         </div>
-        <!--汇率-->
-        <!--        <div class="d-flex align-items-center space-between mt-5">-->
-        <!--          <span class="text-aa">{{ $t('swap.swap5') }}</span>-->
-        <!--          <div class="d-flex align-items-center justify-content-end" v-if="orderInfo.swapRate">-->
-        <!--            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ {{ orderInfo && orderInfo.swapRate }} {{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>-->
-        <!--          </div>-->
-        <!--          <div class="d-flex align-items-center justify-content-end" v-else>-->
-        <!--            <span  class="ml-4">1{{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }} ≈ 1{{ orderInfo && orderInfo.fromAsset && orderInfo.toAsset.symbol }}</span>-->
-        <!--          </div>-->
-        <!--        </div>-->
         <!--手续费-->
         <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
-          <!--          <div class="d-flex align-items-center justify-content-end" v-if="!detailInfo.fee">-->
-          <!--            <span  class="ml-4 text-ec"><span class="text-3a" v-if="orderInfo.withdrawFee">-->
-          <!--              <span v-if="orderInfo.transferFee">{{ orderInfo.transferFee }}{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span> {{ orderInfo.withdrawFee }}{{orderInfo.toAsset && orderInfo.toAsset.symbol}}</span></span>-->
-          <!--          </div>-->
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
               <span class="text-0">
@@ -90,7 +76,7 @@
 
 <script>
 import { NavBar } from '@/components';
-import { divisionDecimals, copys } from '@/api/util';
+import { copys, divisionDecimals } from '@/api/util';
 import { tofix } from '../../api/util';
 
 export default {
@@ -172,13 +158,11 @@ export default {
         data: params
       });
       if (res.code === 1000) {
-        const tempData = {
+        this.detailInfo = {
           ...res.data,
-          // fee: divisionDecimals(res.data.fee, res.data.decimal),
           amount: this.numberFormat(tofix(divisionDecimals(res.data.amount, res.data.decimal), 6, -1), 6),
           swapSuccAmount: this.numberFormat(tofix(res.data.swapSuccAmount && divisionDecimals(res.data.swapSuccAmount, res.data.swapDecimal), 6, -1), 6) || 0
         };
-        this.detailInfo = tempData;
         if (res.data.status > 2) {
           clearInterval(this.orderTimer);
         }
