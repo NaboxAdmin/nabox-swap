@@ -993,10 +993,8 @@ export default {
                 duration: 2000,
                 offset: 30
               });
-              this.reset();
               this.transferLoading = false;
               this.reset();
-              // await this.broadcastToNerveHex(broadcastData);
             } else {
               throw this.$t('tips.tips15');
             }
@@ -1047,26 +1045,6 @@ export default {
         throw this.$t('tips.tips15');
       }
       this.transferLoading = false;
-    },
-    // 广播异构链跨链转入交易
-    async broadcastToNerveHex(data) {
-      const { fromChain, toChain, assetId, chainId, amount, contractAddress, fromAddress, toAddress, txHash } = data;
-      const params = {
-        fromChain,
-        toChain,
-        assetId,
-        chainId,
-        amount,
-        contractAddress,
-        fromAddress,
-        toAddress,
-        txHash,
-        txHex: this.txHex
-      };
-      await this.$request({
-        url: '/swap/cross/plugin',
-        data: params
-      });
     },
     // 异构链token资产转入nerve授权
     async approveERC20() {
