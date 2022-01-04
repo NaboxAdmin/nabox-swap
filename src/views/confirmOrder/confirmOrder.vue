@@ -51,8 +51,7 @@
             </span>
           </div>
         </div>
-        <div v-if="crossInAuth" class="btn cursor-pointer" @click="approveERC20">{{ $t('transfer.transfer8') }}</div>
-        <div v-else class="btn cursor-pointer" @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
+        <div class="btn cursor-pointer" @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
       </div>
     </div>
   </div>
@@ -90,21 +89,8 @@ export default {
   },
   created() {
     this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
-    // this.cutdownTime();
   },
   methods: {
-    cutdownTime() {
-      const cutdown = () => {
-        this.orderTimes -= 1000;
-        console.log(this.orderTimes, 'orderTimes');
-        if (this.orderTimes < 0) {
-          this.clearInterval(this.swapOrderTimer);
-        }
-      };
-      this.swapOrderTimer = setInterval(() => {
-        cutdown();
-      }, 1000);
-    },
     // 确认订单
     async confirmOrder() {
       try {
@@ -128,7 +114,7 @@ export default {
     // 调用合约发送iSwap交易
     async sendISwapTransaction() {
       try {
-        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, crossChainFee, slippage } = this.orderInfo;
+        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, slippage } = this.orderInfo;
         const config = JSON.parse(sessionStorage.getItem('config'));
         const RPCUrl = config[this.fromNetwork]['apiUrl'];
         const web3 = new Web3(RPCUrl || window.ethereum);
@@ -386,16 +372,6 @@ export default {
         });
       }
     },
-    getOrderList() {
-      const params = {
-        version: '',
-        address: '',
-        chainId: '',
-        offset: 0,
-        limit: '',
-        direct: ''
-      };
-    },
     // 稳定币转账
     async stableTransfer(txData, usdtnTransfer = false) {
       try {
@@ -619,6 +595,7 @@ export default {
         }
       }
     },
+    // byte32格式化
     formatBytes32(byte32String) {
       const strLength = byte32String.length;
       const differenceLength = strLength - 66;
@@ -628,6 +605,7 @@ export default {
         return byte32String.padEnd(66, '0');
       }
     },
+    // format '0x'
     formatBytes(str) {
       if (str.startsWith('0x')) {
         return str;

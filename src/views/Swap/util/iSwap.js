@@ -163,6 +163,7 @@ export default class ISwap {
 
   /**
    * 跨链兑换 token->token ETH->token
+   * @param from 当前的用户地址
    * @param orderId 订单号
    * @param gasFee gas
    * @param crossChainFee 跨链手续费
@@ -202,8 +203,6 @@ export default class ISwap {
 
   async setGasLimit(tx) {
     const gasLimit = await this.transfer.getGasLimit(tx);
-    const gasPrice = await this.transfer.getGasPrice(gasLimit);
-    console.log(gasPrice, 'gasPrice gasPrice gasPrice');
     const tempTx = {
       ...tx,
       gasLimit
