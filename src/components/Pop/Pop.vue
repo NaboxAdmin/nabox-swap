@@ -69,18 +69,6 @@
           </span>
           <span class="ml-16 size-28 text-65">{{ locale === 'cn' ? 'English' : '中文' }}</span>
         </div>
-        <!--        <div class="lang-cont d-flex align-items-center cursor-pointer" @click="toUrl('CERTIK')">-->
-        <!--          <span class="icon_cont">-->
-        <!--            <img src="@/assets/image/Safety.svg" alt="">-->
-        <!--          </span>-->
-        <!--          <span class="ml-16 size-28 text-65">CERTIK</span>-->
-        <!--        </div>-->
-        <!--        <div class="d-flex direction-column align-items-center justify-content-center">-->
-        <!--          <div class="size-28 mt-2 text-65">{{ $t('tips.tips29') }}</div>-->
-        <!--          <div class="url-cont mt-1" @click="toUrl('CERTIK')">-->
-        <!--            <img src="@/assets/image/CERTIK.svg" alt="">-->
-        <!--          </div>-->
-        <!--        </div>-->
       </div>
     </div>
   </div>
@@ -141,7 +129,7 @@ export default {
           this.isMobile ? window.location.href = 'https://parabox.nabox.io/' : window.open('https://parabox.nabox.io/');
           break;
         case 'CERTIK':
-          this.isMobile ? window.location.href = 'https://www.certik.com/projects/nabox' : window.open('https://www.certik.com/projects/nabox');
+          this.isMobile ? window.location.href = 'https://drive.google.com/file/d/16p4CZoegq4PsXLfjuw7d9ASpZcaU7sZI/view?usp=sharing' : window.open('https://drive.google.com/file/d/16p4CZoegq4PsXLfjuw7d9ASpZcaU7sZI/view?usp=sharing');
           break;
       }
     },

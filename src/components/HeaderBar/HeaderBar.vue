@@ -153,9 +153,6 @@ import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
 import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
-import { sendRequest } from '@/network/cancelRequest';
-import { ISWAP_VERSION } from '../../views/Swap/util/swapConfig';
-import ISwap from '../../views/Swap/util/iSwap';
 import { MAIN_INFO } from '../../config';
 
 // eslint-disable-next-line no-unused-vars
@@ -272,9 +269,6 @@ export default {
         this.$store.commit('changeNetwork', val);
       }
     },
-    // orderType(val) {
-    //   this.orderList = [];
-    // },
     currentChainAsset: {
       immediate: true,
       deep: true,
