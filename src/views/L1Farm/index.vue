@@ -228,7 +228,7 @@ export default {
           await this.setGetERC20Allowance();
         } else {
           this.$message({
-            message: JSON.stringify(res),
+            message: res.msg,
             type: 'warning',
             offset: 30,
             duration: 2000 });
@@ -501,7 +501,7 @@ export default {
           this.$set(this.farmList, index, tempItem);
         } else {
           this.$message({
-            message: JSON.stringify(res),
+            message: res.msg,
             type: 'warning',
             offset: 30,
             duration: 2000

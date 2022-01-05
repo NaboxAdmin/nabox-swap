@@ -43,7 +43,7 @@
               class="flex-1"
               placeholder="0"
               @input="amountInDebounce"
-              @focus="amountFocus('from')">
+              @focus="amountFocus($event)">
             <span class="text-primary size-28 cursor-pointer" @click="maxAmount">{{ $t("swap.swap3") }}</span>
           </div>
         </div>
@@ -80,7 +80,7 @@
               class="flex-1"
               placeholder="0"
               @input="amountOutDebounce"
-              @focus="amountFocus('to')">
+              @focus="amountFocus($event)">
           </div>
         </div>
       </div>
@@ -357,7 +357,6 @@ export default {
       handler(newVal, oldVal) {
         // debugger;
         if (newVal) {
-          this.checkLpBalance();
           const decimals = 6;
           const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
           if (patrn.exec(newVal) || newVal === '') {
@@ -382,7 +381,7 @@ export default {
           }
           if (newVal.impact > 20) {
             this.btnErrorMsg = this.$t('tips.tips35');
-          } else if (newVal.minReceive < 0) {
+          } else if (newVal.minReceive < 0 || newVal.minReceive == 0) {
             this.btnErrorMsg = this.$t('tips.tips36');
           } else {
             this.btnErrorMsg = '';
@@ -463,7 +462,7 @@ export default {
           this.setGetAllowanceTimer();
         } else {
           this.$message({
-            message: JSON.stringify(res),
+            message: res.msg,
             type: 'warning',
             duration: 2000,
             offset: 30
@@ -538,15 +537,18 @@ export default {
       });
       if (res.code === 1000 && res.data) {
         console.log(res.data, 'channelConfigList');
-        const tempDodoConfig = {
-          channel: 'DODO',
-          swap: true,
-          crossSwap: false,
-          icon: 'https://dodoex.github.io/docs/zh/img/logo.svg'
-        };
+        // @FIXME: 暂时不上
+        // const tempDodoConfig = {
+        //   channel: 'DODO',
+        //   swap: true,
+        //   crossSwap: false,
+        //   icon: 'https://dodoex.github.io/docs/zh/img/logo.svg'
+        // };
         localStorage.setItem('channelConfig', JSON.stringify(res.data));
-        this.orginChannelConfigList = res.data.concat([tempDodoConfig]);
-        this.channelConfigList = res.data.concat([tempDodoConfig]);
+        // this.orginChannelConfigList = res.data.concat([tempDodoConfig]);
+        // this.channelConfigList = res.data.concat([tempDodoConfig]);
+        this.orginChannelConfigList = res.data;
+        this.channelConfigList = res.data;
       }
     },
     // 查询当前支持的usdtn列表
@@ -657,6 +659,7 @@ export default {
       this.showModal = false;
       switch (type) {
         case 'send':
+          this.resetData();
           this.currentChannel = null;
           this.chooseFromAsset = coin;
           await this.getBalance(this.chooseFromAsset, true);
@@ -676,6 +679,7 @@ export default {
           break;
         case 'receive': // 选择接受资产
           this.chooseToAsset = coin;
+          this.resetData();
           if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
             this.crossTransaction = false;
             this.switchAsset = true;
@@ -729,8 +733,9 @@ export default {
     },
     async amountInInput() {
       this.inputType = 'amountIn';
-      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && this.checkBalance() && !this.availableLoading) {
+      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && !this.availableLoading) {
         this.amountOut = '';
+        this.btnErrorMsg = '';
         this.getOptionalChannel();
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
@@ -741,13 +746,14 @@ export default {
           } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.amountMsg = `${this.$t('tips.tips4')}$${this.limitMax}`;
           } else {
-            this.amountMsg = '';
+            this.checkBalance();
+            // this.amountMsg = '';
           }
         } else {
           this.currentChannel = null;
         }
       } else {
-        if (!this.amountIn) { this.amountMsg = ''; }
+        if (!this.amountIn) { this.amountMsg = ''; this.btnErrorMsg = ''; }
         this.amountOut = '';
         this.currentChannel = null;
       }
@@ -764,31 +770,30 @@ export default {
       const { amountIn, available, chooseFromAsset } = this;
       if (Minus(amountIn, available) > 0) {
         this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
-        return false;
+      } else {
+        this.amountMsg = '';
       }
-      return true;
     },
     computedSwapRate(isCross, amountIn, amountOut) {
-      return `1${this.chooseFromAsset.symbol}≈${tofix(Division(amountOut, amountIn), 4, -1)}${this.chooseToAsset.symbol}`;
+      return `1${this.chooseFromAsset.symbol}≈${this.numberFormat(tofix((Division(amountOut, amountIn) < 0 && '0' || Division(amountOut, amountIn)), 4, -1), 4)}${this.chooseToAsset.symbol}`;
     },
     async amountOutInput() {
       this.inputType = 'amountOut';
       if (this.chooseFromAsset && this.chooseToAsset && this.amountOut && Number(this.amountOut) !== 0) {
         this.amountIn = '';
+        this.btnErrorMsg = '';
         this.getOptionalChannel();
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
           this.amountIn = tempChannel.amount < 0 ? '' : this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
-          if (!this.checkBalance()) {
-            return false;
-          }
           this.currentChannel = tempChannel;
           if (Minus(this.currentChannel.usdtAmountOut, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.amountMsg = `${this.$t('tips.tips3')}${this.limitMin}USDT`;
           } else if (Minus(this.currentChannel.usdtAmountOut, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.amountMsg = `${this.$t('tips.tips4')}${this.limitMax}USDT`;
           } else {
-            this.amountMsg = '';
+            // this.amountMsg = '';
+            this.checkBalance();
           }
         } else {
           this.amountMsg = '';
@@ -815,7 +820,7 @@ export default {
                 ...currentConfig,
                 icon: item.icon || 'https://www.iswap.com/favicon.svg',
                 iSwapConfig: currentConfig,
-                minReceive: isCross ? tofix(Times(currentConfig.outToken.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1) : tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1), // 最低收到
+                minReceive: isCross ? tofix(Times((currentConfig.outToken.amountOut) < 0 && '0' || currentConfig.outToken.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1) : tofix(Times((currentConfig.amountOut) < 0 && '0' || (currentConfig.amountOut), Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1), // 最低收到
                 mostSold: isCross ? currentConfig.inToken.amount : currentConfig.amount, // 最多卖出
                 amount: isCross ? currentConfig.inToken.amount : currentConfig.amount,
                 crossChainFee: isCross ? this.numberFormat(tofix(currentConfig.inToken.feeAmount, 4, -1), 4) : 0, // 跨链手续费
@@ -1003,8 +1008,8 @@ export default {
     toOrderDetail(item) {
       this.$router.push({ path: '/orderDetail', query: { txHash: item.txHash }});
     },
-    amountFocus(type) {
-      this.focusType = type;
+    amountFocus(event) {
+      event.currentTarget.select();
     },
     async openModal(type) {
       this.modalType = type;
@@ -1018,7 +1023,13 @@ export default {
       this.amount = '';
       this.available = '';
       this.transferFee = '';
+      this.btnErrorMsg = '';
       this.currentChannel = null;
+    },
+    resetData() {
+      this.needAuth = false;
+      this.amountMsg = '';
+      this.btnErrorMsg = '';
     },
     changeShowDetail() {
       this.showOrderDetail = false;

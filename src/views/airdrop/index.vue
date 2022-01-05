@@ -560,7 +560,7 @@ export default {
           });
         } else {
           this.$message({
-            message: JSON.stringify(res),
+            message: res.msg,
             type: 'warning',
             offset: 30,
             duration: 2000

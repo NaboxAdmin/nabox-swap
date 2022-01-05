@@ -1041,7 +1041,7 @@ export default {
           this.setGetAllowanceTimer();
         } else {
           this.$message({
-            message: JSON.stringify(res),
+            message: res.msg,
             type: 'warning',
             duration: 2000,
             offset: 30
