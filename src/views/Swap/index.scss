@@ -1,6 +1,7 @@
 .swap-cont {
-  padding: 30px;
+  //padding: 30px;
   background-color: #FFFFFF;
+  border-radius: 20px;
 }
 .input-cont {
   display: flex;
@@ -94,8 +95,8 @@
   justify-content: center;
   align-items: center;
   height: 98px;
-  margin-top: 50px;
-  margin-bottom: 50px;
+  //margin-top: 50px;
+  //margin-bottom: 50px;
   color: #FFFFFF;
   text-align: center;
   line-height: 98px;
@@ -264,6 +265,7 @@
         width: 31px;
         margin-right: 7px;
         border-radius: 50%;
+        overflow: hidden;
         img {
           height: 100%;
           width: 100%;
@@ -283,6 +285,7 @@
   width: 31px;
   margin-right: 7px;
   border-radius: 50%;
+  overflow: hidden;
   img {
     height: 100%;
     width: 100%;
@@ -355,4 +358,7 @@
   75%{
     box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF, 34px 0 0 #FFFFFF;
   }
+}
+.b_E9EBF3 {
+  border-bottom: 1px solid #E9EBF3;
 }

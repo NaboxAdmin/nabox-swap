@@ -97,7 +97,7 @@ export default {
         this.confirmLoading = true;
         const { currentChannel } = this.orderInfo;
         switch (currentChannel.channel) {
-          case 'ISWAP':
+          case 'iSwap':
             await this.sendISwapTransaction();
             break;
           case 'DODO':

@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="position-cont" />
-    <div :class="[isSwap && 'p-3', isVaults && 'bg-f0']" class="main-cont">
+    <div :class="[isVaults && 'bg-f0']" class="main-cont">
       <slot/>
       <Pop
         :show="showPop"

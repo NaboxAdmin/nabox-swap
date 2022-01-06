@@ -21,7 +21,7 @@
       <!--        </div>-->
       <!--      </div>-->
     </div>
-    <div class="pool-cont">
+    <div class="pool-cont mr-4">
       <div class="d-flex size-32 font-400">
         <span
           v-for="(item, index) in poolList"

@@ -2,8 +2,8 @@
   <div>
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
-      <div :class="!isDapp && 'swap-info'">
-        <div class="size-36 mb-3 d-flex align-items-center space-between">
+      <div :class="!isDapp && 'swap-info'" class="p-4">
+        <div class="size-36 d-flex align-items-center space-between mb-3 pb-2 pt-2 b_E9EBF3">
           <span class="text-3a font-500">{{ $t('navBar.navBar5') }}</span>
           <span class="slippage-cont" @click="showSlippage=true">
             <img src="@/assets/image/slippage.png" alt="">
@@ -18,7 +18,7 @@
             <!--          <span class="word-break">{{ (available || 0.0) | numberFormat }}</span>-->
           </div>
         </div>
-        <div class="input-cont mt-2">
+        <div class="input-cont mt-3">
           <template>
             <div
               v-if="!chooseFromAsset"
@@ -40,6 +40,8 @@
           <div class="input-item align-items-center d-flex flex-1">
             <input
               v-model="amountIn"
+              pattern="^[0-9]*[.,]?[0-9]*$"
+              type="text"
               class="flex-1"
               placeholder="0"
               @input="amountInDebounce"
@@ -79,22 +81,25 @@
               v-model="amountOut"
               class="flex-1"
               placeholder="0"
+              pattern="^[0-9]*[.,]?[0-9]*$"
               @input="amountOutDebounce"
               @focus="amountFocus($event)">
           </div>
         </div>
       </div>
-      <div v-if="needAuth" class="btn size-30 cursor-pointer" @click="approveERC20">
-        <span class="mr-2">{{ $t("vaults.over6") }}</span>
-        <Loading v-if="approvingLoading" :is-active="false"/>
+      <div class="p-4">
+        <div v-if="needAuth" class="btn size-30 cursor-pointer" @click="approveERC20">
+          <span class="mr-2">{{ $t("vaults.over6") }}</span>
+          <Loading v-if="approvingLoading" :is-active="false"/>
+        </div>
+        <div v-else-if="showComputedLoading" class="btn size-30 cursor-pointer opacity_btn">
+          <span>
+            {{ $t("swap.swap35") }}<span class="point_cont"/>
+          </span>
+        </div>
+        <div v-else :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ btnErrorMsg || $t("swap.swap8") }}</div>
       </div>
-      <div v-else-if="showComputedLoading" class="btn size-30 cursor-pointer opacity_btn">
-        <span>
-          {{ $t("swap.swap35") }}<span class="point_cont"/>
-        </span>
-      </div>
-      <div v-else :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ btnErrorMsg || $t("swap.swap8") }}</div>
-      <div v-if="currentChannel && !showComputedLoading" class="swap-info d-flex direction-column">
+      <div v-if="currentChannel && !showComputedLoading" class="swap-info d-flex direction-column p-4">
         <div v-if="currentChannel.swapRate" class="d-flex space-between size-28">
           <span class="text-90">{{ $t("swap.swap5") }}</span>
           <span class="text-3a w-75">{{ currentChannel.swapRate }}</span>
@@ -172,7 +177,7 @@
                   <!--              {{ this.chooseToAsset.symbol }}-->
                   <span class="text-3a ml-3">{{ item.minReceive | numberFormat }}{{ chooseToAsset && chooseToAsset.symbol }}</span>
                 </div>
-                <div class="d-flex size-28 mt-23">
+                <div class="d-flex size-28 mt-23 align-items-center">
                   <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
                   <div class="d-flex align-items-center">
                     <div class="route-icon">
@@ -323,7 +328,11 @@ export default {
   watch: {
     amountIn: {
       handler(newVal, oldVal) {
-        if (newVal && !isNaN(newVal)) {
+        if (newVal) {
+          if (!this.chooseFromAsset) {
+            this.amountIn = '';
+            return;
+          }
           const decimals = 6;
           const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
           if (patrn.exec(newVal) || newVal === '') {
@@ -337,7 +346,7 @@ export default {
     },
     slippage: {
       handler(newVal, oldVal) {
-        if (newVal && !isNaN(newVal)) {
+        if (newVal) {
           const decimals = 2;
           const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
           if (patrn.exec(newVal) || newVal === '') {
@@ -356,6 +365,10 @@ export default {
       handler(newVal, oldVal) {
         // debugger;
         if (newVal) {
+          if (!this.chooseToAsset) {
+            this.amountOut = '';
+            return;
+          }
           const decimals = 6;
           const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
           if (patrn.exec(newVal) || newVal === '') {
@@ -370,10 +383,9 @@ export default {
     currentChannel: {
       async handler(newVal) {
         if (newVal) {
-          console.log(newVal, 'newVal');
           this.needAuth = false;
           this.approvingLoading = false;
-          if (newVal.channel === 'ISWAP') {
+          if (newVal.channel === 'iSwap') {
             this.chooseFromAsset.contractAddress && await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'DODO') {
             newVal.approveAddress && await this.checkAssetAuthStatus();
@@ -470,7 +482,7 @@ export default {
         this.approvingLoading = true;
         this.showApproveLoading = false;
       } catch (e) {
-        console.log(e);
+        console.log(e, 'error');
         this.$message.warning({ message: e.message, offset: 30 });
         this.showApproveLoading = false;
       }
@@ -490,11 +502,12 @@ export default {
 
     getAuthContractAddress() {
       let authContractAddress;
-      if (this.currentChannel.channel === 'ISWAP') {
+      if (this.currentChannel.channel === 'iSwap') {
         authContractAddress = contractConfig[this.fromNetwork];
-      } else if (this.currentChannel.channel === 'DODO') {
-        authContractAddress = this.currentChannel.approveAddress;
       }
+      // else if (this.currentChannel.channel === 'DODO') {
+      //   authContractAddress = this.currentChannel.approveAddress;
+      // }
       return authContractAddress;
     },
 
@@ -513,7 +526,7 @@ export default {
         this.limitMin = limitInfo.normalMin;
         this.limitMax = limitInfo.normalMax;
         this.orginChannelConfigList = this.orginChannelConfigList && this.orginChannelConfigList.map(channel => {
-          if (channel.channel === 'ISWAP') {
+          if (channel.channel === 'iSwap') {
             return {
               ...channel,
               limitMin: limitInfo.normalMin,
@@ -667,6 +680,7 @@ export default {
             this.switchAsset = true;
           } else {
             this.crossTransaction = true;
+            this.switchAsset = false;
           }
           if (this.chooseToAsset && this.inputType === 'amountIn' && this.amountIn) {
             this.amountOut = '';
@@ -684,6 +698,7 @@ export default {
             this.switchAsset = true;
           } else {
             this.crossTransaction = true;
+            this.switchAsset = false;
           }
           if (this.chooseFromAsset && this.inputType === 'amountIn' && this.amountIn) {
             this.amountOut = '';
@@ -812,7 +827,7 @@ export default {
         this.amountMsg = '';
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
           let currentConfig = {};
-          if (item.channel === 'ISWAP') {
+          if (item.channel === 'iSwap') {
             currentConfig = await this.getEstimateFeeInfo();
             if (currentConfig) {
               return {
@@ -831,11 +846,12 @@ export default {
                 usdtAmountOut: this.inputType === 'amountOut' && currentConfig.outToken && currentConfig.outToken.amount || '',
                 isBest: false,
                 isCurrent: false,
+                status: item.status,
                 swapRate: this.computedSwapRate(isCross, isCross ? currentConfig.inToken.amount : currentConfig.amount, isCross ? currentConfig.outToken.amountOut : currentConfig.amountOut)
               };
             }
             return null;
-          } else if (item.channel === 'DODO') {
+          } else if (item.channel === 'tempDODO') {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
               return {
@@ -855,7 +871,7 @@ export default {
             }
             return null;
           }
-          return null;
+          return item;
         }));
         this.showComputedLoading = false;
         console.log(tempChannelConfig, 'tempChannelConfig');
@@ -974,6 +990,10 @@ export default {
     },
     // 选择最优路径
     routeClick(platform) {
+      if (platform.status === 0) {
+        this.$toast(this.$t('tips.tips37'));
+        return;
+      }
       this.currentChannel = platform;
       for (const item of this.channelConfigList) {
         item.isChoose = item.channel === platform.channel;
@@ -989,11 +1009,11 @@ export default {
     async switchAssetClick() {
       if (!this.switchAsset) return false;
       this.amountMsg = '';
+      this.needAuth = false;
       const tempFromAsset = { ...this.chooseFromAsset };
       const tempToAsset = { ...this.chooseToAsset };
       this.chooseToAsset = { ...tempFromAsset };
       this.chooseFromAsset = { ...tempToAsset };
-      console.log(this.crossTransaction, 'crossTransaction');
       this.currentChannel = null;
       this.inputType === 'amountIn' ? this.amountOut = '' : this.amountIn = '';
       await this.getBalance(this.chooseFromAsset, true);

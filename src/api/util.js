@@ -559,16 +559,11 @@ export const networkOrigin = {
   OKExChain: isBeta ? 'https://www.oklink.com/okexchain-test' : 'https://www.oklink.com/okexchain',
   Harmony: isBeta ? 'https://explorer.harmony.one/' : 'https://explorer.pops.one/',
   Polygon: isBeta ? 'https://mumbai.polygonscan.com/' : 'https://explorer.matic.network/',
-  KCC: isBeta ? 'https://scan-testnet.kcc.network' : 'https://explorer.kcc.io/'
-};
-
-export const hashLinkList = {
-  Ethereum: isBeta ? 'https://ropsten.etherscan.io/tx/' : 'https://etherscan.io/tx/',
-  BSC: isBeta ? 'https://testnet.bscscan.com/tx/' : 'https://bscscan.com/tx/',
-  Heco: isBeta ? 'https://testnet.hecoinfo.com/tx/' : 'https://hecoinfo.com/tx/',
-  OKExChain: isBeta ? 'https://www.oklink.com/okexchain-test/tx/' : 'https://www.oklink.com/okexchain/tx/',
-  NULS: isBeta ? 'http://beta.nulscan.io/transaction/info?hash=' : 'https://nulscan.io/transaction/info?hash=',
-  NERVE: isBeta ? 'http://beta.scan.nerve.network/transaction/info?hash=' : 'https://scan.nerve.network/transaction/info?hash='
+  KCC: isBeta ? 'https://scan-testnet.kcc.network' : 'https://explorer.kcc.io/',
+  CRONOS: isBeta ? 'https://cronos.crypto.org/explorer/testnet3' : 'https://cronos.crypto.org/explorer/',
+  Avalanche: isBeta ? 'https://testnet.snowtrace.io/' : 'https://snowtrace.io/',
+  Arbitrum: isBeta ? 'https://testnet.arbiscan.io/' : 'https://arbiscan.io',
+  Fantom: isBeta ? 'https://testnet.ftmscan.com/' : 'https://ftmscan.com'
 };
 
 export const addressNetworkOrigin = {
@@ -580,7 +575,20 @@ export const addressNetworkOrigin = {
   OKExChain: isBeta ? 'https://www.oklink.com/okexchain-test/address/' : 'https://www.oklink.com/okexchaint/address/',
   Harmony: isBeta ? 'https://explorer.harmony.one/address/' : 'https://explorer.pops.one/address/',
   Polygon: isBeta ? 'https://mumbai.polygonscan.com/address/' : 'https://explorer.matic.network/address/',
-  KCC: isBeta ? 'https://scan-testnet.kcc.network/address/' : 'https://explorer.kcc.io/address/'
+  KCC: isBeta ? 'https://scan-testnet.kcc.network/address/' : 'https://explorer.kcc.io/address/',
+  CRONOS: isBeta ? 'https://cronos.crypto.org/explorer/testnet3/address/' : 'https://cronos.crypto.org/explorer/address/',
+  Avalanche: isBeta ? 'https://testnet.snowtrace.io/address/' : 'https://snowtrace.io/address/',
+  Arbitrum: isBeta ? 'https://testnet.arbiscan.io/address/' : 'https://arbiscan.io/address/',
+  Fantom: isBeta ? 'https://testnet.ftmscan.com/address/' : 'https://ftmscan.com/address/'
+};
+
+export const hashLinkList = {
+  Ethereum: isBeta ? 'https://ropsten.etherscan.io/tx/' : 'https://etherscan.io/tx/',
+  BSC: isBeta ? 'https://testnet.bscscan.com/tx/' : 'https://bscscan.com/tx/',
+  Heco: isBeta ? 'https://testnet.hecoinfo.com/tx/' : 'https://hecoinfo.com/tx/',
+  OKExChain: isBeta ? 'https://www.oklink.com/okexchain-test/tx/' : 'https://www.oklink.com/okexchain/tx/',
+  NULS: isBeta ? 'http://beta.nulscan.io/transaction/info?hash=' : 'https://nulscan.io/transaction/info?hash=',
+  NERVE: isBeta ? 'http://beta.scan.nerve.network/transaction/info?hash=' : 'https://scan.nerve.network/transaction/info?hash='
 };
 
 export const networkRpc = {

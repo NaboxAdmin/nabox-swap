@@ -481,8 +481,6 @@ export default {
       try {
         const transfer = new ETransfer();
         const contractAddress = farm.stakedAsset.contractAddress;
-        // const multiAddress = this.assetsItem.heterogeneousList && this.assetsItem.heterogeneousList.find(item => item.chainName === this.currentFarm.chain).heterogeneousChainMultySignAddress || '';
-        // console.log(multiAddress, 'contractAddress contractAddress contractAddress');
         const res = await transfer.approveERC20(
           contractAddress,
           farmHash,

@@ -35,7 +35,8 @@ const en = {
     tips33: 'Cross-chain',
     tips34: 'Order timed out, please re-create order',
     tips35: 'High Price Volatility',
-    tips36: 'Swap amount is lower than Gas'
+    tips36: 'Swap amount is lower than Gas',
+    tips37: 'The current channel has not been opened yet'
   },
   swap: {
     swap1: 'From',
