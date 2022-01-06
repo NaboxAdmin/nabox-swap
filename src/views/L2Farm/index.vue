@@ -71,8 +71,6 @@ import Over from './Over';
 import { currentNet, MAIN_INFO } from '@/config';
 import { divisionDecimals, Minus, timesDecimals, tofix, Times } from '@/api/util';
 import { ETransfer, NTransfer } from '@/api/api';
-import { ethers } from 'ethers';
-import { txAbi } from '@/api/contractConfig';
 
 const nerve = require('nerve-sdk-js');
 const transfer = new NTransfer({

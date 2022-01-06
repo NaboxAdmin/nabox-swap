@@ -239,19 +239,11 @@ import ISwap from './util/iSwap';
 import { ISWAP_VERSION, ISWAP_USDT_CONFIG } from './util/swapConfig';
 import { contractConfig } from './util/swapConfig';
 import Dodo from './util/Dodo';
+import { currentNet } from '@/config';
 
-export const valideNetwork = supportChainList.map(v => {
-  return v.SwftChain;
-});
-export const networkToChain = {};
-valideNetwork.map(v => {
-  const chain = supportChainList.filter(item => item.SwftChain === v)[0];
-  networkToChain[v] = {
-    chain: chain.value,
-    chainId: chain.chainId,
-    assetId: chain.assetId
-  };
-});
+const nerve = require('nerve-sdk-js');
+// 测试环境
+currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
   name: 'Swap',

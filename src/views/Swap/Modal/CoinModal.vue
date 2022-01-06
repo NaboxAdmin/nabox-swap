@@ -51,7 +51,6 @@
 <script>
 import { divisionDecimals, tofix } from '@/api/util';
 import { getBatchERC20Balance } from '@/api/api';
-import { bscData, hecoData } from '../util/tempData';
 
 export default {
   name: 'CoinModal',
@@ -118,7 +117,6 @@ export default {
             this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
               this.getSwapAssetList(this.picList[this.currentIndex]);
-              // this.getTempSwapAssetList('Heco');
             }, 0);
           } else {
             if (this.picList.findIndex(item => item === this.fromNetwork) === -1) {
@@ -129,7 +127,6 @@ export default {
             }
             this.timer = setTimeout(() => {
               this.getSwapAssetList(this.fromNetwork);
-              // this.getTempSwapAssetList(this.fromNetwork);
             }, 0);
           }
         }
@@ -144,18 +141,6 @@ export default {
     });
   },
   methods: {
-    getTempSwapAssetList(chain) {
-      console.log(chain, 'chain');
-      if (chain === 'Heco') {
-        this.showCoinList = hecoData;
-        this.allList = [...this.showCoinList];
-        console.log(this.showCoinList, 'showCoinList');
-      } else {
-        this.showCoinList = bscData;
-        this.allList = [...this.showCoinList];
-        console.log(this.showCoinList, 'showCoinList');
-      }
-    },
     maskClick() {
       this.$emit('update:showModal', false);
     },
