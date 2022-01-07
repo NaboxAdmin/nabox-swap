@@ -297,6 +297,14 @@ export default {
         const res = await NerveChannel.sendNerveSwapTransaction(currentChannel, this.fromAddress);
         if (res.hash) {
           this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+          this.$message({
+            type: 'success',
+            message: this.$t('tips.tips24'),
+            offset: 30,
+            duration: 1500
+          });
+          this.confirmLoading = false;
+          this.$emit('confirm');
         }
       } catch (e) {
         console.error(e, 'error');
