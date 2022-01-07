@@ -150,7 +150,7 @@ export default {
             gasFee: timesDecimals(currentChannel.outToken.relayerGas, fromAsset.decimals || 18),
             crossChainFee: timesDecimals(currentChannel.originCrossChainFee, fromAsset.decimals || 18),
             rewardsMin: 0,
-            channel: 'ISWAP',
+            channel: 'nabox-wallet',
             srcPath,
             destPath,
             srcChainSwapInfo,
