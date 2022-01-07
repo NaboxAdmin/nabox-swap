@@ -240,6 +240,7 @@ import { ISWAP_VERSION, ISWAP_USDT_CONFIG } from './util/swapConfig';
 import { contractConfig } from './util/swapConfig';
 import Dodo from './util/Dodo';
 import { currentNet } from '@/config';
+import NerveChannel from './util/Nerve';
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -400,6 +401,13 @@ export default {
       this.toContractAddress = this.$route.query.toContractAddress;
     }
     this.iSwap = new ISwap({ chain: this.fromNetwork });
+
+    const nerveChannel = new NerveChannel({
+      chooseFromAsset: this.chooseFromAsset,
+      chooseToAsset: this.chooseToAsset
+    });
+    nerveChannel.getNerveChannelConfig('amountOut', 1);
+
     // this.getUsdtnAssets();
     // setTimeout 0 不然获取不到地址
     setTimeout(() => {
@@ -862,6 +870,21 @@ export default {
               };
             }
             return null;
+          } else if (item.channel === 'Nerve') {
+            currentConfig = await this.getNerveSwapRoute();
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                amount: currentConfig.amountIn,
+                channel: item.channel,
+                amountOut: currentConfig.amountOut,
+                minReceive: tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+                impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
+                isBest: false,
+                isCurrent: false,
+                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
+              };
+            }
           }
           return item;
         }));
@@ -951,6 +974,18 @@ export default {
       };
       const dodo = new Dodo();
       return await dodo.getDodoRoute(data);
+    },
+    // 获取nerve通道上面
+    async getNerveSwapRoute() {
+      const nerveChannel = new NerveChannel({
+        chooseFromAsset: this.chooseFromAsset,
+        chooseToAsset: this.chooseToAsset
+      });
+      if (this.inputType === 'amountIn') {
+        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn);
+      } else {
+        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut);
+      }
     },
     // 最大
     async maxAmount() {
