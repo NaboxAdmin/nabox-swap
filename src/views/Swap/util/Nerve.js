@@ -8,7 +8,7 @@ const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default class NerveChannel {
-  constructor({ chooseFromAsset, chooseToAsset }) {
+  constructor({ chooseFromAsset, chooseToAsset, swapPairInfo }) {
     // this.chooseFromAsset = chooseFromAsset;
     // this.chooseToAsset = chooseToAsset;
     this.chooseFromAsset = MAIN_INFO;
@@ -21,7 +21,6 @@ export default class NerveChannel {
     // TODO: 还需要修改 decimal => decimals
     const fromDecimals = type === 'amountIn' ? this.chooseFromAsset.decimal : this.chooseToAsset.decimal;
     const toDecimals = type === 'amountIn' ? this.chooseToAsset.decimal : this.chooseFromAsset.decimal;
-    console.log(fromDecimals, 'fromDecimals');
     amount = timesDecimals(amount, fromDecimals);
     if (pairs.length) {
       const bestExact = type === 'amountIn' ? this.getBestTradeExactIn(amount, pairs) : this.getBestTradeExactOut(amount, pairs);
@@ -48,7 +47,6 @@ export default class NerveChannel {
           }
         }).filter(item => item);
         console.log(pairsArray, '==pairsArray==');
-        console.log(routeSymbolList, 'routeSymbolList');
         const fromAmount = type === 'amountIn' ? inAmount : outAmount;
         const toAmount = type === 'amountIn' ? outAmount : inAmount;
         const priceImpact = nerve.swap.getPriceImpact(
@@ -135,11 +133,38 @@ export default class NerveChannel {
     return null;
   }
 
-  async sendNerveSwapTransaction(hex) {
+  async sendNerveSwapTransaction(nerveChannel, nerveAddress) {
+    const { amountIn, minReceive } = nerveChannel;
     const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
     const toAssetKey = `${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
     const fromAssetDecimals = this.chooseFromAsset.decimals;
     const toAssetDecimals = this.chooseToAsset.decimals;
+
+    const fromAddress = nerveAddress;
+    const swapAmountIn = timesDecimals(amountIn, fromAssetDecimals); // 卖出的资产数量
+    // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
+    const key = fromAssetKey + '_' + toAssetKey;
+    // TODO:替换tempPairInfo
+    const pairsInfo = tempPairInfo[key];
+    const pairs = Object.values(pairsInfo);
+    const bestExactIn = this.getBestTradeExactIn(amountIn, pairs);
+    const tokenPath = bestExactIn.path;
+    const amountOutMin = timesDecimals(minReceive, toAssetDecimals).split('.')[0]; // 最小买进的资产数量
+    const feeTo = null; // 交易手续费取出一部分给指定的接收地址
+    const deadline = nerve.swap.currentTime() + 300; // 过期时间
+    const toAddress = fromAddress; // 资产接收地址
+    const remark = 'Swap...';
+    const tx = await nerve.swap.swapTrade(
+      fromAddress,
+      swapAmountIn,
+      tokenPath,
+      amountOutMin,
+      feeTo,
+      deadline,
+      toAddress,
+      remark
+    );
+    return tx.hash;
   }
 
   generateAssetKey() {

@@ -67,6 +67,7 @@ import { ISWAP_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
+import NerveChannel from '../Swap/util/Nerve';
 
 export default {
   name: 'ConfirmOrder',
@@ -102,6 +103,9 @@ export default {
             break;
           case 'DODO':
             await this.sendDodoTransaction();
+            break;
+          case 'Nerve':
+            await this.sendNerveSwapTransaction();
             break;
           default:
             return false;
@@ -271,6 +275,28 @@ export default {
           });
           this.confirmLoading = false;
           this.$emit('confirm');
+        }
+      } catch (e) {
+        console.error(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: e.message,
+          offset: 30
+        });
+      }
+    },
+    // 发送nerveSwap交易
+    async sendNerveSwapTransaction() {
+      try {
+        const { toAsset, fromAsset, currentChannel } = this.orderInfo;
+        const NerveChannel = new NerveChannel({
+          chooseToAsset: toAsset,
+          chooseFromAsset: fromAsset
+        });
+        const res = await NerveChannel.sendNerveSwapTransaction(currentChannel, this.fromAddress);
+        if (res.hash) {
+          this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
         }
       } catch (e) {
         console.error(e, 'error');
