@@ -36,7 +36,8 @@ const en = {
     tips34: 'Order timed out, please re-create order',
     tips35: 'High Price Volatility',
     tips36: 'Swap amount is lower than Gas',
-    tips37: 'The current channel has not been opened yet'
+    tips37: 'The current channel has not been opened yet',
+    tips38: 'The function is being upgraded, please be patient...'
   },
   swap: {
     swap1: 'From',

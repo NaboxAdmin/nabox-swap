@@ -129,7 +129,8 @@ export default {
       return this.liquidityInfo && this.liquidityInfo.lpCoinList || [];
     },
     canNext() {
-      return !this.withdrawCount || !Number(this.withdrawCount) || this.amountMsg;
+      // return !this.withdrawCount || !Number(this.withdrawCount) || this.amountMsg;
+      return true;
     }
   },
   watch: {
@@ -300,7 +301,10 @@ export default {
     },
     // 确认
     async submit() {
-      if (this.canNext) return false;
+      if (this.canNext) {
+        this.$toast(this.$t('tips.tips38'))
+        return false
+      };
       this.withDrawLoading = true;
       const transfer = new NTransfer({
         chain: 'NERVE',
