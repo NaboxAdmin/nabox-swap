@@ -150,7 +150,8 @@ export default {
       return total;
     },
     canNext() {
-      return !this.joinCount || !Number(this.joinCount) || this.amountMsg;
+      // return !this.joinCount || !Number(this.joinCount) || this.amountMsg;
+      return true;
     }
   },
   watch: {
@@ -308,7 +309,10 @@ export default {
       this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
     },
     async submit() {
-      if (this.canNext) return false;
+      if (this.canNext) {
+        this.$toast(this.$t('tips.tips38'))
+        return false
+      };
       this.confirmLoading = true;
       const transfer = new NTransfer({
         chain: 'NERVE',
