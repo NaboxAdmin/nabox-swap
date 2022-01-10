@@ -402,11 +402,11 @@ export default {
     }
     this.iSwap = new ISwap({ chain: this.fromNetwork });
 
-    const nerveChannel = new NerveChannel({
-      chooseFromAsset: this.chooseFromAsset,
-      chooseToAsset: this.chooseToAsset
-    });
-    nerveChannel.getNerveChannelConfig('amountOut', 1);
+    // const nerveChannel = new NerveChannel({
+    //   chooseFromAsset: this.chooseFromAsset,
+    //   chooseToAsset: this.chooseToAsset
+    // });
+    // nerveChannel.getNerveChannelConfig('amountOut', 1);
 
     // this.getUsdtnAssets();
     // setTimeout 0 不然获取不到地址
