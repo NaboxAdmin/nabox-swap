@@ -178,7 +178,8 @@ export default {
               fee: currentChannel.crossChainFee,
               slippage,
               pairAddress: '',
-              swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18)
+              swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18),
+              swapType: 1
             };
             const swapRes = await this.$request({
               url: '/swap/cross/tx/save',
