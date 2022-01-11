@@ -548,7 +548,8 @@ export class NTransfer {
 }
 
 const CROSS_OUT_ABI = [
-  'function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)'
+  'function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)',
+  'function crossOutII(string memory to, uint256 amount, address ERC20, bytes memory data) public payable returns (bool)'
 ];
 // token授权
 const ERC20_ABI = [
@@ -656,6 +657,32 @@ export class ETransfer {
       delete transactionParameters.from;
     }
     return await this.sendTransaction(transactionParameters);
+  }
+
+  async crossInII(params) {
+    const { multySignAddress, nerveAddress, numbers, fromAddress, contractAddress, decimals } = params;
+    let transactionParameters;
+    if (contractAddress) {
+      // token 转入
+      const numberOfTokens = ethers.utils.parseUnits(numbers, decimals);
+      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
+      const data = iface.functions.crossOut.encode([nerveAddress, numberOfTokens, contractAddress]);
+      transactionParameters = {
+        to: multySignAddress,
+        from: fromAddress, // 验证合约调用需要from,必传
+        value: '0x00',
+        data: data
+      };
+    } else {
+      const amount = ethers.utils.parseEther(numbers);
+      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
+      const data = iface.functions.crossOut.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
+      transactionParameters = {
+        to: multySignAddress,
+        value: amount,
+        data: data
+      };
+    }
   }
 
   // 普通链内转账
