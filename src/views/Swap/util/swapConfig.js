@@ -405,5 +405,8 @@ export const ISWAP_USDT_CONFIG = {
   56: 'USDT',
   66: 'USDT',
   128: 'USDT',
-  137: 'USDT'
+  137: 'USDT',
+  250: 'fUSDT',
+  42161: 'USDT',
+  43114: 'USDT.e'
 };

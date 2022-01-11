@@ -60,6 +60,19 @@ export default class ISwap {
     }
     return null;
   }
+  // 获取iSwap Bridge限额信息
+  async getBridgeTradeLimit(params) {
+    const res = await sendRequest({
+      method: 'get',
+      url: '/api/common/trade/limit',
+      data: params,
+      customUrl
+    });
+    if (res.code === 0) {
+      return res.data;
+    }
+    return null;
+  }
   // 获取iSwap费率信息
   async getEstimateFeeInfo(params) {
     try {
@@ -209,75 +222,60 @@ export default class ISwap {
    * @param dstChainSwapInfo 目标链编码数据
    * @private
    */
-  async _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(from, encodeData) {
+  async _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
     console.log('==token->token==');
-    console.log(encodeData, 'encodeData');
     const amount = ethers.utils.parseEther('0').toHexString();
-    // const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
-    // const data = iface.functions.swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions.swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
     const transactionParameters = await this.setGasLimit({
       from,
       to: this.iSwapContractAddress,
       value: amount,
-      data: encodeData
+      data
     });
     return await this.transfer.sendTransaction(transactionParameters);
   }
-  async _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(from, encodeData, orderInfo) {
+  async _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo, orderInfo) {
     console.log('==cross: ETH->token==');
     const amount = ethers.utils.parseEther(orderInfo.amountIn).toHexString();
-    const transactionParameters = this.setGasLimit({
+    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    const data = iface.functions.swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
+    const transactionParameters = await this.setGasLimit({
       from,
       to: this.iSwapContractAddress,
       value: amount,
-      data: encodeData
+      data
     });
-    console.log(transactionParameters);
     return await this.transfer.sendTransaction(transactionParameters);
   }
 
   /**
    * @message 调用iSwapBridge大额跨链合约
    * @param fromAddress 用户地址
-   * @param orderId 跨链订单id
-   * @param asset 当前跨链资产合约地址
-   * @param from from地址
-   * @param to to地址
-   * @param amount 跨链金额
-   * @param gasFee gas
-   * @param crossChainFee 跨俩手续费
-   * @param rewards 奖励
-   * @param srcChainId 源链id
-   * @param dstChainId 目标链id
-   * @param deadline 过期时间
-   * @param channel 通道
+   * @param encodeData 签名上链的encodeData
    * @returns {Promise<*>}
    * @private
    */
-  async _crossChainToken(fromAddress, orderId, asset, from, to, amount, gasFee, crossChainFee, rewards, srcChainId, dstChainId, deadline, channel) {
+  async _crossChainToken(fromAddress, encodeData) {
     console.log('==bridge: token->token==');
     const bridgeAmount = ethers.utils.parseEther('0').toHexString();
-    const iface = new ethers.utils.Interface(iSwapContractBridgeAbiConfig);
-    const data = iface.functions.crossChainToken.encode([orderId, asset, from, to, amount, gasFee, crossChainFee, rewards, srcChainId, dstChainId, deadline, channel]);
-    const transactionParameters = this.setGasLimit({
+    const transactionParameters = await this.setGasLimit({
       from: fromAddress,
-      to: this.iSwapContractAddress,
+      to: this.iSwapBridgeContractAddress,
       value: bridgeAmount,
-      data
+      data: encodeData
     });
     return await this.transfer.sendTransaction(transactionParameters);
   }
 
-  async _crossChainETH(fromAddress, orderId, asset, from, to, amount, gasFee, crossChainFee, rewards, srcChainId, dstChainId, deadline, channel, orderInfo) {
+  async _crossChainETH(fromAddress, encodeData, orderInfo) {
     console.log('==bridge: ETH->token==');
     const bridgeAmount = ethers.utils.parseEther(orderInfo.amountIn).toHexString();
-    const iface = new ethers.utils.Interface(iSwapContractBridgeAbiConfig);
-    const data = iface.functions.crossChainETH.encode([orderId, asset, from, to, amount, gasFee, crossChainFee, rewards, srcChainId, dstChainId, deadline, channel]);
-    const transactionParameters = this.setGasLimit({
+    const transactionParameters = await this.setGasLimit({
       from: fromAddress,
-      to: this.iSwapContractAddress,
+      to: this.iSwapBridgeContractAddress,
       value: bridgeAmount,
-      data
+      data: encodeData
     });
     return await this.transfer.sendTransaction(transactionParameters);
   }
@@ -313,6 +311,7 @@ export default class ISwap {
    */
   async setGasLimit(tx) {
     const gasLimit = await this.transfer.getGasLimit(tx);
+    console.log(gasLimit, 'gasLimit');
     const tempTx = {
       ...tx,
       gasLimit

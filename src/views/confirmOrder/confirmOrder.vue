@@ -132,7 +132,7 @@ export default {
         });
         const isCross = fromAsset.chain !== toAsset.chain;
         if (isCross) {
-          // 稳定币swao
+        // 稳定币swao
           if (stableSwap) {
             await this.sendISwapCrossTransaction();
           } else {
@@ -141,7 +141,7 @@ export default {
             const destPath = currentChannel.outToken.router.map(item => item.address).join(',');
             const srcChainParams = {
               amount0In: timesDecimals(currentChannel.amount, fromAsset.decimals),
-              amount0OutMin: timesDecimals(currentChannel.minReceive, toAsset.decimals),
+              amount0OutMin: timesDecimals(currentChannel.iSwapConfig.inToken.amountOut, crossFeeAsset.decimals),
               fromAssetDex
             };
             const destChainParams = {
@@ -171,7 +171,7 @@ export default {
             };
             const res = await iSwap.generateCrossChainSwapOrder(params);
             if (res) {
-              // 先存到nabox后台
+            // 先存到nabox后台
               const swapRes = await this.recordSwapOrder(res, 1);
               if (swapRes.code === 1000) {
                 const dstChainId = toAsset.nativeId;
@@ -248,60 +248,51 @@ export default {
     },
     // 调用合约发送iSwapCross交易
     async sendISwapCrossTransaction() {
-      console.log(this.orderInfo.currentChannel, 'current');
-      try {
-        const { fromAsset, toAsset, address, toAddress, amountIn, currentChannel } = this.orderInfo;
-        const config = JSON.parse(sessionStorage.getItem('config'));
-        const fromMainAssetSymbol = config[fromAsset.chain].symbol;
-        const toMainAssetSymbol = config[toAsset.chain].symbol;
-        const iSwap = new ISwap({
-          chain: this.fromNetwork || fromAsset.chain
-        });
-        const params = {
-          version: ISWAP_BRIDGE_VERSION,
-          fromUser: address,
-          toUser: toAddress,
-          srcChainId: fromAsset.nativeId,
-          destChainId: toAsset.nativeId,
-          fromAsset: fromAsset.contractAddress,
-          amount: timesDecimals(amountIn, fromAsset.decimals || 18),
-          gasFee: currentChannel.iSwapConfig.gasFee,
-          crossChainFee: currentChannel.iSwapConfig.crossChainFee,
-          rewardsMin: 0,
-          type: (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 2 || 1,
-          deadline: 2524579200,
-          isReturnEth: toAsset.symbol === toMainAssetSymbol,
-          channel: 'ISWAP'
-        };
-        const res = await iSwap.generateCrossChainBridgeOrder(params);
-        if (res) {
-          const swapRes = await this.recordSwapOrder(res, (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 3 || 2);
-          let transferResult;
-          if (swapRes.code === 1000) {
-            // const orderId = (res.orderId).toString();
-            // const assetAddress = fromAsset;
-            console.log(res.encodeData, 'ress');
-            if (fromMainAssetSymbol === fromAsset.symbol) {
-              transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, res.encodeData, this.orderInfo);
-            } else {
-              transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, res.encodeData);
-            }
-            if (transferResult.hash) {
-              this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transferResult.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
-              this.$message({
-                type: 'success',
-                message: this.$t('tips.tips24'),
-                offset: 30,
-                duration: 1500
-              });
-              this.confirmLoading = false;
-              this.$emit('confirm');
-            }
+      const { fromAsset, toAsset, address, toAddress, amountIn, currentChannel } = this.orderInfo;
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const fromMainAssetSymbol = config[fromAsset.chain].symbol;
+      const toMainAssetSymbol = config[toAsset.chain].symbol;
+      const iSwap = new ISwap({
+        chain: this.fromNetwork || fromAsset.chain
+      });
+      const params = {
+        version: ISWAP_BRIDGE_VERSION,
+        fromUser: address,
+        toUser: toAddress,
+        srcChainId: fromAsset.nativeId,
+        destChainId: toAsset.nativeId,
+        fromAsset: fromAsset.contractAddress,
+        amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+        gasFee: currentChannel.iSwapConfig.gasFee,
+        crossChainFee: currentChannel.iSwapConfig.crossChainFee,
+        rewardsMin: 0,
+        type: (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 2 || 1,
+        deadline: 2524579200,
+        isReturnEth: toAsset.symbol === toMainAssetSymbol,
+        channel: 'ISWAP'
+      };
+      const res = await iSwap.generateCrossChainBridgeOrder(params);
+      if (res) {
+        const swapRes = await this.recordSwapOrder(res, (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 3 || 2);
+        let transferResult;
+        if (swapRes.code === 1000) {
+          if (fromMainAssetSymbol === fromAsset.symbol) {
+            transferResult = await iSwap._crossChainETH(this.fromAddress, res.encodeData, this.orderInfo);
+          } else {
+            transferResult = await iSwap._crossChainToken(this.fromAddress, res.encodeData);
+          }
+          if (transferResult.hash) {
+            this.$message({
+              type: 'success',
+              message: this.$t('tips.tips24'),
+              offset: 30,
+              duration: 1500
+            });
+            this.confirmLoading = false;
+            this.$emit('confirm');
+            await this.recordHash(res.orderId, transferResult.hash);
           }
         }
-      } catch (e) {
-        this.confirmLoading = false;
-        console.log(e, 'error');
       }
     },
     // 调用合约发送DODO交易

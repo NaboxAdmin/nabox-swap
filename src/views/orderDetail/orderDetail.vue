@@ -110,8 +110,8 @@ export default {
     document.querySelector('body').removeAttribute('style');
     document.querySelector('body').setAttribute('style', 'font-size:12px');
     if (this.orderTimer) {
-      this.orderTimer = null;
       clearInterval(this.orderTimer);
+      this.orderTimer = null;
     }
   },
   methods: {

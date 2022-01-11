@@ -30,7 +30,7 @@
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
                 <div class="coin-item">
                   <span class="coin-icon">
-                    <img :src="item.icon || pictureError" alt="" @error="pictureError">
+                    <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">
                   </span>
                   <span class="text-3a font-500">{{ item.symbol }}</span>
                 </div>
