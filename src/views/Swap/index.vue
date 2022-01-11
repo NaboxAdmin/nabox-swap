@@ -781,7 +781,7 @@ export default {
           }
         } catch (e) {
           console.log(e, 'error');
-          this.available = 0;
+          // this.available = 0;
           clickBoo && this.$message({
             message: this.$t('tips.tips2'),
             type: 'warning',
@@ -796,8 +796,8 @@ export default {
     // 刷新当前余额
     refreshBalance() {
       if (this.balanceTimer) {
-        this.balanceTimer = null;
         clearInterval(this.balanceTimer);
+        this.balanceTimer = null;
       }
       this.balanceTimer = setInterval(() => {
         this.getBalance(this.chooseFromAsset, false);
