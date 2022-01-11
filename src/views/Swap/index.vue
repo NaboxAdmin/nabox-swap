@@ -26,7 +26,7 @@
               @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
             <div v-else class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')">
               <div class="image-cont">
-                <img :src="chooseFromAsset.icon" alt="" @error="pictureError">
+                <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol)" alt="" @error="pictureError">
               </div>
               <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
                 {{ chooseFromAsset.symbol }}
@@ -310,7 +310,8 @@ export default {
       currentIndex: 2,
       slippageMsg: '',
       btnErrorMsg: '',
-      crossTransaction: false
+      crossTransaction: false,
+      crossFeeAsset: null
     };
   },
   computed: {
@@ -615,7 +616,8 @@ export default {
         currentDex,
         toAssetDex,
         fromAssetDex,
-        slippage
+        slippage,
+        crossFeeAsset
       } = this;
       const toChain = this.chooseToAsset.chain;
       const tempParams = {
@@ -630,7 +632,8 @@ export default {
         currentDex,
         toAssetDex,
         fromAssetDex,
-        slippage
+        slippage,
+        crossFeeAsset
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -658,6 +661,7 @@ export default {
             await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
           } else {
             this.chooseFromAsset = tempList.find(item => item.symbol === 'USDT') || tempList[0];
+            this.crossFeeAsset = tempList.find(item => item.symbol === 'USDT') || null;
           }
           this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
         }

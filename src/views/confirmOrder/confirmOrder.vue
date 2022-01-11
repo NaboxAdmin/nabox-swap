@@ -47,7 +47,7 @@
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-3a">
               <span>{{ orderInfo.currentChannel.crossChainFee || '0' }}</span>
-              <span>{{ orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</span>
+              <span>{{ 'USDT' }}</span>
             </span>
           </div>
         </div>
@@ -114,11 +114,12 @@ export default {
     // 调用合约发送iSwap交易
     async sendISwapTransaction() {
       try {
-        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, slippage } = this.orderInfo;
+        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, address, toAddress, slippage, crossFeeAsset } = this.orderInfo;
         const config = JSON.parse(sessionStorage.getItem('config'));
         const RPCUrl = config[this.fromNetwork]['apiUrl'];
         const web3 = new Web3(RPCUrl || window.ethereum);
         const fromMainAssetSymbol = config[fromAsset.chain].symbol;
+        const toMainAssetSymbol = config[toAsset.chain].symbol;
         const iSwap = new ISwap({
           chain: this.fromNetwork || fromAsset.chain
         });
@@ -129,7 +130,7 @@ export default {
           const destPath = currentChannel.outToken.router.map(item => item.address).join(',');
           const srcChainParams = {
             amount0In: timesDecimals(currentChannel.amount, fromAsset.decimals),
-            amount0OutMin: timesDecimals(currentChannel.minReceive, toAsset.decimals),
+            amount0OutMin: timesDecimals(currentChannel.iSwapConfig.inToken.amountOut, crossFeeAsset.decimals),
             fromAssetDex
           };
           const destChainParams = {
@@ -147,15 +148,15 @@ export default {
             amount: timesDecimals(amountIn, fromAsset.decimals || 18),
             fromUser: this.fromAddress,
             toUser: this.fromAddress,
-            gasFee: timesDecimals(currentChannel.outToken.relayerGas, fromAsset.decimals || 18),
-            crossChainFee: timesDecimals(currentChannel.originCrossChainFee, fromAsset.decimals || 18),
+            gasFee: timesDecimals(currentChannel.outToken.relayerGas, crossFeeAsset && crossFeeAsset.decimals || 18),
+            crossChainFee: timesDecimals(currentChannel.originCrossChainFee, crossFeeAsset && crossFeeAsset.decimals || 18),
             rewardsMin: 0,
             channel: 'nabox-wallet',
             srcPath,
             destPath,
             srcChainSwapInfo,
             destChainSwapInfo,
-            isReturnEth: false
+            isReturnEth: toAsset.symbol === toMainAssetSymbol
           };
           const res = await iSwap.generateCrossChainSwapOrder(params);
           if (res) {
@@ -197,6 +198,7 @@ export default {
               let transferResult;
               if (fromAsset.symbol === fromMainAssetSymbol) {
                 transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo, this.orderInfo);
+                // transferResult = await iSwap._tempSwapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, res.encodeData, this.orderInfo);
               } else {
                 transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(this.fromAddress, orderId, gasFee, crossChainFee, dstChainId, channel, srcPathArr, srcChainSwapCallData, dstChainSwapInfo);
               }

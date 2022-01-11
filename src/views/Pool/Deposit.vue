@@ -310,9 +310,9 @@ export default {
     },
     async submit() {
       if (this.canNext) {
-        this.$toast(this.$t('tips.tips38'))
-        return false
-      };
+        this.$toast(this.$t('tips.tips38'));
+        return false;
+      }
       this.confirmLoading = true;
       const transfer = new NTransfer({
         chain: 'NERVE',

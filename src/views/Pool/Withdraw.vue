@@ -302,9 +302,9 @@ export default {
     // 确认
     async submit() {
       if (this.canNext) {
-        this.$toast(this.$t('tips.tips38'))
-        return false
-      };
+        this.$toast(this.$t('tips.tips38'));
+        return false;
+      }
       this.withDrawLoading = true;
       const transfer = new NTransfer({
         chain: 'NERVE',
