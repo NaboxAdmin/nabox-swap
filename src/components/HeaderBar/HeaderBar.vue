@@ -292,7 +292,7 @@ export default {
     this.fromAddress && this.getOrderStatus(this.fromAddress);
     this.statusTimer = setInterval(() => {
       this.fromAddress && this.getOrderStatus(this.fromAddress);
-    }, 10000);
+    }, 5000);
   },
   mounted() {
     window.addEventListener('click', () => {

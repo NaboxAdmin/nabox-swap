@@ -1,5 +1,5 @@
 import { request } from '@/network/http';
-import { contractConfig, ISWAP_VERSION, iSwapContractAbiConfig } from './swapConfig';
+import { contractConfig, ISWAP_VERSION, iSwapContractAbiConfig, iSwapContractBridgeAbiConfig, contractBridgeConfig } from './swapConfig';
 import Web3 from 'web3';
 import { ETransfer } from '@/api/api';
 import { ethers } from 'ethers';
@@ -12,6 +12,7 @@ export default class ISwap {
     this.transfer = new ETransfer();
     this.wallet = this.transfer.provider.getSigner();
     this.iSwapContractAddress = contractConfig[chain];
+    this.iSwapBridgeContractAddress = contractBridgeConfig[chain];
   }
   async getRouterList() {
     const res = await request({
@@ -59,6 +60,19 @@ export default class ISwap {
     }
     return null;
   }
+  // 获取iSwap Bridge限额信息
+  async getBridgeTradeLimit(params) {
+    const res = await sendRequest({
+      method: 'get',
+      url: '/api/common/trade/limit',
+      data: params,
+      customUrl
+    });
+    if (res.code === 0) {
+      return res.data;
+    }
+    return null;
+  }
   // 获取iSwap费率信息
   async getEstimateFeeInfo(params) {
     try {
@@ -69,6 +83,28 @@ export default class ISwap {
       });
       if (res.code === 0) {
         return res.data;
+      } else {
+        throw ('Network Error');
+      }
+      return null;
+    } catch (e) {
+      throw e;
+    }
+  }
+  // 获取iSwapBridge费率信息
+  async getBridgeEstimateFeeInfo(params) {
+    try {
+      const res = await sendRequest({
+        url: '/api/bridge/estimate-fee-info',
+        data: params,
+        customUrl
+      });
+      if (res.code === 0) {
+        return {
+          amount: res.data.amount.toString().split('.')[0],
+          crossChainFee: res.data.fee.toString().split('.')[0],
+          gasFee: res.data.gas.toString().split('.')[0]
+        };
       } else {
         throw ('Network Error');
       }
@@ -88,6 +124,18 @@ export default class ISwap {
       return res.data;
     }
     throw { message: res.message };
+    return null;
+  }
+  // 生成跨链Bridge订单
+  async generateCrossChainBridgeOrder(params) {
+    const res = await request({
+      url: '/api/bridge/order',
+      data: params,
+      customUrl
+    });
+    if (res.code === 0) {
+      return res.data;
+    }
     return null;
   }
   async getISwapOrderList(params) {
@@ -203,6 +251,37 @@ export default class ISwap {
   }
 
   /**
+   * @message 调用iSwapBridge大额跨链合约
+   * @param fromAddress 用户地址
+   * @param encodeData 签名上链的encodeData
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _crossChainToken(fromAddress, encodeData) {
+    console.log('==bridge: token->token==');
+    const bridgeAmount = ethers.utils.parseEther('0').toHexString();
+    const transactionParameters = await this.setGasLimit({
+      from: fromAddress,
+      to: this.iSwapBridgeContractAddress,
+      value: bridgeAmount,
+      data: encodeData
+    });
+    return await this.transfer.sendTransaction(transactionParameters);
+  }
+
+  async _crossChainETH(fromAddress, encodeData, orderInfo) {
+    console.log('==bridge: ETH->token==');
+    const bridgeAmount = ethers.utils.parseEther(orderInfo.amountIn).toHexString();
+    const transactionParameters = await this.setGasLimit({
+      from: fromAddress,
+      to: this.iSwapBridgeContractAddress,
+      value: bridgeAmount,
+      data: encodeData
+    });
+    return await this.transfer.sendTransaction(transactionParameters);
+  }
+
+  /**
    * 生成交易序列化参数
    * @param method
    * @param params
@@ -233,6 +312,7 @@ export default class ISwap {
    */
   async setGasLimit(tx) {
     const gasLimit = await this.transfer.getGasLimit(tx);
+    console.log(gasLimit, 'gasLimit');
     const tempTx = {
       ...tx,
       gasLimit
