@@ -121,7 +121,7 @@ export default {
     // 调用合约发送iSwap交易
     async sendISwapTransaction() {
       try {
-        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, stableSwap } = this.orderInfo;
+        const { fromAsset, toAsset, amountIn, currentChannel, toAssetDex, fromAssetDex, stableSwap, crossFeeAsset } = this.orderInfo;
         const config = JSON.parse(sessionStorage.getItem('config'));
         const RPCUrl = config[this.fromNetwork]['apiUrl'];
         const web3 = new Web3(RPCUrl || window.ethereum);
@@ -159,8 +159,8 @@ export default {
               amount: timesDecimals(amountIn, fromAsset.decimals || 18),
               fromUser: this.fromAddress,
               toUser: this.fromAddress,
-              gasFee: timesDecimals(currentChannel.outToken.relayerGas, fromAsset.decimals || 18),
-              crossChainFee: timesDecimals(currentChannel.originCrossChainFee, fromAsset.decimals || 18),
+              gasFee: timesDecimals(currentChannel.outToken.relayerGas, crossFeeAsset && crossFeeAsset.decimals || 18),
+              crossChainFee: timesDecimals(currentChannel.originCrossChainFee, crossFeeAsset && crossFeeAsset.decimals || 18),
               rewardsMin: 0,
               channel: 'ISWAP',
               srcPath,
