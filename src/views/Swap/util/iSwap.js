@@ -1,5 +1,5 @@
 import { request } from '@/network/http';
-import { contractConfig, ISWAP_VERSION, iSwapContractAbiConfig, iSwapContractBridgeAbiConfig } from './swapConfig';
+import { contractConfig, ISWAP_VERSION, iSwapContractAbiConfig, iSwapContractBridgeAbiConfig, contractBridgeConfig } from './swapConfig';
 import Web3 from 'web3';
 import { ETransfer } from '@/api/api';
 import { ethers } from 'ethers';
@@ -12,6 +12,7 @@ export default class ISwap {
     this.transfer = new ETransfer();
     this.wallet = this.transfer.provider.getSigner();
     this.iSwapContractAddress = contractConfig[chain];
+    this.iSwapBridgeContractAddress = contractBridgeConfig[chain];
   }
   async getRouterList() {
     const res = await request({
@@ -86,7 +87,11 @@ export default class ISwap {
         customUrl
       });
       if (res.code === 0) {
-        return res.data;
+        return {
+          amount: res.data.amount.toString().split('.')[0],
+          crossChainFee: res.data.fee.toString().split('.')[0],
+          gasFee: res.data.gas.toString().split('.')[0]
+        };
       } else {
         throw ('Network Error');
       }
@@ -204,30 +209,30 @@ export default class ISwap {
    * @param dstChainSwapInfo 目标链编码数据
    * @private
    */
-  async _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
+  async _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(from, encodeData) {
     console.log('==token->token==');
+    console.log(encodeData, 'encodeData');
     const amount = ethers.utils.parseEther('0').toHexString();
-    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
-    const data = iface.functions.swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
+    // const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
+    // const data = iface.functions.swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
     const transactionParameters = await this.setGasLimit({
       from,
       to: this.iSwapContractAddress,
       value: amount,
-      data
+      data: encodeData
     });
     return await this.transfer.sendTransaction(transactionParameters);
   }
-  async _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo, orderInfo) {
+  async _swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain(from, encodeData, orderInfo) {
     console.log('==cross: ETH->token==');
     const amount = ethers.utils.parseEther(orderInfo.amountIn).toHexString();
-    const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
-    const data = iface.functions.swapExactETHForTokensSupportingFeeOnTransferTokensCrossChain.encode([orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo]);
     const transactionParameters = this.setGasLimit({
       from,
       to: this.iSwapContractAddress,
       value: amount,
-      data
+      data: encodeData
     });
+    console.log(transactionParameters);
     return await this.transfer.sendTransaction(transactionParameters);
   }
 

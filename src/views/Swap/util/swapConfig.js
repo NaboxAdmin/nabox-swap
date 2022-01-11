@@ -1,4 +1,5 @@
 export const ISWAP_VERSION = 'V4-swap';
+export const ISWAP_BRIDGE_VERSION = 'V4-bridge';
 
 // swap异构链合约
 export const contractConfig = {
@@ -398,6 +399,7 @@ export const iSwapContractBridgeAbiConfig = [
   }
 ];
 
+// iSwap USDT 配置
 export const ISWAP_USDT_CONFIG = {
   1: 'USDT',
   56: 'USDT',

@@ -2,7 +2,7 @@ import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
 import { tempPairInfo } from './tempData';
 import { timesDecimals } from '@/api/util';
 import { tempAssetList } from './tempData';
-import { divisionAndFix, tofix } from '../../../api/util';
+import { divisionAndFix, tofix } from '@/api/util';
 
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
