@@ -209,20 +209,21 @@ export default {
             }
           }
         } else {
-          const { currentDex, currentChannel, toAddress } = this.orderInfo;
+          const { currentChannel, toAddress, toAssetDex, currentDex } = this.orderInfo;
           const paths = currentChannel.router.map(item => item.address);
           const deadTimes = 30;
           const channelBytes32 = this.formatBytes32(web3.utils.fromAscii(currentChannel.channel));
           const amountIn = timesDecimals(this.orderInfo.amountIn, fromAsset.decimals);
           const amountOutMin = timesDecimals(currentChannel.minReceive, toAsset.decimals);
           const deadline = Math.floor((Date.now() + 1000 * 60 * deadTimes) / 1000);
+          console.log(toAsset, '123', fromAsset);
           let transferResult;
           if (fromAsset.symbol === fromMainAssetSymbol) {
             transferResult = await iSwap._swapExactETHForTokensSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountOutMin, paths, toAddress, deadline, channelBytes32, this.orderInfo);
           } else if (toAsset.symbol === fromMainAssetSymbol) {
-            transferResult = await iSwap._swapExactTokensForETHSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
+            transferResult = await iSwap._swapExactTokensForETHSupportingFeeOnTransferTokens(this.fromAddress, toAssetDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
           } else {
-            transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokens(this.fromAddress, currentDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
+            transferResult = await iSwap._swapExactTokensForTokensSupportingFeeOnTransferTokens(this.fromAddress, toAssetDex.routerAddress, amountIn, amountOutMin, paths, toAddress, deadline, channelBytes32);
           }
           if (transferResult.hash) {
             this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transferResult.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
