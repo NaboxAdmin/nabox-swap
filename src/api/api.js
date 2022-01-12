@@ -16,9 +16,18 @@ import { farmABI } from '../views/L1Farm/FarmABI';
 const erc20BalanceAbiFragment = [
   {
     'constant': true,
-    'inputs': [{ 'name': '', 'type': 'address' }],
+    'inputs': [
+      {
+        'name': '',
+        'type': 'address'
+      }
+    ],
     'name': 'balanceOf',
-    'outputs': [{ 'name': '', 'type': 'uint256' }],
+    'outputs': [
+      {
+        'name': '',
+        'type': 'uint256' }
+    ],
     'type': 'function'
   },
   {

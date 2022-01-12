@@ -635,7 +635,7 @@ export default {
     },
     // 下一步
     nextStep() {
-      // if (!this.canNext) return false;
+      if (!this.canNext) return false;
       const {
         currentChannel,
         chooseFromAsset,
