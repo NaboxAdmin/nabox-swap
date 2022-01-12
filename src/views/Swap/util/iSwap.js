@@ -175,6 +175,14 @@ export default class ISwap {
     const amount = ethers.utils.parseEther('0').toHexString();
     const iface = new ethers.utils.Interface(iSwapContractAbiConfig);
     const data = iface.functions.swapExactTokensForTokensSupportingFeeOnTransferTokens.encode([routerAddress, amountIn, amountOutMin, paths, to, deadline, channel]);
+    const hexData = '0xf882b0a3000000000000000000000000cf0febd3f17cef5b47b0cd257acf6025c5bff3b7000000000000000000000000000000000000000000000000f9ccd8a1c5080000000000000000000000000000000000000000000000003f5bd6449116eb1a931a00000000000000000000000000000000000000000000000000000000000000e000000000000000000000000021decdab7af693437e77936e081c2f4d4391094a0000000000000000000000000000000000000000000000000000000061de7ce64953574150000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000055d398326f99059ff775485246999027b3197955000000000000000000000000bb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c000000000000000000000000755f34709e369d37c6fa52808ae84a32007d1155';
+    const decode = ethers.utils.defaultAbiCoder.decode(
+      ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'bytes32'],
+      ethers.utils.hexDataSlice(hexData, 4)
+    );
+
+    console.log(decode, decode[1].toString(), decode[2].toString(), 'decode');
+
     const transactionParameters = await this.setGasLimit({
       from,
       to: this.iSwapContractAddress,
@@ -312,6 +320,7 @@ export default class ISwap {
    * @returns {Promise<*&{gasLimit: *}>}
    */
   async setGasLimit(tx) {
+    console.log(tx, 'tx');
     const gasLimit = await this.transfer.getGasLimit(tx);
     console.log(gasLimit, 'gasLimit');
     const tempTx = {

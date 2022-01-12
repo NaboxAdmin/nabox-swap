@@ -134,7 +134,7 @@
           <span class="text-3a d-flex">
             <span class="d-flex">
               <span v-if="currentChannel && currentChannel.isBest" class="sign size-22 mr-1">{{ $t("swap.swap19") }}</span>
-              <span class="d-flex align-items-center cursor-pointer" @click="showPop=false">
+              <span class="d-flex align-items-center cursor-pointer" @click="showPop=true">
                 <span class="coin-icon_small">
                   <img :src="currentChannel.icon" alt="">
                 </span>{{ currentChannel.channel }}
@@ -689,8 +689,7 @@ export default {
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
-            console.log(this.stableSwap, 'stableSwap');
+            // this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -712,8 +711,7 @@ export default {
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
-            console.log(this.stableSwap, 'stableSwap');
+            // this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -1018,6 +1016,7 @@ export default {
       };
       this.currentDex = this.getDexInfo(this.chooseFromAsset, 'in');
       this.fromAssetDex = this.getDexInfo(this.chooseFromAsset, 'in');
+      // @FIXME routerAddress 都必须使用目标链上面的dex！！！！
       this.toAssetDex = this.getDexInfo(this.chooseToAsset, 'out');
       return await this.iSwap.getEstimateFeeInfo(feeInfoParams);
     },
