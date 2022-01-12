@@ -392,6 +392,8 @@ export default {
             this.chooseFromAsset.contractAddress && await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'DODO') {
             newVal.approveAddress && await this.checkAssetAuthStatus();
+          } else if (newVal.channel === 'Nerve' && this.fromNetwork !== 'NERVE') {
+            await this.checkAssetAuthStatus();
           }
           if (newVal.impact > 20) {
             this.btnErrorMsg = this.$t('tips.tips35');
@@ -515,12 +517,16 @@ export default {
     },
 
     getAuthContractAddress() {
+      // TODO: dodo还需要验证合约地址
       let authContractAddress;
+      const config = JSON.stringify(sessionStorage.getItem('config'));
       if (this.currentChannel.channel === 'iSwap' && !this.stableSwap) {
         authContractAddress = contractConfig[this.fromNetwork];
       } else if (this.currentChannel.channel === 'iSwap' && this.stableSwap) {
         // contractBridgeConfig
         authContractAddress = contractBridgeConfig[this.fromNetwork];
+      } else if (this.currentChannel === 'Nerve') {
+        authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       }
       // else if (this.currentChannel.channel === 'DODO') {
       //   authContractAddress = this.currentChannel.approveAddress;
@@ -591,47 +597,11 @@ export default {
         this.channelConfigList = res.data;
       }
     },
-    // 查询当前支持的usdtn列表
-    async getUsdtnAssets() {
-      try {
-        const res = await this.$request({
-          method: 'get',
-          url: '/swap/usdtn/assets'
-        });
-        if (res.code === 1000 && res.data) {
-          const tempUsdtnMap = {};
-          const tempUsdtMap = {};
-          this.USDTN_info = res.data.forEach(item => {
-            if (item.symbol === 'USDTN') {
-              tempUsdtnMap[item.chain] = {
-                chainId: item.chainId,
-                symbol: item.symbol,
-                contractAddress: item.contractAddress,
-                assetId: item.assetId
-              };
-            } else if (item.symbol === 'USDT') {
-              tempUsdtMap[item.chain] = {
-                chainId: item.chainId,
-                symbol: item.symbol,
-                contractAddress: item.contractAddress,
-                assetId: item.assetId
-              };
-            }
-          });
-          this.USDTN_info = tempUsdtnMap;
-          this.USDT_info = tempUsdtMap;
-        } else {
-          this.USDTN_info = {};
-          this.USDT_info = {};
-          throw res.msg;
-        }
-      } catch (e) {
-        console.error('erroe:' + e);
-      }
-    },
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
-      return fromAsset.channelInfo && toAsset.channelInfo && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) || false;
+      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'] && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) ||
+             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) ||
+             false;
     },
     // 下一步
     nextStep() {
@@ -720,6 +690,7 @@ export default {
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+            console.log(this.stableSwap, 'stableSwap');
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -742,6 +713,7 @@ export default {
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+            console.log(this.stableSwap, 'stableSwap');
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -1047,7 +1019,6 @@ export default {
         isReturnEth: toMainAssetSymbol === this.chooseToAsset.symbol
       };
       this.inputType === 'amountIn' ? bridgeFeeInfoParams['amountIn'] = timesDecimals(this.amountIn, this.chooseFromAsset.decimals) : bridgeFeeInfoParams['amountOut'] = timesDecimals(this.amountOut, this.chooseToAsset.decimals);
-      console.log(bridgeFeeInfoParams, '==bridgeFeeInfoParams==');
       return await this.iSwap.getBridgeEstimateFeeInfo(bridgeFeeInfoParams);
     },
     /**

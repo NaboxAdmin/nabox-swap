@@ -3,6 +3,7 @@ import { tempPairInfo } from './tempData';
 import { timesDecimals } from '@/api/util';
 import { tempAssetList } from './tempData';
 import { divisionAndFix, tofix } from '@/api/util';
+import { ETransfer } from '../../../api/api';
 
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -169,5 +170,14 @@ export default class NerveChannel {
 
   generateAssetKey() {
     return `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}_${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
+  }
+  // 获取Nerve预估费率信息
+  getNerveEstimateFeeInfo() {
+
+  }
+  sendNerveBridgeTransaction() {
+    const transfer = new ETransfer({
+      chain: this.chooseFromAsset.chain
+    });
   }
 }

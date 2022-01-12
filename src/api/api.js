@@ -692,6 +692,15 @@ export class ETransfer {
         data: data
       };
     }
+    const failed = await this.validate(transactionParameters);
+    if (failed) {
+      console.error('failed approveERC20' + failed);
+      return { success: false, msg: 'failed crossIn' + failed };
+    }
+    if (transactionParameters.from) {
+      delete transactionParameters.from;
+    }
+    return await this.sendTransaction(transactionParameters);
   }
 
   // 普通链内转账
