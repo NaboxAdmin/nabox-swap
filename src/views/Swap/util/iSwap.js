@@ -88,6 +88,7 @@ export default class ISwap {
       }
       return null;
     } catch (e) {
+      console.log(e, 'error');
       throw e;
     }
   }

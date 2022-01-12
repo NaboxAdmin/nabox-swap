@@ -3,7 +3,9 @@ import { tempPairInfo } from './tempData';
 import { timesDecimals } from '@/api/util';
 import { tempAssetList } from './tempData';
 import { divisionAndFix, tofix } from '@/api/util';
-import { ETransfer } from '../../../api/api';
+import { ETransfer } from '@/api/api';
+import { request } from '../../../network/http';
+import { divisionDecimals } from '../../../api/util';
 
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -172,9 +174,21 @@ export default class NerveChannel {
     return `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}_${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
   }
   // 获取Nerve预估费率信息
-  getNerveEstimateFeeInfo() {
-
+  async getNerveEstimateFeeInfo(params) {
+    const res = await request({
+      url: '/swap/nerve/channel/fee',
+      data: params
+    });
+    if (res.code === 1000) {
+      return {
+        crossChainFee: '',
+        swapFee: '',
+        orderId: res.data.orderId
+      };
+    }
+    return null;
   }
+  // 发送nerve稳定币交易
   sendNerveBridgeTransaction() {
     const transfer = new ETransfer({
       chain: this.chooseFromAsset.chain

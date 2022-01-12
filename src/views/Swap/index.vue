@@ -392,7 +392,7 @@ export default {
             this.chooseFromAsset.contractAddress && await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'DODO') {
             newVal.approveAddress && await this.checkAssetAuthStatus();
-          } else if (newVal.channel === 'Nerve' && this.fromNetwork !== 'NERVE') {
+          } else if (newVal.channel === 'NERVE' && this.fromNetwork !== 'NERVE') {
             await this.checkAssetAuthStatus();
           }
           if (newVal.impact > 20) {
@@ -525,7 +525,7 @@ export default {
       } else if (this.currentChannel.channel === 'iSwap' && this.stableSwap) {
         // contractBridgeConfig
         authContractAddress = contractBridgeConfig[this.fromNetwork];
-      } else if (this.currentChannel === 'Nerve') {
+      } else if (this.currentChannel === 'NERVE') {
         authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       }
       // else if (this.currentChannel.channel === 'DODO') {
@@ -930,7 +930,7 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === 'Nerve') {
+          } else if (item.channel === 'NERVE' && !this.stableSwap) {
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
               return {
@@ -957,6 +957,21 @@ export default {
               isBest: false,
               isCurrent: false
             };
+          } else if (item.channel === 'NERVE' && this.stableSwap) {
+            currentConfig = await this._getNerveEstimateFeeInfo();
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                amount: currentConfig.amountIn,
+                channel: item.channel,
+                amountOut: currentConfig.amountOut,
+                minReceive: tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+                impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
+                isBest: false,
+                isCurrent: false,
+                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
+              };
+            }
           }
           return item;
         }));
@@ -964,11 +979,12 @@ export default {
         console.log(tempChannelConfig, 'tempChannelConfig');
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
+        this.showComputedLoading = false;
         console.log(e.message, 'error');
-        if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
-          this.$message.warning({ message: e.message, offset: 30 });
-          this.showComputedLoading = false;
-        }
+        // if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
+        //   this.$message.warning({ message: e.message, offset: 30 });
+        //   this.showComputedLoading = false;
+        // }
         // if (e.message.indexOf('Network Error') > -1) {
         //   this.showComputedLoading = false;
         // }
@@ -1020,6 +1036,31 @@ export default {
       };
       this.inputType === 'amountIn' ? bridgeFeeInfoParams['amountIn'] = timesDecimals(this.amountIn, this.chooseFromAsset.decimals) : bridgeFeeInfoParams['amountOut'] = timesDecimals(this.amountOut, this.chooseToAsset.decimals);
       return await this.iSwap.getBridgeEstimateFeeInfo(bridgeFeeInfoParams);
+    },
+    // 获取nerve稳定币兑换信息
+    async _getNerveEstimateFeeInfo() {
+      const NerveSwap = new NerveChannel({
+        chooseFromAsset: this.chooseFromAsset,
+        chooseToAsset: this.chooseToAsset
+      });
+      const params = {
+        channel: 'NERVE',
+        platform: 'NABOX',
+        swapType: 2,
+        fromChain: this.chooseFromAsset.chain,
+        toChain: this.chooseToAsset.chain,
+        fromAddress: this.fromAddress,
+        toAddress: this.fromAddress,
+        chainId: this.chooseFromAsset.chainId,
+        assetId: this.chooseFromAsset.assetId,
+        contractAddress: this.chooseFromAsset.contractAddress,
+        swapChainId: this.chooseToAsset.chainId,
+        swapAssetId: this.chooseToAsset.assetId,
+        swapContractAddress: this.chooseToAsset.contractAddress,
+        amount: this.inputType === 'amountIn' && this.amountIn || this.amountOut,
+        pairAddress: this.chooseFromAsset.pairAddress
+      };
+      return await NerveSwap.getNerveEstimateFeeInfo(params);
     },
     /**
      * 根据chain获取当前最优的dex
