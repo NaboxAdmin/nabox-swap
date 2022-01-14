@@ -47,7 +47,7 @@
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-3a">
               <span>{{ orderInfo.currentChannel.crossChainFee || '0' }}</span>
-              <span>{{ (orderInfo.stableSwap && orderInfo.currentChannel.channel === 'NERVE' && orderInfo.mainAssetSymbol) || (orderInfo.stableSwap && orderInfo.chooseFromAsset.symbol || 'USDT') }}</span>
+              <span>{{ (orderInfo.stableSwap && orderInfo.currentChannel.channel === 'NERVE' && orderInfo.mainAssetSymbol) || (orderInfo.stableSwap && orderInfo.fromAsset.symbol || 'USDT') }}</span>
             </span>
           </div>
         </div>
@@ -62,12 +62,14 @@ import NavBar from '@/components/NavBar/NavBar';
 import { MAIN_INFO, NULS_INFO } from '@/config';
 import { timesDecimals, getCurrentAccount, Minus } from '@/api/util';
 import { ETransfer, NTransfer } from '@/api/api';
-import ISwap, { encodeBytesParameters } from '../Swap/util/iSwap';
+import ISwap from '../Swap/util/iSwap';
 import { ISWAP_VERSION, ISWAP_BRIDGE_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
 import NerveChannel from '../Swap/util/Nerve';
+
+const ethers = require('ethers');
 
 export default {
   name: 'ConfirmOrder',
@@ -389,12 +391,13 @@ export default {
           fromAddress: this.fromAddress,
           decimals: fromAsset.decimals,
           contractAddress: fromAsset.contractAddress,
-          orderId: encodeBytesParameters(RPCUrl, currentChannel.orderId),
+          orderId: ethers.utils.toUtf8Bytes(currentChannel.orderId),
           numbers: amountIn,
           multySignAddress,
           crossChainFee: currentChannel.crossChainFee,
           nerveAddress: swapNerveAddress
         };
+        console.log(params, 'params');
         const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, 2);
         if (swapRes.code === 1000) {
           const res = await nerveChannel.sendNerveBridgeTransaction(params);
@@ -435,7 +438,7 @@ export default {
     },
     // 记录到nabox后台
     async recordSwapOrder(res, type) {
-      const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage } = this.orderInfo;
+      const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
       const naboxParams = {
         orderId: res.orderId,
         channel: currentChannel.channel,
@@ -450,11 +453,13 @@ export default {
         swapChainId: toAsset.chainId,
         swapAssetId: toAsset.assetId,
         swapContractAddress: toAsset.contractAddress || '',
-        amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+        // amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+        amount: amountIn,
         fee: currentChannel.channel === 'NERVE' ? currentChannel.originCrossChainFee : currentChannel.crossChainFee,
-        slippage,
+        slippage: currentChannel.channel === 'NERVE' && stableSwap ? '0' : slippage,
         pairAddress: fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress || '',
-        swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18),
+        // swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18),
+        swapSuccAmount: currentChannel.amountOut,
         swapType: type
       };
       return await this.$request({
