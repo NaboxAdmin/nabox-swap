@@ -1,5 +1,5 @@
 import { request } from '@/network/http';
-import { contractConfig, ISWAP_VERSION, iSwapContractAbiConfig, iSwapContractBridgeAbiConfig, contractBridgeConfig } from './swapConfig';
+import { contractBridgeConfig, contractConfig, ISWAP_VERSION, iSwapContractAbiConfig } from './swapConfig';
 import Web3 from 'web3';
 import { ETransfer } from '@/api/api';
 import { ethers } from 'ethers';
@@ -83,13 +83,11 @@ export default class ISwap {
       });
       if (res.code === 0) {
         return res.data;
-      } else {
-        throw ('Network Error');
       }
       return null;
     } catch (e) {
       console.log(e, 'error');
-      throw e;
+      // throw e;
     }
   }
   // 获取iSwapBridge费率信息
@@ -106,12 +104,11 @@ export default class ISwap {
           crossChainFee: res.data.fee.toString().split('.')[0],
           gasFee: res.data.gas.toString().split('.')[0]
         };
-      } else {
-        throw ('Network Error');
       }
       return null;
     } catch (e) {
-      throw e;
+      console.log(e, 'error');
+      // throw e;
     }
   }
   // 生成跨链swap订单
@@ -330,6 +327,19 @@ export default class ISwap {
     delete tempTx['from'];
     return tempTx;
   }
+
+  /**
+   * 解析交易参数
+   * @param hexString {string} 需要解析的交易参数
+   * @param typeData {array} 类型
+   * @returns {Promise<void|string>}
+   */
+  async decodeHexString(hexString, typeData) {
+    return ethers.utils.defaultAbiCoder.decode(
+      typeData,
+      ethers.utils.hexDataSlice(hexString, 4)
+    );
+  }
 }
 
 /**
@@ -350,4 +360,10 @@ export function encodeParameters(RPCUrl, parameter, type) {
     const { amount0OutMin, fromAddress, toAssetDex } = parameter;
     return ABI.encodeParameters(['address', 'uint256', 'address'], [toAssetDex.routerAddress, amount0OutMin, fromAddress]);
   }
+}
+
+export function encodeBytesParameters(RPCUrl, orderId) {
+  const web3 = new Web3(RPCUrl || window.ethereum);
+  const ABI = web3.eth.abi;
+  return ABI.encodeParameters(['string'], [orderId]);
 }

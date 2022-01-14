@@ -5,7 +5,7 @@ import { tempAssetList } from './tempData';
 import { divisionAndFix, tofix } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import { request } from '../../../network/http';
-import { divisionDecimals } from '../../../api/util';
+import { divisionDecimals, Plus } from '../../../api/util';
 
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -28,11 +28,11 @@ export default class NerveChannel {
     if (pairs.length) {
       const bestExact = type === 'amountIn' ? this.getBestTradeExactIn(amount, pairs) : this.getBestTradeExactOut(amount, pairs);
       if (bestExact) {
-        console.log(bestExact);
+        // console.log(bestExact);
         const inAmount = bestExact.tokenAmountIn.amount.toString();
         const outAmount = bestExact.tokenAmountOut.amount.toString();
         const tokenPathArray = bestExact.path;
-        console.log(inAmount, outAmount, 'inAmount outAmount');
+        // console.log(inAmount, outAmount, 'inAmount outAmount');
         const routeSymbolList = tokenPathArray.map(item => {
           const asset = tempAssetList.find(asset => `${item.chainId}-${item.assetId}` === `${asset.chainId}-${asset.assetId}`);
           return asset && asset.symbol;
@@ -40,7 +40,7 @@ export default class NerveChannel {
         const pairsArray = tokenPathArray.map((token, index, array) => {
           const token0 = array[index];
           const token1 = array[index + 1];
-          console.log(array, '======array');
+          // console.log(array, '======array');
           const key = `${token0 && token0.chainId}-${token0 && token0.assetId}_${token1 && token1.chainId}-${token1 && token1.assetId}`;
           const reverseKey = `${token1 && token1.chainId}-${token1 && token1.assetId}_${token0 && token0.chainId}-${token0 && token0.assetId}`;
           if (tempPairInfo[key]) {
@@ -49,7 +49,7 @@ export default class NerveChannel {
             return tempPairInfo[reverseKey];
           }
         }).filter(item => item);
-        console.log(pairsArray, '==pairsArray==');
+        // console.log(pairsArray, '==pairsArray==');
         const fromAmount = type === 'amountIn' ? inAmount : outAmount;
         const toAmount = type === 'amountIn' ? outAmount : inAmount;
         const priceImpact = nerve.swap.getPriceImpact(
@@ -181,17 +181,18 @@ export default class NerveChannel {
     });
     if (res.code === 1000) {
       return {
-        crossChainFee: '',
-        swapFee: '',
+        crossChainFee: Plus(res.data.crossFee, timesDecimals(1, 6)),
+        swapFee: res.data.swapFee,
         orderId: res.data.orderId
       };
     }
     return null;
   }
   // 发送nerve稳定币交易
-  sendNerveBridgeTransaction() {
+  async sendNerveBridgeTransaction(params) {
     const transfer = new ETransfer({
       chain: this.chooseFromAsset.chain
     });
+    return await transfer.crossInII(params);
   }
 }

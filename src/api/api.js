@@ -558,7 +558,7 @@ export class NTransfer {
 
 const CROSS_OUT_ABI = [
   'function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)',
-  'function crossOutII(string memory to, uint256 amount, address ERC20, bytes memory data) public payable returns (bool)'
+  'function crossOutII(string to, uint256 amount, address ERC20, bytes data) public payable returns (bool)'
 ];
 // token授权
 const ERC20_ABI = [
@@ -669,20 +669,23 @@ export class ETransfer {
   }
 
   async crossInII(params) {
-    const { multySignAddress, nerveAddress, numbers, fromAddress, contractAddress, decimals } = params;
+    const { multySignAddress, numbers, fromAddress, contractAddress, decimals, crossChainFee, orderId, nerveAddress } = params;
     let transactionParameters;
     if (contractAddress) {
       // token 转入
       const numberOfTokens = ethers.utils.parseUnits(numbers, decimals);
+      const mainAssetValue = ethers.utils.parseEther(crossChainFee);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      const data = iface.functions.crossOut.encode([nerveAddress, numberOfTokens, contractAddress]);
+      const data = iface.functions.crossOutII.encode([nerveAddress, numberOfTokens, contractAddress, orderId]);
       transactionParameters = {
         to: multySignAddress,
         from: fromAddress, // 验证合约调用需要from,必传
-        value: '0x00',
+        value: mainAssetValue,
         data: data
       };
+      console.log(transactionParameters, 'transactionParameters');
     } else {
+      const allNumber = Plus(crossChainFee, numbers);
       const amount = ethers.utils.parseEther(numbers);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
       const data = iface.functions.crossOut.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
@@ -694,8 +697,7 @@ export class ETransfer {
     }
     const failed = await this.validate(transactionParameters);
     if (failed) {
-      console.error('failed approveERC20' + failed);
-      return { success: false, msg: 'failed crossIn' + failed };
+      return { success: false, msg: 'failed crossInII' + failed };
     }
     if (transactionParameters.from) {
       delete transactionParameters.from;

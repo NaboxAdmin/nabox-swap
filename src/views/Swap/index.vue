@@ -127,7 +127,7 @@
         </div>
         <div v-if="currentChannel.crossChainFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap34") }}</span>
-          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ stableSwap ? chooseFromAsset.symbol : 'USDT' }}</span>
+          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ (stableSwap && currentChannel.channel === 'NERVE' && mainAssetSymbol) || (stableSwap && chooseFromAsset.symbol || 'USDT') }}</span>
         </div>
         <div v-if="currentChannel.channel" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap7") }}</span>
@@ -233,7 +233,8 @@ import {
   Times,
   timesDecimals,
   tofix,
-  divisionDecimals
+  divisionDecimals,
+  Plus
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
@@ -326,6 +327,10 @@ export default {
       const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
       const currentChain = supportChainList.find(chain => chain.chain === this.fromNetwork);
       return currentChain && currentChain.nativeId || '';
+    },
+    mainAssetSymbol() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      return config[this.fromNetwork]['symbol'];
     }
   },
   watch: {
@@ -357,7 +362,7 @@ export default {
           } else {
             this.slippage = oldVal;
           }
-          if (this.currentChannel) {
+          if (this.currentChannel && this.currentChannel.minReceive) {
             this.currentChannel.minReceive = tofix(Times(this.amountOut, Division(Minus(100, !this.slippageMsg && newVal || '0.5'), 100)), this.chooseToAsset.decimals, -1);
           }
         }
@@ -519,13 +524,12 @@ export default {
     getAuthContractAddress() {
       // TODO: dodo还需要验证合约地址
       let authContractAddress;
-      const config = JSON.stringify(sessionStorage.getItem('config'));
+      const config = JSON.parse(sessionStorage.getItem('config'));
       if (this.currentChannel.channel === 'iSwap' && !this.stableSwap) {
         authContractAddress = contractConfig[this.fromNetwork];
       } else if (this.currentChannel.channel === 'iSwap' && this.stableSwap) {
-        // contractBridgeConfig
         authContractAddress = contractBridgeConfig[this.fromNetwork];
-      } else if (this.currentChannel === 'NERVE') {
+      } else if (this.currentChannel.channel === 'NERVE') {
         authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       }
       // else if (this.currentChannel.channel === 'DODO') {
@@ -619,7 +623,8 @@ export default {
         fromAssetDex,
         slippage,
         stableSwap,
-        crossFeeAsset
+        crossFeeAsset,
+        mainAssetSymbol
       } = this;
       const toChain = this.chooseToAsset.chain;
       const tempParams = {
@@ -636,7 +641,8 @@ export default {
         fromAssetDex,
         slippage,
         stableSwap,
-        crossFeeAsset
+        crossFeeAsset,
+        mainAssetSymbol
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -689,7 +695,7 @@ export default {
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            // this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -711,7 +717,7 @@ export default {
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            // this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -784,28 +790,7 @@ export default {
         if (tempChannel) {
           this.amountOut = tempChannel.amountOut < 0 ? '' : this.numberFormat(tofix(tempChannel.amountOut || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
-          if (this.stableSwap) {
-            const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-            const currentLimitMax = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.biggerMax : limitAssetInfo.normalMax;
-            const currentLimitMin = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.normalMin : limitAssetInfo.normalMin;
-            if (Minus(this.amountIn, currentLimitMin) < 0) {
-              this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
-            } else if (Minus(this.amountIn, currentLimitMax) > 0) {
-              this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
-            } else {
-              this.checkBalance();
-              // this.amountMsg = '';
-            }
-          } else {
-            if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-              this.amountMsg = `${this.$t('tips.tips3')}$${this.limitMin}`;
-            } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-              this.amountMsg = `${this.$t('tips.tips4')}$${this.limitMax}`;
-            } else {
-              this.checkBalance();
-              // this.amountMsg = '';
-            }
-          }
+          this.checkChannelLimitInfo();
         } else {
           this.currentChannel = null;
         }
@@ -818,13 +803,42 @@ export default {
     getOptionalChannel() {
       this.channelConfigList = this.originChannelConfigList.filter(channel => {
         if (this.crossTransaction && !this.stableSwap) {
-          return channel.crossSwap === true;
+          return channel.crossSwap === true && channel.status === 1;
         } else if (this.crossTransaction && this.stableSwap) {
-          return channel.bridge === true;
+          return channel.bridge === true && channel.status === 1;
         }
-        return channel.swap === true;
+        return channel.swap === true && channel.status === 1;
       });
     },
+    // 根据不同通道查询当前的限额
+    checkChannelLimitInfo() {
+      if (this.stableSwap) {
+        if (this.currentChannel.channel === 'iSwap') {
+          const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
+          const currentLimitMax = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax) : limitAssetInfo.normalMax;
+          const currentLimitMin = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo && limitAssetInfo.normalMin : limitAssetInfo.normalMin;
+          console.log(currentLimitMax, 'currentLimitMax', currentLimitMin, 'currentLimitMin');
+          if (Minus(this.amountIn, currentLimitMin) < 0) {
+            this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
+          } else if (Minus(this.amountIn, currentLimitMax) > 0) {
+            this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
+          } else {
+            this.checkBalance();
+          }
+        } else if (this.currentChannel.channel === 'NERVE') {
+          this.checkBalance();
+        }
+      } else {
+        if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+          this.amountMsg = `${this.$t('tips.tips3')}$${this.limitMin}`;
+        } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+          this.amountMsg = `${this.$t('tips.tips4')}$${this.limitMax}`;
+        } else {
+          this.checkBalance();
+        }
+      }
+    },
+    // 检查当前余额是否足够
     checkBalance() {
       const { amountIn, available, chooseFromAsset } = this;
       if (Minus(amountIn, available) > 0) {
@@ -847,26 +861,7 @@ export default {
         if (tempChannel) {
           this.amountIn = tempChannel.amount < 0 ? '' : this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
-          if (this.stableSwap) {
-            const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-            const currentLimitMax = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.biggerMax : limitAssetInfo.normalMax;
-            const currentLimitMin = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.normalMin : limitAssetInfo.normalMin;
-            if (Minus(this.amountIn, currentLimitMin) < 0) {
-              this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
-            } else if (Minus(this.amountIn, currentLimitMax) > 0) {
-              this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
-            } else {
-              this.checkBalance();
-            }
-          } else {
-            if (Minus(this.currentChannel.usdtAmountOut, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain && !this.stableSwap) {
-              this.amountMsg = `${this.$t('tips.tips3')}${this.limitMin}USDT`;
-            } else if (Minus(this.currentChannel.usdtAmountOut, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain && !this.stableSwap) {
-              this.amountMsg = `${this.$t('tips.tips4')}${this.limitMax}USDT`;
-            } else {
-              this.checkBalance();
-            }
-          }
+          this.checkChannelLimitInfo();
         } else {
           this.amountMsg = '';
           this.currentChannel = null;
@@ -880,6 +875,8 @@ export default {
     // 获取当前支持的config
     async getChannelList() {
       try {
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const mainAssetDecimal = config[this.fromNetwork].decimals;
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
         this.amountMsg = '';
@@ -945,44 +942,48 @@ export default {
             }
           } else if (item.channel === 'iSwap' && this.stableSwap) {
             currentConfig = await this.getBridgeEstimateFeeInfo();
-            return {
-              iSwapConfig: currentConfig,
-              icon: item.icon,
-              amount: this.inputType === 'amountIn' ? this.amountIn : divisionDecimals(currentConfig.amount, this.chooseFromAsset.decimals || 18),
-              channel: item.channel,
-              amountOut: this.inputType === 'amountOut' ? this.amountOut : divisionDecimals(currentConfig.amount, this.chooseToAsset.decimals || 18),
-              crossChainFee: divisionDecimals(currentConfig.crossChainFee, this.chooseFromAsset.decimals || 18),
-              isBest: false,
-              isCurrent: false
-            };
+            if (currentConfig) {
+              return {
+                iSwapConfig: currentConfig,
+                icon: item.icon,
+                amount: this.inputType === 'amountIn' ? this.amountIn : divisionDecimals(currentConfig.amount, this.chooseFromAsset.decimals || 18),
+                channel: item.channel,
+                amountOut: this.inputType === 'amountOut' ? this.amountOut : divisionDecimals(currentConfig.amount, this.chooseToAsset.decimals || 18),
+                crossChainFee: divisionDecimals(currentConfig.crossChainFee, this.chooseFromAsset.decimals || 18),
+                isBest: false,
+                isCurrent: false
+              };
+            }
+            return null;
           } else if (item.channel === 'NERVE' && this.stableSwap) {
             currentConfig = await this._getNerveEstimateFeeInfo();
             if (currentConfig) {
               return {
                 icon: item.icon,
-                amount: currentConfig.amountIn,
+                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, divisionDecimals(currentConfig.swapFee, this.chooseFromAsset.decimals)),
                 channel: item.channel,
-                amountOut: currentConfig.amountOut,
-                minReceive: tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
-                impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
+                amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, divisionDecimals(currentConfig.swapFee, this.chooseFromAsset.decimals)),
+                crossChainFee: tofix(this.numberFormat(divisionDecimals(currentConfig.crossChainFee, mainAssetDecimal || 18), 6), 6, -1),
+                originCrossChainFee: divisionDecimals(currentConfig.crossChainFee, mainAssetDecimal || 18).toString(),
                 isBest: false,
                 isCurrent: false,
-                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
+                orderId: currentConfig.orderId
               };
             }
+            return null;
           }
           return item;
         }));
-        this.showComputedLoading = false;
         console.log(tempChannelConfig, 'tempChannelConfig');
+        this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
-        this.showComputedLoading = false;
+        // this.showComputedLoading = false;
         console.log(e.message, 'error');
-        // if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
-        //   this.$message.warning({ message: e.message, offset: 30 });
-        //   this.showComputedLoading = false;
-        // }
+        if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
+          // this.$message.warning({ message: e.message, offset: 30 });
+          this.showComputedLoading = false;
+        }
         // if (e.message.indexOf('Network Error') > -1) {
         //   this.showComputedLoading = false;
         // }
@@ -1057,7 +1058,8 @@ export default {
         swapAssetId: this.chooseToAsset.assetId,
         swapContractAddress: this.chooseToAsset.contractAddress,
         amount: this.inputType === 'amountIn' && this.amountIn || this.amountOut,
-        pairAddress: this.chooseFromAsset.pairAddress
+        // amount: this.inputType === 'amountIn' && timesDecimals(this.amountIn, this.chooseFromAsset.decimals) || timesDecimals(this.amountOut, this.chooseToAsset.decimals),
+        pairAddress: this.chooseFromAsset.channelInfo['NERVE'].pairAddress
       };
       return await NerveSwap.getNerveEstimateFeeInfo(params);
     },
