@@ -27,7 +27,7 @@
             <span class="ml-4">{{ superLong(orderInfo && orderInfo.address) }}</span>
           </div>
         </div>
-        <div class="d-flex align-items-center space-between mt-5">
+        <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">To</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="size-20 sign">{{ orderInfo && orderInfo.toAsset && orderInfo.toAsset.chain }}</span>
@@ -35,18 +35,28 @@
           </div>
         </div>
         <!--汇率-->
-        <div v-if="orderInfo && orderInfo.currentChannel.swapRate" class="d-flex align-items-center space-between mt-5">
+        <div v-if="orderInfo && orderInfo.currentChannel.swapRate" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap5') }}</span>
           <div class="d-flex align-items-center justify-content-end w-75">
             <span class="ml-4">{{ orderInfo && orderInfo.currentChannel.swapRate }}</span>
           </div>
         </div>
         <!--手续费-->
-        <div v-if="orderInfo && orderInfo.currentChannel.crossChainFee" class="d-flex align-items-center space-between mt-5">
+        <div v-if="orderInfo && orderInfo.currentChannel.crossChainFee" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-3a">
-              <span>{{ orderInfo.currentChannel.crossChainFee || '0' }}</span>
+              <span>{{ (orderInfo.currentChannel.crossChainFee || '0') | numberFormat }}</span>
+              <span>{{ 'USDT' }}</span>
+            </span>
+          </div>
+        </div>
+        <!--gasFee-->
+        <div v-if="orderInfo && orderInfo.currentChannel.crossChainFee" class="d-flex align-items-center space-between mt-4">
+          <span class="text-aa">{{ $t('swap.swap43') }}</span>
+          <div class="d-flex align-items-center justify-content-end">
+            <span class="ml-4 text-3a">
+              <span>{{ (orderInfo.currentChannel.gasFee || '0') | numberFormat }}</span>
               <span>{{ 'USDT' }}</span>
             </span>
           </div>

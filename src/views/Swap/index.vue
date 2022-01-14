@@ -129,12 +129,16 @@
           <span class="text-90">{{ $t("swap.swap34") }}</span>
           <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ stableSwap ? chooseFromAsset.symbol : 'USDT' }}</span>
         </div>
+        <div v-if="currentChannel.gasFee" class="d-flex space-between size-28 mt-3">
+          <span class="text-90">{{ $t("swap.swap43") }}</span>
+          <span class="text-3a">{{ currentChannel.gasFee | numberFormat }}{{ 'USDT' }}</span>
+        </div>
         <div v-if="currentChannel.channel" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap7") }}</span>
           <span class="text-3a d-flex">
             <span class="d-flex">
               <span v-if="currentChannel && currentChannel.isBest" class="sign size-22 mr-1">{{ $t("swap.swap19") }}</span>
-              <span class="d-flex align-items-center cursor-pointer" @click="showPop=true">
+              <span class="d-flex align-items-center cursor-pointer" @click="showPop=false">
                 <span class="coin-icon_small">
                   <img :src="currentChannel.icon" alt="">
                 </span>{{ currentChannel.channel }}
@@ -631,7 +635,7 @@ export default {
     },
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
-      return fromAsset.channelInfo && toAsset.channelInfo && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) || false;
+      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'].token && toAsset.channelInfo['iSwap'].token && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) || false;
     },
     // 下一步
     nextStep() {
@@ -719,7 +723,7 @@ export default {
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            // this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -741,7 +745,7 @@ export default {
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-            // this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
           } else {
@@ -935,6 +939,7 @@ export default {
                 isBest: false,
                 isCurrent: false,
                 status: item.status,
+                gasFee: isCross ? currentConfig.outToken && currentConfig.outToken.relayerGas : '',
                 swapRate: this.computedSwapRate(isCross, isCross ? currentConfig.inToken.amount : currentConfig.amount, isCross ? currentConfig.outToken.amountOut : currentConfig.amountOut)
               };
             }
@@ -975,16 +980,20 @@ export default {
             }
           } else if (item.channel === 'iSwap' && this.stableSwap) {
             currentConfig = await this.getBridgeEstimateFeeInfo();
-            return {
-              iSwapConfig: currentConfig,
-              icon: item.icon,
-              amount: this.inputType === 'amountIn' ? this.amountIn : divisionDecimals(currentConfig.amount, this.chooseFromAsset.decimals || 18),
-              channel: item.channel,
-              amountOut: this.inputType === 'amountOut' ? this.amountOut : divisionDecimals(currentConfig.amount, this.chooseToAsset.decimals || 18),
-              crossChainFee: divisionDecimals(currentConfig.crossChainFee, this.chooseFromAsset.decimals || 18),
-              isBest: false,
-              isCurrent: false
-            };
+            if (currentConfig) {
+              return {
+                iSwapConfig: currentConfig,
+                icon: item.icon,
+                amount: this.inputType === 'amountIn' ? this.amountIn : divisionDecimals(currentConfig.amount, this.chooseFromAsset.decimals || 18),
+                channel: item.channel,
+                amountOut: this.inputType === 'amountOut' ? this.amountOut : divisionDecimals(currentConfig.amount, this.chooseToAsset.decimals || 18),
+                crossChainFee: divisionDecimals(currentConfig.crossChainFee, this.chooseFromAsset.decimals || 18),
+                isBest: false,
+                gasFee: this.numberFormat(tofix(divisionDecimals(currentConfig.gasFee, this.crossFeeAsset.decimals), 6, -1), 6),
+                isCurrent: false
+              };
+            }
+            return null;
           }
           return item;
         }));

@@ -27,19 +27,19 @@ Vue.use(Loading);
 if (!development) {
   console.log = () => {};
 }
-let tempData, locale;
-if (typeof window._naboxAccount === 'string') {
-  tempData = window._naboxAccount && JSON.parse(window._naboxAccount);
-} else {
-  tempData = window._naboxAccount;
-}
-if (tempData && tempData.language) {
-  locale = tempData.language === 'EN' ? 'en' : 'cn';
-} else {
-  locale = localStorage.getItem('locale') ? localStorage.getItem('locale') : store.state.lang;
-}
+// let tempData, locale;
+// if (typeof window._naboxAccount === 'string') {
+//   tempData = window._naboxAccount && JSON.parse(window._naboxAccount);
+// } else {
+//   tempData = window._naboxAccount;
+// }
+// if (tempData && tempData.language) {
+//   locale = tempData.language === 'EN' ? 'en' : 'cn';
+// } else {
+//   locale = localStorage.getItem('locale') ? localStorage.getItem('locale') : store.state.lang;
+// }
 // 国际化
-// const locale = localStorage.getItem('locale') ? localStorage.getItem('locale') : store.state.lang;
+const locale = localStorage.getItem('locale') ? localStorage.getItem('locale') : store.state.lang;
 store.commit('changeLang', locale);
 localStorage.setItem('locale', locale);
 const i18n = new VueI18n({

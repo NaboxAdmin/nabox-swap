@@ -81,7 +81,8 @@ const en = {
     swap39: 'Processing swap',
     swap40: 'Swap successful',
     swap41: 'Swap failed',
-    swap42: 'OrderId'
+    swap42: 'OrderId',
+    swap43: 'Relayer Gas Fee'
   },
   transfer: {
     transfer1: 'From',

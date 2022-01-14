@@ -81,7 +81,8 @@ const cn = {
     swap39: '处理兑换中',
     swap40: '兑换成功',
     swap41: '兑换失败',
-    swap42: '订单号'
+    swap42: '订单号',
+    swap43: '目标链GAS费'
   },
   transfer: {
     transfer1: '从',
