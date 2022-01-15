@@ -131,7 +131,7 @@
         </div>
         <div v-if="currentChannel.gasFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap43") }}</span>
-          <span class="text-3a">{{ currentChannel.gasFee | numberFormat }}{{ 'USDT' }}</span>
+          <span class="text-3a">{{ currentChannel.gasFee | numberFormat }}{{ currentChannel.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}</span>
         </div>
         <div v-if="currentChannel.channel" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap7") }}</span>
@@ -237,8 +237,7 @@ import {
   Times,
   timesDecimals,
   tofix,
-  divisionDecimals,
-  Plus
+  divisionDecimals
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
