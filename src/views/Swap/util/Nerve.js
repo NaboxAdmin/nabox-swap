@@ -4,8 +4,8 @@ import { timesDecimals } from '@/api/util';
 import { tempAssetList } from './tempData';
 import { divisionAndFix, tofix } from '@/api/util';
 import { ETransfer } from '@/api/api';
-import { request } from '../../../network/http';
-import { divisionDecimals, Plus } from '../../../api/util';
+import { request, $post } from '../../../network/http';
+import { NTransfer } from '../../../api/api';
 
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -194,5 +194,44 @@ export default class NerveChannel {
       chain: this.chooseFromAsset.chain
     });
     return await transfer.crossInII(params);
+  }
+  // 发送普通nerve转账交易
+  async sendNerveCommonTransaction(params) {
+    const NTansfer = new NTransfer({
+      chain: this.fromNetwork,
+      type: 43
+    });
+    const { from, assetsChainId, assetsId, amount, fee, proposalPrice, txData, type, pub, signAddress } = params;
+    const transferInfo = {
+      from,
+      assetsChainId,
+      assetsId,
+      amount,
+      fee,
+      proposalPrice,
+      txData,
+      type
+    };
+    const inputOutput = await NTansfer.WithdrawalTransaction(transferInfo);
+    const data = {
+      inputs: inputOutput.inputs,
+      outputs: inputOutput.outputs,
+      txData: params.txData,
+      pub: '',
+      signAddress: ''
+    };
+    const txHex = await NTansfer.getTxHex(data);
+    return await this.broadcastHex(txHex);
+  }
+  async broadcastHex(txHex) {
+    const config = JSON.parse(sessionStorage.getItem('config'));
+    const url = config['NERVE'].apiUrl;
+    const chainId = config['NERVE'].chainId;
+    console.log(txHex, '---txHex---');
+    const res = await $post(url, 'broadcastTx', [chainId, txHex]);
+    if (res.result && res.result.hash) {
+      return res.result.hash;
+    }
+    return null;
   }
 }

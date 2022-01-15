@@ -237,7 +237,8 @@ import {
   Times,
   timesDecimals,
   tofix,
-  divisionDecimals
+  divisionDecimals,
+  Plus
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
@@ -606,8 +607,8 @@ export default {
     },
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
-      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'] && fromAsset.channelInfo['iSwap'].token && toAsset.channelInfo['iSwap'].token(fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) ||
-             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) ||
+      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'] && toAsset.channelInfo['iSwap'] && fromAsset.channelInfo['iSwap'].token && toAsset.channelInfo['iSwap'].token && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) ||
+             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && toAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) ||
              false;
     },
     // 下一步
@@ -877,6 +878,7 @@ export default {
     },
     // 获取当前支持的config
     async getChannelList() {
+      console.log(this.stableSwap, 'stableSwap');
       try {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const mainAssetDecimal = config[this.fromNetwork].decimals;
@@ -960,6 +962,22 @@ export default {
               };
             }
             return null;
+          } else if (item.channel === 'NERVE' && this.stableSwap) {
+            currentConfig = await this._getNerveEstimateFeeInfo();
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
+                channel: item.channel,
+                amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee),
+                crossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+                originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+                isBest: false,
+                isCurrent: false,
+                orderId: currentConfig.orderId
+              };
+            }
+            return null;
           }
           return item;
         }));
@@ -1039,7 +1057,7 @@ export default {
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,
         fromAddress: this.fromAddress,
-        toAddress: this.fromAddress,
+        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
         chainId: this.chooseFromAsset.chainId,
         assetId: this.chooseFromAsset.assetId,
         contractAddress: this.chooseFromAsset.contractAddress,

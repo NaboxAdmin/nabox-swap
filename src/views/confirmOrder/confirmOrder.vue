@@ -52,7 +52,7 @@
           </div>
         </div>
         <!--gasFee-->
-        <div v-if="orderInfo && orderInfo.currentChannel.crossChainFee" class="d-flex align-items-center space-between mt-4">
+        <div v-if="orderInfo && orderInfo.currentChannel.gasFee" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-3a">
@@ -70,8 +70,8 @@
 <script>
 import NavBar from '@/components/NavBar/NavBar';
 import { MAIN_INFO, NULS_INFO } from '@/config';
-import { timesDecimals, getCurrentAccount, Minus } from '@/api/util';
-import { ETransfer, NTransfer } from '@/api/api';
+import { timesDecimals, getCurrentAccount, Minus, supportChainList, Times, formatFloatNumber } from '@/api/util';
+import { ETransfer, NTransfer, getSymbolUSD } from '@/api/api';
 import ISwap from '../Swap/util/iSwap';
 import { ISWAP_VERSION, ISWAP_BRIDGE_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
@@ -410,7 +410,34 @@ export default {
         console.log(params, 'params');
         const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, 2);
         if (swapRes.code === 1000) {
-          const res = await nerveChannel.sendNerveBridgeTransaction(params);
+          let res;
+          if (this.fromNetwork !== 'NERVE') {
+            res = await nerveChannel.sendNerveBridgeTransaction(params);
+          } else {
+            const txData = {
+              heterogeneousAddress: this.currentAccount.address[toAsset.chain],
+              heterogeneousChainId: toAsset.chainId
+            };
+            const decimals = MAIN_INFO.decimal;
+            const proposalPrice = timesDecimals(
+              this.withdrawalFee,
+              decimals
+            );
+            const crossOutPrams = {
+              from: this.fromAddress,
+              assetsChainId: fromAsset.nerveChainId,
+              assetsId: fromAsset.nerveAssetId,
+              amount: '',
+              fee: 0,
+              proposalPrice,
+              txData,
+              type: 43,
+              pub: this.currentAccount.pub,
+              signAddress: this.currentAccount.address.Ethereum
+            };
+            console.log(crossOutPrams, 'crossOutPrams');
+            res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
+          }
           if (res.hash) {
             this.$message({
               type: 'success',
@@ -476,6 +503,56 @@ export default {
         url: '/swap/cross/tx/save',
         data: naboxParams
       });
+    },
+    // nerve转出到异构链手续费
+    async getCrossOutFee() {
+      const { toAsset } = this.orderInfo;
+      this.showFeeLoading = true;
+      const chainToSymbol = {};
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      tempSupportChainList.map(v => {
+        chainToSymbol[v.value] = v.symbol;
+      });
+      const temToNetwork = 'NERVE';
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const mainAsset = config['NERVE'];
+      const isToken = toAsset.contractAddress;
+      const transfer = new ETransfer({ chain: temToNetwork });
+      const { decimals, chainId, assetId } = MAIN_INFO;
+      const feeIsNvt = chainId === mainAsset.chainId && assetId === mainAsset.assetId;
+      let feeUSD = await getSymbolUSD('NERVE'); // 获取手续费资产稳定币价格
+      feeUSD = feeUSD + '';
+      let heterogeneousChainUSD = await getSymbolUSD(toAsset.chain);
+      heterogeneousChainUSD = heterogeneousChainUSD + '';
+      let res;
+      if (this.currentFeeChain === temToNetwork) {
+        res = await transfer.calWithdrawFee(
+          '',
+          '',
+          isToken,
+          decimals || 8,
+          true,
+        );
+      } else {
+        res = await transfer.calWithdrawFee(
+          heterogeneousChainUSD,
+          feeUSD,
+          isToken,
+          decimals || 8,
+          false,
+          feeIsNvt
+        );
+      }
+      let nvtFee;
+      this.showFeeLoading = false;
+      // OK上面波动大收取三倍手续费保证交易能够被确认
+      if (this.currentFeeChain === 'OKExChain' || this.currentFeeChain === 'OEC') {
+        nvtFee = this.numberFormat(formatFloatNumber(6, Times(this.floatToCeil(res, this.currentFeeAsset.decimals), 3)), 6);
+      } else {
+        nvtFee = this.numberFormat(formatFloatNumber(6, this.floatToCeil(res, this.currentFeeAsset.decimals)), 6);
+      }
+      this.withdrawalFee = nvtFee;
+      return nvtFee + chainToSymbol[this.currentFeeChain];
     },
     // 转账
     async transfer() {

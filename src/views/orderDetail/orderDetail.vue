@@ -60,7 +60,7 @@
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
               <span class="text-0">
-                {{ detailInfo && detailInfo.fee | numberFormat }}USDT
+                {{ detailInfo && detailInfo.fee | numberFormat }}{{ detailInfo && detailInfo.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}
               </span>
             </span>
           </div>
@@ -91,6 +91,10 @@ export default {
   computed: {
     isMobile() {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    },
+    mainAssetSymbol() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      return config[this.detailInfo && this.detailInfo.fromChain]['symbol'];
     }
   },
   beforeCreate() {
