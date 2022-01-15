@@ -603,8 +603,8 @@ export default {
     },
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
-      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'] && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) ||
-             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) ||
+      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'] && fromAsset.channelInfo['iSwap'].token && toAsset.channelInfo['iSwap'].token(fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) ||
+             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) ||
              false;
     },
     // 下一步
@@ -960,11 +960,11 @@ export default {
             if (currentConfig) {
               return {
                 icon: item.icon,
-                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, divisionDecimals(currentConfig.swapFee, this.chooseFromAsset.decimals)),
+                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
                 channel: item.channel,
-                amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, divisionDecimals(currentConfig.swapFee, this.chooseFromAsset.decimals)),
-                crossChainFee: tofix(this.numberFormat(divisionDecimals(currentConfig.crossChainFee, mainAssetDecimal || 18), 6), 6, -1),
-                originCrossChainFee: divisionDecimals(currentConfig.crossChainFee, mainAssetDecimal || 18).toString(),
+                amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee),
+                crossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+                originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
                 isBest: false,
                 isCurrent: false,
                 orderId: currentConfig.orderId

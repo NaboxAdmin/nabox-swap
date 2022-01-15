@@ -181,7 +181,7 @@ export default class NerveChannel {
     });
     if (res.code === 1000) {
       return {
-        crossChainFee: Plus(res.data.crossFee, timesDecimals(1, 6)),
+        crossChainFee: res.data.crossFee,
         swapFee: res.data.swapFee,
         orderId: res.data.orderId
       };

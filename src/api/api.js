@@ -670,6 +670,7 @@ export class ETransfer {
 
   async crossInII(params) {
     const { multySignAddress, numbers, fromAddress, contractAddress, decimals, crossChainFee, orderId, nerveAddress } = params;
+    console.log(nerveAddress, 'nerveAddress');
     let transactionParameters;
     if (contractAddress) {
       // token 转入
