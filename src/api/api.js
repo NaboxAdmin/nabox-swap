@@ -557,7 +557,8 @@ export class NTransfer {
 }
 
 const CROSS_OUT_ABI = [
-  'function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)'
+  'function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)',
+  'function crossOutII(string to, uint256 amount, address ERC20, bytes data) public payable returns (bool)'
 ];
 // token授权
 const ERC20_ABI = [
@@ -660,6 +661,44 @@ export class ETransfer {
     if (failed) {
       console.error('failed approveERC20' + failed);
       return { success: false, msg: 'failed crossIn' + failed };
+    }
+    if (transactionParameters.from) {
+      delete transactionParameters.from;
+    }
+    return await this.sendTransaction(transactionParameters);
+  }
+
+  async crossInII(params) {
+    const { multySignAddress, numbers, fromAddress, contractAddress, decimals, crossChainFee, orderId, nerveAddress } = params;
+    console.log(nerveAddress, 'nerveAddress');
+    let transactionParameters;
+    if (contractAddress) {
+      // token 转入
+      const numberOfTokens = ethers.utils.parseUnits(numbers, decimals);
+      const mainAssetValue = ethers.utils.parseEther(crossChainFee);
+      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
+      const data = iface.functions.crossOutII.encode([nerveAddress, numberOfTokens, contractAddress, orderId]);
+      transactionParameters = {
+        to: multySignAddress,
+        from: fromAddress, // 验证合约调用需要from,必传
+        value: mainAssetValue,
+        data: data
+      };
+      console.log(transactionParameters, 'transactionParameters');
+    } else {
+      const allNumber = Plus(crossChainFee, numbers);
+      const amount = ethers.utils.parseEther(numbers);
+      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
+      const data = iface.functions.crossOut.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
+      transactionParameters = {
+        to: multySignAddress,
+        value: amount,
+        data: data
+      };
+    }
+    const failed = await this.validate(transactionParameters);
+    if (failed) {
+      return { success: false, msg: 'failed crossInII' + failed };
     }
     if (transactionParameters.from) {
       delete transactionParameters.from;

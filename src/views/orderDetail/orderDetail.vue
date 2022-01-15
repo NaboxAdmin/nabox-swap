@@ -160,8 +160,8 @@ export default {
       if (res.code === 1000) {
         this.detailInfo = {
           ...res.data,
-          amount: this.numberFormat(tofix(divisionDecimals(res.data.amount, res.data.decimal), 6, -1), 6),
-          swapSuccAmount: this.numberFormat(tofix(res.data.swapSuccAmount && divisionDecimals(res.data.swapSuccAmount, res.data.swapDecimal), 6, -1), 6) || 0
+          amount: this.numberFormat(tofix(res.data.amount, 6, -1), 6),
+          swapSuccAmount: this.numberFormat(tofix(res.data.swapSuccAmount, 6, -1), 6) || 0
         };
         if (res.data.status > 2) {
           clearInterval(this.orderTimer);

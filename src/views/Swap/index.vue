@@ -127,7 +127,7 @@
         </div>
         <div v-if="currentChannel.crossChainFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap34") }}</span>
-          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ stableSwap ? chooseFromAsset.symbol : 'USDT' }}</span>
+          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ (stableSwap && currentChannel.channel === 'NERVE' && mainAssetSymbol) || (stableSwap && chooseFromAsset.symbol || 'USDT') }}</span>
         </div>
         <div v-if="currentChannel.gasFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap43") }}</span>
@@ -237,7 +237,8 @@ import {
   Times,
   timesDecimals,
   tofix,
-  divisionDecimals
+  divisionDecimals,
+  Plus
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
@@ -330,6 +331,10 @@ export default {
       const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
       const currentChain = supportChainList.find(chain => chain.chain === this.fromNetwork);
       return currentChain && currentChain.nativeId || '';
+    },
+    mainAssetSymbol() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      return config[this.fromNetwork]['symbol'];
     }
   },
   watch: {
@@ -361,7 +366,7 @@ export default {
           } else {
             this.slippage = oldVal;
           }
-          if (this.currentChannel) {
+          if (this.currentChannel && this.currentChannel.minReceive) {
             this.currentChannel.minReceive = tofix(Times(this.amountOut, Division(Minus(100, !this.slippageMsg && newVal || '0.5'), 100)), this.chooseToAsset.decimals, -1);
           }
         }
@@ -396,6 +401,8 @@ export default {
             this.chooseFromAsset.contractAddress && await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'DODO') {
             newVal.approveAddress && await this.checkAssetAuthStatus();
+          } else if (newVal.channel === 'NERVE' && this.fromNetwork !== 'NERVE') {
+            await this.checkAssetAuthStatus();
           }
           if (newVal.impact > 20) {
             this.btnErrorMsg = this.$t('tips.tips35');
@@ -519,12 +526,15 @@ export default {
     },
 
     getAuthContractAddress() {
+      // TODO: dodo还需要验证合约地址
       let authContractAddress;
+      const config = JSON.parse(sessionStorage.getItem('config'));
       if (this.currentChannel.channel === 'iSwap' && !this.stableSwap) {
         authContractAddress = contractConfig[this.fromNetwork];
       } else if (this.currentChannel.channel === 'iSwap' && this.stableSwap) {
-        // contractBridgeConfig
         authContractAddress = contractBridgeConfig[this.fromNetwork];
+      } else if (this.currentChannel.channel === 'NERVE') {
+        authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       }
       // else if (this.currentChannel.channel === 'DODO') {
       //   authContractAddress = this.currentChannel.approveAddress;
@@ -595,47 +605,11 @@ export default {
         this.channelConfigList = res.data;
       }
     },
-    // 查询当前支持的usdtn列表
-    async getUsdtnAssets() {
-      try {
-        const res = await this.$request({
-          method: 'get',
-          url: '/swap/usdtn/assets'
-        });
-        if (res.code === 1000 && res.data) {
-          const tempUsdtnMap = {};
-          const tempUsdtMap = {};
-          this.USDTN_info = res.data.forEach(item => {
-            if (item.symbol === 'USDTN') {
-              tempUsdtnMap[item.chain] = {
-                chainId: item.chainId,
-                symbol: item.symbol,
-                contractAddress: item.contractAddress,
-                assetId: item.assetId
-              };
-            } else if (item.symbol === 'USDT') {
-              tempUsdtMap[item.chain] = {
-                chainId: item.chainId,
-                symbol: item.symbol,
-                contractAddress: item.contractAddress,
-                assetId: item.assetId
-              };
-            }
-          });
-          this.USDTN_info = tempUsdtnMap;
-          this.USDT_info = tempUsdtMap;
-        } else {
-          this.USDTN_info = {};
-          this.USDT_info = {};
-          throw res.msg;
-        }
-      } catch (e) {
-        console.error('erroe:' + e);
-      }
-    },
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
-      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'].token && toAsset.channelInfo['iSwap'].token && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) || false;
+      return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'] && fromAsset.channelInfo['iSwap'].token && toAsset.channelInfo['iSwap'].token(fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) ||
+             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) ||
+             false;
     },
     // 下一步
     nextStep() {
@@ -653,7 +627,8 @@ export default {
         fromAssetDex,
         slippage,
         stableSwap,
-        crossFeeAsset
+        crossFeeAsset,
+        mainAssetSymbol
       } = this;
       const toChain = this.chooseToAsset.chain;
       const tempParams = {
@@ -670,7 +645,8 @@ export default {
         fromAssetDex,
         slippage,
         stableSwap,
-        crossFeeAsset
+        crossFeeAsset,
+        mainAssetSymbol
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -818,28 +794,7 @@ export default {
         if (tempChannel) {
           this.amountOut = tempChannel.amountOut < 0 ? '' : this.numberFormat(tofix(tempChannel.amountOut || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
-          if (this.stableSwap) {
-            const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-            const currentLimitMax = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.biggerMax : limitAssetInfo.normalMax;
-            const currentLimitMin = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.normalMin : limitAssetInfo.normalMin;
-            if (Minus(this.amountIn, currentLimitMin) < 0) {
-              this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
-            } else if (Minus(this.amountIn, currentLimitMax) > 0) {
-              this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
-            } else {
-              this.checkBalance();
-              // this.amountMsg = '';
-            }
-          } else {
-            if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-              this.amountMsg = `${this.$t('tips.tips3')}$${this.limitMin}`;
-            } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
-              this.amountMsg = `${this.$t('tips.tips4')}$${this.limitMax}`;
-            } else {
-              this.checkBalance();
-              // this.amountMsg = '';
-            }
-          }
+          this.checkChannelLimitInfo();
         } else {
           this.currentChannel = null;
         }
@@ -852,13 +807,42 @@ export default {
     getOptionalChannel() {
       this.channelConfigList = this.originChannelConfigList.filter(channel => {
         if (this.crossTransaction && !this.stableSwap) {
-          return channel.crossSwap === true;
+          return channel.crossSwap === true && channel.status === 1;
         } else if (this.crossTransaction && this.stableSwap) {
-          return channel.bridge === true;
+          return channel.bridge === true && channel.status === 1;
         }
-        return channel.swap === true;
+        return channel.swap === true && channel.status === 1;
       });
     },
+    // 根据不同通道查询当前的限额
+    checkChannelLimitInfo() {
+      if (this.stableSwap) {
+        if (this.currentChannel.channel === 'iSwap') {
+          const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
+          const currentLimitMax = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax) : limitAssetInfo.normalMax;
+          const currentLimitMin = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo && limitAssetInfo.normalMin : limitAssetInfo.normalMin;
+          console.log(currentLimitMax, 'currentLimitMax', currentLimitMin, 'currentLimitMin');
+          if (Minus(this.amountIn, currentLimitMin) < 0) {
+            this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
+          } else if (Minus(this.amountIn, currentLimitMax) > 0) {
+            this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
+          } else {
+            this.checkBalance();
+          }
+        } else if (this.currentChannel.channel === 'NERVE') {
+          this.checkBalance();
+        }
+      } else {
+        if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+          this.amountMsg = `${this.$t('tips.tips3')}$${this.limitMin}`;
+        } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+          this.amountMsg = `${this.$t('tips.tips4')}$${this.limitMax}`;
+        } else {
+          this.checkBalance();
+        }
+      }
+    },
+    // 检查当前余额是否足够
     checkBalance() {
       const { amountIn, available, chooseFromAsset } = this;
       if (Minus(amountIn, available) > 0) {
@@ -881,26 +865,7 @@ export default {
         if (tempChannel) {
           this.amountIn = tempChannel.amount < 0 ? '' : this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
-          if (this.stableSwap) {
-            const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-            const currentLimitMax = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.biggerMax : limitAssetInfo.normalMax;
-            const currentLimitMin = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo.normalMin : limitAssetInfo.normalMin;
-            if (Minus(this.amountIn, currentLimitMin) < 0) {
-              this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
-            } else if (Minus(this.amountIn, currentLimitMax) > 0) {
-              this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
-            } else {
-              this.checkBalance();
-            }
-          } else {
-            if (Minus(this.currentChannel.usdtAmountOut, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain && !this.stableSwap) {
-              this.amountMsg = `${this.$t('tips.tips3')}${this.limitMin}USDT`;
-            } else if (Minus(this.currentChannel.usdtAmountOut, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain && !this.stableSwap) {
-              this.amountMsg = `${this.$t('tips.tips4')}${this.limitMax}USDT`;
-            } else {
-              this.checkBalance();
-            }
-          }
+          this.checkChannelLimitInfo();
         } else {
           this.amountMsg = '';
           this.currentChannel = null;
@@ -914,6 +879,8 @@ export default {
     // 获取当前支持的config
     async getChannelList() {
       try {
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const mainAssetDecimal = config[this.fromNetwork].decimals;
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
         this.amountMsg = '';
@@ -963,7 +930,7 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === 'Nerve') {
+          } else if (item.channel === 'NERVE' && !this.stableSwap) {
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
               return {
@@ -997,13 +964,14 @@ export default {
           }
           return item;
         }));
-        this.showComputedLoading = false;
         console.log(tempChannelConfig, 'tempChannelConfig');
+        this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
+        // this.showComputedLoading = false;
         console.log(e.message, 'error');
         if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
-          this.$message.warning({ message: e.message, offset: 30 });
+          // this.$message.warning({ message: e.message, offset: 30 });
           this.showComputedLoading = false;
         }
         // if (e.message.indexOf('Network Error') > -1) {
@@ -1057,8 +1025,33 @@ export default {
         isReturnEth: toMainAssetSymbol === this.chooseToAsset.symbol
       };
       this.inputType === 'amountIn' ? bridgeFeeInfoParams['amountIn'] = timesDecimals(this.amountIn, this.chooseFromAsset.decimals) : bridgeFeeInfoParams['amountOut'] = timesDecimals(this.amountOut, this.chooseToAsset.decimals);
-      console.log(bridgeFeeInfoParams, '==bridgeFeeInfoParams==');
       return await this.iSwap.getBridgeEstimateFeeInfo(bridgeFeeInfoParams);
+    },
+    // 获取nerve稳定币兑换信息
+    async _getNerveEstimateFeeInfo() {
+      const NerveSwap = new NerveChannel({
+        chooseFromAsset: this.chooseFromAsset,
+        chooseToAsset: this.chooseToAsset
+      });
+      const params = {
+        channel: 'NERVE',
+        platform: 'NABOX',
+        swapType: 2,
+        fromChain: this.chooseFromAsset.chain,
+        toChain: this.chooseToAsset.chain,
+        fromAddress: this.fromAddress,
+        toAddress: this.fromAddress,
+        chainId: this.chooseFromAsset.chainId,
+        assetId: this.chooseFromAsset.assetId,
+        contractAddress: this.chooseFromAsset.contractAddress,
+        swapChainId: this.chooseToAsset.chainId,
+        swapAssetId: this.chooseToAsset.assetId,
+        swapContractAddress: this.chooseToAsset.contractAddress,
+        amount: this.inputType === 'amountIn' && this.amountIn || this.amountOut,
+        // amount: this.inputType === 'amountIn' && timesDecimals(this.amountIn, this.chooseFromAsset.decimals) || timesDecimals(this.amountOut, this.chooseToAsset.decimals),
+        pairAddress: this.chooseFromAsset.channelInfo['NERVE'].pairAddress
+      };
+      return await NerveSwap.getNerveEstimateFeeInfo(params);
     },
     /**
      * 根据chain获取当前最优的dex
