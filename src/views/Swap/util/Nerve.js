@@ -1,11 +1,10 @@
 import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
 import { tempPairInfo } from './tempData';
-import { timesDecimals } from '@/api/util';
 import { tempAssetList } from './tempData';
-import { divisionAndFix, tofix } from '@/api/util';
+import { divisionAndFix, tofix, timesDecimals } from '@/api/util';
 import { ETransfer } from '@/api/api';
-import { request, $post } from '../../../network/http';
-import { NTransfer } from '../../../api/api';
+import { request, $post } from '@/network/http';
+import { NTransfer } from '@/api/api';
 
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -197,40 +196,37 @@ export default class NerveChannel {
   }
   // 发送普通nerve转账交易
   async sendNerveCommonTransaction(params) {
-    const NTansfer = new NTransfer({
-      chain: this.fromNetwork,
-      type: 43
+    const transfer = new NTransfer({
+      chain: 'NERVE',
+      type: 2
     });
-    const { from, assetsChainId, assetsId, amount, fee, proposalPrice, txData, type, pub, signAddress } = params;
+    const { currentAccount, crossAddress, chainId, assetId, signAddress, amountIn } = params;
     const transferInfo = {
-      from,
-      assetsChainId,
-      assetsId,
-      amount,
-      fee,
-      proposalPrice,
-      txData,
-      type
+      from: currentAccount && currentAccount.address['NERVE'] || '',
+      to: crossAddress,
+      amount: amountIn,
+      fee: 0,
+      assetsChainId: chainId,
+      assetsId: assetId
     };
-    const inputOutput = await NTansfer.WithdrawalTransaction(transferInfo);
-    const data = {
-      inputs: inputOutput.inputs,
-      outputs: inputOutput.outputs,
-      txData: params.txData,
-      pub: '',
-      signAddress: ''
-    };
-    const txHex = await NTansfer.getTxHex(data);
+    const { inputs, outputs } = await transfer.transferTransaction(transferInfo);
+    const txHex = await transfer.getTxHex({
+      inputs,
+      outputs,
+      txData: {},
+      pub: currentAccount.pub,
+      signAddress
+    });
     return await this.broadcastHex(txHex);
   }
   async broadcastHex(txHex) {
     const config = JSON.parse(sessionStorage.getItem('config'));
     const url = config['NERVE'].apiUrl;
     const chainId = config['NERVE'].chainId;
-    console.log(txHex, '---txHex---');
+    console.log(txHex, '---NERVE swap txHex---');
     const res = await $post(url, 'broadcastTx', [chainId, txHex]);
     if (res.result && res.result.hash) {
-      return res.result.hash;
+      return { hash: res.result.hash, success: true };
     }
     return null;
   }

@@ -830,7 +830,13 @@ export default {
             this.checkBalance();
           }
         } else if (this.currentChannel.channel === 'NERVE') {
-          this.checkBalance();
+          if (Minus(this.amountIn, 1) < 0) {
+            this.amountMsg = `${this.$t('tips.tips3')}${1}${this.chooseFromAsset.symbol}`;
+          } else if (Minus(this.amountIn, 1000) > 0) {
+            this.amountMsg = `${this.$t('tips.tips4')}${1000}${this.chooseFromAsset.symbol}`;
+          } else {
+            this.checkBalance();
+          }
         }
       } else {
         if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
