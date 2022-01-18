@@ -887,7 +887,6 @@ export default {
       console.log(this.stableSwap, 'stableSwap');
       try {
         const config = JSON.parse(sessionStorage.getItem('config'));
-        const mainAssetDecimal = config[this.fromNetwork].decimals;
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
         this.amountMsg = '';

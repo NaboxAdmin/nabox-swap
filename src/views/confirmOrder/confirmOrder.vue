@@ -390,7 +390,6 @@ export default {
           swapNerveAddress = configRes.data.swapNerveAddress;
         }
         const config = JSON.parse(sessionStorage.getItem('config'));
-        const RPCUrl = config[this.fromNetwork]['apiUrl'];
         const multySignAddress = config[this.fromNetwork]['config']['crossAddress'];
         const { toAsset, fromAsset, currentChannel, amountIn } = this.orderInfo;
         const nerveChannel = new NerveChannel({
@@ -441,7 +440,7 @@ export default {
             await this.recordHash(currentChannel.orderId, res.hash);
           }
         } else {
-          throw swapRes.data;
+          throw swapRes.msg;
         }
       } catch (e) {
         console.log(e, 'error');
@@ -466,6 +465,7 @@ export default {
     },
     // 记录到nabox后台
     async recordSwapOrder(res, type) {
+      // TODO:这里的 slippage 字段传浮点型后台会报未知错误，需要修改
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
       const naboxParams = {
         orderId: res.orderId,

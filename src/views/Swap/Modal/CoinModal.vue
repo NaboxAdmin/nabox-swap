@@ -32,7 +32,7 @@
                   <span class="coin-icon">
                     <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">
                   </span>
-                  <span class="text-3a font-500">{{ item.symbol }} {{ item.nerveAssetId }}</span>
+                  <span class="text-3a font-500">{{ item.symbol }}</span>
                 </div>
                 <span v-if="item.showBalanceLoading" class="box_loading">
                   <img src="@/assets/image/loading.svg" alt="">
