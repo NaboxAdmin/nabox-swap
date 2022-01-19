@@ -101,12 +101,12 @@
             <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
             <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
           </div>
-          <div class="customer-p pt-1">
-            <div v-loading="orderLoading" class="order-list mt-3">
+          <div v-loading="orderLoading" class="customer-p pt-1">
+            <div class="order-list mt-3">
               <div class="fix-cont">
                 <div
                   v-for="item in orderList"
-                  :key="item.id"
+                  :key="item.orderId"
                   class="d-flex align-items-center mb-3 cursor-pointer space-between"
                   @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">
                   <template>
@@ -389,7 +389,6 @@ export default {
     },
     // 获取异构链交易信息
     async getTxOrderList(val) {
-      this.flag = true;
       this.orderLoading = true;
       this.orderType = 1;
       const params = {
@@ -414,8 +413,9 @@ export default {
     async getOrderList(val) {
       try {
         this.orderList = [];
-        this.flag = true;
-        this.orderLoading = true;
+        this.$nextTick(() => {
+          this.orderLoading = true;
+        });
         this.orderType = 3;
         const params = {
           address: val,

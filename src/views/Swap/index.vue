@@ -890,6 +890,7 @@ export default {
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
         this.amountMsg = '';
+        console.log(this.channelConfigList, 'channelConfigList');
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
           let currentConfig = {};
           if (item.channel === 'iSwap' && !this.stableSwap) {

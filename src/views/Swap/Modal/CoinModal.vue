@@ -175,6 +175,7 @@ export default {
       this.searchVal = '';
       this.currentIndex = i;
       this.showCoinList = [];
+      this.allList = [];
       await this.getSwapAssetList(chain);
     },
     // 获取当前支持的兑换的列表

@@ -3,7 +3,7 @@ import { tempPairInfo } from './tempData';
 import { tempAssetList } from './tempData';
 import { divisionAndFix, tofix, timesDecimals } from '@/api/util';
 import { ETransfer } from '@/api/api';
-import { request, $post } from '@/network/http';
+import { request, post } from '@/network/http';
 import { NTransfer } from '@/api/api';
 
 const nerve = require('nerve-sdk-js');
@@ -224,7 +224,7 @@ export default class NerveChannel {
     const url = config['NERVE'].apiUrl;
     const chainId = config['NERVE'].chainId;
     console.log(txHex, '---NERVE swap txHex---');
-    const res = await $post(url, 'broadcastTx', [chainId, txHex]);
+    const res = await post(url, 'broadcastTx', [chainId, txHex]);
     if (res.result && res.result.hash) {
       return { hash: res.result.hash, success: true };
     }

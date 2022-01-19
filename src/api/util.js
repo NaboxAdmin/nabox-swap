@@ -572,7 +572,7 @@ export const addressNetworkOrigin = {
   Ethereum: isBeta ? 'https://ropsten.etherscan.io/address/' : 'https://etherscan.io/address/',
   BSC: isBeta ? 'https://testnet.bscscan.com/address/' : 'https://bscscan.com/address/',
   Heco: isBeta ? 'https://testnet.hecoinfo.com/address/' : 'https://hecoinfo.com/address/',
-  OKExChain: isBeta ? 'https://www.oklink.com/okexchain-test/address/' : 'https://www.oklink.com/okexchaint/address/',
+  OKExChain: isBeta ? 'https://www.oklink.com/oec-test/address/' : 'https://www.oklink.com/oec/address/',
   Harmony: isBeta ? 'https://explorer.harmony.one/address/' : 'https://explorer.pops.one/address/',
   Polygon: isBeta ? 'https://mumbai.polygonscan.com/address/' : 'https://explorer.matic.network/address/',
   KCC: isBeta ? 'https://scan-testnet.kcc.network/address/' : 'https://explorer.kcc.io/address/',

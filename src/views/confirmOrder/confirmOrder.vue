@@ -46,7 +46,7 @@
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-3a">
-              <span>{{ orderInfo.currentChannel.crossChainFee || '0' }}</span>
+              <span>{{ (orderInfo.currentChannel.crossChainFee || '0') | numberFormat }}</span>
               <span>{{ (orderInfo.stableSwap && orderInfo.currentChannel.channel === 'NERVE' && orderInfo.mainAssetSymbol) || (orderInfo.stableSwap && orderInfo.fromAsset.symbol || 'USDT') }}</span>
             </span>
           </div>
@@ -70,8 +70,8 @@
 <script>
 import NavBar from '@/components/NavBar/NavBar';
 import { MAIN_INFO, NULS_INFO } from '@/config';
-import { timesDecimals, getCurrentAccount, Minus, supportChainList, Times, formatFloatNumber } from '@/api/util';
-import { ETransfer, NTransfer, getSymbolUSD } from '@/api/api';
+import { timesDecimals, getCurrentAccount, Minus } from '@/api/util';
+import { ETransfer, NTransfer } from '@/api/api';
 import ISwap from '../Swap/util/iSwap';
 import { ISWAP_VERSION, ISWAP_BRIDGE_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
@@ -310,6 +310,8 @@ export default {
               this.$emit('confirm');
               await this.recordHash(res.orderId, transferResult.hash);
             }
+          } else {
+            throw swapRes.msg;
           }
         }
       } catch (e) {
@@ -317,7 +319,7 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.message,
+          message: e.message || e,
           offset: 30
         });
       }

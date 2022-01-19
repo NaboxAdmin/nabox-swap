@@ -227,7 +227,6 @@ export default class ISwap {
    * @param srcPath 源链兑换地址
    * @param srcChainSwapCallData 源链编码数据
    * @param dstChainSwapInfo 目标链编码数据
-   * @private
    */
   async _swapExactTokensForTokensSupportingFeeOnTransferTokensCrossChain(from, orderId, gasFee, crossChainFee, dstChainId, channel, srcPath, srcChainSwapCallData, dstChainSwapInfo) {
     console.log('==token->token==');
@@ -261,7 +260,6 @@ export default class ISwap {
    * @param fromAddress 用户地址
    * @param encodeData 签名上链的encodeData
    * @returns {Promise<*>}
-   * @private
    */
   async _crossChainToken(fromAddress, encodeData) {
     console.log('==bridge: token->token==');
