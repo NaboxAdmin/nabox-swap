@@ -56,7 +56,7 @@
         </div>
         <!--手续费-->
         <div class="d-flex align-items-center space-between mt-4">
-          <span class="text-aa">{{ $t('swap.swap6') }}</span>
+          <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
               <span class="text-0">
@@ -76,8 +76,7 @@
 
 <script>
 import { NavBar } from '@/components';
-import { copys, divisionDecimals } from '@/api/util';
-import { tofix } from '../../api/util';
+import { copys, tofix } from '@/api/util';
 
 export default {
   name: 'OrderDetail',

@@ -97,7 +97,7 @@
             {{ $t("swap.swap35") }}<span class="point_cont"/>
           </span>
         </div>
-        <div v-else :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ btnErrorMsg || $t("swap.swap8") }}</div>
+        <div v-else :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ (!currentChannel && getChannelBool && $t('tips.tips39')) || btnErrorMsg || $t("swap.swap8") }}</div>
       </div>
       <div v-if="currentChannel && !showComputedLoading" class="swap-info d-flex direction-column p-4">
         <div v-if="currentChannel.swapRate" class="d-flex space-between size-28">
@@ -127,7 +127,7 @@
         </div>
         <div v-if="currentChannel.crossChainFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap34") }}</span>
-          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ (stableSwap && currentChannel.channel === 'NERVE' && mainAssetSymbol) || (stableSwap && chooseFromAsset.symbol || 'USDT') }}</span>
+          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ (stableSwap && chooseFromAsset.symbol || 'USDT') }}</span>
         </div>
         <div v-if="currentChannel.gasFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap43") }}</span>
@@ -314,7 +314,8 @@ export default {
       stableSwap: false,
       crossFeeAsset: null,
       bridgeLimitInfo: [],
-      balanceTimer: null
+      balanceTimer: null,
+      getChannelBool: false // 是否寻找了最优通道
     };
   },
   computed: {
@@ -1021,8 +1022,8 @@ export default {
                 amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
                 channel: item.channel,
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee),
-                crossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
-                // crossChainFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
+                gasFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+                crossChainFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
                 originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
                 isBest: false,
                 isCurrent: false,
@@ -1033,6 +1034,7 @@ export default {
           }
           return item;
         }));
+        this.getChannelBool = true;
         console.log(tempChannelConfig, 'tempChannelConfig');
         this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
@@ -1262,12 +1264,14 @@ export default {
       this.transferFee = '';
       this.btnErrorMsg = '';
       this.currentChannel = null;
+      this.getChannelBool = false;
     },
     resetData() {
       this.needAuth = false;
       this.amountMsg = '';
       this.btnErrorMsg = '';
       this.stableSwap = false;
+      this.getChannelBool = false;
     },
     changeShowDetail() {
       this.showOrderDetail = false;

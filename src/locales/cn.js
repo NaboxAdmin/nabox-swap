@@ -37,7 +37,8 @@ const cn = {
     tips35: '价格波动高',
     tips36: '交易金额低于目标链Gas',
     tips37: '当前通道暂未开通',
-    tips38: '功能升级中，请耐心等待...'
+    tips38: '功能升级中，请耐心等待...',
+    tips39: '流动性不足'
   },
   swap: {
     swap1: '从',
@@ -82,7 +83,7 @@ const cn = {
     swap40: '兑换成功',
     swap41: '兑换失败',
     swap42: '订单号',
-    swap43: '目标链GAS费'
+    swap43: '流动性提供者费用'
   },
   transfer: {
     transfer1: '从',

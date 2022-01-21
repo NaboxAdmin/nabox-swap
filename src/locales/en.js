@@ -37,7 +37,8 @@ const en = {
     tips35: 'High Price Volatility',
     tips36: 'Swap amount is lower than Gas',
     tips37: 'The current channel has not been opened yet',
-    tips38: 'The function is being upgraded, please be patient...'
+    tips38: 'The function is being upgraded, please be patient...',
+    tips39: 'Insufficient Liquidity'
   },
   swap: {
     swap1: 'From',
@@ -82,7 +83,7 @@ const en = {
     swap40: 'Swap successful',
     swap41: 'Swap failed',
     swap42: 'OrderId',
-    swap43: 'Relayer Gas Fee'
+    swap43: 'Provider Fee'
   },
   transfer: {
     transfer1: 'From',
