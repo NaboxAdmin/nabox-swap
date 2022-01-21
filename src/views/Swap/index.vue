@@ -247,6 +247,7 @@ import { contractConfig, contractBridgeConfig } from './util/swapConfig';
 import Dodo from './util/Dodo';
 import { currentNet } from '@/config';
 import NerveChannel from './util/Nerve';
+import { feeRate } from './util/Nerve';
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -435,6 +436,7 @@ export default {
       this.getSwapAssetList();
     }, 0);
     // this.getLiquidityInfo(); // 获取当前池子的余额
+    this.getNerveLimitInfo();
     this.getChanelConfig();
     this.initISwapConfig();
   },
@@ -652,6 +654,19 @@ export default {
       this.showOrderDetail = true;
       this.$store.commit('changeSwap', false);
     },
+    // 获取nerve限额信息
+    async getNerveLimitInfo() {
+      const res = await this.$request({
+        method: 'get',
+        url: '/swap/stable/info'
+      });
+      if (res.code === 1000) {
+        this.nerveLimitInfo = res.data;
+        localStorage.setItem('nerveLimitInfo', JSON.stringify(res.data));
+      } else {
+        this.nerveLimitInfo = localStorage.getItem('nerveLimitInfo') && JSON.parse(localStorage.getItem('nerveLimitInfo'));
+      }
+    },
     // 获取当前支持的兑换的列表
     async getSwapAssetList() {
       try {
@@ -755,9 +770,11 @@ export default {
           if (asset.contractAddress) {
             const tempAvailable = await transfer.getERC20Balance(asset.contractAddress, asset.decimals, this.fromAddress);
             this.available = tempAvailable && tofix(tempAvailable, 6, -1);
+            this.userAvailable = tempAvailable;
           } else {
             const tempAvailable = await transfer.getEthBalance(this.fromAddress);
             this.available = tempAvailable && tofix(tempAvailable, 6, -1);
+            this.userAvailable = tempAvailable;
           }
         } catch (e) {
           console.log(e, 'error');
@@ -809,10 +826,36 @@ export default {
         if (this.crossTransaction && !this.stableSwap) {
           return channel.crossSwap === true && channel.status === 1;
         } else if (this.crossTransaction && this.stableSwap) {
-          return channel.bridge === true && channel.status === 1;
+          return this.checkLpBalance() && channel.channel === 'NERVE' && channel.bridge === true && channel.status === 1 || channel.channel !== 'NERVE' && channel.bridge === true && channel.status === 1;
         }
         return channel.swap === true && channel.status === 1;
       });
+    },
+    // 查看当前你nerve通道流动性
+    checkLpBalance() {
+      if (this.chooseFromAsset && this.chooseToAsset) {
+        const pairAddress = this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'].pairAddress;
+        console.log(this.nerveLimitInfo, 'this.nerveLimitInfo');
+        const swapAssets = this.nerveLimitInfo.find(item => item.pairAddress === pairAddress).swapAssets;
+        const swapMap = {};
+        swapAssets.forEach(item => {
+          swapMap[item.chain] = divisionDecimals(item.amount, item.decimals);
+        });
+        this.originChannelConfigList = this.originChannelConfigList && this.originChannelConfigList.map(channel => {
+          if (channel === 'NERVE') {
+            return {
+              ...channel,
+              limitMin: 1,
+              limitMax: swapMap[this.chooseToAsset.chain]
+            };
+          }
+          return {
+            ...channel
+          };
+        });
+        return Minus(this.inputType === 'amountIn' ? Times(this.amountIn, Minus(1, feeRate)) : this.amountOut, swapMap[this.chooseToAsset.chain]) <= 0;
+      }
+      return false;
     },
     // 根据不同通道查询当前的限额
     checkChannelLimitInfo() {
@@ -832,11 +875,12 @@ export default {
         } else if (this.currentChannel.channel === 'NERVE') {
           if (Minus(this.amountIn, 1) < 0) {
             this.amountMsg = `${this.$t('tips.tips3')}${1}${this.chooseFromAsset.symbol}`;
-          } else if (Minus(this.amountIn, 1000) > 0) {
-            this.amountMsg = `${this.$t('tips.tips4')}${1000}${this.chooseFromAsset.symbol}`;
           } else {
             this.checkBalance();
           }
+        // else if (Minus(this.amountIn, 1000) > 0) {
+        //     this.amountMsg = `${this.$t('tips.tips4')}${1000}${this.chooseFromAsset.symbol}`;
+        //   }
         }
       } else {
         if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
@@ -918,6 +962,7 @@ export default {
               };
             }
             return null;
+            // TODO: 修改为tempDODO => DODO
           } else if (item.channel === 'tempDODO') {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
@@ -977,6 +1022,7 @@ export default {
                 channel: item.channel,
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee),
                 crossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+                // crossChainFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
                 originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
                 isBest: false,
                 isCurrent: false,

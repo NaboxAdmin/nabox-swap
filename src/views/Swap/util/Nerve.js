@@ -6,6 +6,8 @@ import { ETransfer } from '@/api/api';
 import { request, post } from '@/network/http';
 import { NTransfer } from '@/api/api';
 
+export const feeRate = 0.0002; // 稳定币手续费万二
+
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 

@@ -1,3 +1,4 @@
+<script src="../Swap/util/stableTransfer-min.js"></script>
 <template>
   <div :class="isMobile && 'main-cont_mobile' || ''" class="main-cont">
     <NavBar :back-change="true" :nav-title="$t('navBar.navBar1')" @back="$emit('back')"/>
@@ -62,6 +63,7 @@
           </div>
         </div>
         <div class="btn cursor-pointer" @click="confirmOrder">{{ $t('confirmOrder.confirmOrder1') }}</div>
+        <!--        <div class="btn cursor-pointer" @click="testStableTransfer">{{ $t('testerrrrr') }}</div>-->
       </div>
     </div>
   </div>
@@ -78,6 +80,7 @@ import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
 import NerveChannel from '../Swap/util/Nerve';
+import '../../views/Swap/util/stableTransfer-min'
 
 const ethers = require('ethers');
 
@@ -104,6 +107,12 @@ export default {
     this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
   },
   methods: {
+    // async testStableTransfer() {
+    //   console.log(window.stableTransfer, 'crossChainFee')
+    //   const { fromAddress, fromAsset, toAsset, amountIn, currentChannel } = this.orderInfo;
+    //   const res = await window.stableTransfer(fromAddress, fromAsset, toAsset, amountIn, currentChannel.crossChainFee, currentChannel.orderId);
+    //   console.log(res, 'ressssss');
+    // },
     // 确认订单
     async confirmOrder() {
       try {
@@ -467,7 +476,6 @@ export default {
     },
     // 记录到nabox后台
     async recordSwapOrder(res, type) {
-      // TODO:这里的 slippage 字段传浮点型后台会报未知错误，需要修改
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
       const naboxParams = {
         orderId: res.orderId,
