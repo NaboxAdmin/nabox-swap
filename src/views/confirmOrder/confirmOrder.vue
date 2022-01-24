@@ -1,4 +1,3 @@
-<script src="../Swap/util/stableTransfer-min.js"></script>
 <template>
   <div :class="isMobile && 'main-cont_mobile' || ''" class="main-cont">
     <NavBar :back-change="true" :nav-title="$t('navBar.navBar1')" @back="$emit('back')"/>
@@ -400,7 +399,7 @@ export default {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
         const { toAsset, fromAsset, currentChannel, amountIn } = this.orderInfo;
-        console.log(fromAsset, amountIn, 'amountIn 213')
+        console.log(fromAsset, amountIn, 'amountIn 213');
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
