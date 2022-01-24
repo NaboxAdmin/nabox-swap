@@ -127,11 +127,11 @@
         </div>
         <div v-if="currentChannel.crossChainFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap34") }}</span>
-          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ (stableSwap && chooseFromAsset.symbol || 'USDT') }}</span>
+          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ currentChannel.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}</span>
         </div>
-        <div v-if="currentChannel.gasFee" class="d-flex space-between size-28 mt-3">
+        <div v-if="currentChannel.swapFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap43") }}</span>
-          <span class="text-3a">{{ currentChannel.gasFee | numberFormat }}{{ currentChannel.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}</span>
+          <span class="text-3a">{{ currentChannel.swapFee | numberFormat }}{{ (stableSwap && chooseFromAsset.symbol || 'USDT') }}</span>
         </div>
         <div v-if="currentChannel.channel" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap7") }}</span>
@@ -262,7 +262,6 @@ export default {
     Loading
   },
   data() {
-    this.getFeeDebounce = debounce(this.getStableTransferFee, 500);
     this.amountInDebounce = debounce(this.amountInInput, 500);
     this.amountOutDebounce = debounce(this.amountOutInput, 500);
     return {
@@ -817,7 +816,7 @@ export default {
           this.currentChannel = null;
         }
       } else {
-        if (!this.amountIn) { this.amountMsg = ''; this.btnErrorMsg = ''; }
+        if (!this.amountIn) { this.amountMsg = ''; this.btnErrorMsg = ''; this.getChannelBool = false; }
         this.amountOut = '';
         this.currentChannel = null;
       }
@@ -835,9 +834,9 @@ export default {
     // 查看当前你nerve通道流动性
     checkLpBalance() {
       if (this.chooseFromAsset && this.chooseToAsset) {
-        const pairAddress = this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'].pairAddress;
+        const pairAddress = this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'] && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '';
         console.log(this.nerveLimitInfo, 'this.nerveLimitInfo');
-        const swapAssets = this.nerveLimitInfo.find(item => item.pairAddress === pairAddress).swapAssets;
+        const swapAssets = pairAddress && this.nerveLimitInfo.find(item => item.pairAddress === pairAddress).swapAssets || [];
         const swapMap = {};
         swapAssets.forEach(item => {
           swapMap[item.chain] = divisionDecimals(item.amount, item.decimals);
@@ -922,7 +921,7 @@ export default {
           this.currentChannel = null;
         }
       } else {
-        if (!this.amountOut) { this.amountMsg = ''; }
+        if (!this.amountOut) { this.amountMsg = ''; this.getChannelBool = false; }
         this.amountIn = '';
         this.currentChannel = null;
       }
@@ -958,7 +957,7 @@ export default {
                 isBest: false,
                 isCurrent: false,
                 status: item.status,
-                gasFee: isCross ? currentConfig.outToken && currentConfig.outToken.relayerGas : '',
+                swapFee: isCross ? currentConfig.outToken && currentConfig.outToken.relayerGas : '',
                 swapRate: this.computedSwapRate(isCross, isCross ? currentConfig.inToken.amount : currentConfig.amount, isCross ? currentConfig.outToken.amountOut : currentConfig.amountOut)
               };
             }
@@ -1009,7 +1008,7 @@ export default {
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : divisionDecimals(currentConfig.amount, this.chooseToAsset.decimals || 18),
                 crossChainFee: divisionDecimals(currentConfig.crossChainFee, this.chooseFromAsset.decimals || 18),
                 isBest: false,
-                gasFee: this.numberFormat(tofix(divisionDecimals(currentConfig.gasFee, this.crossFeeAsset.decimals), 6, -1), 6),
+                swapFee: this.numberFormat(tofix(divisionDecimals(currentConfig.gasFee, this.crossFeeAsset.decimals), 6, -1), 6),
                 isCurrent: false
               };
             }
@@ -1022,8 +1021,8 @@ export default {
                 amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
                 channel: item.channel,
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee),
-                gasFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
-                crossChainFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
+                swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
+                crossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
                 originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
                 isBest: false,
                 isCurrent: false,

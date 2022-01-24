@@ -56,11 +56,21 @@
         </div>
         <!--手续费-->
         <div class="d-flex align-items-center space-between mt-4">
+          <span class="text-aa">{{ $t('swap.swap34') }}</span>
+          <div class="d-flex align-items-center justify-content-end">
+            <span class="ml-4 text-ec">
+              <span class="text-0">
+                {{ detailInfo && detailInfo.crossFee | numberFormat }}{{ detailInfo && detailInfo.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}
+              </span>
+            </span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
               <span class="text-0">
-                {{ detailInfo && detailInfo.fee | numberFormat }}{{ detailInfo && detailInfo.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}
+                {{ detailInfo && detailInfo.swapFee | numberFormat }}{{ detailInfo && detailInfo.symbol || 'USDT' }}
               </span>
             </span>
           </div>

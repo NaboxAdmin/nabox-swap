@@ -6,7 +6,7 @@ import { ETransfer } from '@/api/api';
 import { request, post } from '@/network/http';
 import { NTransfer } from '@/api/api';
 
-export const feeRate = 0.0002; // 稳定币手续费万二
+export const feeRate = 0.0002; // nerve链上兑换稳定币手续费万二
 
 const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -18,6 +18,7 @@ export default class NerveChannel {
     this.chooseFromAsset = MAIN_INFO;
     this.chooseToAsset = NULS_INFO;
   }
+  // 计算兑换的数量
   getSwapAmount(type, amount) {
     const assetKey = this.generateAssetKey();
     const pairs = Object.values(tempPairInfo);
@@ -68,10 +69,9 @@ export default class NerveChannel {
       return [0, 0, []];
     }
   }
-
+  // 获取nerve链上兑换的配置
   getNerveChannelConfig(type, amount) {
     const [swapAmount, priceImpact, routeSymbolList] = this.getSwapAmount(type, amount);
-    console.log(swapAmount, tofix(timesDecimals(priceImpact, 2), 2, -1), routeSymbolList, 'swapAmount, priceImpact, routeSymbolList');
     if (swapAmount !== 0) {
       return {
         amountIn: type === 'amountIn' && amount || swapAmount,
@@ -82,7 +82,7 @@ export default class NerveChannel {
     }
     return null;
   }
-
+  // 通过amountIn获取最佳路由
   getBestTradeExactIn(amount, pairs) {
     const tokenAmountIn = nerve.swap.tokenAmount(
       this.chooseFromAsset.chainId,
@@ -107,7 +107,7 @@ export default class NerveChannel {
     }
     return null;
   }
-
+  // 通过amountOut获取最佳路由
   getBestTradeExactOut(amount, pairs) {
     const tokenIn = nerve.swap.token(
       this.chooseFromAsset.chainId,
@@ -136,14 +136,13 @@ export default class NerveChannel {
     }
     return null;
   }
-
+  // 发送nerve链上兑换交易
   async sendNerveSwapTransaction(nerveChannel, nerveAddress) {
     const { amountIn, minReceive } = nerveChannel;
     const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
     const toAssetKey = `${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
     const fromAssetDecimals = this.chooseFromAsset.decimals;
     const toAssetDecimals = this.chooseToAsset.decimals;
-
     const fromAddress = nerveAddress;
     const swapAmountIn = timesDecimals(amountIn, fromAssetDecimals); // 卖出的资产数量
     // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
@@ -170,7 +169,7 @@ export default class NerveChannel {
     );
     return tx.hash;
   }
-
+  // 获取资产的key
   generateAssetKey() {
     return `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}_${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
   }
@@ -189,25 +188,25 @@ export default class NerveChannel {
     }
     return null;
   }
-  // 发送nerve稳定币交易
+  // 发送nerve通道异构链稳定币兑换交易
   async sendNerveBridgeTransaction(params) {
     const transfer = new ETransfer({
       chain: this.chooseFromAsset.chain
     });
     return await transfer.crossInII(params);
   }
-  // 发送普通nerve转账交易
+  // 发送nerve通道nerve => 异构链稳定币兑换交易
   async sendNerveCommonTransaction(params) {
     const transfer = new NTransfer({
       chain: 'NERVE',
       type: 2
     });
-    const { currentAccount, crossAddress, chainId, assetId, signAddress, amountIn } = params;
+    const { currentAccount, crossAddress, chainId, assetId, signAddress, amountIn, fee, orderId } = params;
     const transferInfo = {
       from: currentAccount && currentAccount.address['NERVE'] || '',
       to: crossAddress,
       amount: amountIn,
-      fee: 0,
+      fee: timesDecimals(fee, MAIN_INFO['decimal']),
       assetsChainId: chainId,
       assetsId: assetId
     };
@@ -217,10 +216,12 @@ export default class NerveChannel {
       outputs,
       txData: {},
       pub: currentAccount.pub,
-      signAddress
+      signAddress,
+      remarks: orderId || ''
     });
     return await this.broadcastHex(txHex);
   }
+  // 广播nerve交易
   async broadcastHex(txHex) {
     const config = JSON.parse(sessionStorage.getItem('config'));
     const url = config['NERVE'].apiUrl;

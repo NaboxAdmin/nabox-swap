@@ -52,13 +52,13 @@
             </span>
           </div>
         </div>
-        <!--gasFee-->
-        <div v-if="orderInfo && orderInfo.currentChannel.gasFee" class="d-flex align-items-center space-between mt-4">
+        <!--swapFee-->
+        <div v-if="orderInfo && orderInfo.currentChannel.swapFee" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-3a">
-              <span>{{ (orderInfo.currentChannel.gasFee || '0') | numberFormat }}</span>
-              <span>{{ 'USDT' }}</span>
+              <span>{{ (orderInfo.currentChannel.swapFee || '0') | numberFormat }}</span>
+              <span>{{ orderInfo && orderInfo.fromAsset.symbol || 'USDT' }}</span>
             </span>
           </div>
         </div>
@@ -71,16 +71,14 @@
 
 <script>
 import NavBar from '@/components/NavBar/NavBar';
-import { MAIN_INFO, NULS_INFO } from '@/config';
 import { timesDecimals, getCurrentAccount, Minus } from '@/api/util';
-import { ETransfer, NTransfer } from '@/api/api';
 import ISwap from '../Swap/util/iSwap';
 import { ISWAP_VERSION, ISWAP_BRIDGE_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
 import NerveChannel from '../Swap/util/Nerve';
-import '../../views/Swap/util/stableTransfer-min'
+// import '../../views/Swap/util/stableTransfer-min'
 
 const ethers = require('ethers');
 
@@ -127,7 +125,6 @@ export default {
             break;
           case 'NERVE':
             if (stableSwap) {
-              console.log('stableSwap stableSwap');
               await this.sendNerveBridgeTransaction();
             } else {
               await this.sendNerveSwapTransaction();
@@ -401,8 +398,9 @@ export default {
           swapNerveAddress = configRes.data.swapNerveAddress;
         }
         const config = JSON.parse(sessionStorage.getItem('config'));
-        const multySignAddress = config[this.fromNetwork]['config']['crossAddress'];
+        const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
         const { toAsset, fromAsset, currentChannel, amountIn } = this.orderInfo;
+        console.log(fromAsset, amountIn, 'amountIn 213')
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
@@ -424,17 +422,19 @@ export default {
           if (this.fromNetwork !== 'NERVE') {
             res = await nerveChannel.sendNerveBridgeTransaction(params);
           } else {
-            const { amountIn } = this.orderInfo.fromAsset;
+            // const { amountIn } = this.orderInfo.fromAsset;
             const crossOutPrams = {
               from: this.fromAddress,
               chainId: fromAsset.nerveChainId,
               assetId: fromAsset.nerveAssetId,
-              amount: timesDecimals(amountIn, fromAsset.decimals),
+              amountIn: timesDecimals(amountIn, fromAsset.decimals),
               type: 2,
               pub: this.currentAccount.pub,
               signAddress: this.currentAccount.address.Ethereum,
               crossAddress: swapNerveAddress,
-              currentAccount: this.currentAccount
+              currentAccount: this.currentAccount,
+              fee: currentChannel.crossChainFee,
+              orderId: currentChannel.orderId
             };
             console.log(crossOutPrams, 'crossOutPrams');
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
@@ -493,7 +493,9 @@ export default {
         swapContractAddress: toAsset.contractAddress || '',
         // amount: timesDecimals(amountIn, fromAsset.decimals || 18),
         amount: amountIn,
-        fee: currentChannel.channel === 'NERVE' ? currentChannel.originCrossChainFee : currentChannel.crossChainFee,
+        // fee: currentChannel.channel === 'NERVE' ? currentChannel.originCrossChainFee : currentChannel.crossChainFee,
+        crossFee: currentChannel.channel === 'NERVE' ? currentChannel.crossChainFee : currentChannel.crossChainFee,
+        swapFee: currentChannel.swapFee,
         slippage: currentChannel.channel === 'NERVE' && stableSwap ? '0' : slippage,
         pairAddress: fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress || '',
         // swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18),
@@ -504,307 +506,6 @@ export default {
         url: '/swap/cross/tx/save',
         data: naboxParams
       });
-    },
-    // 转账
-    async transfer() {
-      if (!this.platformAddress) {
-        this.$message({
-          message: this.$t('tips.tips21'),
-          type: 'warning',
-          duration: 2000,
-          offset: 30
-        });
-        return;
-      }
-      try {
-        // 获取当前账户
-        const currentAccount = getCurrentAccount(this.orderInfo.address);
-        const { fromNetwork, fromAsset, amount, address, fromAmount } = this.orderInfo;
-        if (fromNetwork === 'NERVE' || fromNetwork === 'NULS') {
-          let checkAssetSupport = true;
-          const { chainId, assetId } = fromAsset;
-          if (fromNetwork === 'NERVE') {
-            checkAssetSupport = chainId === MAIN_INFO.chainId && assetId === MAIN_INFO.assetId;
-          } else {
-            checkAssetSupport = chainId === NULS_INFO.chainId && assetId === NULS_INFO.assetId;
-          }
-          if (!checkAssetSupport) {
-            this.$message({
-              message: this.$t('tips.tips26'),
-              type: 'warning',
-              offset: 30,
-              duration: 3000
-            });
-            return;
-          }
-          // 普通转账
-          const transfer = new NTransfer({
-            chain: fromNetwork,
-            type: 2
-          });
-          const transferInfo = {
-            from: address,
-            to: this.platformAddress,
-            assetsChainId: fromAsset.chainId,
-            assetsId: fromAsset.assetId,
-            amount: timesDecimals(amount, fromAsset.decimals),
-            fee: timesDecimals(0.001, 8)
-          };
-          const inputOutput = await transfer.inputsOrOutputs(transferInfo);
-          const data = {
-            inputs: inputOutput.inputs,
-            outputs: inputOutput.outputs,
-            txData: {},
-            pub: currentAccount.pub,
-            signAddress: currentAccount.address.Ethereum
-          };
-          const txHex = await transfer.getTxHex(data);
-          if (txHex) {
-            await this.broadcastHex(txHex, '');
-          }
-        } else {
-          const transfer = new ETransfer();
-          const transferInfo = {
-            value: fromAmount,
-            decimals: fromAsset.decimals,
-            contractAddress: fromAsset.contractAddress,
-            to: this.platformAddress
-          };
-          const res = await transfer.commonTransfer(transferInfo);
-          if (res && res.hash) {
-            await this.broadcastHex('', res.hash);
-          }
-        }
-      } catch (e) {
-        this.$message({
-          message: this.$t('tips.tips7'),
-          type: 'warning',
-          offset: 30
-        });
-      }
-    },
-    // 稳定币转账
-    async stableTransfer(txData, usdtnTransfer = false) {
-      try {
-        const { contractAddress, fromAmount, address, decimals } = this.orderInfo;
-        const transfer = new ETransfer();
-        const params = {
-          multySignAddress: txData.multySignAddress,
-          numbers: fromAmount,
-          fromAddress: address,
-          decimals,
-          nerveAddress: txData.swapNerveAddress,
-          contractAddress
-        };
-        const res = await transfer.crossIn(params);
-        if (res && res.hash) {
-          if (usdtnTransfer) {
-            await this.broadcastUsdtnTransfer(res.hash);
-          } else {
-            await this.broadcastNaboxTx(res.hash);
-          }
-        }
-      } catch (e) {
-        this.$message({
-          type: 'warning',
-          message: e.message,
-          offset: 30
-        });
-      }
-    },
-    // 广播swapBox usdt兑换交易
-    async broadcastNaboxTx(hash) {
-      const { toAsset, fromNetwork, address, contractAddress, fromAmount, pairAddress, decimals } = this.orderInfo;
-      const params = {
-        fromChain: fromNetwork,
-        toChain: toAsset.mainNetwork,
-        platform: 'nabox',
-        fromAddress: address,
-        toAddress: address,
-        txHash: hash,
-        contractAddress: contractAddress,
-        amount: timesDecimals(fromAmount, decimals),
-        pairAddress,
-        auth: '1561ced6ef90f5d60ce669ba',
-        swapAmount: timesDecimals(this.orderInfo.currentPlatform.minReceive, toAsset.decimals) // 最低收到/预计收到
-      };
-      const res = await this.$request({
-        url: '/swap/cross/swapTx',
-        data: params
-      });
-      if (res.code === 1000 && res.data) {
-        this.$message({
-          type: 'success',
-          message: this.$t('tips.tips24'),
-          offset: 30,
-          duration: 1500
-        });
-        setTimeout(() => {
-          // this.$router.go(-1)
-          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash }});
-          this.$emit('confirm');
-        }, 1500);
-      } else {
-        this.$message({
-          type: 'warning',
-          message: this.$t('tips.tips15'),
-          offset: 30
-        });
-      }
-      this.confirmLoading = false;
-    },
-    // 同链usdtn兑换
-    async broadcastUsdtnTransfer(txHash) {
-      const { fromAsset, toAsset, decimals, fromAmount, address, fromNetwork } = this.orderInfo;
-      const fromCoin = {
-        chainId: fromAsset.chainId,
-        assetId: fromAsset.assetId,
-        contractAddress: fromAsset.contractAddress
-      };
-      const toCoin = {
-        chainId: toAsset.chainId,
-        assetId: toAsset.assetId,
-        contractAddress: toAsset.contractAddress
-      };
-      const data = {
-        platform: 'nabox',
-        channel: 'nabox',
-        chain: fromNetwork,
-        address,
-        fromCoin,
-        toCoin,
-        amount: timesDecimals(fromAmount, decimals),
-        txHash
-      };
-      const res = await this.$request({
-        url: '/swap/usdtn/exchange',
-        data
-      });
-      if (res.code === 1000 && res.data) {
-        this.$message({
-          type: 'success',
-          message: this.$t('tips.tips24'),
-          offset: 30,
-          duration: 1500
-        });
-        setTimeout(() => {
-          this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash }});
-          this.$emit('confirm');
-        }, 1500);
-      } else {
-        this.$message({
-          type: 'warning',
-          message: this.$t('tips.tips15'),
-          offset: 30
-        });
-      }
-      this.confirmLoading = false;
-    },
-    // 广播其他跨链兑换转账交易
-    async broadcastHex(txHex, txHash) {
-      if (txHex) { // nerve
-        const url = this.$store.state.network === 'NERVE' ? MAIN_INFO.rpc : NULS_INFO.rpc;
-        const chainId = this.$store.state.network === 'NERVE' ? MAIN_INFO.chainId : NULS_INFO.chainId;
-        const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-        if (res.result && res.result.hash) {
-          const depositCoin = {
-            chain: this.orderInfo && this.orderInfo.fromAsset.chain,
-            chainId: this.orderInfo && this.orderInfo.fromAsset.chainId,
-            assetId: this.orderInfo && this.orderInfo.fromAsset.assetId,
-            contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
-            symbol: this.orderInfo && this.orderInfo.fromAsset.symbol,
-            coinCode: this.orderInfo && this.orderInfo.fromAsset.coinCode,
-            amount: this.orderInfo && this.orderInfo.fromAmount
-          };
-          const receiveCoin = {
-            chain: this.orderInfo && this.orderInfo.toAsset.chain,
-            chainId: this.orderInfo && this.orderInfo.toAsset.chainId,
-            assetId: this.orderInfo && this.orderInfo.toAsset.assetId,
-            contractAddress: this.orderInfo && this.orderInfo.toAsset.contractAddress,
-            symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
-            coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
-            amount: this.orderInfo && this.orderInfo.toAmount
-          };
-          const params = {
-            address: this.orderInfo && this.orderInfo.address,
-            txHash: res.result.hash,
-            depositCoin,
-            receiveCoin,
-            orderId: this.orderId
-          };
-          const res = this.$request({
-            url: '/swap/swft/exchange',
-            data: params
-          });
-          if (res.code === 1000 && res.data) {
-            this.$message({
-              message: this.$t('tips.tips24'),
-              type: 'success',
-              offset: 30,
-              duration: 1500
-            });
-            setTimeout(() => {
-              this.$router.push({ path: '/orderDetail', query: { txHash: res.data.txHash }});
-              this.$emit('confirm');
-            }, 1500);
-          }
-        } else {
-          this.$message({
-            message: this.$t('tips.tips7'),
-            type: 'warning',
-            offset: 30
-          });
-        }
-      } else { // 异构链
-        const depositCoin = {
-          chain: this.orderInfo && this.orderInfo.fromAsset.chain,
-          chainId: this.orderInfo && this.orderInfo.fromAsset.chainId,
-          assetId: this.orderInfo && this.orderInfo.fromAsset.assetId,
-          contractAddress: this.orderInfo && this.orderInfo.fromAsset.contractAddress,
-          symbol: this.orderInfo && this.orderInfo.fromAsset.symbol,
-          coinCode: this.orderInfo && this.orderInfo.fromAsset.coinCode,
-          amount: this.orderInfo && this.orderInfo.fromAmount
-        };
-        const receiveCoin = {
-          chain: this.orderInfo && this.orderInfo.toAsset.chain,
-          chainId: this.orderInfo && this.orderInfo.toAsset.chainId,
-          assetId: this.orderInfo && this.orderInfo.toAsset.assetId,
-          contractAddress: this.orderInfo && this.orderInfo.toAsset.contractAddress,
-          symbol: this.orderInfo && this.orderInfo.toAsset.symbol,
-          coinCode: this.orderInfo && this.orderInfo.toAsset.coinCode,
-          amount: this.orderInfo && this.orderInfo.toAmount
-        };
-        const params = {
-          address: this.orderInfo && this.orderInfo.address,
-          txHash: txHash,
-          depositCoin,
-          receiveCoin,
-          orderId: this.orderId,
-          fee: this.orderInfo && this.orderInfo.withdrawFee
-        };
-        const res = await this.$request({
-          url: '/swap/swft/exchange',
-          data: params
-        });
-        if (res.code === 1000 && res.data) {
-          this.$message({
-            message: this.$t('tips.tips24'),
-            type: 'success',
-            offset: 30,
-            duration: 1500
-          });
-          setTimeout(() => {
-            // this.$router.go(-1)
-            this.$emit('confirm');
-          }, 1500);
-        } else {
-          this.$message({
-            message: this.$t('tips.tips7'),
-            type: 'warning',
-            offset: 30
-          });
-        }
-      }
     },
     // byte32格式化
     formatBytes32(byte32String) {
