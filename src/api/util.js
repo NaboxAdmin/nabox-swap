@@ -560,7 +560,7 @@ export const networkOrigin = {
   Harmony: isBeta ? 'https://explorer.harmony.one/' : 'https://explorer.pops.one/',
   Polygon: isBeta ? 'https://mumbai.polygonscan.com/' : 'https://explorer.matic.network/',
   KCC: isBeta ? 'https://scan-testnet.kcc.network' : 'https://explorer.kcc.io/',
-  CRONOS: isBeta ? 'https://cronos.crypto.org/explorer/testnet3' : 'https://cronos.crypto.org/explorer/',
+  Cronos: isBeta ? 'https://cronos.crypto.org/explorer/testnet3' : 'https://cronos.crypto.org/explorer/',
   Avalanche: isBeta ? 'https://testnet.snowtrace.io/' : 'https://snowtrace.io/',
   Arbitrum: isBeta ? 'https://testnet.arbiscan.io/' : 'https://arbiscan.io',
   Fantom: isBeta ? 'https://testnet.ftmscan.com/' : 'https://ftmscan.com'
@@ -576,7 +576,7 @@ export const addressNetworkOrigin = {
   Harmony: isBeta ? 'https://explorer.harmony.one/address/' : 'https://explorer.pops.one/address/',
   Polygon: isBeta ? 'https://mumbai.polygonscan.com/address/' : 'https://explorer.matic.network/address/',
   KCC: isBeta ? 'https://scan-testnet.kcc.network/address/' : 'https://explorer.kcc.io/address/',
-  CRONOS: isBeta ? 'https://cronos.crypto.org/explorer/testnet3/address/' : 'https://cronos.crypto.org/explorer/address/',
+  Cronos: isBeta ? 'https://cronos.crypto.org/explorer/testnet3/address/' : 'https://cronos.crypto.org/explorer/address/',
   Avalanche: isBeta ? 'https://testnet.snowtrace.io/address/' : 'https://snowtrace.io/address/',
   Arbitrum: isBeta ? 'https://testnet.arbiscan.io/address/' : 'https://arbiscan.io/address/',
   Fantom: isBeta ? 'https://testnet.ftmscan.com/address/' : 'https://ftmscan.com/address/'
