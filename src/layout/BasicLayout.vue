@@ -134,9 +134,12 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return;
+        console.log(val, this.fromNetwork, 'valllll');
         const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
         const chain = tempSupportChainList.find(v => v[ETHNET] === val);
-        if (chain) {
+        if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
+          this.$store.commit('changeNetwork', this.fromNetwork);
+        } else if (chain) {
           this.$store.commit('changeNetwork', chain.value);
         } else {
           const tempAddress = this.address.toUpperCase();

@@ -415,6 +415,15 @@ export default {
         }
       },
       deep: true
+    },
+    '$store.state.network': {
+      handler() {
+        this.chooseFromAsset = null;
+        this.balanceRequest = true;
+        this.reset();
+        this.getSwapAssetList();
+      },
+      deep: true
     }
   },
   created() {

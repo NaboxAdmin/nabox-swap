@@ -202,8 +202,8 @@ export default {
     },
     l1ChainList() {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-      const tempList = tempSupportChainList.filter(chain => chain.label !== 'NULS' && chain.label !== 'NERVE');
-      return tempList.map(chain => ({
+      // const tempList = tempSupportChainList.filter(chain => chain.label !== 'NULS' && chain.label !== 'NERVE');
+      return tempSupportChainList.map(chain => ({
         chainId: chain[ETHNET],
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         icon: chain.icon,
@@ -333,12 +333,13 @@ export default {
     },
     chainClick(chain) {
       if (this.currentChain === chain.chainName) return;
+      if (chain.chainName === 'NULS' || chain.chainName === 'NERVE') {
+        // window.location.reload();
+        this.currentChain = chain.chainName;
+        this.$store.commit('changeNetwork', chain.chainName);
+        return;
+      }
       delete chain['icon'];
-      // if (chain.chainName === "NULS" || chain.chainName === "NERVE") {
-      //   this.currentChain = chain.chainName;
-      //   this.$store.commit('changeNetwork', chain.chainName);
-      //   return;
-      // }
       this.showDropList = false;
       if (chain.chainName !== 'Ethereum') {
         window.ethereum && window.ethereum.request({

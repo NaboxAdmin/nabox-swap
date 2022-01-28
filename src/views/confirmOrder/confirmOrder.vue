@@ -437,8 +437,9 @@ export default {
             };
             console.log(crossOutPrams, 'crossOutPrams');
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
+            console.log(res, 'ressss');
           }
-          if (res.hash) {
+          if (res && res.hash) {
             this.$message({
               type: 'success',
               message: this.$t('tips.tips24'),
@@ -448,6 +449,8 @@ export default {
             this.confirmLoading = false;
             this.$emit('confirm');
             await this.recordHash(currentChannel.orderId, res.hash);
+          } else {
+            throw res.msg;
           }
         } else {
           throw swapRes.msg;

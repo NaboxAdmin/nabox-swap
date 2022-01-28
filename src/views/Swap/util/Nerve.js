@@ -231,6 +231,6 @@ export default class NerveChannel {
     if (res.result && res.result.hash) {
       return { hash: res.result.hash, success: true };
     }
-    return null;
+    return { hash: null, msg: res.error.msg || res.error.data };
   }
 }
