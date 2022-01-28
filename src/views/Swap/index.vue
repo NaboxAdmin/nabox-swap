@@ -115,7 +115,7 @@
           </div>
           <span class="text-3a">{{ currentChannel.feeAmount | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span>
         </div>
-        <div v-if="currentChannel.minReceive" class="d-flex space-between size-28 mt-3">
+        <div v-if="currentChannel.minReceive && !stableSwap" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ (currentChannel && currentChannel.isCross ? $t("swap.swap32") : $t("swap.swap20")) || $t("swap.swap20") }}</span>
           <span class="text-3a">
             {{ currentChannel.minReceive | numberFormat }}{{ chooseToAsset && chooseToAsset.symbol }}
@@ -991,7 +991,8 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === 'NERVE' && !this.stableSwap) {
+          } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap) {
+            console.log('111111111111111111111111111111');
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
               return {
@@ -1015,6 +1016,7 @@ export default {
                 amount: this.inputType === 'amountIn' ? this.amountIn : divisionDecimals(currentConfig.amount, this.chooseFromAsset.decimals || 18),
                 channel: item.channel,
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : divisionDecimals(currentConfig.amount, this.chooseToAsset.decimals || 18),
+                minReceive: this.inputType === 'amountOut' ? this.amountOut : divisionDecimals(currentConfig.amount, this.chooseToAsset.decimals || 18),
                 crossChainFee: divisionDecimals(currentConfig.crossChainFee, this.chooseFromAsset.decimals || 18),
                 isBest: false,
                 swapFee: this.numberFormat(tofix(divisionDecimals(currentConfig.gasFee, this.crossFeeAsset.decimals), 6, -1), 6),
@@ -1027,9 +1029,9 @@ export default {
             if (currentConfig) {
               return {
                 icon: item.icon,
-                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
                 channel: item.channel,
-                amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee),
+                amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
+                minReceive: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
                 swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
                 crossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
                 originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
