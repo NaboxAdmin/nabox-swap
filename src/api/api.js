@@ -689,7 +689,7 @@ export class ETransfer {
       const allNumber = Plus(crossChainFee, numbers);
       const amount = ethers.utils.parseEther(numbers);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      const data = iface.functions.crossOut.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
+      const data = iface.functions.crossOutII.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
       transactionParameters = {
         to: multySignAddress,
         value: amount,
