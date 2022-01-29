@@ -419,6 +419,7 @@ export default {
     '$store.state.network': {
       handler() {
         this.chooseFromAsset = null;
+        this.chooseToAsset = null;
         this.balanceRequest = true;
         this.reset();
         this.getSwapAssetList();
@@ -631,7 +632,7 @@ export default {
         chooseToAsset,
         amountIn,
         amountOut,
-        fromAddress,
+        // fromAddress,
         fromNetwork,
         currentDex,
         toAssetDex,
@@ -641,6 +642,7 @@ export default {
         crossFeeAsset,
         mainAssetSymbol
       } = this;
+      const fromAddress = this.currentAccount['address'][this.fromNetwork];
       const toChain = this.chooseToAsset.chain;
       const tempParams = {
         address: fromAddress,
@@ -992,7 +994,6 @@ export default {
             }
             return null;
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap) {
-            console.log('111111111111111111111111111111');
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
               return {
