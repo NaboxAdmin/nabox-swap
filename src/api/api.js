@@ -678,23 +678,35 @@ export class ETransfer {
       const mainAssetValue = ethers.utils.parseEther(crossChainFee);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
       const data = iface.functions.crossOutII.encode([nerveAddress, numberOfTokens, contractAddress, orderId]);
-      transactionParameters = {
+      // transactionParameters = {
+      //   to: multySignAddress,
+      //   from: fromAddress, // 验证合约调用需要from,必传
+      //   value: mainAssetValue,
+      //   data: data
+      // };
+      transactionParameters = await this.setGasLimit({
+        from: fromAddress,
         to: multySignAddress,
-        from: fromAddress, // 验证合约调用需要from,必传
         value: mainAssetValue,
-        data: data
-      };
+        data
+      }, false);
       console.log(transactionParameters, 'transactionParameters');
     } else {
       const allNumber = Plus(crossChainFee, numbers);
-      const amount = ethers.utils.parseEther(numbers);
+      const amount = ethers.utils.parseEther(allNumber);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
       const data = iface.functions.crossOutII.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
-      transactionParameters = {
+      transactionParameters = await this.setGasLimit({
+        from: fromAddress,
         to: multySignAddress,
         value: amount,
-        data: data
-      };
+        data
+      });
+      // transactionParameters = {
+      //   to: multySignAddress,
+      //   value: amount,
+      //   data: data
+      // };
     }
     const failed = await this.validate(transactionParameters);
     if (failed) {
@@ -704,6 +716,18 @@ export class ETransfer {
       delete transactionParameters.from;
     }
     return await this.sendTransaction(transactionParameters);
+  }
+
+  async setGasLimit(tx, flag = true) {
+    console.log(tx, 'tx');
+    const gasLimit = await this.getGasLimit(tx);
+    console.log(gasLimit, 'gasLimit');
+    const tempTx = {
+      ...tx,
+      gasLimit
+    };
+    flag && delete tempTx['from'];
+    return tempTx;
   }
 
   // 普通链内转账

@@ -127,7 +127,7 @@
         </div>
         <div v-if="currentChannel.crossChainFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap34") }}</span>
-          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ currentChannel.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}</span>
+          <span class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ stableSwap && (currentChannel.channel === 'NERVE' && mainAssetSymbol || chooseFromAsset.symbol) || 'USDT' }}</span>
         </div>
         <div v-if="currentChannel.swapFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ $t("swap.swap43") }}</span>

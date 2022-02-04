@@ -134,6 +134,7 @@ export default class ISwap {
     if (res.code === 0) {
       return res.data;
     }
+    throw { message: res.message };
     return null;
   }
   async getISwapOrderList(params) {
