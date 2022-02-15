@@ -46,6 +46,14 @@ const mainRoutes = [{
       }
     },
     {
+      path: '/liquidityPool',
+      name: 'liquidityPool',
+      component: () => import('../views/liquidityPool'),
+      meta: {
+        title: 'LiquidityPool'
+      }
+    },
+    {
       path: '/l1farm',
       name: 'l1farm',
       component: () => import('../views/L1Farm'),

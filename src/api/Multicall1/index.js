@@ -1,5 +1,5 @@
 
-import { ABIMultiCallContract } from "./abi";
+import { ABIMultiCallContract } from './abi';
 import {
   chunk,
   mapValues,
@@ -7,28 +7,26 @@ import {
   isNumber,
   omit,
   toPairs,
-  fromPairs,
-} from "lodash";
+  fromPairs
+} from 'lodash';
 import {
   createIndexSet,
   mergeFromIndexSet,
-  removeOverSizedChunks,
-} from "./helpers";
-
+  removeOverSizedChunks
+} from './helpers';
 
 export class MultiCall {
   constructor(
-     web3,
-     contract = "0x5Eb3fa2DFECdDe21C950813C665E9364fa609bD2",
-     chunkSizes = [300, 100, 25]
+    web3,
+    contract = '0x5Eb3fa2DFECdDe21C950813C665E9364fa609bD2',
+    chunkSizes = [300, 100, 25]
   ) {
     this.web3 = web3;
     this.contract = contract;
     this.chunkSizes = chunkSizes;
     const isNumbersAndAtLeastOne =
       chunkSizes.every((number) => isNumber(number)) && chunkSizes.length > 0;
-    if (!isNumbersAndAtLeastOne)
-      throw new Error("Chunk sizes must be numbers and at least one");
+    if (!isNumbersAndAtLeastOne) { throw new Error('Chunk sizes must be numbers and at least one'); }
   }
 
   async rawCall(
@@ -83,20 +81,20 @@ export class MultiCall {
     const chunks = chunk(calls, chunksNoBiggerThanRequests[0]);
 
     const res = await Promise.all(
-      chunks.map(async (chunk) => {
+      chunks.map(async(chunk) => {
         const requests = chunk;
         try {
           const result = await this.rawCall(chunk, false, blockHeight);
           return {
             success: true,
             requests,
-            result,
+            result
           };
         } catch (e) {
           return {
             success: false,
             requests,
-            error: e.message,
+            error: e.message
           };
         }
       })
@@ -113,13 +111,12 @@ export class MultiCall {
       throw new Error(`All requests failed on last chunk ${res[0].error}`);
     } else {
       const working = await Promise.all(
-        res.map(async (res) => {
+        res.map(async(res) => {
           if (res.success) {
             return res.result;
           }
           const newChunkSize = chunksNoBiggerThanRequests.slice(1);
-          if (newChunkSize.length == 0)
-            throw new Error(`Failed request ${res.error}`);
+          if (newChunkSize.length == 0) { throw new Error(`Failed request ${res.error}`); }
           return this.rawCallInChunks(res.requests, newChunkSize, blockHeight);
         })
       );
@@ -127,7 +124,7 @@ export class MultiCall {
     }
   }
 
- decodeHex(hex, type) {
+  decodeHex(hex, type) {
     const typeIsArray = Array.isArray(type);
     try {
       if (typeIsArray) {
@@ -140,11 +137,11 @@ export class MultiCall {
     }
   }
 
- async normalCall(groupsOfShapes, blockHeight) {
+  async normalCall(groupsOfShapes, blockHeight) {
     return Promise.all(
-      groupsOfShapes.map(async (group) =>
+      groupsOfShapes.map(async(group) =>
         Promise.all(
-          group.map(async (shape) => {
+          group.map(async(shape) => {
             const originAddresses = Object.values(shape).map(
               (abi) => abi._parent._address
             );
@@ -155,20 +152,19 @@ export class MultiCall {
               (address) => address == firstOriginAddress
             );
 
-            if (!sameOriginAddress)
-              throw new Error("Shape group must have the same origin address");
+            if (!sameOriginAddress) { throw new Error('Shape group must have the same origin address'); }
 
             const callArgs = blockHeight ? [null, blockHeight] : [];
             return {
               _originAddress: firstOriginAddress,
               data: fromPairs(
                 await Promise.all(
-                  toPairs(shape).map(async ([label, abi]) => [
+                  toPairs(shape).map(async([label, abi]) => [
                     label,
-                    await abi.call(...callArgs).catch(() => {}),
+                    await abi.call(...callArgs).catch(() => {})
                   ])
                 )
-              ),
+              )
             };
           })
         )
@@ -176,7 +172,7 @@ export class MultiCall {
     );
   }
 
- encodeAbi(groupsOfShapes){
+  encodeAbi(groupsOfShapes) {
     return groupsOfShapes.map((group) =>
       group.map((shape) => {
         const originAddresses = Object.values(shape).map(
@@ -187,13 +183,12 @@ export class MultiCall {
           (address, index, arr) => address === arr[0]
         );
 
-        if (!sameOriginAddress)
-          throw new Error("Shape group must have the same origin address");
+        if (!sameOriginAddress) { throw new Error('Shape group must have the same origin address'); }
         const originAddress = originAddresses[0];
 
         return {
           originAddress,
-          data: mapValues(shape, (abi) => abi.encodeABI()),
+          data: mapValues(shape, (abi) => abi.encodeABI())
         };
       })
     );
@@ -204,7 +199,7 @@ export class MultiCall {
       group.map((relay) => {
         const pairs = toPairs(relay);
         const keysToRemove = pairs
-          .filter(([key, value]) => typeof value == "string")
+          .filter(([key, value]) => typeof value === 'string')
           .map(([key]) => key);
         return omit(relay, keysToRemove);
       })
@@ -217,29 +212,29 @@ export class MultiCall {
     const toReturn = nameRecall.map(([plainShape, withOrigin]) => {
       const zipped = zip(plainShape, withOrigin);
       return zipped.map(([plain, origin]) => {
-        const originAddressKey = "_originAddress";
+        const originAddressKey = '_originAddress';
         const originAddress = origin[originAddressKey];
         const keysToAdd = toPairs(plain)
-          .filter(([key, value]) => typeof value == "string")
+          .filter(([key, value]) => typeof value === 'string')
           .map(([key, value]) => [
             key,
-            value == "originAddress"
+            value == 'originAddress'
               ? originAddress
-              : (value),
+              : (value)
           ]);
         const keysAdded = keysToAdd.reduce(
           (acc, [key, value]) => ({
             ...acc,
-            [key]: value,
+            [key]: value
           }),
           origin
         );
         const big = omit(keysAdded, originAddressKey);
 
-        const noData = omit(big, "data");
+        const noData = omit(big, 'data');
         return {
           ...noData,
-          ...big.data,
+          ...big.data
         };
       });
     });
@@ -256,11 +251,11 @@ export class MultiCall {
     const defaultOptions = {
       skipDecode: false,
       traditional: false,
-      blockHeight: undefined,
+      blockHeight: undefined
     };
     const options = {
       ...defaultOptions,
-      ...passedOptions,
+      ...passedOptions
     };
 
     const { skipDecode, traditional, blockHeight } = options;
@@ -304,18 +299,18 @@ export class MultiCall {
             const result = skipDecode
               ? data
               : success
-              ? this.decodeHex(
+                ? this.decodeHex(
                   data,
                   callReturn._method.outputs.length == 1
                     ? callReturn._method.outputs[0].type
                     : callReturn._method.outputs.map((x) => x.type)
                 )
-              : undefined;
+                : undefined;
 
             return {
               ...acc,
               _originAddress: origin,
-              [key]: result,
+              [key]: result
             };
           },
           {}

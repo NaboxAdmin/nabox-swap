@@ -1,0 +1,56 @@
+.pool-cont {
+    background-color: #F0F7F7;
+    padding: 30px;
+    .title-cont {
+        padding: 31px;
+        border: 1px solid #DBDEE8;
+        font-size: 26px;
+        line-height: 36px;
+        background-color: #F8FBFB;
+        border-radius: 20px;
+    }
+    .pool-item {
+        padding: 30px;
+        background-color: #FFFFFF;
+        border: 1px solid #DBDEE8;
+        border-radius: 20px;
+        .pool-icon_cont {
+            padding-bottom: 30px;
+            border-bottom: 1px solid #DBDEE8;
+            .pool-icon {
+                height: 63px;
+                width: 63px;
+                border-radius: 50%;
+                overflow: hidden;
+                img {
+                    height: 100%;
+                    width: 100%;
+                }
+            }
+        }
+        .network-icon {
+            height: 31px;
+            width: 31px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-left: 14px;
+            img {
+                height: 100%;
+                width: 100%;
+            }
+        }
+    }
+    .option-btn {
+        margin: 20px auto;
+        height: 88px;
+        line-height: 88px;
+        background-color: #6EB6A9;
+        border-radius: 20px;
+        text-align: center;
+        font-size: 30px;
+        color: #FFFFFF;
+    }
+}
+.ml-12 {
+    margin-left: 12px;
+}

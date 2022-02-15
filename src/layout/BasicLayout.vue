@@ -108,7 +108,7 @@ export default {
       return this.$store.getters.currentAccount;
     },
     typeBoolean() {
-      return window.location.hash.indexOf('vaults') > -1 || window.location.hash.indexOf('liquidity') > -1;
+      return window.location.hash.indexOf('vaults') > -1;
     },
     hashType() {
       return window.location.hash.split('/')[1];
@@ -482,7 +482,7 @@ export default {
     },
     poolClick() {
       this.showType = 'Pool';
-      this.$router.push({ path: '/liquidity' });
+      this.$router.push({ path: '/liquidityPool' });
     },
     vaultsClick() {
       this.showType = 'Vaults';

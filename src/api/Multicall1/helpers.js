@@ -1,10 +1,9 @@
 
-
 export const createIndexSet = (data) =>
   data.reduce(
     (acc, item) => ({
       lastIndex: acc.lastIndex + item.length,
-      built: acc.built.concat([[acc.lastIndex, acc.lastIndex + item.length]]),
+      built: acc.built.concat([[acc.lastIndex, acc.lastIndex + item.length]])
     }),
     { lastIndex: 0, built: [] }
   ).built;

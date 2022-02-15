@@ -9,15 +9,15 @@
         <div v-if="!showConnect && !showSign && address" class="address-detail pl-2 pr-2">
           <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
             <span class="chain-icon">
-              <img :src="getPicture(!isLiquidity && !isL2Farm && currentChain || 'NERVE')" alt="" @error="pictureError">
+              <img :src="getPicture(!isL2Farm && currentChain || 'NERVE')" alt="" @error="pictureError">
             </span>
-            <div v-if="(!isLiquidity && !isL2Farm)" class="icon-drop ml-2">
+            <div v-if="(!isL2Farm)" class="icon-drop ml-2">
               <img src="../../assets/image/drop_down_active.png" alt="">
             </div>
           </div>
           <div class="space-cont"/>
           <div class="d-flex" @click="addressClick">
-            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isLiquidity && !isL2Farm && address || nerveAddress) }}</span>
+            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isL2Farm && address || nerveAddress) }}</span>
             <span v-if="showLoading" class="box_loading">
               <img src="@/assets/image/loading.svg" alt="">
             </span>
@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="position-cont" />
-    <div :class="[isVaults && 'bg-f0']" class="main-cont">
+    <div :class="[(isVaults || isLiquidity) && 'bg-f0']" class="main-cont">
       <slot/>
       <Pop
         :show="showPop"
@@ -97,8 +97,9 @@
             </div>
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
-            <span :class="{'active': orderType === 3}" class="cursor-pointer" @click="getOrderList(fromAddress)">{{ $t('tips.tips33') }}</span>
-            <span :class="{'active': orderType === 1}" class="ml-3 cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
+            <span :class="{'active': orderType === 1}" class="cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
+            <span :class="{'active': orderType === 3}" class="ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork])">{{ $t('tips.tips40') }}</span>
+            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork])">{{ $t('navBar.navBar2') }}</span>
             <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
           </div>
           <div v-loading="orderLoading" class="customer-p pt-1">
@@ -112,8 +113,8 @@
                   <template>
                     <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ $t("navBar.navBar5") }}</span>
                     <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">
-                      <span class="mr-1 m-width">{{ superLong(item.txHash) }}</span>
-                      <span class="sign">{{ item.type }}</span>
+                      <span class="mr-1 m-width">{{ orderType!==2 && superLong(item.txHash) || superLong(item.orderId) }}</span>
+                      <span class="sign">{{ orderType!==2 && item.type || (item.lpType === 2 && $t('pool.join7') || $t('pool.join6')) }}</span>
                     </span>
                   </template>
                   <span>{{ item.createTime }}</span>
@@ -133,9 +134,9 @@
                     <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>
                     <i v-if="orderType === 1 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>
                     <!--L2网络订单-->
-                    <i v-if="orderType === 2 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
-                    <i v-if="orderType === 2 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>
-                    <i v-if="orderType === 2 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>
+                    <i v-if="orderType === 2 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
+                    <i v-if="orderType === 2 && item.status < 3" class="el-icon-loading" style="color: #6EB6A9"/>
+                    <i v-if="orderType === 2 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
                   </span>
                 </div>
                 <div v-if="orderList.length === 0" class="text-center size-28 mb-3">{{ $t('modal.modal3') }}</div>
@@ -177,7 +178,7 @@ export default {
       currentChain: this.$store.state.network, // 当前所选择的链
       showDropList: false, // 下拉菜单
       orderList: [], // 订单列表
-      orderType: 3, // 当前选择的订单类型
+      orderType: 1, // 当前选择的订单类型
       // fromAddress: '',
       currentChainAsset: null, // 当前选择的链上的主资产信息
       nerveChainAsset: null, // nerve链上的主资产信息/L2
@@ -258,7 +259,7 @@ export default {
         this.isSwap = window.location.hash.indexOf('swap') > -1;
         this.isVaults = window.location.hash.indexOf('farm') > -1;
         this.isL2Farm = window.location.hash.indexOf('l2farm') > -1;
-        this.isLiquidity = window.location.hash.indexOf('liquidity') > -1;
+        this.isLiquidity = window.location.hash.indexOf('liquidityPool') > -1;
         this.$store.commit('changeSwap', this.isSwap);
       },
       immediate: true,
@@ -289,9 +290,9 @@ export default {
   },
   created() {
     if (this.statusTimer) clearInterval(this.statusTimer);
-    this.fromAddress && this.getOrderStatus(this.fromAddress);
+    this.fromAddress && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
     this.statusTimer = setInterval(() => {
-      this.fromAddress && this.getOrderStatus(this.fromAddress);
+      this.fromAddress && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
     }, 5000);
   },
   mounted() {
@@ -315,7 +316,7 @@ export default {
       this.$toast(this.$t('tips.tips13'));
     },
     showDropClick() {
-      !this.isL2Farm && !this.isLiquidity && (this.showDropList = !this.showDropList);
+      !this.isL2Farm && (this.showDropList = !this.showDropList);
     },
     // 断开连接
     disConnect() {
@@ -329,7 +330,8 @@ export default {
     addressClick() {
       this.showAccount = true;
       // this.getTxOrderList(this.fromAddress);
-      this.getOrderList(this.fromAddress);
+      // this.getOrderList(this.fromAddress);
+      this.getTxList();
     },
     chainClick(chain) {
       if (this.currentChain === chain.chainName) return;
@@ -337,6 +339,7 @@ export default {
         // window.location.reload();
         this.currentChain = chain.chainName;
         this.$store.commit('changeNetwork', chain.chainName);
+        window.location.reload();
         return;
       }
       delete chain['icon'];
@@ -440,6 +443,35 @@ export default {
         this.orderLoading = false;
       }
     },
+    async getLiquidityOrderList(val) {
+      try {
+        this.orderList = [];
+        this.$nextTick(() => {
+          this.orderLoading = true;
+        });
+        this.orderType = 2;
+        const params = {
+          address: val,
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/lp/tx/query',
+          data: params
+        });
+        if (res.code === 1000) {
+          this.orderList = res.data.map(item => {
+            return {
+              ...item,
+              createTime: this.formatTime(item.createTime)
+            };
+          });
+        }
+        this.orderLoading = false;
+      } catch (e) {
+        console.log(e, 'error');
+        this.orderLoading = false;
+      }
+    },
     async getOrderStatus(val) {
       try {
         console.log('==getOrderStatus==');
@@ -454,8 +486,12 @@ export default {
           url: '/swap/tx/query',
           data: params
         });
+        const lpRes = await this.$request({
+          url: '/swap/lp/tx/query',
+          data: params
+        });
         if (res.code === 1000) {
-          swapTxList = res.data;
+          swapTxList = res.data.concat(lpRes.data || []);
         } else {
           swapTxList = [];
         }
@@ -552,7 +588,7 @@ export default {
     },
     // 订单详情
     toOrderDetail(item) {
-      this.$router.push({ path: '/orderDetail', query: { orderId: item.orderId }});
+      this.$router.push({ path: '/orderDetail', query: { orderId: item.orderId, type: this.orderType }});
     },
     swapClick() {
       this.$emit('swapClick');

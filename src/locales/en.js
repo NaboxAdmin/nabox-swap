@@ -31,14 +31,22 @@ const en = {
     tips29: 'Audit by',
     tips30: 'Harvest',
     tips31: 'Please enter a number greater than 0 and less than 100',
-    tips32: 'Ordinary',
+    tips32: 'Transaction',
     tips33: 'Cross-chain',
     tips34: 'Order timed out, please re-create order',
     tips35: 'High Price Volatility',
     tips36: 'Swap amount is lower than Gas',
     tips37: 'The current channel has not been opened yet',
     tips38: 'The function is being upgraded, please be patient...',
-    tips39: 'Insufficient Liquidity'
+    tips39: 'Insufficient Liquidity',
+    tips40: 'Cross-chain',
+    tips41: 'This is a single-currency market-making protocol , you can use assets from different networks to provide liquidity and stake the LP in the Farm to earn reward',
+    tips42: 'Fund Size',
+    tips43: 'My',
+    tips44: 'Support Network',
+    tips45: 'Add/Remove Assets',
+    tips46: ' address ',
+    tips47: ' will receive'
   },
   swap: {
     swap1: 'From',
@@ -83,7 +91,10 @@ const en = {
     swap40: 'Swap successful',
     swap41: 'Swap failed',
     swap42: 'OrderId',
-    swap43: 'Provider Fee'
+    swap43: 'Provider Fee',
+    swap44: 'Transaction successful',
+    swap45: 'Transaction failed',
+    swap46: 'Processing transaction'
   },
   transfer: {
     transfer1: 'From',
@@ -107,7 +118,8 @@ const en = {
     join7: 'Withdraw',
     join8: "Exceeded the pool's maximum withdrawal amount",
     join9: 'Exceeded the maximum withdrawal amount',
-    join10: 'The available withdrawal balance is insufficient'
+    join10: 'The available withdrawal balance is insufficient',
+    join11: 'Cross-chain Fee'
   },
   vaults: {
     vaults1: 'Total ',

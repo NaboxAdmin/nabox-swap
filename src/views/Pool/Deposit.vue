@@ -27,17 +27,27 @@
           class="flex-1"
           placeholder="0"
           @focus.stop
-          @input="countInput">
+          @input="countInputDebounce">
         <span class="text-primary size-28" @click.stop="maxCount">{{ $t("swap.swap3") }}</span>
       </div>
     </div>
     <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
     <div class="output-cont d-flex direction-column">
-      <div class="size-28 text-90">{{ $t("pool.join1") }}</div>
+      <div class="account-info d-flex align-items-center size-28 text-90">
+        <div @click.stop="showAccountList = !showAccountList">
+          {{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])} ${ $t('tips.tips47') }` }}
+        </div>
+        <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
+        <div v-if="showAccountList" class="account-list bg-white">
+          <div v-for="(item, index) in accountType" :key="index" @click="currentType=item.chainName;showAccountList=false;currentToChain=item">
+            {{ item.chainName }}{{ $t('tips.tips46') }}{{ superLong(currentAccount['address'][item.chainName]) }}{{ $t('tips.tips47') }}
+          </div>
+        </div>
+      </div>
       <div class="d-flex align-items-center space-between mt-2">
         <div class="d-flex align-items-center">
           <span class="image-cont mr-14">
-            <img :src="getPicture(liquidityInfo && liquidityInfo.symbol || 'USDTN')" alt="">
+            <img :src="getPicture(liquidityInfo && liquidityInfo.symbol || 'USDTN')" alt="" @error="pictureError">
           </span>
           <span class="font-500 size-30">{{ liquidityInfo && liquidityInfo.symbol || 'USDTN' }}</span>
         </div>
@@ -47,8 +57,8 @@
     <div class="mt-5">
       <template v-if="true">
         <div
-          v-for="item in lpCoinList"
-          :key="item.assetId"
+          v-for="(item, index) in lpCoinList"
+          :key="index"
           class="d-flex align-items-center size-28 text-90 space-between justify-content-end mt-2">
           <span class="d-flex align-items-center">
             <span class="icon-cont mr-2">
@@ -73,10 +83,19 @@
       <span class="text-90 w-85">{{ $t("pool.join3") }}</span>
       <span class="text-3a text-right d-flex direction-column">
         <span>${{ addedLiquidityInfo && addedLiquidityInfo.balance | numberFormatLetter }}({{ poolRate | rateFormat }})</span>
-        <!--        <span>{{ liquidityInfo && liquidityInfo.symbol || "USDTN" }}  |  {{ poolRate | rateFormat }}</span>-->
       </span>
     </div>
-    <div :class="{opacity_btn: canNext}" class="btn size-30 cursor-pointer" @click="submit">{{ $t("pool.join4") }}</div>
+    <div v-if="crossFee && currentType!=='NERVE'" class="d-flex mt-2 size-28 align-items-center space-between">
+      <span class="text-90 w-85">{{ $t("pool.join11") }}</span>
+      <span class="text-3a text-right d-flex direction-column">
+        <span>{{ crossFee }}{{ mainAssetSymbol }}</span>
+      </span>
+    </div>
+    <div v-if="!needAuth" :class="{opacity_btn: canNext}" class="btn size-30 cursor-pointer" @click="submit">{{ $t("pool.join4") }}</div>
+    <div v-else class="btn size-30 d-flex align-items-center justify-content-center" @click="approveERC20">
+      <span class="mr-2">{{ $t("transfer.transfer8") }}</span>
+      <Loading v-if="approvingLoading" :is-active="false"/>
+    </div>
     <div class="tips size-26 text-center">{{ $t("pool.join5") }}</div>
     <keep-alive>
       <Modal
@@ -90,16 +109,19 @@
 <script>
 import { NTransfer } from '@/api/api';
 import { currentNet, MAIN_INFO } from '@/config';
-import { divisionDecimals, timesDecimals, Minus, Division, tofix, Times } from '@/api/util';
+import { divisionDecimals, timesDecimals, Minus, Division, tofix, Times, debounce } from '@/api/util';
 import Modal from './Modal/Modal';
+import { ETransfer } from '@/api/api';
+import Loading from '@/components/Loading/Loading';
 
+const ethers = require('ethers');
 const nerve = require('nerve-sdk-js');
 // 测试环境
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
   name: 'Deposit',
-  components: { Modal },
+  components: { Modal, Loading },
   filters: {
     rateFormat(val) {
       if (val < 0.01) {
@@ -110,6 +132,7 @@ export default {
     }
   },
   data() {
+    this.countInputDebounce = debounce(this.countInput, 500);
     return {
       joinCount: '',
       chain: 'NERVE', // 当前所在的链
@@ -128,7 +151,15 @@ export default {
       assetTimer: null,
       infoTimer: null,
       isFirstRequest: false,
-      lpAssetsList: []
+      lpAssetsList: [],
+      showAccountList: false,
+      currentType: 'NERVE',
+      crossFee: 0,
+      requestLoading: false,
+      accountType: [],
+      currentToChain: null, // 目标链
+      needAuth: false,
+      approvingLoading: false
     };
   },
   computed: {
@@ -136,7 +167,7 @@ export default {
     lpCoinList() {
       const tempList = this.liquidityInfo && this.liquidityInfo.lpCoinList || [];
       tempList.forEach(item => {
-        item.balance = divisionDecimals(item.balance, item.decimals);
+        item.balance = divisionDecimals(item.amount, item.decimals);
       });
       return this.liquidityInfo && this.liquidityInfo.lpCoinList || [];
     },
@@ -150,8 +181,12 @@ export default {
       return total;
     },
     canNext() {
-      // return !this.joinCount || !Number(this.joinCount) || this.amountMsg;
-      return true;
+      return !this.joinCount || !Number(this.joinCount) || this.amountMsg || this.requestLoading;
+      // return true;
+    },
+    mainAssetSymbol() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      return config[this.fromNetwork]['symbol'];
     }
   },
   watch: {
@@ -169,9 +204,32 @@ export default {
           this.joinCount = '';
         }
       }
+    },
+    currentType: {
+      handler(val) {
+        if (val && this.joinCount) {
+          this.countInputDebounce();
+        }
+      }
+    },
+    currentAsset: {
+      handler(val) {
+        if (val && this.joinCount) {
+          this.countInputDebounce();
+        }
+      }
     }
   },
+  mounted() {
+    window.addEventListener('click', () => {
+      if (this.showAccountList) this.showAccountList = false;
+    }, false);
+  },
   async created() {
+    const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
+    this.accountType = liquidityInfo.tokenLp.heterogeneousList || [];
+    this.accountType.push({ chainName: 'NERVE' });
+    this.currentToChain = this.accountType.find(item => item.chainName === 'NERVE') || this.accountType[0];
     await this.getLiquidityInfo();
     this.infoTimer = setInterval(async() => {
       await this.getLiquidityInfo(true);
@@ -184,19 +242,112 @@ export default {
     this.infoTimer = null;
   },
   methods: {
+    // 查询异构链token资产授权情况
+    async checkAssetAuthStatus() {
+      const transfer = new ETransfer();
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
+      const contractAddress = this.currentAsset.contractAddress;
+      const needAuth = await transfer.getERC20Allowance(
+        contractAddress,
+        authContractAddress,
+        this.fromAddress
+      );
+      this.needAuth = needAuth;
+      if (!needAuth && this.getAllowanceTimer) {
+        this.clearGetAllowanceTimer();
+      }
+    },
+    // 异构链token资产转入nerve授权
+    async approveERC20() {
+      if (this.approvingLoading) return false;
+      this.showApproveLoading = true;
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      try {
+        const transfer = new ETransfer();
+        const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
+        const contractAddress = this.currentAsset.contractAddress;
+        const res = await transfer.approveERC20(
+          contractAddress,
+          authContractAddress,
+          this.fromAddress
+        );
+        if (res.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+          this.$message({
+            message: this.$t('tips.tips14'),
+            type: 'success',
+            duration: 2000,
+            offset: 30
+          });
+          this.setGetAllowanceTimer();
+        } else {
+          this.$message({
+            message: res.msg,
+            type: 'warning',
+            duration: 2000,
+            offset: 30
+          });
+        }
+        this.approvingLoading = true;
+        this.showApproveLoading = false;
+      } catch (e) {
+        console.log(e, 'error');
+        this.$message.warning({ message: e.message, offset: 30 });
+        this.showApproveLoading = false;
+      }
+    },
+
+    clearGetAllowanceTimer() {
+      if (!this.getAllowanceTimer) return;
+      clearInterval(this.getAllowanceTimer);
+      this.getAllowanceTimer = null;
+    },
+
+    setGetAllowanceTimer() {
+      this.getAllowanceTimer = setInterval(() => {
+        this.checkAssetAuthStatus();
+      }, 3000);
+    },
     maxCount() {
       if (!this.currentAvailable || !Number(this.currentAvailable)) return false;
       this.joinCount = this.userAvailable;
     },
-    countInput() {
+    async countInput() {
       if (!this.joinCount) {
         this.amountMsg = '';
         return false;
       }
+      const params = {
+        fromChain: this.fromNetwork,
+        toChain: this.currentType,
+        fromAddress: this.currentAccount['address'][this.fromNetwork],
+        toAddress: this.currentType === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
+        chainId: this.currentAsset.chainId,
+        assetId: this.currentAsset.assetId,
+        contractAddress: this.currentAsset.contractAddress,
+        // amount: this.inputType === 'amountIn' && timesDecimals(this.amountIn, this.chooseFromAsset.decimals) || timesDecimals(this.amountOut, this.chooseToAsset.decimals),
+        pairAddress: this.liquidityInfo.address,
+        lpType: 1,
+        swapChainId: this.currentType === 'NERVE' ? this.liquidityInfo.chainId : this.currentToChain.heterogeneousChainId,
+        swapAssetId: this.currentType === 'NERVE' ? this.liquidityInfo.assetId : '0',
+        swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress
+      };
       if (Minus(this.joinCount, this.currentAvailable) > 0) {
         this.amountMsg = this.$t('tips.tips17');
+        return false;
       } else {
         this.amountMsg = '';
+      }
+      this.requestLoading = true;
+      const res = await this.$request({
+        url: '/swap/lp/fee',
+        data: params
+      });
+      if (res.code === 1000) {
+        this.crossFee = res.data.crossFee;
+        this.orderId = res.data.orderId;
+        this.requestLoading = false;
       }
     },
     // 选择需要加入到流动性的资产
@@ -210,70 +361,73 @@ export default {
     },
     // 获取pool流动性信息
     async getLiquidityInfo(refresh = false) {
-      const res = await this.$request({
-        method: 'get',
-        url: '/swap/usdn/info'
-      });
-      if (res.code === 1000 && res.data) {
-        const currentNetwork = sessionStorage.getItem('network');
-        this.liquidityInfo = res.data;
-        this.liquidityInfo['total'] = res.data.total && divisionDecimals(res.data.total, res.data.decimals) || 0;
-        // this.currentAsset = !this.currentAsset && res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.filter(item => item.chain === this.$store.state.fromNetwork) || res.data.lpCoinList[0]) || this.currentAsset;
-        if (!this.currentAsset) {
-          if (res.data.lpCoinList.length !== 0) {
-            this.currentAsset = res.data.lpCoinList.find(item => item.chain === currentNetwork) || res.data.lpCoinList[0];
+      // const res = await this.$request({
+      //   method: 'get',
+      //   url: '/swap/usdn/info'
+      // });
+      const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));
+      const currentNetwork = sessionStorage.getItem('network');
+      this.liquidityInfo = {
+        lpCoinList: tempData.swapAssets,
+        address: tempData.pairAddress,
+        total: divisionDecimals(tempData.tokenLp.amount, tempData.tokenLp.decimals),
+        chainId: tempData.tokenLp.chainId,
+        assetId: tempData.tokenLp.assetId,
+        symbol: tempData.tokenLp.symbol,
+        decimals: tempData.tokenLp.decimals,
+        heterogeneousList: tempData.tokenLp.heterogeneousList
+      };
+      console.log(this.liquidityInfo, 'liquidityInfo');
+      // this.liquidityInfo['total'] = res.data.total && divisionDecimals(res.data.total, res.data.decimals) || 0;
+      // this.currentAsset = !this.currentAsset && res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.filter(item => item.chain === this.$store.state.fromNetwork) || res.data.lpCoinList[0]) || this.currentAsset;
+      if (!this.currentAsset) {
+        if (this.liquidityInfo.lpCoinList.length !== 0) {
+          this.currentAsset = this.liquidityInfo.lpCoinList.find(item => item.chain === currentNetwork) || this.liquidityInfo.lpCoinList[0];
+          if (this.fromNetwork !== 'NERVE') {
+            this.checkAssetAuthStatus();
           }
         }
-        !refresh && await this.getAssetInfo(this.currentAsset);
-        if (this.assetTimer) {
-          clearInterval(this.assetTimer);
-          this.assetTimer = null;
-        }
-        this.assetTimer = setInterval(async() => {
-          await this.getAssetInfo(this.currentAsset, true);
-        }, 15000);
-        await this.getAddedLiquidity();
-        if (this.liquidityInfo.lpCoinList) {
-          const tempParams = this.liquidityInfo.lpCoinList.map(item => ({
-            chainId: item.chainId,
-            assetId: item.assetId,
-            contractAddress: item.contractAddress
+      }
+      !refresh && await this.getAssetInfo(this.currentAsset);
+      if (this.assetTimer) {
+        clearInterval(this.assetTimer);
+        this.assetTimer = null;
+      }
+      this.assetTimer = setInterval(async() => {
+        await this.getAssetInfo(this.currentAsset, true);
+      }, 15000);
+      await this.getAddedLiquidity();
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const url = config[this.fromNetwork].apiUrl;
+      if (this.liquidityInfo.lpCoinList && this.fromNetwork === 'NERVE') {
+        const tempParams = this.liquidityInfo.lpCoinList.map(item => ({
+          chainId: item.nerveChainId,
+          assetId: item.nerveAssetId,
+          contractAddress: item.contractAddress
+        }));
+        const params = [config[this.fromNetwork]['chainId'], this.currentAccount['address'][this.fromNetwork], tempParams];
+        const res = await this.$post(url, 'getBalanceList', params);
+        if (res.result && res.result.length !== 0) {
+          this.lpAssetsList = this.liquidityInfo.lpCoinList.map((item, index) => ({
+            ...res.result[index],
+            symbol: item.symbol,
+            registerChain: item.chain,
+            userBalance: tofix(divisionDecimals(res.result[index].balance || 0, item.decimals || 8), 6, -1),
+            chainId: res.result[index].assetChainId,
+            decimals: item.decimals
           }));
-          const url = MAIN_INFO.batchRPC;
-          const params = [MAIN_INFO.chainId, this.currentAccount['address']['NERVE'], tempParams];
-          const res = await this.$post(url, 'getBalanceList', params);
-          if (res.result && res.result.length !== 0) {
-            this.lpAssetsList = this.liquidityInfo.lpCoinList.map((item, index) => ({
-              ...res.result[index],
-              symbol: item.symbol,
-              registerChain: item.chain,
-              userBalance: tofix(divisionDecimals(res.result[index].balance || 0, item.decimals || 8), 6, -1),
-              chainId: res.result[index].assetChainId,
-              decimals: item.decimals
-            }));
-          } else {
-            this.lpAssetsList = await Promise.all(this.liquidityInfo.lpCoinList.map(async(item) => {
-              const data = {
-                chain: 'NERVE',
-                address: this.nerveAddress,
-                chainId: item.chainId,
-                assetId: item.assetId,
-                contractAddress: '',
-                refresh: true
-              };
-              const res = await this.$request({
-                url: '/wallet/address/asset',
-                data
-              });
-              if (res.code === 1000) {
-                return {
-                  ...res.data,
-                  userBalance: res.data && tofix(divisionDecimals(res.data.balance, res.data.decimals), 6, -1) || 0
-                };
-              }
-            }));
-          }
+          console.log(this.lpAssetsList, 'this.lpAssetsList');
         }
+      } else {
+        // const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
+        // const addresses = this.liquidityInfo.lpCoinList.map(asset => {
+        //   if (asset.contractAddress) {
+        //     return asset.contractAddress;
+        //   }
+        //   return batchQueryContract;
+        // });
+        // const res = await getBatchERC20Balance(addresses, this.fromAddress, batchQueryContract, url);
+        // console.log(res, '123');
       }
     },
     // 获取资产信息
@@ -285,7 +439,18 @@ export default {
       currentAsset = {
         ...currentAsset
       };
-      this.userAvailable = await this.getNerveAssetBalance(currentAsset);
+      if (this.fromNetwork === 'NERVE') {
+        this.userAvailable = await this.getNerveAssetBalance(currentAsset);
+      } else {
+        const transfer = new ETransfer({
+          chain: this.fromNetwork
+        });
+        if (currentAsset.contractAddress) {
+          this.userAvailable = await transfer.getERC20Balance(currentAsset.contractAddress, currentAsset.decimals, this.fromAddress);
+        } else {
+          this.userAvailable = await transfer.getEthBalance(this.fromAddress);
+        }
+      }
       this.currentAvailable = this.numberFormat(tofix(this.userAvailable, 6, -1));
       this.currentAssetInfo = {
         ...currentAsset,
@@ -295,62 +460,134 @@ export default {
     },
     // 获取已添加流动性资产信息
     async getAddedLiquidity() {
-      const params = {
-        chainId: this.liquidityInfo.chainId,
-        assetId: this.liquidityInfo.assetId,
-        decimals: this.liquidityInfo.decimals,
-        contractAddress: this.liquidityInfo.contractAddress || ''
-      };
-      const addedLiquidityBalance = await this.getNerveAssetBalance(params);
-      this.addedLiquidityInfo = {
-        ...this.liquidityInfo,
-        balance: this.numberFormat(addedLiquidityBalance, 4, -1)
-      };
+      if (this.fromNetwork === 'NERVE') {
+        const params = {
+          chainId: this.liquidityInfo.chainId,
+          assetId: this.liquidityInfo.assetId,
+          decimals: this.liquidityInfo.decimals,
+          contractAddress: this.liquidityInfo.contractAddress || ''
+        };
+        const addedLiquidityBalance = await this.getNerveAssetBalance(params);
+        this.addedLiquidityInfo = {
+          ...this.liquidityInfo,
+          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+        };
+      } else {
+        const transfer = new ETransfer({
+          chain: this.fromNetwork
+        });
+        let addedLiquidityBalance;
+        if (this.liquidityInfo.heterogeneousList) {
+          const currentAsset = this.liquidityInfo.heterogeneousList && this.liquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+          if (currentAsset.contractAddress) {
+            addedLiquidityBalance = await transfer.getERC20Balance(currentAsset.contractAddress, this.liquidityInfo.decimals, this.fromAddress);
+          } else {
+            addedLiquidityBalance = await transfer.getEthBalance(this.fromAddress);
+          }
+        }
+        this.addedLiquidityInfo = {
+          ...this.liquidityInfo,
+          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+        };
+      }
       this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
     },
+
     async submit() {
       if (this.canNext) {
-        this.$toast(this.$t('tips.tips38'));
+        // this.$toast(this.$t('tips.tips38'));
         return false;
       }
       this.confirmLoading = true;
-      const transfer = new NTransfer({
-        chain: 'NERVE',
-        type: 2
-      });
       try {
-        const { chainId, assetId } = this.currentAssetInfo;
-        const { address } = this.liquidityInfo;
-        const { decimals } = this.currentAsset;
-        const amounts = nerve.swap.tokenAmount(chainId, assetId, timesDecimals(this.joinCount, decimals));
-        const transferInfo = {
-          from: this.nerveAddress,
-          to: this.nerveAddress,
-          assetsChainId: chainId,
-          assetsId: assetId,
-          amount: timesDecimals(this.joinCount, decimals),
-          fee: 0
+        const configRes = await this.$request({
+          method: 'get',
+          url: '/api/common/config'
+        });
+        let lpNerveAddress;
+        if (configRes.code === 1000) {
+          lpNerveAddress = configRes.data.lpNerveAddress;
+        }
+        const orderParams = {
+          orderId: this.orderId,
+          fromChain: this.fromNetwork,
+          toChain: this.currentType,
+          fromAddress: this.currentAccount['address'][this.fromNetwork],
+          toAddress: this.currentType === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
+          chainId: this.currentAsset.chainId,
+          assetId: this.currentAsset.assetId,
+          contractAddress: this.fromNetwork === 'NERVE' ? '' : this.currentAsset.contractAddress,
+          // amount: timesDecimals(this.joinCount, this.currentAsset.decimals),
+          amount: this.joinCount,
+          pairAddress: this.liquidityInfo.address,
+          lpType: 1,
+          crossFee: this.crossFee,
+          swapChainId: this.currentType === 'NERVE' ? this.liquidityInfo.chainId : this.currentToChain.heterogeneousChainId,
+          swapAssetId: this.currentType === 'NERVE' ? this.liquidityInfo.assetId : '0',
+          swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress
         };
-        const { inputs, outputs } = await transfer.inputsOrOutputs(transferInfo);
-        const fromAddress = this.nerveAddress;
-        const stablePairAddress = address; // 当前的稳定币地址
-        const tokenAmounts = [amounts]; // 当前需要质押的资产
-        const deadline = nerve.swap.currentTime() + 300;
-        const toAddress = this.nerveAddress;
-        const remark = '';
-        const tempTxData = await nerve.swap.stableSwapAddLiquidity(fromAddress, stablePairAddress, tokenAmounts, deadline, toAddress, remark);
-        const tAssemble = nerve.deserializationTx(tempTxData.hex); // 通过获取tAssemble
-        const txData = {
-          tAssemble,
-          inputs,
-          outputs,
-          pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address.Ethereum
-        };
-        const txHex = await transfer.getTxHex(txData);
-        if (txHex) {
-          console.log(txHex, '==txHex==');
-          await this.broadcastHex(txHex);
+        const orderRes = await this.$request({
+          url: '/swap/lp/tx/save',
+          data: orderParams
+        });
+        if (this.fromNetwork === 'NERVE') {
+          const transfer = new NTransfer({
+            chain: 'NERVE',
+            type: 2
+          });
+          // const { nerveAssetId, nerveChainId } = this.currentAsset;
+          const { chainId, assetId } = this.currentAsset;
+          const transferInfo = {
+            from: this.currentAccount && this.currentAccount.address['NERVE'] || '',
+            to: lpNerveAddress,
+            amount: timesDecimals(this.joinCount, this.currentAsset.decimals),
+            fee: timesDecimals(this.crossFee, MAIN_INFO['decimal']),
+            assetsChainId: chainId,
+            assetsId: assetId
+          };
+          const { inputs, outputs } = await transfer.transferTransaction(transferInfo);
+          if (orderRes.code === 1000) {
+            const txHex = await transfer.getTxHex({
+              inputs,
+              outputs,
+              txData: {},
+              pub: this.currentAccount.pub,
+              signAddress: this.currentAccount.address.Ethereum,
+              remarks: this.orderId || ''
+            });
+            if (txHex) {
+              console.log(txHex, '==txHex==');
+              await this.broadcastHex(txHex);
+            }
+          }
+        } else {
+          const transfer = new ETransfer();
+          const config = JSON.parse(sessionStorage.getItem('config'));
+          const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
+          const params = {
+            fromAddress: this.fromAddress,
+            decimals: this.currentAsset.decimals,
+            contractAddress: this.currentAsset.contractAddress,
+            orderId: ethers.utils.toUtf8Bytes(this.orderId),
+            numbers: this.joinCount,
+            multySignAddress,
+            crossChainFee: this.crossFee.toString(),
+            nerveAddress: lpNerveAddress
+          };
+          if (orderRes.code === 1000) {
+            const res = await transfer.crossInII(params);
+            if (res.hash) {
+              this.$message({
+                message: this.$t('tips.tips10'),
+                type: 'success',
+                duration: 2000,
+                offset: 30
+              });
+              this.confirmLoading = false;
+              this.reset();
+              await this.recordHash(this.orderId, res.hash);
+            }
+          }
         }
       } catch (e) {
         this.confirmLoading = false;
@@ -363,6 +600,17 @@ export default {
         });
       }
     },
+    // 记录一次交易hash
+    async recordHash(orderId, hash) {
+      const params = {
+        orderId,
+        txHash: hash
+      };
+      await this.$request({
+        url: '/swap/lp/tx/hash/update',
+        data: params
+      });
+    },
     // 广播nerve nuls跨链转账交易
     async broadcastHex(txHex) {
       const config = JSON.parse(sessionStorage.getItem('config'));
@@ -370,7 +618,7 @@ export default {
       const chainId = config['NERVE'].chainId;
       const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
       if (res.result && res.result.hash) {
-        this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        // this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',
@@ -380,6 +628,7 @@ export default {
         this.reset();
         this.confirmLoading = false;
         await this.getLiquidityInfo();
+        await this.recordHash(this.orderId, res.result.hash);
       } else {
         this.$message({
           message: this.$t('tips.tips15'),
@@ -388,6 +637,7 @@ export default {
           offset: 30
         });
         this.confirmLoading = false;
+        return null;
       }
     },
     reset() {
@@ -501,5 +751,30 @@ export default {
 }
 .m-w180 {
   max-width: 360px;
+}
+.drop_icon {
+  margin-left: 14px;
+  height: 17px;
+  width: 17px;
+}
+.account-info {
+  position: relative;
+  .account-list {
+    position: absolute;
+    padding: 20px 30px;
+    color: #333333;
+    font-weight: bold;
+    border-radius: 10px;
+    top: 40px;
+    left: 0px;
+    z-index: 999;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    div {
+      margin-top: 20px;
+      &:first-child {
+        margin-top: 0px
+      }
+    }
+  }
 }
 </style>

@@ -11,7 +11,7 @@
       <div
         :class="[detailInfo && detailInfo.status === 3 && 'text-18', detailInfo && detailInfo.status === 4 && 'text-danger', detailInfo && (detailInfo.status !== 3 && detailInfo.status !== 4) && 'text-ec',]"
         class="status-cont size-24 text-center">
-        {{ detailInfo && iSwapOrderStatus(detailInfo.status) }}
+        {{ detailInfo && orderType == 3 && iSwapOrderStatus(detailInfo.status) || detailInfo && liquidityOrderStatus(detailInfo.status) }}
       </div>
       <div class="pt-57 d-flex align-items-center justify-content-center">
         <div v-if="detailInfo" class="coin-icon">
@@ -26,7 +26,7 @@
         <div class="down-icon">
           <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"/><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"/></svg>
         </div>
-        <div class="detail-info mt-2">{{ detailInfo && detailInfo.swapSuccAmount || 0 }} {{ detailInfo && detailInfo.swapSymbol }}</div>
+        <div class="detail-info mt-2">{{ orderType == 2 && detailInfo.succAmount || (detailInfo.swapSuccAmount || 0) | numberFormat }} {{ detailInfo && detailInfo.swapSymbol }}</div>
       </div>
       <div class="dash_cont"/>
       <div class="order-detail_info">
@@ -60,12 +60,12 @@
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
               <span class="text-0">
-                {{ detailInfo && detailInfo.crossFee | numberFormat }}{{ detailInfo && detailInfo.channel === 'NERVE' && mainAssetSymbol || 'USDT' }}
+                {{ detailInfo && detailInfo.crossFee | numberFormat }}{{ detailInfo && (detailInfo.channel === 'NERVE' || orderType == 2) && mainAssetSymbol || 'USDT' }}
               </span>
             </span>
           </div>
         </div>
-        <div class="d-flex align-items-center space-between mt-4">
+        <div v-if="orderType != 2" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
@@ -94,7 +94,8 @@ export default {
   data() {
     return {
       detailInfo: null,
-      orderTimer: null
+      orderTimer: null,
+      orderType: ''
     };
   },
   computed: {
@@ -112,8 +113,9 @@ export default {
   },
   created() {
     if (this.$route.query.orderId) {
+      this.orderType = this.$route.query.type;
       this.orderId = this.$route.query.orderId;
-      this.getOrderDetail(this.$route.query.orderId);
+      this.getOrderDetail(this.$route.query.orderId, this.orderType);
       this.orderTimer = setInterval(() => {
         this.getOrderDetail(this.$route.query.orderId);
       }, 10000);
@@ -147,6 +149,7 @@ export default {
       }
     },
     iSwapOrderStatus(val) {
+      console.log('123123')
       switch (val) {
         case 0:
           return this.$t('swap.swap37');
@@ -162,22 +165,55 @@ export default {
           return this.$t('swap.swap41');
       }
     },
-    async getOrderDetail(orderId) {
+    liquidityOrderStatus(val) {
+      switch (val) {
+        case 0:
+          return this.$t('swap.swap37');
+        case 1:
+          return this.$t('swap.swap38');
+        case 2:
+          return this.$t('swap.swap46');
+        case 3:
+          return this.$t('swap.swap44');
+        case 4:
+          return this.$t('swap.swap45');
+        default:
+          return this.$t('swap.swap41');
+      }
+    },
+    async getOrderDetail(orderId, type) {
       const params = {
         orderId
       };
-      const res = await this.$request({
-        url: '/swap/tx/orderId',
-        data: params
-      });
-      if (res.code === 1000) {
-        this.detailInfo = {
-          ...res.data,
-          amount: this.numberFormat(tofix(res.data.amount, 6, -1), 6),
-          swapSuccAmount: this.numberFormat(tofix(res.data.swapSuccAmount, 6, -1), 6) || 0
-        };
-        if (res.data.status > 2) {
-          clearInterval(this.orderTimer);
+      if (type === 3) {
+        const res = await this.$request({
+          url: '/swap/tx/orderId',
+          data: params
+        });
+        if (res.code === 1000) {
+          this.detailInfo = {
+            ...res.data,
+            amount: this.numberFormat(tofix(res.data.amount, 6, -1), 6),
+            swapSuccAmount: this.numberFormat(tofix(res.data.swapSuccAmount, 6, -1), 6) || 0
+          };
+          if (res.data.status > 2) {
+            clearInterval(this.orderTimer);
+          }
+        }
+      } else {
+        const res = await this.$request({
+          url: '/swap/lp/tx/orderId',
+          data: params
+        });
+        if (res.code === 1000) {
+          this.detailInfo = {
+            ...res.data,
+            amount: this.numberFormat(tofix(res.data.amount, 6, -1), 6),
+            swapSuccAmount: this.numberFormat(tofix(res.data.swapSuccAmount, 6, -1), 6) || 0
+          };
+          if (res.data.status > 2) {
+            clearInterval(this.orderTimer);
+          }
         }
       }
     },

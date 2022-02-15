@@ -89,6 +89,8 @@ const nSdk = { NERVE: nerve, NULS: nuls };
  * @returns tokensRes {Promise<*>} 当前返回的批量查询数据
  */
 export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = '0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B', RPCUrl) {
+  // console.log(addresses, multiCallContract, '123');
+  // multiCallContract = '0xb966f6Df75Ff460887d66DEb0b246886374C2Fa5';
   const web3 = new Web3(RPCUrl || window.ethereum);
   const multicall = new MultiCall(web3, multiCallContract);
   const tokens = addresses.map(address => {
