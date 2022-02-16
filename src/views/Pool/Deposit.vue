@@ -33,7 +33,7 @@
     </div>
     <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
     <div class="output-cont d-flex direction-column">
-      <div class="account-info d-flex align-items-center size-28 text-90">
+      <div class="account-info d-flex align-items-center size-28 text-90 cursor-pointer">
         <div @click.stop="showAccountList = !showAccountList">
           {{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])} ${ $t('tips.tips47') }` }}
         </div>
@@ -155,7 +155,7 @@ export default {
       showAccountList: false,
       currentType: 'NERVE',
       crossFee: 0,
-      requestLoading: false,
+      requestLoading: true,
       accountType: [],
       currentToChain: null, // 目标链
       needAuth: false,
@@ -218,6 +218,17 @@ export default {
           this.countInputDebounce();
         }
       }
+    },
+    '$store.state.network': {
+      handler(val) {
+        const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
+        const supportNetwork = liquidityInfo.supportNetwork;
+        if (supportNetwork.indexOf(val) === -1) {
+          this.$router.replace({ path: '/liquidityPool' });
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   mounted() {
@@ -310,8 +321,9 @@ export default {
       }, 3000);
     },
     maxCount() {
-      if (!this.currentAvailable || !Number(this.currentAvailable)) return false;
+      if (!this.userAvailable || !Number(this.userAvailable)) return false;
       this.joinCount = this.userAvailable;
+      this.countInputDebounce();
     },
     async countInput() {
       if (!this.joinCount) {
@@ -333,7 +345,7 @@ export default {
         swapAssetId: this.currentType === 'NERVE' ? this.liquidityInfo.assetId : '0',
         swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress
       };
-      if (Minus(this.joinCount, this.currentAvailable) > 0) {
+      if (Minus(this.joinCount, this.userAvailable) > 0) {
         this.amountMsg = this.$t('tips.tips17');
         return false;
       } else {
@@ -513,7 +525,7 @@ export default {
           fromChain: this.fromNetwork,
           toChain: this.currentType,
           fromAddress: this.currentAccount['address'][this.fromNetwork],
-          toAddress: this.currentType === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
+          toAddress: this.currentAccount['address'][this.currentType],
           chainId: this.currentAsset.chainId,
           assetId: this.currentAsset.assetId,
           contractAddress: this.fromNetwork === 'NERVE' ? '' : this.currentAsset.contractAddress,
@@ -559,6 +571,8 @@ export default {
               console.log(txHex, '==txHex==');
               await this.broadcastHex(txHex);
             }
+          } else {
+            throw orderRes.msg;
           }
         } else {
           const transfer = new ETransfer();
@@ -631,7 +645,7 @@ export default {
         await this.recordHash(this.orderId, res.result.hash);
       } else {
         this.$message({
-          message: this.$t('tips.tips15'),
+          message: res.error && res.error.message || this.$t('tips.tips15'),
           type: 'warning',
           duration: 2000,
           offset: 30

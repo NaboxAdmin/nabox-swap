@@ -114,7 +114,7 @@
                     <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ $t("navBar.navBar5") }}</span>
                     <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">
                       <span class="mr-1 m-width">{{ orderType!==2 && superLong(item.txHash) || superLong(item.orderId) }}</span>
-                      <span class="sign">{{ orderType!==2 && item.type || (item.lpType === 2 && $t('pool.join7') || $t('pool.join6')) }}</span>
+                      <span v-if="orderType === 1" class="sign">{{ item.type }}</span>
                     </span>
                   </template>
                   <span>{{ item.createTime }}</span>

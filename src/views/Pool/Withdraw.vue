@@ -23,10 +23,10 @@
       </div>
     </div>
     <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
-    <div class="output-cont d-flex justify-content-center direction-column">
+    <div class="output-cont d-flex justify-content-center direction-column cursor-pointer">
       <div class="account-info d-flex align-items-center size-28 text-90">
         <div @click.stop="showAccountList = !showAccountList">
-          {{ `${currentType}账户 ${superLong(currentAccount['address'][currentType])} 将获得` }}
+          {{ `${currentType}${$t('tips.tips46')}${superLong(currentAccount['address'][currentType])}${$t('tips.tips47')}` }}
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
@@ -143,7 +143,7 @@ export default {
       showAccountList: false,
       currentType: 'NERVE',
       crossFee: 0,
-      requestLoading: false,
+      requestLoading: true,
       accountType: [],
       currentToChain: null,
       originLpAssetList: [],
@@ -210,6 +210,17 @@ export default {
         }
       },
       deep: true
+    },
+    '$store.state.network': {
+      handler(val) {
+        const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
+        const supportNetwork = liquidityInfo.supportNetwork;
+        if (supportNetwork.indexOf(val) === -1) {
+          this.$router.replace({ path: '/liquidityPool' });
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   created() {
@@ -306,10 +317,10 @@ export default {
     maxCount() {
       if (!this.userAvailable || !Number(this.userAvailable)) return false;
       this.withdrawCount = this.userAvailable;
+      this.countInputDebounce();
     },
     async withdrawInput() {
-      const currentPollTotal = this.currentWithdrawAsset && this.currentWithdrawAsset.total;
-      const addedBalance = this.addedLiquidityInfo && this.addedLiquidityInfo.balance || 0;
+      const currentPollTotal = this.liquidityInfo.lpCoinList.find(item => item.chain === this.currentWithdrawAssetInfo.chain).balance || 0;
       if (!this.withdrawCount) {
         this.amountMsg = '';
         return false;
@@ -330,10 +341,10 @@ export default {
         swapAssetId: this.currentType === 'NERVE' ? this.currentWithdrawAssetInfo.nerveAssetId : this.currentWithdrawAssetInfo.assetId,
         swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentWithdrawAssetInfo.contractAddress
       };
-      if (Minus(this.withdrawCount, currentPollTotal) < 0) {
+      if (Minus(this.withdrawCount, currentPollTotal) > 0) {
         this.amountMsg = this.$t('pool.join9');
         return false;
-      } else if (Minus(this.withdrawCount, addedBalance) > 0) {
+      } else if (Minus(this.withdrawCount, this.userAvailable) > 0) {
         this.amountMsg = this.$t('pool.join10');
         return false;
       } else {
@@ -634,7 +645,6 @@ export default {
             });
           });
           this.lpAssetsList = [...assetList];
-          console.log(this.lpAssetsList, 'this.lpAssetsList')
         }
       } catch (e) {
         console.log(e, 'error');
@@ -662,7 +672,7 @@ export default {
       } else {
         this.withDrawLoading = false;
         this.$message({
-          message: this.$t('tips.tips15'),
+          message: res.error && res.error.message || this.$t('tips.tips15'),
           type: 'warning',
           duration: 2000,
           offset: 30

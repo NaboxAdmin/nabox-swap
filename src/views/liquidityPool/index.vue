@@ -71,28 +71,33 @@ export default {
       this.$router.push({ path: '/liquidity' });
     },
     async getLiquidityPoolList() {
-      const res = await this.$request({
-        method: 'get',
-        url: '/swap/stable/info'
-      });
-      if (res.code === 1000) {
-        const tempData = res.data.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
-        const tempPoolList = await Promise.all(tempData.map(async item => ({
-          ...item,
-          supportNetwork: item.swapAssets.map(asset => asset.chain),
-          totalLp: this.numberFormat(tofix(divisionDecimals(item.tokenLp.amount, item.tokenLp.decimals), 2, -1), 2),
-          myShare: await this.getUserShare(item.tokenLp)
-        })));
-        this.poolList = tempPoolList.map(item => ({
-          ...item,
-          poolRate: tofix(Times(Division(item.myShare, item.totalLp), 100), 2, -1) || 0
-        }));
+      try {
+        const res = await this.$request({
+          method: 'get',
+          url: '/swap/stable/info'
+        });
+        if (res.code === 1000 && res.data.length !== 0) {
+          const tempData = res.data.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
+          const tempPoolList = await Promise.all(tempData.map(async item => ({
+            ...item,
+            supportNetwork: item.swapAssets.map(asset => asset.chain),
+            totalLp: this.numberFormat(tofix(divisionDecimals(item.tokenLp.amount, item.tokenLp.decimals), 2, -1), 2),
+            myShare: await this.getUserShare(item.tokenLp)
+          })));
+          this.poolList = tempPoolList.map(item => ({
+            ...item,
+            poolRate: tofix(Times(Division(item.myShare, item.totalLp), 100), 2, -1) || 0
+          }));
+        } else {
+          this.poolList = [];
+        }
         this.poolLoading = false;
-        console.log(this.poolList, 'this.poolList');
+      } catch (e) {
+        this.poolLoading = false;
+        console.log(e, 'error');
       }
     },
     async getUserShare(asset) {
-      console.log(this.fromNetwork, asset.heterogeneousList, 'this.fromNetwork');
       if (this.fromNetwork === 'NERVE') {
         return await this.getNerveAssetBalance(asset);
       } else {
