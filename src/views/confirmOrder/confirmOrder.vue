@@ -359,11 +359,11 @@ export default {
     async sendNerveSwapTransaction() {
       try {
         const { toAsset, fromAsset, currentChannel } = this.orderInfo;
-        const NerveChannel = new NerveChannel({
+        const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
         });
-        const res = await NerveChannel.sendNerveSwapTransaction(currentChannel, this.fromAddress);
+        const res = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork]);
         if (res.hash) {
           this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({

@@ -72,10 +72,11 @@ export default class NerveChannel {
   // 获取nerve链上兑换的配置
   getNerveChannelConfig(type, amount) {
     const [swapAmount, priceImpact, routeSymbolList] = this.getSwapAmount(type, amount);
-    if (swapAmount !== 0) {
+    console.log(swapAmount, priceImpact, routeSymbolList, type, 'swapAmount, priceImpact, routeSymbolList');
+    if (swapAmount != 0) {
       return {
-        amountIn: type === 'amountIn' && amount || swapAmount,
-        amountOut: type === 'amountOut' && swapAmount || amount,
+        amountIn: type === 'amountIn' ? amount : swapAmount,
+        amountOut: type === 'amountOut' ? amount : swapAmount,
         priceImpact: tofix(timesDecimals(priceImpact, 2), 2, -1),
         routeSymbolList
       };
@@ -102,6 +103,7 @@ export default class NerveChannel {
       maxPairSize
     );
     if (res && Object.values(res).length) {
+      console.log(res.tokenAmountIn.amount.toString(), 'getBestTradeExactIn');
       console.log(res, 'getBestTradeExactIn');
       return res;
     }
@@ -126,8 +128,8 @@ export default class NerveChannel {
       tokenAmountOut,
       maxPairSize
     );
-    if (res && Object.values(res).length) {
-      console.log(res, 'getBestTradeExactOut');
+    if (res.tokenAmountIn.amount.toString() && Object.values(res).length) {
+      console.log(res.tokenAmountIn.amount.toString(), 'getBestTradeExactOut');
       return {
         path: res.path,
         tokenAmountIn: res.tokenAmountOut,
@@ -148,6 +150,7 @@ export default class NerveChannel {
     // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
     const key = fromAssetKey + '_' + toAssetKey;
     // TODO:替换tempPairInfo
+    console.log(key, tempPairInfo, 'keykeykey')
     const pairsInfo = tempPairInfo[key];
     const pairs = Object.values(pairsInfo);
     const bestExactIn = this.getBestTradeExactIn(amountIn, pairs);

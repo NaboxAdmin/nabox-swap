@@ -434,11 +434,11 @@ export default {
     }
     this.iSwap = new ISwap({ chain: this.fromNetwork });
 
-    // const nerveChannel = new NerveChannel({
-    //   chooseFromAsset: this.chooseFromAsset,
-    //   chooseToAsset: this.chooseToAsset
-    // });
-    // nerveChannel.getNerveChannelConfig('amountOut', 1);
+    const nerveChannel = new NerveChannel({
+      chooseFromAsset: this.chooseFromAsset,
+      chooseToAsset: this.chooseToAsset
+    });
+    nerveChannel.getNerveChannelConfig('amountIn', 1);
 
     // this.getUsdtnAssets();
     // setTimeout 0 不然获取不到地址
@@ -946,6 +946,7 @@ export default {
         this.showComputedLoading = true;
         this.amountMsg = '';
         console.log(this.channelConfigList, 'channelConfigList');
+        console.log(this.fromNetwork, 'this.fromNetwork');
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
           let currentConfig = {};
           if (item.channel === 'iSwap' && !this.stableSwap) {
@@ -994,7 +995,9 @@ export default {
             }
             return null;
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap) {
+            console.log('!this.stableSwap NERVE');
             currentConfig = await this.getNerveSwapRoute();
+            console.log(currentConfig, 'currentConfig NERVE SWAP');
             if (currentConfig) {
               return {
                 icon: item.icon,
@@ -1008,6 +1011,7 @@ export default {
                 swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
               };
             }
+            return null;
           } else if (item.channel === 'iSwap' && this.stableSwap) {
             currentConfig = await this.getBridgeEstimateFeeInfo();
             if (currentConfig) {
@@ -1026,6 +1030,7 @@ export default {
             }
             return null;
           } else if (item.channel === 'NERVE' && this.stableSwap) {
+            console.log('this.stableSwap NERVEBRIDGE');
             currentConfig = await this._getNerveEstimateFeeInfo();
             if (currentConfig) {
               return {
@@ -1181,8 +1186,8 @@ export default {
     // 获取nerve通道上面
     async getNerveSwapRoute() {
       const nerveChannel = new NerveChannel({
-        chooseFromAsset: this.chooseFromAsset,
-        chooseToAsset: this.chooseToAsset
+        chooseFromAsset: { ...this.chooseFromAsset, chainId: this.chooseFromAsset.nerveChainId, assetId: this.chooseFromAsset.nerveAssetId },
+        chooseToAsset: { ...this.chooseToAsset, chainId: this.chooseToAsset.nerveChainId, assetId: this.chooseToAsset.nerveAssetId}
       });
       if (this.inputType === 'amountIn') {
         return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn);
