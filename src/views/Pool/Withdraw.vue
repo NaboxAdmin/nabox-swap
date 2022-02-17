@@ -264,7 +264,7 @@ export default {
     // 异构链token资产转入nerve授权
     async approveERC20() {
       if (this.approvingLoading) return false;
-      this.showApproveLoading = true;
+      this.withDrawLoading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
       try {
         const transfer = new ETransfer();
@@ -294,11 +294,11 @@ export default {
           });
         }
         this.approvingLoading = true;
-        this.showApproveLoading = false;
+        this.withDrawLoading = false;
       } catch (e) {
         console.log(e, 'error');
         this.$message.warning({ message: e.message, offset: 30 });
-        this.showApproveLoading = false;
+        this.withDrawLoading = false;
       }
     },
 
