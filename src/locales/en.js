@@ -46,7 +46,8 @@ const en = {
     tips44: 'Support Network',
     tips45: 'Add/Remove Assets',
     tips46: ' address ',
-    tips47: ' will receive'
+    tips47: ' will receive',
+    tips48: 'Select receiving network'
   },
   swap: {
     swap1: 'From',
@@ -113,13 +114,14 @@ const en = {
     join2: 'Total',
     join3: 'My',
     join4: 'Confirm',
-    join5: 'You can get the corresponding amount of USDTN after adding liquidity',
+    join5: 'You can get the corresponding amount of ',
     join6: 'Deposit',
     join7: 'Withdraw',
     join8: "Exceeded the pool's maximum withdrawal amount",
     join9: 'Exceeded the maximum withdrawal amount',
     join10: 'The available withdrawal balance is insufficient',
-    join11: 'Cross-chain Fee'
+    join11: 'Cross-chain Fee',
+    join12: ' after adding liquidity'
   },
   vaults: {
     vaults1: 'Total ',

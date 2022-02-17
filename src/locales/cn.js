@@ -46,7 +46,8 @@ const cn = {
     tips44: '支持网络',
     tips45: '添加/移除资金',
     tips46: '账户',
-    tips47: '将获得'
+    tips47: '将获得',
+    tips48: '选择接收网络'
   },
   swap: {
     swap1: '从',
@@ -113,13 +114,14 @@ const cn = {
     join2: '全网',
     join3: '我的',
     join4: '确认',
-    join5: '加入流动性后，可获得对应数量的USDTN',
+    join5: '加入流动性后，可获得对应数量的',
     join6: '加入',
     join7: '撤出',
     join8: '超过Pool最大撤出金额',
     join9: '超过最大撤出金额',
     join10: '可用撤出余额不足',
-    join11: '跨链费用'
+    join11: '跨链费用',
+    join12: ''
   },
   vaults: {
     vaults1: '总',

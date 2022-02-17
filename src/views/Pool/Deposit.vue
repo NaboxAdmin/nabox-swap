@@ -35,12 +35,19 @@
     <div class="output-cont d-flex direction-column">
       <div class="account-info d-flex align-items-center size-28 text-90 cursor-pointer">
         <div @click.stop="showAccountList = !showAccountList">
-          {{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])} ${ $t('tips.tips47') }` }}
+          {{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
-          <div v-for="(item, index) in accountType" :key="index" @click="currentType=item.chainName;showAccountList=false;currentToChain=item">
-            {{ item.chainName }}{{ $t('tips.tips46') }}{{ superLong(currentAccount['address'][item.chainName]) }}{{ $t('tips.tips47') }}
+          <div>{{ $t('tips.tips48') }}</div>
+          <div/>
+          <div v-for="(item, index) in accountType" :key="index">
+            <div class="d-flex align-items-center" @click="currentType=item.chainName;showAccountList=false;currentToChain=item">
+              <span class="chain-icon mr-3">
+                <img :src="getPicture(item.chainName)" alt="" @error="pictureError">
+              </span>
+              {{ superLong(currentAccount['address'][item.chainName]) }}
+            </div>
           </div>
         </div>
       </div>
@@ -85,18 +92,22 @@
         <span>${{ addedLiquidityInfo && addedLiquidityInfo.balance | numberFormatLetter }}({{ poolRate | rateFormat }})</span>
       </span>
     </div>
-    <div v-if="crossFee && currentType!=='NERVE'" class="d-flex mt-2 size-28 align-items-center space-between">
-      <span class="text-90 w-85">{{ $t("pool.join11") }}</span>
-      <span class="text-3a text-right d-flex direction-column">
-        <span>{{ crossFee }}{{ mainAssetSymbol }}</span>
-      </span>
+    <div v-if="!needAuth" class="m-88">
+      <div v-if="crossFee && currentType!=='NERVE'" class="mb-3 d-flex size-28 align-items-center space-between">
+        <span class="text-90 w-85">{{ $t("pool.join11") }}</span>
+        <span class="text-3a text-right d-flex direction-column">
+          <span>{{ crossFee }}{{ mainAssetSymbol }}</span>
+        </span>
+      </div>
+      <div :class="{opacity_btn: canNext}" class="btn size-30 cursor-pointer" @click="submit">
+        {{ $t("pool.join4") }}
+      </div>
     </div>
-    <div v-if="!needAuth" :class="{opacity_btn: canNext}" class="btn size-30 cursor-pointer" @click="submit">{{ $t("pool.join4") }}</div>
-    <div v-else class="btn size-30 d-flex align-items-center justify-content-center" @click="approveERC20">
+    <div v-else class="btn m-88 size-30 d-flex align-items-center justify-content-center" @click="approveERC20">
       <span class="mr-2">{{ $t("transfer.transfer8") }}</span>
       <Loading v-if="approvingLoading" :is-active="false"/>
     </div>
-    <div class="tips size-26 text-center">{{ $t("pool.join5") }}</div>
+    <div class="tips size-26 text-center">{{ `${$t("pool.join5")}${liquidityInfo && liquidityInfo.symbol || 'USDTN'}${$t("pool.join12")}` }}</div>
     <keep-alive>
       <Modal
         :show-modal.sync="showModal"
@@ -696,12 +707,15 @@ export default {
 .btn {
   height: 98px;
   //width: calc(100vw - 80px);
-  margin: 88px auto;
+  //margin: 88px auto;
   color: #FFFFFF;
   text-align: center;
   line-height: 98px;
   background: #53b8a9;
   border-radius: 20px;
+}
+.m-88 {
+  margin: 88px auto;
 }
 .ml-14 {
   margin-left: 14px;
@@ -776,6 +790,7 @@ export default {
   .account-list {
     position: absolute;
     padding: 20px 30px;
+    width: 650px;
     color: #333333;
     font-weight: bold;
     border-radius: 10px;
@@ -789,6 +804,20 @@ export default {
         margin-top: 0px
       }
     }
+    .chain-icon {
+      height: 45px;
+      width: 45px;
+      border-radius: 50%;
+      overflow: hidden;
+      img {
+        height: 100%;
+        width: 100%;
+      }
+    }
   }
 }
+.top-30 {
+  top: -30px;
+}
+
 </style>
