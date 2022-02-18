@@ -1185,9 +1185,28 @@ export default {
     },
     // 获取nerve通道上面
     async getNerveSwapRoute() {
+      const data = {
+        chainId: this.chooseFromAsset.nerveChainId,
+        assetId: this.chooseFromAsset.nerveAssetId,
+        swapChainId: this.chooseToAsset.nerveChainId,
+        swapAssetId: this.chooseToAsset.nerveAssetId,
+        maxPairSize: 4
+      };
+      const res = await this.$request({
+        url: '/swap/nerve/route',
+        data
+      });
+      let swapPairInfo;
+      if (res.code === 1000) {
+        swapPairInfo = res.data;
+        console.log(res.data, '123123123123');
+      } else {
+        swapPairInfo = [];
+      }
       const nerveChannel = new NerveChannel({
         chooseFromAsset: { ...this.chooseFromAsset, chainId: this.chooseFromAsset.nerveChainId, assetId: this.chooseFromAsset.nerveAssetId },
-        chooseToAsset: { ...this.chooseToAsset, chainId: this.chooseToAsset.nerveChainId, assetId: this.chooseToAsset.nerveAssetId}
+        chooseToAsset: { ...this.chooseToAsset, chainId: this.chooseToAsset.nerveChainId, assetId: this.chooseToAsset.nerveAssetId },
+        swapPairInfo
       });
       if (this.inputType === 'amountIn') {
         return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn);

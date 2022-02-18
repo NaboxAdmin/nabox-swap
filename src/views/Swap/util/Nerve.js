@@ -17,6 +17,9 @@ export default class NerveChannel {
     // this.chooseToAsset = chooseToAsset;
     this.chooseFromAsset = MAIN_INFO;
     this.chooseToAsset = NULS_INFO;
+    if (swapPairInfo.length) {
+
+    }
   }
   // 计算兑换的数量
   getSwapAmount(type, amount) {
@@ -70,6 +73,13 @@ export default class NerveChannel {
     } else {
       return [0, 0, []];
     }
+  }
+  // 获取交易对信息
+  storeSwapPairInfo() {
+    const fromAssetKey = `${this.chooseFromAsset.nerveChainId}-${this.chooseFromAsset.nerveAssetId}`;
+    const toAssetKey = `${this.chooseFromAsset.nerveChainId}-${this.chooseFromAsset.nerveAssetId}`;
+    const tokenInAmount = this.fromAmount || "1";
+    const tokenInDecimal = this.chooseFromAsset.decimals;
   }
   // 获取nerve链上兑换的配置
   getNerveChannelConfig(type, amount) {
