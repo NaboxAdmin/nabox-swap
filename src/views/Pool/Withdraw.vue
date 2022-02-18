@@ -534,7 +534,8 @@ export default {
           crossFee: this.crossFee,
           swapChainId: this.currentType === 'NERVE' ? this.currentWithdrawAssetInfo.nerveChainId : this.currentWithdrawAssetInfo.chainId,
           swapAssetId: this.currentType === 'NERVE' ? this.currentWithdrawAssetInfo.nerveAssetId : this.currentWithdrawAssetInfo.assetId,
-          swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentWithdrawAssetInfo.contractAddress
+          swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentWithdrawAssetInfo.contractAddress,
+          succAmount: this.withdrawCount
         };
         const orderRes = await this.$request({
           url: '/swap/lp/tx/save',
