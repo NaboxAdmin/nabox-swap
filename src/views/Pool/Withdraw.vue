@@ -52,7 +52,7 @@
             <span v-if="currentWithdrawAssetInfo" class="sign">{{ (currentWithdrawAssetInfo && currentWithdrawAssetInfo.registerChain) || (currentWithdrawAssetInfo && currentWithdrawAssetInfo.chain) }}</span>
           </div>
           <div class="ml-2 drop_down">
-            <img v-if="fromNetwork === 'NERVE'" src="@/assets/image/drop_down.png" alt="">
+            <img v-if="currentType === 'NERVE'" src="@/assets/image/drop_down.png" alt="">
           </div>
         </div>
         <span class="font-500 size-36 m-w180 word-break">{{ withdrawCount || "0" }}</span>
@@ -263,8 +263,8 @@ export default {
   },
   methods: {
     showDropModal() {
-      if (this.fromNetwork !== 'NERVE') return;
-      this.showModal = !this.showModal
+      if (this.currentType !== 'NERVE') return;
+      this.showModal = !this.showModal;
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
