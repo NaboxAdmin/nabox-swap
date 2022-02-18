@@ -314,7 +314,8 @@ export default {
       crossFeeAsset: null,
       bridgeLimitInfo: [],
       balanceTimer: null,
-      getChannelBool: false // 是否寻找了最优通道
+      getChannelBool: false, // 是否寻找了最优通道
+      swapPairInfo: []
     };
   },
   computed: {
@@ -434,11 +435,11 @@ export default {
     }
     this.iSwap = new ISwap({ chain: this.fromNetwork });
 
-    const nerveChannel = new NerveChannel({
-      chooseFromAsset: this.chooseFromAsset,
-      chooseToAsset: this.chooseToAsset
-    });
-    nerveChannel.getNerveChannelConfig('amountIn', 1);
+    // const nerveChannel = new NerveChannel({
+    //   chooseFromAsset: this.chooseFromAsset,
+    //   chooseToAsset: this.chooseToAsset
+    // });
+    // nerveChannel.getNerveChannelConfig('amountIn', 1);
 
     // this.getUsdtnAssets();
     // setTimeout 0 不然获取不到地址
@@ -640,7 +641,8 @@ export default {
         slippage,
         stableSwap,
         crossFeeAsset,
-        mainAssetSymbol
+        mainAssetSymbol,
+        swapPairInfo
       } = this;
       const fromAddress = this.currentAccount['address'][this.fromNetwork];
       const toChain = this.chooseToAsset.chain;
@@ -659,7 +661,8 @@ export default {
         slippage,
         stableSwap,
         crossFeeAsset,
-        mainAssetSymbol
+        mainAssetSymbol,
+        swapPairInfo
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -940,7 +943,7 @@ export default {
     // 获取当前支持的config
     async getChannelList() {
       console.log(this.stableSwap, 'stableSwap');
-      try {
+      // try {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
@@ -1054,17 +1057,17 @@ export default {
         console.log(tempChannelConfig, 'tempChannelConfig');
         this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
-      } catch (e) {
-        // this.showComputedLoading = false;
-        console.log(e.message, 'error');
-        if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
-          // this.$message.warning({ message: e.message, offset: 30 });
-          this.showComputedLoading = false;
-        }
-        // if (e.message.indexOf('Network Error') > -1) {
-        //   this.showComputedLoading = false;
-        // }
-      }
+      // } catch (e) {
+      //   // this.showComputedLoading = false;
+      //   console.log(e.message, 'error');
+      //   if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
+      //     // this.$message.warning({ message: e.message, offset: 30 });
+      //     this.showComputedLoading = false;
+      //   }
+      //   // if (e.message.indexOf('Network Error') > -1) {
+      //   //   this.showComputedLoading = false;
+      //   // }
+      // }
     },
     // 获取iSwap费率信息
     async getEstimateFeeInfo() {
@@ -1196,17 +1199,16 @@ export default {
         url: '/swap/nerve/route',
         data
       });
-      let swapPairInfo;
       if (res.code === 1000) {
-        swapPairInfo = res.data;
+        this.swapPairInfo = res.data;
         console.log(res.data, '123123123123');
       } else {
-        swapPairInfo = [];
+        this.swapPairInfo = [];
       }
       const nerveChannel = new NerveChannel({
         chooseFromAsset: { ...this.chooseFromAsset, chainId: this.chooseFromAsset.nerveChainId, assetId: this.chooseFromAsset.nerveAssetId },
         chooseToAsset: { ...this.chooseToAsset, chainId: this.chooseToAsset.nerveChainId, assetId: this.chooseToAsset.nerveAssetId },
-        swapPairInfo
+        swapPairInfo: this.swapPairInfo
       });
       if (this.inputType === 'amountIn') {
         return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn);

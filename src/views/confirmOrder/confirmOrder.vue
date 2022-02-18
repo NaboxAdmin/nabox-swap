@@ -359,10 +359,11 @@ export default {
     // 发送nerveSwap交易
     async sendNerveSwapTransaction() {
       try {
-        const { toAsset, fromAsset, currentChannel } = this.orderInfo;
+        const { toAsset, fromAsset, currentChannel, swapPairInfo } = this.orderInfo;
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
-          chooseFromAsset: fromAsset
+          chooseFromAsset: fromAsset,
+          swapPairInfo
         });
         const tAssemble = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork]);
         const transfer = new NTransfer({ chain: 'NERVE' });

@@ -1,5 +1,5 @@
 import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
-import { tempPairInfo, tempStorePairInfo } from './tempData';
+import { tempStorePairInfo } from './tempData';
 import { tempAssetList } from './tempData';
 import { divisionAndFix, tofix, timesDecimals } from '@/api/util';
 import { ETransfer } from '@/api/api';
@@ -13,23 +13,23 @@ currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default class NerveChannel {
   constructor({ chooseFromAsset, chooseToAsset, swapPairInfo }) {
-    // this.chooseFromAsset = chooseFromAsset;
-    // this.chooseToAsset = chooseToAsset;
-    this.chooseFromAsset = MAIN_INFO;
-    this.chooseToAsset = NULS_INFO;
-    if (swapPairInfo.length) {
-
-    }
+    this.chooseFromAsset = chooseFromAsset;
+    this.chooseToAsset = chooseToAsset;
+    // this.chooseFromAsset = MAIN_INFO;
+    // this.chooseToAsset = NULS_INFO;
+    this.storeSwapPairInfo = {};
+    this.getStoreSwapPairInfo(swapPairInfo);
   }
   // 计算兑换的数量
   getSwapAmount(type, amount) {
     const assetKey = this.generateAssetKey();
-    const tempPairInfo = tempStorePairInfo[assetKey];
+    // const tempPairInfo = tempStorePairInfo[assetKey];
+    const tempPairInfo = this.storeSwapPairInfo[assetKey];
     const pairs = Object.values(tempPairInfo);
     console.log(pairs, '==pairs==');
     // TODO: 还需要修改 decimal => decimals
-    const fromDecimals = type === 'amountIn' ? this.chooseFromAsset.decimal : this.chooseToAsset.decimal;
-    const toDecimals = type === 'amountIn' ? this.chooseToAsset.decimal : this.chooseFromAsset.decimal;
+    const fromDecimals = type === 'amountIn' ? this.chooseFromAsset.decimals : this.chooseToAsset.decimals;
+    const toDecimals = type === 'amountIn' ? this.chooseToAsset.decimals : this.chooseFromAsset.decimals;
     amount = timesDecimals(amount, fromDecimals);
     if (pairs.length) {
       const bestExact = type === 'amountIn' ? this.getBestTradeExactIn(amount, pairs) : this.getBestTradeExactOut(amount, pairs);
@@ -75,11 +75,33 @@ export default class NerveChannel {
     }
   }
   // 获取交易对信息
-  storeSwapPairInfo() {
-    const fromAssetKey = `${this.chooseFromAsset.nerveChainId}-${this.chooseFromAsset.nerveAssetId}`;
-    const toAssetKey = `${this.chooseFromAsset.nerveChainId}-${this.chooseFromAsset.nerveAssetId}`;
-    const tokenInAmount = this.fromAmount || "1";
-    const tokenInDecimal = this.chooseFromAsset.decimals;
+  getStoreSwapPairInfo(swapPairInfo) {
+    const pairsInfo = {};
+    const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
+    const toAssetKey = `${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
+    const key = fromAssetKey + '_' + toAssetKey;
+    if (swapPairInfo && swapPairInfo.length) {
+      for (let i = 0; i < swapPairInfo.length; i++) {
+        const token0 = swapPairInfo[i].token0;
+        const token1 = swapPairInfo[i].token1;
+        pairsInfo[
+          `${token0.chainId}-${token0.assetId}_${token1.chainId}-${token1.assetId}`
+        ] = nerve.swap.pair(
+          {
+            chainId: token0.chainId,
+            assetId: token0.assetId
+          },
+          {
+            chainId: token1.chainId,
+            assetId: token1.assetId
+          },
+          swapPairInfo[i].token0.amount,
+          swapPairInfo[i].token1.amount
+        );
+      }
+    }
+    this.storeSwapPairInfo[key] = pairsInfo;
+    console.log(this.storeSwapPairInfo, '12312321');
   }
   // 获取nerve链上兑换的配置
   getNerveChannelConfig(type, amount) {
@@ -97,7 +119,7 @@ export default class NerveChannel {
   }
   // 通过amountIn获取最佳路由
   getBestTradeExactIn(amount, pairs) {
-    console.log(amount, pairs, '12312312312321')
+    console.log(amount, pairs, '12312312312321');
     const tokenAmountIn = nerve.swap.tokenAmount(
       this.chooseFromAsset.chainId,
       this.chooseFromAsset.assetId,
@@ -115,7 +137,6 @@ export default class NerveChannel {
       tokenOut,
       maxPairSize
     );
-    console.log(res, '123')
     if (res && Object.values(res).length) {
       // console.log(res.tokenAmountIn.amount.toString(), 'getBestTradeExactIn');
       console.log(res, 'getBestTradeExactIn');
@@ -166,12 +187,12 @@ export default class NerveChannel {
     // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
     const key = fromAssetKey + '_' + toAssetKey;
     // TODO:替换tempPairInfo
-    console.log(key, tempStorePairInfo, 'keykeykey')
-    const pairsInfo = tempStorePairInfo[key];
+    // const pairsInfo = tempStorePairInfo[key];
+    const pairsInfo = this.storeSwapPairInfo[key];
     const pairs = Object.values(pairsInfo);
     console.log(amountIn, fromAddress, 'amountIn');
     const bestExactIn = this.getBestTradeExactIn(amountIn, pairs);
-    console.log(bestExactIn, 'bestExactInbestExactInbestExactIn')
+    console.log(bestExactIn, 'bestExactInbestExactInbestExactIn');
     const tokenPath = bestExactIn.path;
     const amountOutMin = timesDecimals(minReceive, toAssetDecimals).split('.')[0]; // 最小买进的资产数量
     const feeTo = null; // 交易手续费取出一部分给指定的接收地址
