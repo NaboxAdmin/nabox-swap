@@ -9,7 +9,7 @@
       <span v-else>--</span>
     </div>
     <div class="input-cont mt-2 d-flex align-items-center">
-      <div class="d-flex align-items-center cursor-pointer" @click="showModal=true">
+      <div class="d-flex align-items-center cursor-pointer" @click="showDropModal ">
         <span class="image-cont">
           <img :src="getPicture(currentAsset && currentAsset.symbol)" alt="">
         </span>
@@ -18,7 +18,7 @@
           <span v-if="currentAsset" class="sign">{{ (currentAsset && currentAsset.registerChain) || (currentAsset && currentAsset.chain) }}</span>
         </div>
         <div class="ml-2 drop_down">
-          <img src="@/assets/image/drop_down.png" alt="">
+          <img v-if="joinCount || Number(joinCount)" src="@/assets/image/drop_down.png" alt="">
         </div>
       </div>
       <div class="input-item align-items-center ml-4 d-flex flex-1">
@@ -264,6 +264,11 @@ export default {
     this.infoTimer = null;
   },
   methods: {
+    showDropModal() {
+      if (!this.joinCount || !Number(this.joinCount)) return;
+      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+      this.showModal = true;
+    },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
       const transfer = new ETransfer();
@@ -778,7 +783,7 @@ export default {
   width: 220px;
 }
 .m-w180 {
-  max-width: 360px;
+  max-width: 500px;
 }
 .drop_icon {
   margin-left: 14px;

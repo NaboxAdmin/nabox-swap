@@ -1,4 +1,4 @@
-import { superLong, divisionDecimals, tofix } from '@/api/util';
+import { superLong, divisionDecimals, tofix, numberFormat } from '@/api/util';
 import moment from 'moment';
 import { Division, Minus } from '@/api/util';
 import { ETransfer } from '@/api/api';
@@ -65,13 +65,13 @@ export default {
       const k = Math.pow(10, 3);
       const m = Math.pow(10, 6);
       if (Minus(val, k) < 0) {
-        return tofix(val, 2, -1);
+        return numberFormat(tofix(val, 2, -1), 2);
       } else if (Minus(val, k) >= 0 && Minus(val, m) < 0) {
-        return `${tofix(Division(val, k), 2, -1)}K`;
+        return `${numberFormat(tofix(Division(val, k), 2, -1), 2)}K`;
       } else if (Minus(val, m) > 0) {
-        return `${tofix(Division(val, m), 2, -1)}M`;
+        return `${numberFormat(tofix(Division(val, m), 2, -1), 2)}M`;
       } else {
-        return '0.00';
+        return '0';
       }
     }
   },

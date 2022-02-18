@@ -775,3 +775,16 @@ export function formatFloatNumber(precision = 6, number) {
 function round(precision, number) {
   return parseFloat(parseFloat(number).toPrecision(precision));
 }
+
+export function numberFormat(val, float, returnBoo = false) {
+  if (!Number(val)) {
+    if (returnBoo) {
+      return '';
+    }
+    return '0';
+  }
+  const numberVal = Number(val);
+  const n = float || 6;
+  if (n <= 0) return Math.round(numberVal);
+  return (Math.round(numberVal * Math.pow(10, n)) / Math.pow(10, n)).toString();
+}

@@ -44,6 +44,9 @@
       </div>
       <div class="d-flex align-items-center space-between mt-2">
         <div class="d-flex align-items-center cursor-pointer" @click="showModal=!showModal">
+          <span class="image-cont">
+            <img :src="getPicture(currentWithdrawAssetInfo && currentWithdrawAssetInfo.symbol || 'USDT')" alt="" @error="pictureError">
+          </span>
           <div class="d-flex align-items-center ml-14 direction-column">
             <span class="font-500 size-30">{{ currentWithdrawAssetInfo && currentWithdrawAssetInfo.symbol || "USDT" }}</span>
             <span v-if="currentWithdrawAssetInfo" class="sign">{{ (currentWithdrawAssetInfo && currentWithdrawAssetInfo.registerChain) || (currentWithdrawAssetInfo && currentWithdrawAssetInfo.chain) }}</span>
@@ -723,6 +726,15 @@ export default {
   height: 166px;
   margin-top: 50px;
   border: 1px solid #AAB2C9;
+  .image-cont {
+    height: 51px;
+    width: 51px;
+    background-color: #FFFFFF;
+    img {
+      height: 100%;
+      width: 100%;
+    }
+  }
 }
 .input-item {
   input {
@@ -787,7 +799,7 @@ export default {
   width: 220px;
 }
 .m-w180 {
-  max-width: 360px;
+  max-width: 500px;
 }
 .icon-cont {
   height: 30px;
