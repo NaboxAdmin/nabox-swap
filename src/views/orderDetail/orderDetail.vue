@@ -185,7 +185,7 @@ export default {
       const params = {
         orderId
       };
-      if (type === 3) {
+      if (type == 3) {
         const res = await this.$request({
           url: '/swap/tx/orderId',
           data: params
