@@ -44,7 +44,7 @@ const en = {
     tips42: 'Assets Size',
     tips43: 'My',
     tips44: 'Support Network',
-    tips45: 'Deposit/Withdraw Assets',
+    tips45: 'Deposit/Withdraw',
     tips46: ' address ',
     tips47: ' will receive',
     tips48: 'Select receiving network'
