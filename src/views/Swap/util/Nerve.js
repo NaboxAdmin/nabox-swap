@@ -27,9 +27,11 @@ export default class NerveChannel {
     const tempPairInfo = this.storeSwapPairInfo[assetKey];
     const pairs = Object.values(tempPairInfo);
     console.log(pairs, '==pairs==');
-    // TODO: 还需要修改 decimal => decimals
+    const nerveSwapAssetList = JSON.parse(sessionStorage.getItem('nerveSwapAssetList'));
+    console.log(nerveSwapAssetList, 'nerveSwapAssetListnerveSwapAssetList');
     const fromDecimals = type === 'amountIn' ? this.chooseFromAsset.decimals : this.chooseToAsset.decimals;
     const toDecimals = type === 'amountIn' ? this.chooseToAsset.decimals : this.chooseFromAsset.decimals;
+    console.log(fromDecimals, '123 fromDecimalsfromDecimals fromDecimals')
     amount = timesDecimals(amount, fromDecimals);
     if (pairs.length) {
       const bestExact = type === 'amountIn' ? this.getBestTradeExactIn(amount, pairs) : this.getBestTradeExactOut(amount, pairs);
@@ -40,7 +42,7 @@ export default class NerveChannel {
         const tokenPathArray = bestExact.path;
         // console.log(inAmount, outAmount, 'inAmount outAmount');
         const routeSymbolList = tokenPathArray.map(item => {
-          const asset = tempAssetList.find(asset => `${item.chainId}-${item.assetId}` === `${asset.chainId}-${asset.assetId}`);
+          const asset = nerveSwapAssetList.find(asset => `${item.chainId}-${item.assetId}` === `${asset.chainId}-${asset.assetId}`);
           return asset && asset.symbol;
         });
         const pairsArray = tokenPathArray.map((token, index, array) => {
@@ -177,7 +179,7 @@ export default class NerveChannel {
   async sendNerveSwapTransaction(nerveChannel, nerveAddress) {
     console.log(nerveChannel, 'nerveChannelnerveChannelnerveChannel');
     const { amount, minReceive } = nerveChannel;
-    const amountIn = timesDecimals(amount, this.chooseFromAsset.decimal);
+    const amountIn = amount;
     const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
     const toAssetKey = `${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
     const fromAssetDecimals = this.chooseFromAsset.decimals;
@@ -191,7 +193,7 @@ export default class NerveChannel {
     const pairsInfo = this.storeSwapPairInfo[key];
     const pairs = Object.values(pairsInfo);
     console.log(amountIn, fromAddress, 'amountIn');
-    const bestExactIn = this.getBestTradeExactIn(amountIn, pairs);
+    const bestExactIn = this.getBestTradeExactIn(swapAmountIn, pairs);
     console.log(bestExactIn, 'bestExactInbestExactInbestExactIn');
     const tokenPath = bestExactIn.path;
     const amountOutMin = timesDecimals(minReceive, toAssetDecimals).split('.')[0]; // 最小买进的资产数量
