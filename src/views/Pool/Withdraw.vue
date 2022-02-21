@@ -70,14 +70,14 @@
             </span>
             <span>{{ item.chain }}</span>
           </span>
-          <span class="text-3a">${{ item.balance | numberFormatLetter }}</span>
+          <span class="text-3a">{{ item.balance | numberFormatLetter }}</span>
         </div>
       </template>
     </div>
     <div class="d-flex mt-3 size-28 align-items-center space-between">
       <span class="text-90">{{ $t("pool.join2") }}</span>
       <span class="text-3a d-flex align-items-center">
-        <span>${{ liquidityInfo && liquidityInfo.total | numberFormatLetter }}</span>
+        <span>{{ liquidityInfo && liquidityInfo.total | numberFormatLetter }}</span>
         <!--        <span :class="{'rotate_x': showDropList}" class="drop_down ml-1">-->
         <!--          <img src="@/assets/image/drop_down_black.png" alt="">-->
         <!--        </span>-->
@@ -86,7 +86,7 @@
     <div class="d-flex mt-2 size-28 align-items-center space-between">
       <span class="text-90 w-85">{{ $t("pool.join3") }}</span>
       <span class="text-3a d-flex direction-column text-right">
-        <span>${{ addedBalance || 0 | numberFormatLetter }}({{ poolRate | rateFormat }})</span>
+        <span>{{ addedBalance || 0 | numberFormatLetter }}({{ poolRate | rateFormat }})</span>
       </span>
     </div>
     <!--    <div v-if="crossFee && currentType!=='NERVE'" class="d-flex mt-2 size-28 align-items-center space-between">
