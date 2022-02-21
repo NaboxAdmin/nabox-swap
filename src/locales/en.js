@@ -41,10 +41,10 @@ const en = {
     tips39: 'Insufficient Liquidity',
     tips40: 'Cross-chain',
     tips41: 'This is a single-currency market-making protocol , you can use assets from different networks to provide liquidity and stake the LP in the Farm to earn reward',
-    tips42: 'Fund Size',
+    tips42: 'Assets Size',
     tips43: 'My',
     tips44: 'Support Network',
-    tips45: 'Add/Remove Assets',
+    tips45: 'Deposit/Withdraw Assets',
     tips46: ' address ',
     tips47: ' will receive',
     tips48: 'Select receiving network'
