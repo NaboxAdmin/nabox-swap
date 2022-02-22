@@ -77,6 +77,7 @@ import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
 import NerveChannel from '../Swap/util/Nerve';
+import { NTransfer } from '@/api/api';
 // import '../../views/Swap/util/stableTransfer-min'
 
 const ethers = require('ethers');
@@ -358,13 +359,22 @@ export default {
     // 发送nerveSwap交易
     async sendNerveSwapTransaction() {
       try {
-        const { toAsset, fromAsset, currentChannel } = this.orderInfo;
-        const NerveChannel = new NerveChannel({
+        const { toAsset, fromAsset, currentChannel, swapPairInfo } = this.orderInfo;
+        const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
-          chooseFromAsset: fromAsset
+          chooseFromAsset: fromAsset,
+          swapPairInfo
         });
-        const res = await NerveChannel.sendNerveSwapTransaction(currentChannel, this.fromAddress);
-        if (res.hash) {
+        const tAssemble = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork]);
+        const transfer = new NTransfer({ chain: 'NERVE' });
+        const txHex = await transfer.getTxHex({
+          tAssemble,
+          pub: this.currentAccount.pub,
+          signAddress: this.currentAccount.address.Ethereum
+        });
+        console.log(txHex, '===txHex===');
+        const res = await nerveChannel.broadcastHex(txHex);
+        if (res && res.hash) {
           this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             type: 'success',

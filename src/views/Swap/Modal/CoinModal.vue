@@ -194,6 +194,7 @@ export default {
             ...coin,
             showBalanceLoading: true
           }));
+          sessionStorage.setItem('nerveSwapAssetList', JSON.stringify(tempCoins || []));
           if (!this.fromAsset && this.modalType === 'receive') {
             tempCoins = [];
           } else if (this.fromAsset && this.modalType === 'receive') {
@@ -210,7 +211,6 @@ export default {
           this.showCoinList = [...tempList];
           this.allList = [...tempList];
           // console.log(JSON.stringify(this.allList));
-          localStorage.setItem('showList', JSON.stringify(this.allList));
           this.showLoading = false;
           if (tempNetwork === 'NULS') {
             const tempData = await this.getNulsBatchData(this.allList);
