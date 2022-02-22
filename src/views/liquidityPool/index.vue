@@ -77,13 +77,15 @@ export default {
           url: '/swap/stable/info'
         });
         if (res.code === 1000 && res.data.length !== 0) {
-          const tempData = res.data.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
+          console.log(res.data, this.fromNetwork, '123123')
+          const tempData = this.fromNetwork === 'NERVE' ? res.data : res.data.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
+          console.log(tempData, 'tempData')
           const tempPoolList = await Promise.all(tempData.map(async item => ({
             ...item,
             supportNetwork: item.swapAssets.map(asset => asset.chain),
             totalLp: this.numberFormat(tofix(divisionDecimals(item.tokenLp.amount, item.tokenLp.decimals), 2, -1), 2),
             myShare: await this.getUserShare(item.tokenLp),
-            depositAssetSymbol: item.swapAssets.find(asset => asset.chain === this.fromNetwork).symbol || item.swapAssets[0].symbol
+            depositAssetSymbol: item.swapAssets.find(asset => asset.chain === this.fromNetwork) && item.swapAssets.find(asset => asset.chain === this.fromNetwork).symbol || item.swapAssets[0].symbol
           })));
           this.poolList = tempPoolList.map(item => ({
             ...item,

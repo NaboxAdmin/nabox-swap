@@ -233,6 +233,7 @@ export default {
       handler(val) {
         const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
         const supportNetwork = liquidityInfo.supportNetwork;
+        supportNetwork.push('NERVE');
         if (supportNetwork.indexOf(val) === -1) {
           this.$router.replace({ path: '/liquidityPool' });
         }

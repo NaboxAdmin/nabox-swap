@@ -32,7 +32,10 @@
                   <span class="coin-icon">
                     <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">
                   </span>
-                  <span class="text-3a font-500">{{ item.symbol }}</span>
+                  <span :class="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && 'space-between' || 'justify-content-center'" class="d-flex direction-column h-40">
+                    <span class="text-3a font-500">{{ item.symbol }}</span>
+                    <span v-if="item.registerChain && (modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE')" class="sign size-16">{{ item.registerChain }}</span>
+                  </span>
                 </div>
                 <span v-if="item.showBalanceLoading" class="box_loading">
                   <img src="@/assets/image/loading.svg" alt="">
@@ -194,16 +197,27 @@ export default {
             ...coin,
             showBalanceLoading: true
           }));
+          console.log(tempCoins, 'tempCoinstempCoinstempCoins');
           sessionStorage.setItem('nerveSwapAssetList', JSON.stringify(tempCoins || []));
           if (!this.fromAsset && this.modalType === 'receive') {
             tempCoins = [];
           } else if (this.fromAsset && this.modalType === 'receive') {
             if (this.picList[this.currentIndex] === this.fromNetwork) {
-              tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
+              // tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
+              if (this.fromAsset.contractAddress) {
+                tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.fromAsset.contractAddress);
+              } else {
+                tempCoins = tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+              }
             }
           } else if (this.toAsset && this.modalType === 'send') {
             if (this.toAsset.chain === this.fromNetwork) {
-              tempCoins = tempCoins.filter(coin => coin.symbol !== this.toAsset.symbol);
+              // tempCoins = tempCoins.filter(coin => coin.symbol !== this.toAsset.symbol);
+              if (this.toAsset.contractAddress) {
+                tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.toAsset.contractAddress);
+              } else {
+                tempCoins = tempCoins.filter(coin => coin.assetId !== this.toAsset.assetId);
+              }
             }
           }
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];

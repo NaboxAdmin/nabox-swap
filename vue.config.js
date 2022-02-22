@@ -19,7 +19,7 @@ module.exports = {
         // target: 'http://192.168.1.204:8083', // 周维
         // target: 'http://nabox_api.zhoulijun.top', // 测试环境
         target: 'https://api.v2.nabox.io/', // 主网环境
-        // target: 'http://jl5i9jz7.xiaomy.net', // 主网环境
+        // target: 'http://jl5i9jz7.xiaomy.net', // 远程环境
         changeOrigin: true // 是否跨域
       }
     }
