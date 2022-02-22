@@ -1070,7 +1070,7 @@ export default {
           address: this.chooseFromAsset.contractAddress || '',
           decimals: this.chooseFromAsset.decimals || 18,
           symbol: this.chooseFromAsset.symbol,
-          dexInfo: this.getDexInfo(this.chooseFromAsset, 'out')
+          dexInfo: this.chooseFromAsset.chain === this.chooseToAsset.chain ? this.getDexInfo(this.chooseToAsset, 'out') : this.getDexInfo(this.chooseFromAsset, 'out')
         },
         outToken: {
           amount: '',
@@ -1104,6 +1104,7 @@ export default {
         destChain: this.chooseToAsset.nativeId,
         tokenIn: this.chooseFromAsset.contractAddress || '',
         tokenOut: this.chooseToAsset.contractAddress || '',
+        direct: this.inputType === 'amountIn' ? 'src' : 'dest',
         isReturnEth: toMainAssetSymbol === this.chooseToAsset.symbol
       };
       this.inputType === 'amountIn' ? bridgeFeeInfoParams['amountIn'] = timesDecimals(this.amountIn, this.chooseFromAsset.decimals) : bridgeFeeInfoParams['amountOut'] = timesDecimals(this.amountOut, this.chooseToAsset.decimals);

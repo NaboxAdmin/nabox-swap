@@ -101,8 +101,8 @@ export default class ISwap {
       if (res.code === 0) {
         return {
           amount: res.data.amount.toString().split('.')[0],
-          gasFee: res.data.fee.toString().split('.')[0],
-          crossChainFee: res.data.gas.toString().split('.')[0]
+          gasFee: res.data.gas.toString().split('.')[0],
+          crossChainFee: res.data.fee.toString().split('.')[0]
         };
       }
       return null;
