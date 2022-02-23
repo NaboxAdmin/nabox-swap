@@ -117,7 +117,7 @@ export default {
       this.orderId = this.$route.query.orderId;
       this.getOrderDetail(this.$route.query.orderId, this.orderType);
       this.orderTimer = setInterval(() => {
-        this.getOrderDetail(this.$route.query.orderId);
+        this.getOrderDetail(this.$route.query.orderId, this.orderType);
       }, 10000);
     }
   },

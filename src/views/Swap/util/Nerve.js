@@ -234,9 +234,7 @@ export default class NerveChannel {
   }
   // 发送nerve通道异构链稳定币兑换交易
   async sendNerveBridgeTransaction(params) {
-    const transfer = new ETransfer({
-      chain: this.chooseFromAsset.chain
-    });
+    const transfer = new ETransfer();
     return await transfer.crossInII(params);
   }
   // 发送nerve通道nerve => 异构链稳定币兑换交易
