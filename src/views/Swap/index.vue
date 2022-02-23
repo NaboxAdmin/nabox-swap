@@ -943,7 +943,7 @@ export default {
     // 获取当前支持的config
     async getChannelList() {
       console.log(this.stableSwap, 'stableSwap');
-      // try {
+      try {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
@@ -1057,17 +1057,17 @@ export default {
         console.log(tempChannelConfig, 'tempChannelConfig');
         this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
-      // } catch (e) {
-      //   // this.showComputedLoading = false;
-      //   console.log(e.message, 'error');
-      //   if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
-      //     // this.$message.warning({ message: e.message, offset: 30 });
-      //     this.showComputedLoading = false;
-      //   }
-      //   // if (e.message.indexOf('Network Error') > -1) {
-      //   //   this.showComputedLoading = false;
-      //   // }
-      // }
+      } catch (e) {
+        // this.showComputedLoading = false;
+        console.log(e.message, 'error');
+        if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
+          // this.$message.warning({ message: e.message, offset: 30 });
+          this.showComputedLoading = false;
+        }
+        // if (e.message.indexOf('Network Error') > -1) {
+        //   this.showComputedLoading = false;
+        // }
+      }
     },
     // 获取iSwap费率信息
     async getEstimateFeeInfo() {
@@ -1078,7 +1078,7 @@ export default {
           address: this.chooseFromAsset.contractAddress || '',
           decimals: this.chooseFromAsset.decimals || 18,
           symbol: this.chooseFromAsset.symbol,
-          dexInfo: this.chooseFromAsset.chain === this.chooseToAsset.chain ? this.getDexInfo(this.chooseToAsset, 'out') : this.getDexInfo(this.chooseFromAsset, 'out')
+          dexInfo: this.getDexInfo(this.chooseFromAsset, 'out')
         },
         outToken: {
           amount: '',
