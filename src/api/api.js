@@ -581,6 +581,7 @@ const erc20TransferAbiFragment = [{
 export class ETransfer {
   constructor(props = {}) {
     this.getProvider(props.chain);
+    this.chain = props.chain || 'Ethereum';
     // this.provider = new ethers.providers.Web3Provider(window.ethereum);
   }
 
@@ -921,9 +922,9 @@ export class ETransfer {
     const gasPrice = await this.getWithdrawGas();
     let gasLimit;
     if (isToken) {
-      gasLimit = new ethers.utils.BigNumber('210000');
+      gasLimit = this.chain === 'Arbitrum' ? new ethers.utils.BigNumber('4000000') : new ethers.utils.BigNumber('210000');
     } else {
-      gasLimit = new ethers.utils.BigNumber('190000');
+      gasLimit = this.chain === 'Arbitrum' ? new ethers.utils.BigNumber('4000000') : new ethers.utils.BigNumber('190000');
     }
     if (isMainAsset) {
       return this.formatEthers(gasLimit.mul(gasPrice), feeDecimals);

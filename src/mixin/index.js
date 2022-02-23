@@ -219,8 +219,12 @@ export default {
       console.log(tempTradeHashList[chain]);
       tempTradeHashList[chain] = [...tempArr];
       console.log(tempTradeHashList, 'tempTradeHashList');
-      localStorage.setItem('l2HashList', JSON.stringify(tempL2Arr));
-      localStorage.setItem('tradeHashMap', JSON.stringify(tempTradeHashList));
+      const tempL1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[chain] || [];
+      const tempL2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const tempL1Length = tempL1HashList.length;
+      const tempL2Length = tempL2HashList.length;
+      tempL2Length === l2Length && localStorage.setItem('l2HashList', JSON.stringify(tempL2Arr));
+      tempL1Length === l1Length && localStorage.setItem('tradeHashMap', JSON.stringify(tempTradeHashList));
     }
   }
 };

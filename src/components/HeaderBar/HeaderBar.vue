@@ -9,7 +9,7 @@
         <div v-if="!showConnect && !showSign && address" class="address-detail pl-2 pr-2">
           <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
             <span class="chain-icon">
-              <img :src="getPicture(!isL2Farm && currentChain || 'NERVE')" alt="" @error="pictureError">
+              <img :src="currentChainInfo.icon" alt="" @error="pictureError">
             </span>
             <div v-if="(!isL2Farm)" class="icon-drop ml-2">
               <img src="../../assets/image/drop_down_active.png" alt="">
@@ -232,6 +232,10 @@ export default {
         addressNetworkOrigin[chain.chain] = chain.addressLink;
       });
       return addressNetworkOrigin;
+    },
+    currentChainInfo() {
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      return tempSupportChainList.find(item => item.chain === this.fromNetwork);
     }
   },
   watch: {
@@ -505,6 +509,8 @@ export default {
       const tradeHashMap = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'));
       const tempL1List = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[this.fromNetwork] || [];
       const tempL2List = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+      const l1Length = tempL1List.length;
+      const l2Length = tempL2List.length;
       const allList = tempL1List.concat(tempL2List);
       const txList = [...(allList.sort((a, b) => b.balance - a.balance) || [])];
       // const tempList = txList.filter(item => item.status === 0 && item.userAddress === this.fromAddress);
@@ -548,8 +554,12 @@ export default {
           ...tradeHashMap
         };
         formatTradeHashMap[this.fromNetwork] = formatL1List;
-        localStorage.setItem('l2HashList', JSON.stringify(formatL2List));
-        localStorage.setItem('tradeHashMap', JSON.stringify(formatTradeHashMap));
+        const tempL1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[this.fromNetwork] || [];
+        const tempL2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
+        const tempL1Length = tempL1HashList.length;
+        const tempL2Length = tempL2HashList.length;
+        l2Length === tempL2Length && localStorage.setItem('l2HashList', JSON.stringify(formatL2List));
+        l1Length === tempL1Length && localStorage.setItem('tradeHashMap', JSON.stringify(formatTradeHashMap));
         this.orderType === 1 && this.getTxList();
         return tempTxList;
       }

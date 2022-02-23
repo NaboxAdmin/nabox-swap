@@ -16,11 +16,11 @@
           <div v-if="toNerve" class="asset-cont">
             <div class="asset-icon flex-1 d-flex align-items-center">
               <span class="icon-item">
-                <img :src="getPicture(fromNetwork)" alt="">
+                <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
               <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
             </div>
-            <div class="size-30 text-90">{{ superLong(fromAddress) }}</div>
+            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork]) }}</div>
             <div class="drop_down">
               <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -43,7 +43,7 @@
           <div v-if="!toNerve" class="asset-cont">
             <div class="asset-icon flex-1 d-flex align-items-center">
               <span class="icon-item">
-                <img :src="getPicture(fromNetwork)" alt="">
+                <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
               <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
             </div>
@@ -197,6 +197,10 @@ export default {
         return !this.showFeeLoading && this.transferCount && !this.amountMsg && Number(this.transferCount);
       }
       return !this.showFeeLoading && this.transferCount && !this.amountMsg && Number(this.transferCount) && this.transferFee;
+    },
+    currentChainInfo() {
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      return tempSupportChainList.find(item => item.chain === this.fromNetwork);
     }
   },
   watch: {
@@ -686,7 +690,7 @@ export default {
           '',
           isToken,
           decimals || 8,
-          true,
+          true
         );
       } else {
         res = await transfer.calWithdrawFee(

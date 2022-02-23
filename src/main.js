@@ -81,8 +81,8 @@ async function getConfig(network) {
             chainId: item.mainAsset && item.mainAsset.chainId || '',
             assetId: item.mainAsset && item.mainAsset.assetId || '',
             decimals: item.mainAsset && item.mainAsset.decimals || '',
-            hashLink: item.txUrl,
-            addressLink: addressNetworkOrigin[item.chain],
+            hashLink: `${item.scanUrl}transaction/info?hash=`,
+            addressLink: `${item.scanUrl}address/info?address=`,
             symbol: item.mainAsset.symbol || ''
           };
         } else if (item.chainType === 2) {
@@ -103,9 +103,9 @@ async function getConfig(network) {
             rpcUrl: item.apiUrl,
             nativeId: item.nativeId || '',
             // rpcUrl: networkRpc[item.chain],
-            origin: networkOrigin[item.chain],
-            hashLink: item.txUrl,
-            addressLink: addressNetworkOrigin[item.chain]
+            origin: item.scanUrl,
+            hashLink: `${item.scanUrl}tx/`,
+            addressLink: `${item.scanUrl}address/`
           };
         }
       });
