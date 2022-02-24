@@ -334,49 +334,60 @@ export default {
       this.getTxList();
     },
     chainClick(chain) {
-      if (this.currentChain === chain.chainName) return;
-      if (chain.chainName === 'NULS' || chain.chainName === 'NERVE') {
-        // window.location.reload();
-        this.currentChain = chain.chainName;
-        this.$store.commit('changeNetwork', chain.chainName);
-        window.location.reload();
-        return;
-      }
-      delete chain['icon'];
-      this.showDropList = false;
-      if (chain.chainName !== 'Ethereum') {
-        window.ethereum && window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [chain]
-        }).then((res) => {
+      try {
+        if (this.currentChain === chain.chainName) return;
+        if (chain.chainName === 'NULS' || chain.chainName === 'NERVE') {
+          // window.location.reload();
           this.currentChain = chain.chainName;
+          this.$store.commit('changeNetwork', chain.chainName);
           window.location.reload();
-          this.$store.commit('changeNetwork', chain.chainName);
-        }).catch(err => {
-          console.log(err);
-          this.$message({
-            message: err.message || err,
-            offset: 30,
-            type: 'warning'
+          return;
+        }
+        const tempChain = {
+          ...chain
+        };
+        delete tempChain['icon'];
+        this.showDropList = false;
+        if (tempChain.chainName !== 'Ethereum') {
+          window.ethereum && window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [tempChain]
+          }).then((res) => {
+            this.currentChain = tempChain.chainName;
+            window.location.reload();
+            this.$store.commit('changeNetwork', tempChain.chainName);
+          }).catch(err => {
+            console.log(err);
+            this.$message({
+              message: err.message || err,
+              offset: 30,
+              type: 'warning'
+            });
           });
-        });
-      } else {
-        window.ethereum && window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [
-            {
-              chainId: chain.chainId
-            }
-          ]
-        }).then(() => {
-          this.currentChain = chain.chainName;
-          this.$store.commit('changeNetwork', chain.chainName);
-        }).catch(err => {
-          this.$message({
-            message: err.message || err,
-            offset: 30,
-            type: 'warning'
+        } else {
+          window.ethereum && window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [
+              {
+                chainId: tempChain.chainId
+              }
+            ]
+          }).then(() => {
+            this.currentChain = tempChain.chainName;
+            this.$store.commit('changeNetwork', tempChain.chainName);
+          }).catch(err => {
+            this.$message({
+              message: err.message || err,
+              offset: 30,
+              type: 'warning'
+            });
           });
+        }
+      } catch (e) {
+        this.$message({
+          message: e.message || e,
+          offset: 30,
+          type: 'warning'
         });
       }
     },

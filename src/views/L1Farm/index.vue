@@ -359,6 +359,7 @@ export default {
           ...item,
           stakedAsset,
           syrupAsset,
+          profit: item.pid==5 && item.farmKey === '0x28Cb8a295b8A78AA78d9E8E8b76e2777fEcD3818' && '0%' || item.profit,
           showDetail: false,
           amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
           approveLoading: this.farmList && this.farmList[index] && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
