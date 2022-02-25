@@ -245,7 +245,7 @@ import ISwap from './util/iSwap';
 import { ISWAP_VERSION, ISWAP_USDT_CONFIG, ISWAP_BRIDGE_VERSION } from './util/swapConfig';
 import { contractConfig, contractBridgeConfig } from './util/swapConfig';
 import Dodo from './util/Dodo';
-import { currentNet } from '@/config';
+import {currentNet, MAIN_INFO} from '@/config';
 import NerveChannel from './util/Nerve';
 import { feeRate } from './util/Nerve';
 
@@ -315,7 +315,8 @@ export default {
       bridgeLimitInfo: [],
       balanceTimer: null,
       getChannelBool: false, // 是否寻找了最优通道
-      swapPairInfo: []
+      swapPairInfo: [],
+      swapPairTradeList: []
     };
   },
   computed: {
@@ -434,7 +435,9 @@ export default {
       this.toContractAddress = this.$route.query.toContractAddress;
     }
     this.iSwap = new ISwap({ chain: this.fromNetwork });
-
+    if (this.fromNetwork === 'NERVE') {
+      this.getNerveSwapPairTrade();
+    }
     // const nerveChannel = new NerveChannel({
     //   chooseFromAsset: this.chooseFromAsset,
     //   chooseToAsset: this.chooseToAsset
@@ -456,6 +459,16 @@ export default {
     this.balanceTimer = null;
   },
   methods: {
+    async getNerveSwapPairTrade() {
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const url = config && config['NERVE']['apiUrl'];
+      const res = await this.$post(url, 'getStablePairListForSwapTrade', [MAIN_INFO.chainId]);
+      if (res.result) {
+        this.swapPairTradeList = res.result;
+      } else {
+        this.swapPairTradeList = [];
+      }
+    },
     // 滑点设置
     slippageInput() {
       if (this.slippage && this.slippage > 0 && Minus(this.slippage, 100) < 0) {
@@ -642,7 +655,8 @@ export default {
         stableSwap,
         crossFeeAsset,
         mainAssetSymbol,
-        swapPairInfo
+        swapPairInfo,
+        swapPairTradeList
       } = this;
       const fromAddress = this.currentAccount['address'][this.fromNetwork];
       const toChain = this.chooseToAsset.chain;
@@ -662,7 +676,8 @@ export default {
         stableSwap,
         crossFeeAsset,
         mainAssetSymbol,
-        swapPairInfo
+        swapPairInfo,
+        swapPairTradeList
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -1202,14 +1217,13 @@ export default {
       });
       if (res.code === 1000) {
         this.swapPairInfo = res.data;
-        console.log(res.data, '123123123123');
       } else {
         this.swapPairInfo = [];
       }
       const nerveChannel = new NerveChannel({
         chooseFromAsset: { ...this.chooseFromAsset, chainId: this.chooseFromAsset.nerveChainId, assetId: this.chooseFromAsset.nerveAssetId },
         chooseToAsset: { ...this.chooseToAsset, chainId: this.chooseToAsset.nerveChainId, assetId: this.chooseToAsset.nerveAssetId },
-        swapPairInfo: this.swapPairInfo
+        swapPairInfo: this.swapPairInfo || []
       });
       if (this.inputType === 'amountIn') {
         return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn);

@@ -116,7 +116,8 @@ export default {
       isFirstRequest: true, // 是否为第一次请求
       networkType: 'L1',
       approveLoading: false,
-      approveList: [] // 授权列表
+      approveList: [], // 授权列表
+      firstRequest: true
     };
   },
   computed: {
@@ -352,13 +353,18 @@ export default {
           balance: divisionDecimals(tokenBalance[1].balance || 0, tokenBalance[1].decimals || 18)
         };
         item.needReceiveAuth = false;
-        item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
+        if (this.firstRequest) {
+          item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
+        } else {
+          item.needStakeAuth = this.farmList[index] && this.farmList[index].needStakeAuth && await this.getReceiveAuth(stakedAsset, item.farmKey);
+        }
         const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
         const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
         return {
           ...item,
           stakedAsset,
           syrupAsset,
+          profit: item.pid==5 && item.farmKey === '0x28Cb8a295b8A78AA78d9E8E8b76e2777fEcD3818' && '0%' || item.profit,
           showDetail: false,
           amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
           approveLoading: this.farmList && this.farmList[index] && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
@@ -371,6 +377,7 @@ export default {
           unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4)
         };
       })));
+      this.firstRequest = false;
       this.farmLoading = false;
       // const tempList = resList.filter(item => item);
       console.log(this.farmList, '==L1 farmList==');

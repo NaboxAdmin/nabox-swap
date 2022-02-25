@@ -31,7 +31,7 @@ export default class NerveChannel {
     console.log(nerveSwapAssetList, 'nerveSwapAssetListnerveSwapAssetList');
     const fromDecimals = type === 'amountIn' ? this.chooseFromAsset.decimals : this.chooseToAsset.decimals;
     const toDecimals = type === 'amountIn' ? this.chooseToAsset.decimals : this.chooseFromAsset.decimals;
-    console.log(fromDecimals, '123 fromDecimalsfromDecimals fromDecimals')
+    console.log(fromDecimals, '123 fromDecimalsfromDecimals fromDecimals');
     amount = timesDecimals(amount, fromDecimals);
     if (pairs.length) {
       const bestExact = type === 'amountIn' ? this.getBestTradeExactIn(amount, pairs) : this.getBestTradeExactOut(amount, pairs);
@@ -106,9 +106,8 @@ export default class NerveChannel {
     console.log(this.storeSwapPairInfo, '12312321');
   }
   // 获取nerve链上兑换的配置
-  getNerveChannelConfig(type, amount) {
+  getNerveChannelConfig(type, amount, swapPairTradeList) {
     const [swapAmount, priceImpact, routeSymbolList] = this.getSwapAmount(type, amount);
-    console.log(swapAmount, priceImpact, routeSymbolList, type, 'swapAmount, priceImpact, routeSymbolList');
     if (swapAmount != 0) {
       return {
         amountIn: type === 'amountIn' ? amount : swapAmount,
@@ -176,42 +175,61 @@ export default class NerveChannel {
     return null;
   }
   // 发送nerve链上兑换交易
-  async sendNerveSwapTransaction(nerveChannel, nerveAddress) {
-    console.log(nerveChannel, 'nerveChannelnerveChannelnerveChannel');
-    const { amount, minReceive } = nerveChannel;
-    const amountIn = amount;
+  async sendNerveSwapTransaction(nerveChannel, nerveAddress, swapPairTradeList) {
+    console.log(swapPairTradeList, 'swapPairTradeList');
     const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
     const toAssetKey = `${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
+    const mainAssetKey = `${MAIN_INFO.chainId}-${MAIN_INFO.assetId}`;
+    const swapPairTradeInfo = swapPairTradeList.find(item => Object.keys(item.groupCoin).indexOf(fromAssetKey) !== -1) || null;
+    const lpToken = swapPairTradeInfo && swapPairTradeInfo.lpToken;
+    const pairAddress = swapPairTradeInfo && swapPairTradeInfo.address;
     const fromAssetDecimals = this.chooseFromAsset.decimals;
     const toAssetDecimals = this.chooseToAsset.decimals;
     const fromAddress = nerveAddress;
+    const { amount, minReceive } = nerveChannel;
+    const amountIn = amount;
     const swapAmountIn = timesDecimals(amountIn, fromAssetDecimals); // 卖出的资产数量
-    // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
-    const key = fromAssetKey + '_' + toAssetKey;
-    // TODO:替换tempPairInfo
-    // const pairsInfo = tempStorePairInfo[key];
-    const pairsInfo = this.storeSwapPairInfo[key];
-    const pairs = Object.values(pairsInfo);
-    console.log(amountIn, fromAddress, 'amountIn');
-    const bestExactIn = this.getBestTradeExactIn(swapAmountIn, pairs);
-    console.log(bestExactIn, 'bestExactInbestExactInbestExactIn');
-    const tokenPath = bestExactIn.path;
     const amountOutMin = timesDecimals(minReceive, toAssetDecimals).split('.')[0]; // 最小买进的资产数量
     const feeTo = null; // 交易手续费取出一部分给指定的接收地址
     const deadline = nerve.swap.currentTime() + 300; // 过期时间
     const toAddress = fromAddress; // 资产接收地址
     const remark = 'Swap...';
-    const tx = await nerve.swap.swapTrade(
-      fromAddress,
-      swapAmountIn,
-      tokenPath,
-      amountOutMin,
-      feeTo,
-      deadline,
-      toAddress,
-      remark
-    );
-    return nerve.deserializationTx(tx.hex);
+    if (toAssetKey === mainAssetKey && lpToken && pairAddress) {
+      const swapAmountIn = timesDecimals(amountIn, fromAssetDecimals); // 卖出的资产数量
+      const tokenPath = [nerve.swap.token(this.chooseFromAsset.chainId, this.chooseFromAsset.assetId), nerve.swap.token(lpToken.split('-')[0], lpToken.split('-')[1]), nerve.swap.token(this.chooseToAsset.chainId, this.chooseToAsset.assetId)];
+      const tx = await nerve.swap.stableLpSwapTrade(
+        fromAddress,
+        pairAddress,
+        swapAmountIn,
+        tokenPath,
+        amountOutMin,
+        feeTo,
+        deadline,
+        toAddress,
+        remark
+      );
+      return nerve.deserializationTx(tx.hex);
+    } else {
+      // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
+      const key = fromAssetKey + '_' + toAssetKey;
+      // TODO:替换tempPairInfo
+      // const pairsInfo = tempStorePairInfo[key];
+      const pairsInfo = this.storeSwapPairInfo[key];
+      const pairs = Object.values(pairsInfo);
+      const bestExactIn = this.getBestTradeExactIn(swapAmountIn, pairs);
+      const tokenPath = bestExactIn.path;
+      const tx = await nerve.swap.swapTrade(
+        fromAddress,
+        swapAmountIn,
+        tokenPath,
+        amountOutMin,
+        feeTo,
+        deadline,
+        toAddress,
+        remark
+      );
+      return nerve.deserializationTx(tx.hex);
+    }
   }
   // 获取资产的key
   generateAssetKey() {

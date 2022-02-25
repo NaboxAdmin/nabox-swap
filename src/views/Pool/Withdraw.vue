@@ -273,6 +273,7 @@ export default {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       // const contractAddress = this.accountType.find(item => item.chain === this.fromNetwork).contractAddress;
+      if (!this.addedLiquidityInfo.heterogeneousList) return false;
       const contractAddress = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork).contractAddress;
       const needAuth = await transfer.getERC20Allowance(
         contractAddress,
@@ -348,7 +349,7 @@ export default {
         this.amountMsg = '';
         return false;
       }
-      const heterAsset = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+      const heterAsset = this.addedLiquidityInfo.heterogeneousList && this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
       const params = {
         fromChain: this.fromNetwork,
         toChain: this.currentType,
@@ -522,7 +523,7 @@ export default {
         if (configRes.code === 1000) {
           lpNerveAddress = configRes.data.lpNerveAddress;
         }
-        const heterAsset = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+        const heterAsset = this.addedLiquidityInfo.heterogeneousList && this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
         const orderParams = {
           orderId: this.orderId,
           fromChain: this.fromNetwork,
