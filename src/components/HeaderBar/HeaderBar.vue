@@ -9,7 +9,7 @@
         <div v-if="!showConnect && !showSign && address" class="address-detail pl-2 pr-2">
           <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
             <span class="chain-icon">
-              <img :src="currentChainInfo.icon" alt="" @error="pictureError">
+              <img :src="!isL2Farm && currentChainInfo.icon || getPicture('NERVE')" alt="" @error="pictureError">
             </span>
             <div v-if="(!isL2Farm)" class="icon-drop ml-2">
               <img src="../../assets/image/drop_down_active.png" alt="">

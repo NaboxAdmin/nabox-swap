@@ -43,7 +43,7 @@ export default {
   .cont_shadow {
     border: 2px solid #6eb6a9;
     height: 1560px;
-    box-shadow: 3px 3px 29px 3px rgba(178, 199, 217, 29%);
+    box-shadow: 0 3px 29px 0 #f2f3f5;
   }
 }
 </style>
