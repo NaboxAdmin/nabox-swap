@@ -1,3 +1,5 @@
+const CompressionWebpackPlugin = require('compression-webpack-plugin');
+const productionGzipExtensions = ['js', 'css'];
 const path = require('path');
 const shell = require('shelljs');
 shell.cp(process.cwd() + '/config/' + process.env.BUILD_ENV + '.js', process.cwd() + '/src/config.js');
@@ -6,6 +8,27 @@ module.exports = {
   chainWebpack: config => {
     config.resolve.alias
       .set('@', path.resolve(__dirname, 'src'));
+  },
+  configureWebpack: config => {
+    if (process.env.NODE_ENV === 'production') {
+      config.plugins.push(new CompressionWebpackPlugin({
+        algorithm: 'gzip',
+        test: new RegExp('\\.(' + productionGzipExtensions.join('|') + ')$'),
+        threshold: 10240,
+        minRatio: 0.8
+      }));
+    }
+    config.externals = {
+      'vue': 'Vue',
+      'vue-router': 'VueRouter',
+      'vuex': 'Vuex',
+      'element-ui': 'ELEMENT',
+      // 'axios': 'axios',
+      'vant': 'vant',
+      'ethers': 'ethers',
+      'web3': 'Web3',
+      'vue-i18n': 'VueI18n'
+    };
   },
   devServer: {
     port: 8001,

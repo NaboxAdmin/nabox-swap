@@ -13,7 +13,6 @@ import 'element-ui/lib/theme-chalk/index.css';
 import globalMixin from './mixin';
 import './plugins/vant';
 import { Loading } from 'vant';
-import { networkOrigin, addressNetworkOrigin } from './api/util';
 
 const development = process.env.NODE_ENV === 'development';
 Vue.config.devtools = development;

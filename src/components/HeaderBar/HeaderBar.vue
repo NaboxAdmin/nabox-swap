@@ -640,38 +640,42 @@ export default {
       this.showPop = false;
     },
     async initAssetInfo() {
-      const config = JSON.parse(sessionStorage.getItem('config'));
-      const tempAsset = {
-        chain: this.currentChain,
-        address: this.address,
-        assetId: config && config[this.currentChain].assetId,
-        chainId: config && config[this.currentChain].chainId,
-        contractAddress: ''
-      };
-      const nerveAsset = {
-        chain: 'NERVE',
-        address: this.currentAccount && this.currentAccount.address.NERVE || '',
-        assetId: config && config['NERVE'].assetId,
-        chainId: config && config['NERVE'].chainId,
-        contractAddress: ''
-      };
-      let tempCurrentAvailable, tempNerveAvailable;
-      this.currentChainSymbol = config[this.currentChain].symbol;
-      this.nerveChainSymbol = config['NERVE'].symbol;
-      if (this.currentChain === 'NERVE') {
-        tempCurrentAvailable = await this.getNerveAssetBalance(nerveAsset);
-        tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
-        this.currentChainAvailable = this.numberFormat(tofix(divisionDecimals(tempCurrentAvailable, config && config['NERVE'].decimals || 18), 6, -1), 6, false);
-      } else if (this.currentChain === 'NULS') {
-        tempCurrentAvailable = await this.getNulsAssetBalance(tempAsset);
-        tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
-        this.currentChainAvailable = this.numberFormat(tofix(divisionDecimals(tempCurrentAvailable, config && config['NULS'].decimals || 18), 6, -1), 6, false);
-      } else {
-        tempCurrentAvailable = await this.getHeterogeneousAssetBalance(tempAsset);
-        tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
-        this.currentChainAvailable = this.numberFormat(tofix(tempCurrentAvailable, 6, -1), 6, false);
+      try {
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const tempAsset = {
+          chain: this.currentChain,
+          address: this.address,
+          assetId: config && config[this.currentChain].assetId,
+          chainId: config && config[this.currentChain].chainId,
+          contractAddress: ''
+        };
+        const nerveAsset = {
+          chain: 'NERVE',
+          address: this.currentAccount && this.currentAccount.address.NERVE || '',
+          assetId: config && config['NERVE'].assetId,
+          chainId: config && config['NERVE'].chainId,
+          contractAddress: ''
+        };
+        let tempCurrentAvailable, tempNerveAvailable;
+        this.currentChainSymbol = config[this.currentChain].symbol;
+        this.nerveChainSymbol = config['NERVE'].symbol;
+        if (this.currentChain === 'NERVE') {
+          tempCurrentAvailable = await this.getNerveAssetBalance(nerveAsset);
+          tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
+          this.currentChainAvailable = this.numberFormat(tofix(divisionDecimals(tempCurrentAvailable, config && config['NERVE'].decimals || 18), 6, -1), 6, false);
+        } else if (this.currentChain === 'NULS') {
+          tempCurrentAvailable = await this.getNulsAssetBalance(tempAsset);
+          tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
+          this.currentChainAvailable = this.numberFormat(tofix(divisionDecimals(tempCurrentAvailable, config && config['NULS'].decimals || 18), 6, -1), 6, false);
+        } else {
+          tempCurrentAvailable = await this.getHeterogeneousAssetBalance(tempAsset);
+          tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
+          this.currentChainAvailable = this.numberFormat(tofix(tempCurrentAvailable, 6, -1), 6, false);
+        }
+        this.nerveChainAvailable = this.numberFormat(tofix(divisionDecimals(tempNerveAvailable, config && config['NERVE'].decimals || 18), 6, -1), 6, false);
+      } catch (e) {
+        console.log(e, 'error');
       }
-      this.nerveChainAvailable = this.numberFormat(tofix(divisionDecimals(tempNerveAvailable, config && config['NERVE'].decimals || 18), 6, -1), 6, false);
     }
   }
 };

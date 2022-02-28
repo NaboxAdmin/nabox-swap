@@ -689,7 +689,7 @@ export default {
         method: 'get',
         url: '/swap/stable/info'
       });
-      if (res.code === 1000) {
+      if (res.code === 1000 && res.data) {
         this.nerveLimitInfo = res.data;
         localStorage.setItem('nerveLimitInfo', JSON.stringify(res.data));
       } else {
