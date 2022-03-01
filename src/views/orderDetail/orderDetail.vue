@@ -51,8 +51,8 @@
           </div>
         </div>
         <div class="d-flex align-items-center space-between mt-4">
-          <span class="text-aa">{{ detailInfo && detailInfo.platform === 'SWFT' ? $t('order.order5') : $t('order.order8') }}</span>
-          <span @click="copyOrderId(detailInfo && detailInfo.txHash)">{{ detailInfo && detailInfo.platform === 'SWFT' ? superLong(detailInfo.orderId) : superLong(detailInfo && detailInfo.txHash) }}</span>
+          <span class="text-aa">{{ detailInfo && detailInfo.platform === 'SWFT1' ? $t('order.order5') : $t('order.order8') }}</span>
+          <span @click="copyOrderId(detailInfo && detailInfo.txHash)">{{ detailInfo && detailInfo.platform === 'SWFT1' ? superLong(detailInfo.orderId) : superLong(detailInfo && detailInfo.txHash) }}</span>
         </div>
         <!--手续费-->
         <div class="d-flex align-items-center space-between mt-4">

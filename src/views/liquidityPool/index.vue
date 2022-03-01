@@ -92,14 +92,15 @@ export default {
         });
         if (res.code === 1000 && res.data.length !== 0) {
           const tempData = this.fromNetwork === 'NERVE' ? res.data : res.data.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
-          this.poolList = tempData.map(item => ({
+          this.poolList = this.poolList.length === 0 ? tempData.map(item => ({
             ...item,
             supportNetwork: item.swapAssets.map(asset => asset.chain),
             totalLp: this.numberFormat(tofix(divisionDecimals(item.tokenLp.amount, item.tokenLp.decimals), 2, -1), 2),
             depositAssetSymbol: item.swapAssets.find(asset => asset.chain === this.fromNetwork) && item.swapAssets.find(asset => asset.chain === this.fromNetwork).symbol || item.swapAssets[0].symbol
-          }));
+          })) : this.poolList;
           this.poolLoading = false;
-          const tempPoolList = await Promise.all(tempData.map(async item => ({
+          const tempPoolList = await Promise.all(this.poolList.map(async item => ({
+            ...item,
             myShare: await this.getUserShare(item.tokenLp)
           })));
           this.poolList = tempPoolList.map(item => ({
