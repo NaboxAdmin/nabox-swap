@@ -203,11 +203,13 @@ export default {
             tempCoins = [];
           } else if (this.fromAsset && this.modalType === 'receive') {
             if (this.picList[this.currentIndex] === this.fromNetwork) {
+              console.log(this.fromAsset, 'this.fromAsset');
               // tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
               if (this.fromAsset.contractAddress) {
                 tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.fromAsset.contractAddress);
               } else {
-                tempCoins = tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+                console.log(this.fromAsset.registerChain, 'registerChain');
+                tempCoins = tempCoins.filter(coin => this.fromNetwork !== 'NERVE' && coin.assetId !== this.fromAsset.assetId || (this.fromAsset.registerChain !== 'NERVE' && coin.chainId !== this.fromAsset.chainId || coin.assetId !== this.fromAsset.assetId));
               }
             }
           } else if (this.toAsset && this.modalType === 'send') {

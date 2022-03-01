@@ -69,7 +69,7 @@
 import { PopUp } from '@/components';
 import Progress from './Progress';
 import Over from './Over';
-import { currentNet } from '@/config';
+import { currentNet, MAIN_INFO } from '@/config';
 import { divisionDecimals, Minus, timesDecimals, tofix, Times } from '@/api/util';
 import { ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
 import { ethers } from 'ethers';
@@ -167,6 +167,10 @@ export default {
   created() {
     this.getFarmInfo(true);
     this.getTvlInfo();
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
     this.timer = setInterval(() => {
       this.getFarmInfo(this.currentIndex === 0, true);
       this.getTvlInfo();
@@ -279,7 +283,11 @@ export default {
       this.currentFarm = farm;
       this.currentFarmHash = farmHash;
       this.assetsItem = farm;
-      await this.LPOperation(2, '0', 'receive');
+      if (this.fromNetwork === 'NERVE') {
+        await this.harvestNerveReward();
+      } else {
+        await this.LPOperation(2, '0', 'receive');
+      }
     },
     // 最大
     maxCount() {
@@ -325,10 +333,18 @@ export default {
         url: '/farm/list',
         data
       });
-      if (res.code === 1000) {
-        const tempList = res.data.filter(item => item.chain === this.$store.state.network);
-        await this.getStakeAccount(tempList);
+      if (res.code === 1000 && res.data) {
+        const tempFarmList = res.data.filter(item => item.chain === this.$store.state.network);
+        this.farmList = this.farmList.length === 0 ? tempFarmList.map(item => ({ ...item, showDetail: false })) : this.farmList;
+        if (this.fromNetwork === 'NERVE') {
+          this.farmList = [];
+        }
+        this.farmLoading = false;
+        await this.getStakeAccount(this.farmList);
         this.isFirstRequest = false;
+      } else {
+        this.farmList = [];
+        this.farmLoading = false;
       }
     },
     async getStakeAccount(farmList) {
@@ -378,7 +394,6 @@ export default {
         };
       })));
       this.firstRequest = false;
-      this.farmLoading = false;
       // const tempList = resList.filter(item => item);
       console.log(this.farmList, '==L1 farmList==');
     },

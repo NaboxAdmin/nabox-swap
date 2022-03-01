@@ -18,6 +18,7 @@ export default new Vuex.Store({
   mutations: {
     changeNetwork(state, data) {
       state.network = data;
+      console.log(data, 'changeNetwork');
       sessionStorage.setItem('network', data);
     },
     changeFromNetwork(state, data) {

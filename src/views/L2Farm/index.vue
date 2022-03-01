@@ -161,10 +161,14 @@ export default {
   created() {
     this.getFarmInfo(true);
     this.getTvlInfo();
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
     this.timer = setInterval(() => {
       this.getFarmInfo(this.currentIndex === 0, true);
       this.getTvlInfo();
-    }, 20000);
+    }, 15000);
   },
   beforeDestroy() {
     if (this.timer) clearInterval(this.timer);
@@ -317,10 +321,15 @@ export default {
         url: '/farm/list',
         data
       });
-      if (res.code === 1000) {
-        const tempList = res.data.filter(item => item.chain === 'NERVE');
-        await this.getStakeAccount(tempList);
+      if (res.code === 1000 && res.data) {
+        const tempFarmList = res.data.filter(item => item.chain === 'NERVE');
+        this.farmList = this.farmList.length === 0 ? tempFarmList.map(item => ({ ...item, showDetail: false })) : this.farmList;
+        this.farmLoading = false;
+        await this.getStakeAccount(this.farmList);
         this.isFirstRequest = false;
+      } else {
+        this.farmList = [];
+        this.farmLoading = false;
       }
     },
     async getStakeAccount(farmList) {
@@ -375,7 +384,7 @@ export default {
             stakedAsset,
             syrupAsset,
             approveLoading: this.farmList && this.farmList.length > 0 && this.farmList[index].approveLoading || false,
-            amount: this.numberFormat(tofix(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), 4, -1), 4),
+            amount: divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals),
             reward: this.numberFormat(tofix(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
             syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4),
             stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 4, -1), 4),
@@ -390,7 +399,6 @@ export default {
           approveLoading: this.farmList && this.farmList.length > 0 && this.farmList[index].approveLoading || false
         };
       })));
-      this.farmLoading = false;
       console.log(this.farmList, '==L2 farmList==');
     },
     // 确认

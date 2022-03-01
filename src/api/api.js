@@ -587,6 +587,7 @@ export class ETransfer {
 
   getProvider(chain) {
     const RPC_URL = {};
+    const walletType = localStorage.getItem('walletType');
     const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
     supportChainList.forEach(chain => {
       if (chain.chainType === 2) {
@@ -597,7 +598,7 @@ export class ETransfer {
       }
     });
     if (!chain) {
-      this.provider = new ethers.providers.Web3Provider(window.ethereum);
+      this.provider = new ethers.providers.Web3Provider(walletType && window[walletType] || window.ethereum);
     } else {
       if (chain === 'Ethereum') {
         this.provider = ethers.getDefaultProvider(ETHNET);

@@ -23,7 +23,7 @@
           </div>
           <div class="d-flex align-items-center space-between mt-3">
             <div class="size-28 text-90">{{ $t('tips.tips43') }}</div>
-            <div class="size-28 text-3a font-500">{{ item.myShare | numberFormatLetter }} {{ item.tokenLp.symbol }} | {{ item.poolRate | rateFormat }}</div>
+            <div class="size-28 text-3a font-500">{{ item.myShare | numberFormatLetter }} {{ item.tokenLp.symbol }} | {{ (item.poolRate || 0) | rateFormat }}</div>
           </div>
           <div class="d-flex align-items-center space-between mt-3">
             <div class="size-28 text-90">{{ $t('tips.tips44') }}</div>
@@ -33,7 +33,7 @@
               </div>
             </div>
           </div>
-          <div class="option-btn" @click="optionClick(item)">{{ $t('tips.tips45') }}</div>
+          <div class="option-btn cursor-pointer" @click="optionClick(item)">{{ $t('tips.tips45') }}</div>
         </div>
       </div>
     </template>
@@ -59,11 +59,25 @@ export default {
   data() {
     return {
       poolList: [],
-      poolLoading: true
+      poolLoading: true,
+      poolTimer: null
     };
   },
   created() {
     this.getLiquidityPoolList();
+    if (this.poolTimer) {
+      clearInterval(this.poolTimer);
+      this.poolTimer = null;
+    }
+    this.poolTimer = setInterval(() => {
+      this.getLiquidityPoolList();
+    }, 15000);
+  },
+  beforeDestroy() {
+    if (this.poolTimer) {
+      clearInterval(this.poolTimer);
+      this.poolTimer = null;
+    }
   },
   methods: {
     optionClick(item) {
@@ -77,15 +91,16 @@ export default {
           url: '/swap/stable/info'
         });
         if (res.code === 1000 && res.data.length !== 0) {
-          console.log(res.data, this.fromNetwork, '123123')
           const tempData = this.fromNetwork === 'NERVE' ? res.data : res.data.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
-          console.log(tempData, 'tempData')
-          const tempPoolList = await Promise.all(tempData.map(async item => ({
+          this.poolList = tempData.map(item => ({
             ...item,
             supportNetwork: item.swapAssets.map(asset => asset.chain),
             totalLp: this.numberFormat(tofix(divisionDecimals(item.tokenLp.amount, item.tokenLp.decimals), 2, -1), 2),
-            myShare: await this.getUserShare(item.tokenLp),
             depositAssetSymbol: item.swapAssets.find(asset => asset.chain === this.fromNetwork) && item.swapAssets.find(asset => asset.chain === this.fromNetwork).symbol || item.swapAssets[0].symbol
+          }));
+          this.poolLoading = false;
+          const tempPoolList = await Promise.all(tempData.map(async item => ({
+            myShare: await this.getUserShare(item.tokenLp)
           })));
           this.poolList = tempPoolList.map(item => ({
             ...item,

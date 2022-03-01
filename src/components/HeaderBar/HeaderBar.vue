@@ -339,27 +339,33 @@ export default {
     },
     chainClick(chain) {
       try {
-        if (this.currentChain === chain.chainName) return;
-        if (chain.chainName === 'NULS' || chain.chainName === 'NERVE') {
-          // window.location.reload();
-          this.currentChain = chain.chainName;
-          this.$store.commit('changeNetwork', chain.chainName);
-          window.location.reload();
-          return;
-        }
+        const walletType = localStorage.getItem('walletType') || 'ethereum';
         const tempChain = {
           ...chain
         };
+        if (this.currentChain === tempChain.chainName) return;
+        if (tempChain.chainName === 'NULS' || tempChain.chainName === 'NERVE') {
+          // window.location.reload();
+          this.currentChain = tempChain.chainName;
+          this.$store.commit('changeNetwork', tempChain.chainName);
+          window.location.reload();
+          return;
+        }
+        console.log(tempChain.chainName, 'tempChain.chainName');
         delete tempChain['icon'];
         this.showDropList = false;
         if (tempChain.chainName !== 'Ethereum') {
-          window.ethereum && window.ethereum.request({
+          console.log('tempChain.chainName')
+          window[walletType] && window[walletType].request({
             method: 'wallet_addEthereumChain',
             params: [tempChain]
           }).then((res) => {
             this.currentChain = tempChain.chainName;
-            window.location.reload();
             this.$store.commit('changeNetwork', tempChain.chainName);
+            console.log('12312');
+            setTimeout(() => {
+              window.location.reload();
+            }, 0);
           }).catch(err => {
             console.log(err);
             this.$message({
@@ -369,7 +375,7 @@ export default {
             });
           });
         } else {
-          window.ethereum && window.ethereum.request({
+          window[walletType] && window[walletType].request({
             method: 'wallet_switchEthereumChain',
             params: [
               {

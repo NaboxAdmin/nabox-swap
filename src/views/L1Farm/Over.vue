@@ -20,7 +20,7 @@
           <div class="farm-info mt-4 d-flex align-items-center">
             <div class="d-flex direction-column mr-100 min-200">
               <span class="text-90 size-26">
-                {{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}
+                {{ $t("vaults.over2") }} {{ item.syrupToken && item.syrupToken.symbol }}
               </span>
               <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
             </div>
@@ -47,7 +47,7 @@
         </div>
         <div class="vaults-item">
           <div class="text-90 size-28 d-flex align-items-center">
-            <span>{{ $t("vaults.over2") }} {{ item.syrupAsset && item.syrupAsset.symbol }}</span>
+            <span>{{ $t("vaults.over2") }} {{ item.syrupToken && item.syrupToken.symbol }}</span>
             <el-tooltip v-if="item.lockCandy" :manual="false" :content="formatContent(item.lockDays)" class="tooltip-item ml-1" effect="dark" placement="top">
               <span class="info-icon">
                 <img src="@/assets/image/question.png">
@@ -73,7 +73,7 @@
         </div>
         <div class="vaults-item">
           <div class="text-90 size-28 d-flex align-items-center">
-            <span>{{ item.stakedAsset && item.stakedAsset.symbol || 'USDTN' }} {{ $t("vaults.vaults4") }} </span>
+            <span>{{ item.stakeToken && item.stakeToken.symbol || 'USDTN' }} {{ $t("vaults.vaults4") }} </span>
             <el-tooltip v-if="item.withdrawLockTime" :manual="false" :content="formatLockContent(item.withdrawLockTime)" class="tooltip-item ml-1" effect="dark" placement="top">
               <span class="info-icon">
                 <img src="@/assets/image/question.png">
@@ -97,7 +97,7 @@
           </div>
         </div>
         <div class="mt-3 size-28 text-right text-6e d-flex justify-content-end" @click="toSwap(item)">
-          <span>{{ $t("vaults.over5") }}{{ item.stakedAsset && item.stakedAsset.symbol }}</span>
+          <span>{{ $t("vaults.over5") }}{{ item.stakeToken && item.stakeToken.symbol }}</span>
           <span class="arrow-icon ml-1">
             <img src="@/assets/image/link_to.png" alt="">
           </span>
@@ -106,14 +106,14 @@
           <div class="px-cont mt-3"/>
           <div class="size-28 mt-3 d-flex space-between align-items-center">
             <span class="d-flex align-items-center text-90 size-28">
-              <span>{{ $t("vaults.vaults12") }}{{ item.syrupAsset && item.syrupAsset.symbol || 'NABOX' }}</span>
+              <span>{{ $t("vaults.vaults12") }}{{ item.syrupToken && item.syrupToken.symbol || 'NABOX' }}</span>
             </span>
             <div class="d-flex align-items-center size-28">
               <span class="text-3a">{{ item.lockNumbers | numFormat }}</span>
             </div>
           </div>
           <div class="vaults-item">
-            <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupAsset && item.syrupAsset.symbol }}</div>
+            <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupToken && item.syrupToken.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
               <div class="d-flex direction-column">
                 <span class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
@@ -137,6 +137,7 @@
 import { divisionDecimals, tofix, Minus, Division } from '@/api/util';
 import { getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
 import { Times } from '../../api/util';
+import {MAIN_INFO} from "@/config";
 
 export default {
   name: 'Over',
@@ -174,9 +175,13 @@ export default {
   },
   created() {
     this.getFarmInfo(false);
+    if (this.farmTimer) {
+      clearInterval(this.farmTimer);
+      this.farmTimer = null;
+    }
     this.farmTimer = setInterval(() => {
       this.getFarmInfo(false, true);
-    }, 20000);
+    }, 15000);
   },
   beforeDestroy() {
     if (this.farmTimer) {
@@ -215,10 +220,18 @@ export default {
         url: '/farm/list',
         data
       });
-      if (res.code === 1000) {
-        const tempList = res.data.filter(item => item.chain === this.$store.state.network);
-        await this.getStakeAccount(tempList);
+      if (res.code === 1000 && res.data) {
+        const tempFarmList = res.data.filter(item => item.chain === this.$store.state.network);
+        this.farmList = this.farmList.length === 0 ? tempFarmList.map(item => ({ ...item, showDetail: false })) : this.farmList;
+        if (this.fromNetwork === 'NERVE') {
+          this.farmList = [];
+        }
+        this.farmLoading = false;
+        await this.getStakeAccount(this.farmList);
         this.isFirstRequest = false;
+      } else {
+        this.farmList = [];
+        this.farmLoading = false;
       }
     },
     // 获取当前质押资产详细信息

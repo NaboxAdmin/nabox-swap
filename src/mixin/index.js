@@ -29,8 +29,10 @@ export default {
     },
     showSign() {
       return this.$store.state.showSign;
+    },
+    isMobile() {
+      return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     }
-
   },
   filters: {
     numFormat(val) {

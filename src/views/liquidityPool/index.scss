@@ -54,3 +54,13 @@
 .ml-12 {
     margin-left: 12px;
 }
+@media screen and (min-width: 1000px) {
+    .mobile_class {
+        height: 1440px;
+        overflow-y: auto;
+    }
+    &::-webkit-scrollbar {
+        width: 0px !important;
+        height: 0px !important;
+    }
+}

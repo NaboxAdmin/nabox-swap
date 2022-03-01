@@ -17,29 +17,24 @@
       @l1FarmClick="l1FarmClick"
       @l2FarmClick="l2FarmClick">
       <div v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)" class="connect-item">
-        <div v-if="showConnect" class="connect-btn" @click="connectMetamask">{{ $t("tips.tips12") }}</div>
+        <!--        <div v-if="showConnect" class="connect-btn" @click="connectMetamask">{{ $t("tips.tips12") }}</div>-->
+        <div v-if="showConnect" class="wallet-cont size-36 font-500">
+          <div class="mb-3 font-bold">{{ $t("tips.tips12") }}</div>
+          <div class="wallet-item d-flex align-items-center">
+            <div v-for="(item, index) in providerList" :key="index" class="item-detail mb-3 cursor-pointer d-flex align-items-center" @click="connectProvider(item.provider)">
+              <span class="icon-cont ml-2">
+                <img :src="item.src" alt="">
+              </span>
+              <span class="ml-2 size-28 font-bold">{{ item.name }}</span>
+            </div>
+          </div>
+        </div>
         <div v-else-if="!showConnect && showSign" class="sign-btn" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
       </div>
       <keep-alive v-else include="swap">
         <router-view />
       </keep-alive>
     </HeaderBar>
-    <template v-else>
-      <div
-        :class="{'vaults-color': true}"
-        class="tab-cont d-flex align-items-center space-between font-bold size-36">
-        <div
-          v-for="(item, index) in tabList"
-          :class="{'active': hashType===item.name}"
-          :key="index"
-          class="tab-item"
-          @click="tabClick(index)">{{ item.option }}</div>
-      </div>
-      <div :class="{'vaults-color': true}" class="position-cont"/>
-      <!--        <keep-alive>-->
-      <router-view />
-      <!--        </keep-alive>-->
-    </template>
   </div>
 </template>
 
@@ -48,17 +43,24 @@ import { HeaderBar } from '../components';
 import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import nerve from 'nerve-sdk-js';
 import { supportChainList, getCurrentAccount } from '@/api/util';
+import MetaMask from '@/assets/image/metamask.svg';
+import Nabox from '@/assets/image/nabox_wallet.svg';
 
 const ethers = require('ethers');
 
 function getAccountList() {
   return JSON.parse(localStorage.getItem('accountList')) || [];
 }
-
+const MetaMaskProvider = 'ethereum';
+const NaboxProvider = 'NaboxWallet';
 export default {
   name: 'BasicLayout',
   components: { HeaderBar },
   data() {
+    this.providerList = [
+      { name: 'MetaMask', src: MetaMask, provider: MetaMaskProvider },
+      { name: 'Nabox', src: Nabox, provider: NaboxProvider }
+    ];
     return {
       tabList: [
         {
@@ -85,7 +87,7 @@ export default {
       // showSign: true, // 显示派发多链地址
       provider: '',
       loading: false, // 加载
-      walletType: sessionStorage.getItem('walletType') || 'metamask', // 钱包类型（metamask）
+      walletType: localStorage.getItem('walletType') || '', // 钱包类型（metamask）
       // isDapp: true,
       fromChainId: '',
       orderList: [], // 订单列表
@@ -119,6 +121,7 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return '';
+        console.log(val, 'watch val');
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
         const config = JSON.parse(sessionStorage.getItem('config'));
@@ -210,30 +213,6 @@ export default {
         }
       });
     },
-    tabClick(i) {
-      switch (i) {
-        case 0:
-          this.currentIndex = 0;
-          if (window.location.hash === '#/swap') return false;
-          this.$router.push({ path: '/swap' });
-          break;
-        case 1:
-          this.currentIndex = 1;
-          if (window.location.hash === '#/transfer') return false;
-          this.$router.push({ path: '/transfer' });
-          break;
-        case 2:
-          this.currentIndex = 2;
-          if (window.location.hash === '#/liquidity') return false;
-          this.$router.push({ path: '/liquidity' });
-          break;
-        case 3:
-          this.currentIndex = 3;
-          if (window.location.hash === '#/vaults') return false;
-          this.$router.push({ path: '/vaults' });
-          break;
-      }
-    },
     // 获取订单列表
     async getOrderList(val) {
       this.flag = true;
@@ -257,17 +236,26 @@ export default {
         this.loading = false;
         return;
       }
-      if (this.walletType === 'metamask') {
-        if (window.ethereum) {
-          this.initMetamask();
-        }
+      this.initMetamask();
+    },
+    async iniConnect() {
+      const walletType = localStorage.getItem('walletType');
+      // this.wallet = window[walletType];
+      const provider = window[walletType];
+      if (!walletType || !provider) return;
+      const address = provider.selectedAddress;
+      if (!address) {
+        await this.requestAccounts();
+      } else {
+        this.$store.commit('changeShowConnect', false);
       }
+      this.listenAccountChange();
+      this.listenNetworkChange();
     },
     // 初始化metamask wallet provider address
     async initMetamask() {
-      this.wallet = window.ethereum;
-      // console.log(this.wallet.selectedAddress, 'this.wallet.selectedAddress');
-      // console.log(this.wallet.chainId, 'this.wallet.chainId');
+      const walletType = localStorage.getItem('walletType');
+      this.wallet = window[walletType];
       this.fromChainId = this.wallet.chainId;
       this.address = this.wallet.selectedAddress;
       // console.log(this.wallet.selectedAddress);
@@ -275,7 +263,7 @@ export default {
         await this.requestAccounts();
       }
       this.fromChainId = this.wallet.chainId;
-      this.provider = new ethers.providers.Web3Provider(window.ethereum);
+      this.provider = new ethers.providers.Web3Provider(window[walletType]);
       // this.showConnect = false;
       this.$store.commit('changeShowConnect', false);
       this.listenAccountChange();
@@ -319,9 +307,17 @@ export default {
       this.wallet.on('chainChanged', (chainId) => {
         if (chainId && this.walletType) {
           this.fromChainId = chainId;
-          window.location.reload();
+          this.walletType !== 'NaboxWallet' && window.location.reload();
         }
       });
+    },
+    async connectProvider(provider) {
+      if (!window[provider]) {
+        this.$message({ message: 'No provider was found', type: 'warning' });
+        return;
+      }
+      localStorage.setItem('walletType', provider);
+      await this.initMetamask();
     },
     // 连接metamask钱包
     async connectMetamask() {
@@ -650,5 +646,32 @@ export default {
   background-color: #6EB6A9;
   border-radius: 20px;
   margin-top: 100px;
+}
+.wallet-cont {
+  padding: 0 30px;
+  width: 100%;
+  .wallet-item {
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    .item-detail {
+      box-sizing: border-box;
+      width: 50%;
+      height: 80px;
+      border-radius: 40px;
+      border: 2px solid transparent;
+      &:hover {
+        border: 2px solid #6EB6A9;
+      }
+      .icon-cont {
+        height: 55px;
+        width: 55px;
+        img {
+          height: 100%;
+          width: 100%;
+        }
+      }
+    }
+
+  }
 }
 </style>
