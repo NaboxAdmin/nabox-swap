@@ -245,7 +245,7 @@ import ISwap from './util/iSwap';
 import { ISWAP_VERSION, ISWAP_USDT_CONFIG, ISWAP_BRIDGE_VERSION } from './util/swapConfig';
 import { contractConfig, contractBridgeConfig } from './util/swapConfig';
 import Dodo from './util/Dodo';
-import {currentNet, MAIN_INFO} from '@/config';
+import { currentNet, MAIN_INFO } from '@/config';
 import NerveChannel from './util/Nerve';
 import { feeRate } from './util/Nerve';
 
@@ -1054,6 +1054,7 @@ export default {
               return {
                 icon: item.icon,
                 channel: item.channel,
+                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(Minus(this.amountOut, currentConfig.swapFee)),
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
                 minReceive: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
                 swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
@@ -1241,6 +1242,7 @@ export default {
     // 切换当前选择的平台
     getBestPlatform(platformList) {
       if (platformList.length === 0) return false;
+      // if (this.inputType === 'amountIn') {
       const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
       this.channelConfigList = platformList.map(item => {
         if (item.channel === tempList.channel) {
@@ -1258,6 +1260,26 @@ export default {
       });
       console.log(this.channelConfigList, '==channelConfigList==');
       return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
+      // } else {
+      //   const tempList = platformList.reduce((p, v) => p.amount.toString() < v.amount.toString() ? v : p);
+      //   console.log('1111', tempList);
+      //   this.channelConfigList = platformList.map(item => {
+      //     if (item.channel === tempList.channel) {
+      //       return {
+      //         ...item,
+      //         isBest: true,
+      //         isChoose: true
+      //       };
+      //     }
+      //     return {
+      //       ...item,
+      //       isBest: false,
+      //       isChoose: false
+      //     };
+      //   });
+      //   console.log(this.channelConfigList, '==channelConfigList==');
+      //   return this.channelConfigList.reduce((p, v) => p.amount < v.amount ? v : p);
+      // }
     },
     // 选择最优路径
     routeClick(platform) {

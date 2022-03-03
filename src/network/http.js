@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as config from '@/config.js';
 
 axios.defaults.headers.post['Content-Type'] = 'application/json';
+axios.defaults.timeout = 60000;
 /**
  * 封装post请求
  * Encapsulation post method

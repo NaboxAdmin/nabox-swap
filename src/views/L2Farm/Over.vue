@@ -281,8 +281,8 @@ export default {
             profitNumber: item.profit.split('%')[0] || '0',
             amount: divisionDecimals(amount || 0, item.stakeToken && item.stakeToken.decimals),
             reward: this.numberFormat(tofix(divisionDecimals(reward || 0, item.syrupToken && item.syrupToken.decimals), 4, -1), 4),
-            syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, item.syrupToken && item.syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4),
-            stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, item.stakeToken && item.stakedAsset.decimals), item.stakeToken.usdPrice || 0), 4, -1), 4),
+            syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(reward || 0, item.syrupToken && item.syrupToken.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4),
+            stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(amount || 0, item.stakeToken && item.stakeToken.decimals), item.stakeToken.usdPrice || 0), 4, -1), 4),
             showDetail: false
           };
         }

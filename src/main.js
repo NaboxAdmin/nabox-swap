@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import VueI18n from 'vue-i18n';
+// import VueI18n from 'vue-i18n';
 import App from './App.vue';
 import router from './router';
 import store from './store';
@@ -8,11 +8,11 @@ import './api/rem';
 import 'normalize.css'; // 初始化css
 import messages from './locales';
 import { isBeta } from './api/util';
-import ElementUI from 'element-ui';
-import 'element-ui/lib/theme-chalk/index.css';
+// import ElementUI from 'element-ui';
+// import 'element-ui/lib/theme-chalk/index.css';
 import globalMixin from './mixin';
 import './plugins/vant';
-import { Loading } from 'vant';
+// import { Loading } from 'vant';
 
 const development = process.env.NODE_ENV === 'development';
 Vue.config.devtools = development;
@@ -20,9 +20,9 @@ Vue.prototype.$request = request; // 网络请求
 Vue.prototype.$post = post;
 Vue.config.productionTip = false; // 开发环境提示
 Vue.mixin(globalMixin);
-Vue.use(VueI18n);
-Vue.use(ElementUI);
-Vue.use(Loading);
+// Vue.use(VueI18n);
+// Vue.use(ElementUI);
+// Vue.use(Loading);
 if (!development) {
   console.log = () => {};
 }
