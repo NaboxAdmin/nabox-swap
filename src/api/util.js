@@ -788,3 +788,87 @@ export function numberFormat(val, float, returnBoo = false) {
   if (n <= 0) return Math.round(numberVal);
   return (Math.round(numberVal * Math.pow(10, n)) / Math.pow(10, n)).toString();
 }
+
+export function setChainConfig(chainConfig) {
+  (function() {
+    if (!window.localStorage) {
+      console.log('浏览器不支持localStorage');
+    }
+    let size = 0;
+    for (const item in window.localStorage) {
+      if (window.localStorage.hasOwnProperty(item)) {
+        size += window.localStorage.getItem(item).length;
+      }
+    }
+    console.log('当前localStorage存储容量为' + (size / 1024).toFixed(2) + 'KB');
+  })();
+  const config = {};
+  if (chainConfig && chainConfig.length) {
+    chainConfig.map(v => {
+      const mainInfo = v.mainAsset;
+      config[v.chain] = {
+        chain: v.chain,
+        chainId: mainInfo ? mainInfo.chainId : '',
+        assetId: mainInfo ? mainInfo.assetId : '',
+        prefix: v.prefix,
+        symbol: mainInfo ? mainInfo.symbol : '',
+        decimals: mainInfo ? mainInfo.decimals : '',
+        assets: v.assets,
+        config: v.configs,
+        apiUrl: v.apiUrl,
+        chainType: v.chainType
+      };
+    });
+    // chainType: 2 以太系
+    const supportChainList = chainConfig.map(item => {
+      if (item.chainType === 1) {
+        return {
+          ...item,
+          label: item.chain,
+          value: item.chain,
+          SwftChain: item.chain,
+          chainId: item.mainAsset && item.mainAsset.chainId || '',
+          assetId: item.mainAsset && item.mainAsset.assetId || '',
+          decimals: item.mainAsset && item.mainAsset.decimals || '',
+          hashLink: `${item.scanUrl}transaction/info?hash=`,
+          addressLink: `${item.scanUrl}address/info?address=`,
+          symbol: item.mainAsset.symbol || '',
+          sort: item.sort
+        };
+      } else if (item.chainType === 2) {
+        return {
+          label: item.chain,
+          value: item.chain,
+          chain: item.chain,
+          chainName: item.chainName,
+          chainType: item.chainType,
+          icon: item.icon,
+          symbol: item.mainAsset && item.mainAsset.symbol || '',
+          ropsten: `0x${Number(item.nativeId).toString(16)}`,
+          homestead: `0x${Number(item.nativeId).toString(16)}`,
+          chainId: item.mainAsset && item.mainAsset && item.mainAsset.chainId || '',
+          assetId: item.mainAsset && item.mainAsset.assetId || '',
+          decimals: item.mainAsset && item.mainAsset.decimals || '',
+          rpcUrl: item.apiUrl,
+          nativeId: item.nativeId || '',
+          // rpcUrl: networkRpc[item.chain],
+          origin: item.scanUrl,
+          hashLink: `${item.scanUrl}tx/`,
+          addressLink: `${item.scanUrl}address/`,
+          sort: item.sort
+        };
+      }
+    });
+    const sortSupportChainList = supportChainList.sort((a, b) => a.sort - b.sort);
+    sessionStorage.setItem('supportChainList', JSON.stringify(sortSupportChainList));
+  }
+  const chains = Object.keys(config);
+  const tradeHashMap = {};
+  chains.forEach(chain => {
+    tradeHashMap[chain] = [];
+  });
+  !localStorage.getItem('tradeHashMap') && localStorage.setItem('tradeHashMap', JSON.stringify(tradeHashMap));
+  !localStorage.getItem('localSwapAssetMap') && localStorage.setItem('localSwapAssetMap', JSON.stringify(tradeHashMap));
+  !localStorage.getItem('l2HashList') && localStorage.setItem('l2HashList', JSON.stringify([]));
+  sessionStorage.setItem('config', JSON.stringify(config));
+}

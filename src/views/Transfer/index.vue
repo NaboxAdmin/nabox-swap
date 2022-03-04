@@ -511,13 +511,12 @@ export default {
     // 查询异构链token资产授权情况
     async checkCrossInAuthStatus() {
       const transfer = new ETransfer();
-      const heterogeneousInfo = this.currentCoin.heterogeneousList.filter(
-        (v) => v.chainName === this.fromNetwork
-      )[0];
+      const config = JSON.parse(sessionStorage.getItem('config'));
+      const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       const contractAddress = this.currentCoin.contractAddress;
       const needAuth = await transfer.getERC20Allowance(
         contractAddress,
-        heterogeneousInfo.heterogeneousChainMultySignAddress,
+        authContractAddress,
         this.fromAddress
       );
       this.crossInAuth = needAuth;
@@ -866,8 +865,10 @@ export default {
         const heterogeneousChain_In = asset.heterogeneousList.filter(
           (v) => v.chainName === tempFromNetwork
         )[0];
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const multySignAddress = config[this.fromNetwork]['config']['crossAddress'];
         transferInfo.crossInInfo = {
-          multySignAddress: heterogeneousChain_In.heterogeneousChainMultySignAddress,
+          multySignAddress,
           nerveAddress: nerveAddress,
           numbers: this.transferCount.toString(),
           fromAddress: from,
@@ -1024,13 +1025,12 @@ export default {
       this.transferLoading = true;
       try {
         const transfer = new ETransfer();
-        const heterogeneousInfo = this.currentCoin.heterogeneousList.filter(
-          (v) => v.chainName === this.fromNetwork
-        )[0];
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const multySignAddress = config[this.fromNetwork]['config']['crossAddress'];
         const contractAddress = this.currentCoin.contractAddress;
         const res = await transfer.approveERC20(
           contractAddress,
-          heterogeneousInfo.heterogeneousChainMultySignAddress,
+          multySignAddress,
           this.fromAddress
         );
         if (res.hash) {

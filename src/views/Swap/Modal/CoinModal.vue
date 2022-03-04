@@ -52,8 +52,9 @@
 </template>
 
 <script>
-import { divisionDecimals, tofix } from '@/api/util';
+import {divisionDecimals, isBeta, tofix} from '@/api/util';
 import { getBatchERC20Balance } from '@/api/api';
+import {swapAssetList} from "@/views/Swap/util/swapAssetList";
 
 export default {
   name: 'CoinModal',
@@ -181,24 +182,48 @@ export default {
       this.allList = [];
       await this.getSwapAssetList(chain);
     },
-    // 获取当前支持的兑换的列表
     async getSwapAssetList(chain) {
       try {
         this.showLoading = true;
         const data = {
           chain: chain || this.fromNetwork || ''
         };
-        const res = await this.$request({
-          url: '/swap/assets',
-          data
-        });
-        if (res.code === 1000) {
-          let tempCoins = res.data.map(coin => ({
+        if (isBeta) {
+          const res = await this.$request({
+            url: '/swap/assets',
+            data
+          });
+          if (res.code === 1000 && res.data) {
+            await this.setSwapAssetList(res.data);
+          } else {
+            await this.setSwapAssetList([]);
+          }
+          this.showLoading = false;
+        } else {
+          const localSwapAssetList = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'))[chain || this.fromNetwork];
+          const tempList = localSwapAssetList && localSwapAssetList.length > 0 && localSwapAssetList || swapAssetList[chain || this.fromNetwork];
+          await this.setSwapAssetList(tempList || []);
+          const res = await this.$request({
+            url: '/swap/assets',
+            data
+          });
+          if (res.code === 1000 && res.data.length > 0) {
+            await this.updateSwapAssetList(chain, res.data);
+          }
+        }
+      } catch (e) {
+        this.showLoading = false;
+      }
+    },
+    // 获取当前支持的兑换的列表
+    async setSwapAssetList(swapAssetList) {
+      try {
+        if (swapAssetList && swapAssetList.length > 0) {
+          let tempCoins = swapAssetList.map(coin => ({
             ...coin,
             showBalanceLoading: true
           }));
-          console.log(tempCoins, 'tempCoinstempCoinstempCoins');
-          sessionStorage.setItem('nerveSwapAssetList', JSON.stringify(tempCoins || []));
+          this.fromNetwork === 'NERVE' && sessionStorage.setItem('nerveSwapAssetList', JSON.stringify(tempCoins || []));
           if (!this.fromAsset && this.modalType === 'receive') {
             tempCoins = [];
           } else if (this.fromAsset && this.modalType === 'receive') {
@@ -209,7 +234,12 @@ export default {
                 tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.fromAsset.contractAddress);
               } else {
                 console.log(this.fromAsset.registerChain, 'registerChain');
-                tempCoins = tempCoins.filter(coin => this.fromNetwork !== 'NERVE' && coin.assetId !== this.fromAsset.assetId || (this.fromAsset.registerChain !== 'NERVE' && coin.chainId !== this.fromAsset.chainId || coin.assetId !== this.fromAsset.assetId));
+                if (this.fromNetwork !== 'NERVE') {
+                  tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+                } else {
+                  tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+                }
+                // tempCoins = tempCoins.filter(coin => this.fromNetwork !== 'NERVE' && coin.assetId !== this.fromAsset.assetId || (this.fromAsset.registerChain !== 'NERVE' && coin.chainId !== this.fromAsset.chainId || coin.chainId !== this.fromAsset.chainId));
               }
             }
           } else if (this.toAsset && this.modalType === 'send') {
@@ -278,10 +308,17 @@ export default {
         } else {
           this.showCoinList = [];
         }
+        this.showLoading = false;
       } catch (e) {
         console.log(e, 'error');
         this.showLoading = false;
       }
+    },
+    // 更新当前的swap资产列表
+    updateSwapAssetList(chain, assetList) {
+      const localSwapAssetMap = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'));
+      localSwapAssetMap[chain || this.fromNetwork] = assetList || [];
+      localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
     },
     // 获取swft支持的闪兑列表
     async getCoins(val) {

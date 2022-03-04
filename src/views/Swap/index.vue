@@ -248,6 +248,8 @@ import Dodo from './util/Dodo';
 import { currentNet, MAIN_INFO } from '@/config';
 import NerveChannel from './util/Nerve';
 import { feeRate } from './util/Nerve';
+import { swapAssetList } from './util/swapAssetList';
+import { isBeta } from '@/api/util';
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -699,33 +701,55 @@ export default {
     // 获取当前支持的兑换的列表
     async getSwapAssetList() {
       try {
-        // this.showLoading = true;
         const data = {
           chain: this.fromNetwork
         };
-        const res = await this.$request({
-          url: '/swap/assets',
-          data
-        });
-        if (res.code === 1000 && res.data.length > 0) {
-          const tempList = res.data.length > 0 && res.data.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
-          const tempFromCoin = tempList.find(item => item.contractAddress === this.fromContractAddress);
-          const tempToCoin = tempList.find(item => item.contractAddress === this.toContractAddress);
-          if (this.fromContractAddress && this.toContractAddress && tempFromCoin && tempToCoin) {
-            this.chooseFromAsset = tempFromCoin;
-            await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
-            this.chooseToAsset = tempToCoin;
-            await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
-          } else {
-            this.chooseFromAsset = tempList.find(item => item.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT')) || tempList[0];
-            this.crossFeeAsset = tempList.find(item => item.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT')) || null;
+        if (isBeta) {
+          const res = await this.$request({
+            url: '/swap/assets',
+            data
+          });
+          if (res.code === 1000 && res.data.length > 0) {
+            await this.updateSwapAssetList(res.data);
           }
-          this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
-          this.refreshBalance();
+        } else {
+          const localSwapAssetList = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'))[this.fromNetwork];
+          const tempList = localSwapAssetList && localSwapAssetList.length > 0 && localSwapAssetList || swapAssetList[this.fromNetwork];
+          await this.setSwapAssetList(tempList || []);
+          const res = await this.$request({
+            url: '/swap/assets',
+            data
+          });
+          if (res.code === 1000 && res.data.length > 0) {
+            await this.updateSwapAssetList(res.data);
+          }
         }
       } catch (e) {
         console.log(e, 'error');
       }
+    },
+    // 获取当前的swap资产
+    async setSwapAssetList(assetList) {
+      const tempList = assetList.length > 0 && assetList.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
+      const tempFromCoin = tempList.find(item => item.contractAddress === this.fromContractAddress);
+      const tempToCoin = tempList.find(item => item.contractAddress === this.toContractAddress);
+      if (this.fromContractAddress && this.toContractAddress && tempFromCoin && tempToCoin) {
+        this.chooseFromAsset = tempFromCoin;
+        await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
+        this.chooseToAsset = tempToCoin;
+        await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
+      } else {
+        this.chooseFromAsset = tempList.find(item => item.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT')) || tempList[0];
+        this.crossFeeAsset = tempList.find(item => item.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT')) || null;
+      }
+      this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
+      this.refreshBalance();
+    },
+    // 更新当前的swap资产列表
+    updateSwapAssetList(assetList) {
+      const localSwapAssetMap = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'));
+      localSwapAssetMap[this.fromNetwork] = assetList || [];
+      localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
     },
     // 当前选择的币
     async selectCoin({ coin, type, network }) {
@@ -1054,7 +1078,7 @@ export default {
               return {
                 icon: item.icon,
                 channel: item.channel,
-                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(Minus(this.amountOut, currentConfig.swapFee)),
+                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
                 minReceive: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
                 swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
@@ -1242,44 +1266,43 @@ export default {
     // 切换当前选择的平台
     getBestPlatform(platformList) {
       if (platformList.length === 0) return false;
-      // if (this.inputType === 'amountIn') {
-      const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
-      this.channelConfigList = platformList.map(item => {
-        if (item.channel === tempList.channel) {
+      if (this.inputType === 'amountIn') {
+        const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
+        this.channelConfigList = platformList.map(item => {
+          if (item.channel === tempList.channel) {
+            return {
+              ...item,
+              isBest: true,
+              isChoose: true
+            };
+          }
           return {
             ...item,
-            isBest: true,
-            isChoose: true
+            isBest: false,
+            isChoose: false
           };
-        }
-        return {
-          ...item,
-          isBest: false,
-          isChoose: false
-        };
-      });
-      console.log(this.channelConfigList, '==channelConfigList==');
-      return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
-      // } else {
-      //   const tempList = platformList.reduce((p, v) => p.amount.toString() < v.amount.toString() ? v : p);
-      //   console.log('1111', tempList);
-      //   this.channelConfigList = platformList.map(item => {
-      //     if (item.channel === tempList.channel) {
-      //       return {
-      //         ...item,
-      //         isBest: true,
-      //         isChoose: true
-      //       };
-      //     }
-      //     return {
-      //       ...item,
-      //       isBest: false,
-      //       isChoose: false
-      //     };
-      //   });
-      //   console.log(this.channelConfigList, '==channelConfigList==');
-      //   return this.channelConfigList.reduce((p, v) => p.amount < v.amount ? v : p);
-      // }
+        });
+        console.log(this.channelConfigList, '==channelConfigList==');
+        return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
+      } else {
+        const tempList = platformList.reduce((p, v) => p.amount > v.amount ? v : p);
+        this.channelConfigList = platformList.map(item => {
+          if (item.channel === tempList.channel) {
+            return {
+              ...item,
+              isBest: true,
+              isChoose: true
+            };
+          }
+          return {
+            ...item,
+            isBest: false,
+            isChoose: false
+          };
+        });
+        console.log(this.channelConfigList, '==channelConfigList==');
+        return this.channelConfigList.reduce((p, v) => p.amount > v.amount ? v : p);
+      }
     },
     // 选择最优路径
     routeClick(platform) {
