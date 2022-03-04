@@ -704,6 +704,7 @@ export default {
         const data = {
           chain: this.fromNetwork
         };
+        console.log(isBeta, '3123123123');
         if (isBeta) {
           const res = await this.$request({
             url: '/swap/assets',
