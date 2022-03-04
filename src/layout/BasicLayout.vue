@@ -365,6 +365,7 @@ export default {
           await this.requestAccounts();
         }
         let account, pub;
+        console.log(this.address, '213')
         if (!this.address.startsWith('0x')) {
           if (!window.nabox) {
             throw 'Nabox not found';
