@@ -1,4 +1,5 @@
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
+// const WebpackBundleAnalyzer = require('webpack-bundle-analyzer');
 const productionGzipExtensions = ['js', 'css'];
 const path = require('path');
 const shell = require('shelljs');
@@ -14,10 +15,17 @@ module.exports = {
       config.plugins.push(new CompressionWebpackPlugin({
         algorithm: 'gzip',
         test: new RegExp('\\.(' + productionGzipExtensions.join('|') + ')$'),
-        threshold: 10240,
+        threshold: 1024,
         minRatio: 0.8
       }));
     }
+    // else {
+    //     config.plugins.push(new WebpackBundleAnalyzer());
+    //   }
+    config.performance = {
+      maxAssetSize: 200000,
+      maxEntrypointSize: 400000
+    };
     config.externals = {
       'vue': 'Vue',
       'vue-router': 'VueRouter',
@@ -27,7 +35,8 @@ module.exports = {
       'vant': 'vant',
       'ethers': 'ethers',
       'web3': 'Web3',
-      'vue-i18n': 'VueI18n'
+      'vue-i18n': 'VueI18n',
+      'moment': 'moment'
     };
   },
   devServer: {
