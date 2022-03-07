@@ -1,5 +1,5 @@
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
-// const WebpackBundleAnalyzer = require('webpack-bundle-analyzer');
+const WebpackBundleAnalyzer = require('webpack-bundle-analyzer');
 const productionGzipExtensions = ['js', 'css'];
 const path = require('path');
 const shell = require('shelljs');
@@ -37,6 +37,8 @@ module.exports = {
       'web3': 'Web3',
       'vue-i18n': 'VueI18n',
       'moment': 'moment'
+      // 'nerve-sdk-js': 'nerve'
+      // 'nuls-sdk-js': 'nuls'
     };
   },
   devServer: {
