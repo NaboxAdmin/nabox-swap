@@ -26,6 +26,27 @@ module.exports = {
       maxAssetSize: 200000,
       maxEntrypointSize: 400000
     };
+    config.optimization = {
+      splitChunks: {
+        chunks: 'all',
+        minSize: 30000,
+        maxAsyncRequests: 5,
+        maxInitialRequests: 5,
+        cacheGroups: {
+          'nerve-sdk-js': {
+            test: /[\\/]node_modules[\\/](nerve-sdk-js)[\\/]/,
+            name: 'nerve-sdk-js',
+            priority: 2
+          },
+          vendors: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 1,
+            reuseExistingChunk: true
+          }
+        }
+      }
+    },
     config.externals = {
       'vue': 'Vue',
       'vue-router': 'VueRouter',
@@ -51,8 +72,8 @@ module.exports = {
     proxy: { // 配置跨域处理
       '/nabox-api': {
         // target: 'http://192.168.1.204:8083', // 周维
-        target: 'http://nabox_api.zhoulijun.top', // 测试环境
-        // target: 'https://api.v2.nabox.io/', // 主网环境
+        // target: 'http://nabox_api.zhoulijun.top', // 测试环境
+        target: 'https://api.v2.nabox.io/', // 主网环境
         // target: 'http://jl5i9jz7.xiaomy.net', // 远程环境
         changeOrigin: true // 是否跨域
       }
