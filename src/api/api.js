@@ -706,11 +706,6 @@ export class ETransfer {
         value: amount,
         data
       });
-      // transactionParameters = {
-      //   to: multySignAddress,
-      //   value: amount,
-      //   data: data
-      // };
     }
     const failed = await this.validate(transactionParameters);
     if (failed) {
@@ -723,9 +718,7 @@ export class ETransfer {
   }
 
   async setGasLimit(tx, flag = true) {
-    console.log(tx, 'tx');
     const gasLimit = await this.getGasLimit(tx);
-    console.log(gasLimit, 'gasLimit');
     const tempTx = {
       ...tx,
       gasLimit

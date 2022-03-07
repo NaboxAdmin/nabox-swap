@@ -38,6 +38,11 @@ module.exports = {
             name: 'nerve-sdk-js',
             priority: 2
           },
+          'nuls-sdk-js': {
+            test: /[\\/]node_modules[\\/](nuls-sdk-js)[\\/]/,
+            name: 'nuls-sdk-js',
+            priority: 2
+          },
           vendors: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
