@@ -87,7 +87,7 @@ export default {
       // showSign: true, // 显示派发多链地址
       provider: '',
       loading: false, // 加载
-      walletType: localStorage.getItem('walletType') || '', // 钱包类型（metamask）
+      walletType: localStorage.getItem('walletType') || 'ethereum', // 钱包类型（metamask）
       // isDapp: true,
       fromChainId: '',
       orderList: [], // 订单列表
@@ -172,6 +172,22 @@ export default {
         this.refreshWallet();
       }, 300000);
     }
+    if (tempData) {
+      const accountList = [
+        {
+          pub: tempData.publicKey,
+          address: tempData.addressDict
+        }
+      ];
+      if (this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE') {
+        this.$store.commit('changeNetwork', tempData.chain);
+        this.address = tempData.addressDict[tempData.chain];
+      } else {
+        this.$store.commit('changeNetwork', this.fromNetwork);
+        this.address = tempData.addressDict[this.fromNetwork];
+      }
+      localStorage.setItem('accountList', JSON.stringify(accountList));
+    }
     // FIXME: 取消tab-bar展示
     // if (!tempData || tempData && !tempData.isTabbarSwap) {
     //   this.initConnect();
@@ -213,6 +229,19 @@ export default {
         }
       });
     },
+    async getPubByAddress(address) {
+      const data = {
+        address
+      };
+      const res = await this.$request({
+        url: '/wallet/query',
+        data
+      });
+      // if (res.data) {
+      //   await this.derivedAddress(res.data);
+      // }
+      return res.data;
+    },
     // 获取订单列表
     async getOrderList(val) {
       this.flag = true;
@@ -239,7 +268,7 @@ export default {
       this.initMetamask();
     },
     async iniConnect() {
-      const walletType = localStorage.getItem('walletType');
+      const walletType = localStorage.getItem('walletType') || this.walletType;
       // this.wallet = window[walletType];
       const provider = window[walletType];
       if (!walletType || !provider) return;
@@ -254,7 +283,7 @@ export default {
     },
     // 初始化metamask wallet provider address
     async initMetamask() {
-      const walletType = localStorage.getItem('walletType');
+      const walletType = localStorage.getItem('walletType') || this.walletType;
       this.wallet = window[walletType];
       this.fromChainId = this.wallet.chainId;
       this.address = this.wallet.selectedAddress;
@@ -360,7 +389,7 @@ export default {
       this.loading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
       const networkList = Object.values(config).filter(item => item.chainType !== 1).map(item => item.chain);
-      try {
+      // try {
         if (!this.address) {
           await this.requestAccounts();
         }
@@ -458,14 +487,15 @@ export default {
             offset: 30
           });
         }
-      } catch (e) {
-        this.address = '';
-        this.$message({
-          message: this.$t('tips.tips22'),
-          type: 'warning',
-          offset: 30
-        });
-      }
+      // } catch (e) {
+      //   console.log(e, '12312');
+      //   this.address = '';
+      //   this.$message({
+      //     message: this.$t('tips.tips22'),
+      //     type: 'warning',
+      //     offset: 30
+      //   });
+      // }
       this.loading = false;
     },
     swapClick() {
