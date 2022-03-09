@@ -172,7 +172,8 @@ export default {
         this.refreshWallet();
       }, 300000);
     }
-    if (tempData) {
+    const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
+    if (tempData && Object.keys(config).length === Object.keys(tempData.addressDict).length) {
       const accountList = [
         {
           pub: tempData.publicKey,
@@ -389,7 +390,7 @@ export default {
       this.loading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
       const networkList = Object.values(config).filter(item => item.chainType !== 1).map(item => item.chain);
-      // try {
+      try {
         if (!this.address) {
           await this.requestAccounts();
         }
@@ -410,7 +411,6 @@ export default {
             address: addressMap
           };
         } else {
-          console.log(this.provider, 'this.providerthis.providerthis.provider');
           const jsonRpcSigner = this.provider.getSigner();
           const message = 'Generate L2 Address';
           const signature = await jsonRpcSigner.signMessage(message);
@@ -487,15 +487,15 @@ export default {
             offset: 30
           });
         }
-      // } catch (e) {
-      //   console.log(e, '12312');
-      //   this.address = '';
-      //   this.$message({
-      //     message: this.$t('tips.tips22'),
-      //     type: 'warning',
-      //     offset: 30
-      //   });
-      // }
+      } catch (e) {
+        console.log(e, 'error');
+        this.address = '';
+        this.$message({
+          message: this.$t('tips.tips22'),
+          type: 'warning',
+          offset: 30
+        });
+      }
       this.loading = false;
     },
     swapClick() {
