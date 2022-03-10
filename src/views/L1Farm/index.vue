@@ -43,10 +43,22 @@
       <div class="pop-cont">
         <template>
           <div v-if="vaultsType==='increase'" class="size-36 font-500">{{ assetsItem && assetsItem.symbol }} {{ $t("vaults.vaults15") }}</div>
-          <div v-else class="size-36 font-500">{{ assetsItem && assetsItem.stakedAsset && assetsItem.stakedAsset.symbol }} {{ $t("vaults.vaults16") }}</div>
+          <div v-else class="size-36 font-500">{{ assetsItem && assetsItem.stakeToken && assetsItem.stakeToken.symbol }} {{ $t("vaults.vaults16") }}</div>
         </template>
-        <div v-if="vaultsType==='increase'" class="text-right mt-2 text-90 size-26">{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.balance || 0 }}</div>
-        <div v-else class="text-right mt-2 text-90 size-26">{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.amount || 0 }}</div>
+        <template v-if="vaultsType==='increase'">
+          <div class="text-right mt-2 text-90 size-26 d-flex justify-content-end">
+            {{ $t("vaults.vaults5") }}：
+            <span v-if="availableLoading" class="text-3a"><i class="el-icon-loading"/></span>
+            <span v-else>{{ assetsItem && assetsItem.balance || 0 }}</span>
+          </div>
+        </template>
+        <template v-else>
+          <div class="text-right mt-2 text-90 size-26">
+            {{ $t("vaults.vaults5") }}：
+            <span v-if="availableLoading" class="text-3a"><i class="el-icon-loading"/></span>
+            <span v-else>{{ assetsItem && assetsItem.amount || 0 }}</span>
+          </div>
+        </template>
         <div class="input-cont">
           <input
             :placeholder="$t('vaults.vaults9')"
@@ -117,7 +129,8 @@ export default {
       networkType: 'L1',
       approveLoading: false,
       approveList: [], // 授权列表
-      firstRequest: true
+      firstRequest: true,
+      availableLoading: false
     };
   },
   computed: {
@@ -207,8 +220,28 @@ export default {
       }
       if (type === 'increase') {
         this.assetsItem = item.stakedAsset;
+        if (this.assetsItem.balance == 0) {
+          this.availableLoading = true;
+          this.assetsItem.balance = await this.getBalance(this.assetsItem);
+          this.availableLoading = false;
+        }
       } else {
         this.assetsItem = item;
+      }
+    },
+    // 获取余额
+    async getBalance(asset) {
+      try {
+        const transfer = new ETransfer({
+          chain: this.fromNetwork
+        });
+        if (asset.contractAddress) {
+          return await transfer.getERC20Balance(asset.contractAddress, asset.decimals, this.fromAddress);
+        } else {
+          return await transfer.getEthBalance(this.fromAddress);
+        }
+      } catch (e) {
+        console.log(e, 'error');
       }
     },
     // 资产授权

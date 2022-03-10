@@ -328,6 +328,18 @@ export default {
             showBalanceLoading: true
           }));
           this.transferAssets = [...tempList];
+          if (!this.currentCoin) {
+            this.currentCoin = !this.currentCoin && (this.transferAssets.find(asset => asset.symbol === 'USDT' && asset.registerChain === this.fromNetwork) || this.transferAssets[0]) || this.currentCoin;
+          }
+          this.isMainAsset = config[tempNetwork].assetId === this.currentCoin.assetId && config[tempNetwork].chainId === this.currentCoin.chainId;
+          await this.getCurrentAssetInfo(false, this.currentCoin);
+          // this.available = this.currentCoin.userBalance;
+          if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== 'NULS') {
+            await this.checkCrossInAuthStatus();
+          } else {
+            this.crossInAuth = false;
+          }
+          this.availableLoading = false;
           if (this.toNerve && this.fromNetwork !== 'NULS') {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
@@ -383,18 +395,6 @@ export default {
             }
           }
           this.transferAssets = (tempList.length > 0 && tempList.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
-          if (!this.currentCoin) {
-            this.currentCoin = !this.currentCoin && (this.transferAssets.find(asset => asset.symbol === 'USDT' && asset.registerChain === this.fromNetwork) || this.transferAssets[0]) || this.currentCoin;
-          }
-          this.isMainAsset = config[tempNetwork].assetId === this.currentCoin.assetId && config[tempNetwork].chainId === this.currentCoin.chainId;
-          await this.getCurrentAssetInfo(false, this.currentCoin);
-          // this.available = this.currentCoin.userBalance;
-          if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== 'NULS') {
-            await this.checkCrossInAuthStatus();
-          } else {
-            this.crossInAuth = false;
-          }
-          this.availableLoading = false;
           // await this.getTransferFee();
         } else {
           this.transferAssets = [];
