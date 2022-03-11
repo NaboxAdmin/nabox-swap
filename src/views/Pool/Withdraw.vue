@@ -777,7 +777,7 @@ export default {
         this.withDrawLoading = false;
         this.reset();
         await this.recordHash(this.orderId, res.result.hash);
-        await this.getLiquidityInfo();
+        // await this.getLiquidityInfo();
       } else {
         this.withDrawLoading = false;
         this.$message({

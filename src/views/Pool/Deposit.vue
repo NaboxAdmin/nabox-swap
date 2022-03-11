@@ -740,7 +740,9 @@ export default {
         });
         this.reset();
         this.confirmLoading = false;
-        await this.getLiquidityInfo();
+        // const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));
+        // console.log(tempData, 'tempData');
+        // await this.getLiquidityInfo(tempData, false);
         await this.recordHash(this.orderId, res.result.hash);
       } else {
         this.$message({
