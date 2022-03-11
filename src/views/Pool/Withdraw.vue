@@ -466,6 +466,10 @@ export default {
       } catch (e) {
         console.log(e, 'error');
         this.computedFeeLoading = false;
+        this.$message({
+          type: 'warning',
+          message: e.message
+        });
       }
     },
     // 选择需要撤出流动性的资产
