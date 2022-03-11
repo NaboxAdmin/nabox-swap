@@ -14,7 +14,7 @@ export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'https://api.v2.nabox.io
 
 export const localChainConfig = [
   {
-    'id': 125,
+    'id': 3,
     'chain': 'Ethereum',
     'chainName': 'Ethereum',
     'prefix': '0x',
@@ -23,7 +23,7 @@ export const localChainConfig = [
     'chainType': 2,
     'crossAddress': '0xc707e0854da2d72c90a7453f8dc224dd937d7e82',
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Ethereum.png',
+    'icon': 'https://files.nabox.io/icon/Ethereum.png',
     'apiUrl': 'https://geth.nerve.network/',
     'scanUrl': 'https://etherscan.io/',
     'psUrl': null,
@@ -31,11 +31,12 @@ export const localChainConfig = [
     'txUrl': 'https://etherscan.io/tx/',
     'nft': 'eth',
     'sort': 1,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
     'configs': {
       'multiCallAddress': '0x6899aa135037a4c8a3cab11622d35cea4cd63747',
-      'crossAddress': '0xc707e0854da2d72c90a7453f8dc224dd937d7e82',
-      'nft': 'eth'
+      'crossAddress': '0xc707e0854da2d72c90a7453f8dc224dd937d7e82'
     },
     'mainAsset': {
       'id': 18684,
@@ -78,7 +79,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 2,
       'nerveFlag': false,
-      'usdPrice': 2554.2366,
+      'usdPrice': 2604.9417,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -115,7 +116,7 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 126,
+    'id': 4,
     'chain': 'BSC',
     'chainName': 'BSC',
     'prefix': '0x',
@@ -124,7 +125,7 @@ export const localChainConfig = [
     'chainType': 2,
     'crossAddress': '0x75ab1d50bedbd32b6113941fcf5359787a4bbef4',
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/BSC.png',
+    'icon': 'https://files.nabox.io/icon/BSC.png',
     'apiUrl': 'https://bsc-dataseed.binance.org',
     'scanUrl': 'https://bscscan.com/',
     'psUrl': null,
@@ -132,11 +133,12 @@ export const localChainConfig = [
     'txUrl': 'https://bscscan.com/tx/',
     'nft': 'bsc',
     'sort': 2,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
     'configs': {
       'multiCallAddress': '0x07616A4fb60F854054137A7b9b5C3f8c8dd2dc01',
-      'crossAddress': '0x75ab1d50bedbd32b6113941fcf5359787a4bbef4',
-      'nft': 'bsc'
+      'crossAddress': '0x75ab1d50bedbd32b6113941fcf5359787a4bbef4'
     },
     'mainAsset': {
       'id': 18989,
@@ -172,7 +174,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 25,
       'nerveFlag': false,
-      'usdPrice': 383.7334,
+      'usdPrice': 372.1665,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -244,7 +246,7 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 130,
+    'id': 8,
     'chain': 'Polygon',
     'chainName': 'Polygon',
     'prefix': '0x',
@@ -253,7 +255,7 @@ export const localChainConfig = [
     'chainType': 2,
     'crossAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Polygon.png',
+    'icon': 'https://files.nabox.io/icon/Polygon.png',
     'apiUrl': 'https://matic-mainnet.chainstacklabs.com',
     'scanUrl': 'https://polygonscan.com/',
     'psUrl': null,
@@ -261,11 +263,12 @@ export const localChainConfig = [
     'txUrl': 'https://polygonscan.com/tx/',
     'nft': 'matic',
     'sort': 3,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
     'configs': {
       'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
-      'nft': 'matic'
+      'crossAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e'
     },
     'mainAsset': {
       'id': 1360884,
@@ -294,7 +297,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 160,
       'nerveFlag': false,
-      'usdPrice': 1.4397,
+      'usdPrice': 1.434,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -338,7 +341,7 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 127,
+    'id': 5,
     'chain': 'Heco',
     'chainName': 'Heco',
     'prefix': '0x',
@@ -347,7 +350,7 @@ export const localChainConfig = [
     'chainType': 2,
     'crossAddress': '0x2ead2e7a3bd88c6a90b3d464bc6938ba56f1407f',
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Heco.png',
+    'icon': 'https://files.nabox.io/icon/Heco.png',
     'apiUrl': 'https://http-mainnet.hecochain.com',
     'scanUrl': 'https://hecoinfo.com/',
     'psUrl': null,
@@ -355,11 +358,12 @@ export const localChainConfig = [
     'txUrl': 'https://hecoinfo.com/tx/',
     'nft': '',
     'sort': 4,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
     'configs': {
       'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0x2ead2e7a3bd88c6a90b3d464bc6938ba56f1407f',
-      'nft': ''
+      'crossAddress': '0x2ead2e7a3bd88c6a90b3d464bc6938ba56f1407f'
     },
     'mainAsset': {
       'id': 19090,
@@ -395,7 +399,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 55,
       'nerveFlag': false,
-      'usdPrice': 8.472,
+      'usdPrice': 8.3726,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -418,7 +422,7 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 128,
+    'id': 6,
     'chain': 'OKExChain',
     'chainName': 'OKExChain',
     'prefix': '0x',
@@ -427,7 +431,7 @@ export const localChainConfig = [
     'chainType': 2,
     'crossAddress': '0xe096d12d6cb61e11bce3755f938b9259b386523a',
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/OKExChain.png',
+    'icon': 'https://files.nabox.io/icon/OKExChain.png',
     'apiUrl': 'https://exchainrpc.okex.org',
     'scanUrl': 'https://www.oklink.com/',
     'psUrl': null,
@@ -435,11 +439,12 @@ export const localChainConfig = [
     'txUrl': 'https://www.oklink.com/okexchain/tx/',
     'nft': '',
     'sort': 5,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
     'configs': {
       'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0xe096d12d6cb61e11bce3755f938b9259b386523a',
-      'nft': ''
+      'crossAddress': '0xe096d12d6cb61e11bce3755f938b9259b386523a'
     },
     'mainAsset': {
       'id': 862100,
@@ -468,7 +473,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 87,
       'nerveFlag': false,
-      'usdPrice': 34.3555,
+      'usdPrice': 34.3658,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -491,7 +496,66 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 129,
+    'id': 15,
+    'chain': 'Avalanche',
+    'chainName': 'Avalanche',
+    'prefix': '0x',
+    'nativeId': 43114,
+    'chainId': 110,
+    'chainType': 2,
+    'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5',
+    'intro': null,
+    'icon': 'https://files.nabox.io/icon/AVAX.png',
+    'apiUrl': 'https://api.avax.network/ext/bc/C/rpc',
+    'scanUrl': 'https://snowtrace.io/',
+    'psUrl': '',
+    'tokenUrl': 'https://snowtrace.io/token/',
+    'txUrl': 'https://snowtrace.io/tx/',
+    'nft': '',
+    'sort': 6,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
+    'configs': {
+      'multiCallAddress': '0xea749848faf37383e48a3004074b327229345943',
+      'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5'
+    },
+    'mainAsset': {
+      'id': 1364210,
+      'chain': 'Avalanche',
+      'registerChain': 'Avalanche',
+      'chainId': 110,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'AVAX',
+      'symbol': 'AVAX',
+      'symbolBase': 'AVAX',
+      'configType': 1,
+      'source': 4,
+      'icon': 'https://files.nabox.io/icon/AVAX.png',
+      'nulsCross': false,
+      'heterogeneousList': [
+        {
+          'heterogeneousChainId': 110,
+          'heterogeneousChainMultySignAddress': '0x3758aa66cad9f2606f1f501c9cb31b94b713a6d5',
+          'contractAddress': '',
+          'chainName': 'Avalanche',
+          'token': false
+        }
+      ],
+      'nerveChainId': 9,
+      'nerveAssetId': 267,
+      'nerveFlag': false,
+      'usdPrice': 73.7129,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': []
+  },
+  {
+    'id': 7,
     'chain': 'Harmony',
     'chainName': 'Harmony',
     'prefix': '0x',
@@ -500,7 +564,7 @@ export const localChainConfig = [
     'chainType': 2,
     'crossAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Harmony.png',
+    'icon': 'https://files.nabox.io/icon/Harmony.png',
     'apiUrl': 'https://api.harmony.one/',
     'scanUrl': 'https://explorer.harmony.one/',
     'psUrl': null,
@@ -508,11 +572,12 @@ export const localChainConfig = [
     'txUrl': 'https://explorer.harmony.one/tx/',
     'nft': '',
     'sort': 7,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 0,
     'configs': {
       'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
-      'nft': ''
+      'crossAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c'
     },
     'mainAsset': {
       'id': 1360883,
@@ -541,7 +606,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 159,
       'nerveFlag': false,
-      'usdPrice': 0.1294,
+      'usdPrice': 0.1259,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -557,7 +622,7 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 131,
+    'id': 9,
     'chain': 'KCC',
     'chainName': 'KCC',
     'prefix': '0x',
@@ -566,7 +631,7 @@ export const localChainConfig = [
     'chainType': 2,
     'crossAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/KCC.png',
+    'icon': 'https://files.nabox.io/icon/KCC.png',
     'apiUrl': 'https://rpc-mainnet.kcc.network',
     'scanUrl': 'https://explorer.kcc.io/cn/',
     'psUrl': null,
@@ -574,11 +639,12 @@ export const localChainConfig = [
     'txUrl': 'https://explorer.kcc.io/cn/tx/',
     'nft': '',
     'sort': 8,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 0,
     'configs': {
       'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
-      'nft': ''
+      'crossAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92'
     },
     'mainAsset': {
       'id': 1360885,
@@ -607,7 +673,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 161,
       'nerveFlag': false,
-      'usdPrice': 17.7445,
+      'usdPrice': 18.0826,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -623,7 +689,7 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 133,
+    'id': 14,
     'chain': 'Cronos',
     'chainName': 'Cronos',
     'prefix': '0x',
@@ -640,11 +706,12 @@ export const localChainConfig = [
     'txUrl': 'https://cronos.crypto.org/explorer/tx/',
     'nft': '',
     'sort': 9,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 0,
     'configs': {
       'multiCallAddress': '0x51E54e092B93FE31FC277435B1380512D7d27eEe',
-      'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5',
-      'nft': ''
+      'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5'
     },
     'mainAsset': {
       'id': 1364209,
@@ -673,7 +740,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 266,
       'nerveFlag': false,
-      'usdPrice': 0.3831,
+      'usdPrice': 0.3887,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -689,9 +756,127 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 137,
-    'chain': 'CoinEx',
-    'chainName': 'CoinEx',
+    'id': 16,
+    'chain': 'Arbitrum',
+    'chainName': 'Arbitrum',
+    'prefix': '0x',
+    'nativeId': 42161,
+    'chainId': 111,
+    'chainType': 2,
+    'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5',
+    'intro': null,
+    'icon': 'https://files.nabox.io/icon/Arbitrum.png',
+    'apiUrl': 'https://arb1.arbitrum.io/rpc',
+    'scanUrl': 'https://arbiscan.io/',
+    'psUrl': '',
+    'tokenUrl': 'https://arbiscan.io/token/',
+    'txUrl': 'https://arbiscan.io/tx/',
+    'nft': '',
+    'sort': 10,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
+    'configs': {
+      'multiCallAddress': '0xea749848faF37383e48A3004074b327229345943',
+      'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5'
+    },
+    'mainAsset': {
+      'id': 1364211,
+      'chain': 'Arbitrum',
+      'registerChain': 'Arbitrum',
+      'chainId': 111,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'AETH',
+      'symbol': 'AETH',
+      'symbolBase': 'AETH',
+      'configType': 1,
+      'source': 4,
+      'icon': 'https://files.nabox.io/icon/Arbitrum.png',
+      'nulsCross': false,
+      'heterogeneousList': [
+        {
+          'heterogeneousChainId': 111,
+          'heterogeneousChainMultySignAddress': '0xf0e406c49c63abf358030a299c0e00118c4c6ba5',
+          'contractAddress': '',
+          'chainName': 'Arbitrum',
+          'token': false
+        }
+      ],
+      'nerveChainId': 9,
+      'nerveAssetId': 268,
+      'nerveFlag': false,
+      'usdPrice': 2604.9417,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': []
+  },
+  {
+    'id': 17,
+    'chain': 'Fantom',
+    'chainName': 'Fantom',
+    'prefix': '0x',
+    'nativeId': 250,
+    'chainId': 112,
+    'chainType': 2,
+    'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5',
+    'intro': null,
+    'icon': 'https://files.nabox.io/icon/Fantom.png',
+    'apiUrl': 'https://rpc.ftm.tools/',
+    'scanUrl': 'https://ftmscan.com/',
+    'psUrl': 'https://faucet.fantom.network/',
+    'tokenUrl': 'https://ftmscan.com/token/',
+    'txUrl': 'https://ftmscan.com/tx/',
+    'nft': '',
+    'sort': 11,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
+    'configs': {
+      'multiCallAddress': '0xea749848faF37383e48A3004074b327229345943',
+      'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5'
+    },
+    'mainAsset': {
+      'id': 1364212,
+      'chain': 'Fantom',
+      'registerChain': 'Fantom',
+      'chainId': 112,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'FTM',
+      'symbol': 'FTM',
+      'symbolBase': 'FTM',
+      'configType': 1,
+      'source': 4,
+      'icon': 'https://files.nabox.io/icon/Fantom.png',
+      'nulsCross': false,
+      'heterogeneousList': [
+        {
+          'heterogeneousChainId': 112,
+          'heterogeneousChainMultySignAddress': '0x3758aa66cad9f2606f1f501c9cb31b94b713a6d5',
+          'contractAddress': '',
+          'chainName': 'Fantom',
+          'token': false
+        }
+      ],
+      'nerveChainId': 9,
+      'nerveAssetId': 269,
+      'nerveFlag': false,
+      'usdPrice': 1.2333,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': []
+  },
+  {
+    'id': 19,
+    'chain': 'CSC',
+    'chainName': 'CSC',
     'prefix': '0x',
     'nativeId': 52,
     'chainId': 0,
@@ -706,16 +891,17 @@ export const localChainConfig = [
     'txUrl': 'https://www.coinex.net/tx/',
     'nft': '',
     'sort': 12,
-    'status': 0,
+    'status': 1,
+    'bridge': 0,
+    'swap': 0,
     'configs': {
       'multiCallAddress': '0xC1f4F265EC8A46ad19740E7d3c6960db4c595dE5',
-      'crossAddress': '',
-      'nft': ''
+      'crossAddress': ''
     },
     'mainAsset': {
-      'id': 1364288,
-      'chain': 'CoinEx',
-      'registerChain': 'CoinEx',
+      'id': 1364380,
+      'chain': 'CSC',
+      'registerChain': 'CSC',
       'chainId': 0,
       'assetId': 1,
       'contractAddress': '',
@@ -732,22 +918,14 @@ export const localChainConfig = [
       'nerveAssetId': 0,
       'nerveFlag': false,
       'usdPrice': 1.0,
-      'usdPlatform': 'cmc',
+      'usdPlatform': null,
       'usdUrl': null
     },
     'assets': [],
-    'urlList': [
-      {
-        'id': 57,
-        'chain': 'CoinEx',
-        'nativeId': 52,
-        'name': 'coined-01',
-        'apiUrl': 'https://rpc.coinex.net/'
-      }
-    ]
+    'urlList': []
   },
   {
-    'id': 123,
+    'id': 1,
     'chain': 'NULS',
     'chainName': 'NULS',
     'prefix': 'NULS',
@@ -755,8 +933,8 @@ export const localChainConfig = [
     'chainId': 1,
     'chainType': 1,
     'crossAddress': null,
-    'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NULS.png',
+    'intro': '',
+    'icon': 'https://files.nabox.io/icon/NULS.png',
     'apiUrl': 'https://api.nuls.io/jsonrpc',
     'scanUrl': 'https://nulscan.io/',
     'psUrl': 'https://public1.nuls.io/',
@@ -764,7 +942,9 @@ export const localChainConfig = [
     'txUrl': 'https://nulscan.io/transaction/info?hash=',
     'nft': '',
     'sort': 98,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 0,
     'configs': {
       'feeAddress': 'NULSd6HgceXmdyqnK5WzHdJKjXxtZVR3w3rJp',
       'destroyAddress': 'NULSd6HgWSU1iR6BfNoQi85mAMT52JMFzpnok',
@@ -839,7 +1019,7 @@ export const localChainConfig = [
       'nerveChainId': 1,
       'nerveAssetId': 1,
       'nerveFlag': true,
-      'usdPrice': 0.3807,
+      'usdPrice': 0.3932,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -897,7 +1077,7 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 124,
+    'id': 2,
     'chain': 'NERVE',
     'chainName': 'NERVE',
     'prefix': 'NERVE',
@@ -906,7 +1086,7 @@ export const localChainConfig = [
     'chainType': 1,
     'crossAddress': null,
     'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NERVE.png',
+    'icon': 'https://files.nabox.io/icon/NERVE.png',
     'apiUrl': 'https://api.nerve.network/jsonrpc',
     'scanUrl': 'https://scan.nerve.network/',
     'psUrl': 'https://public.nerve.network/jsonrpc',
@@ -914,7 +1094,9 @@ export const localChainConfig = [
     'txUrl': 'https://scan.nerve.network/transaction/info?hash=',
     'nft': '',
     'sort': 99,
-    'status': 0,
+    'status': 1,
+    'bridge': 1,
+    'swap': 1,
     'configs': {
       'feeAddress': 'NERVEepb69f573sRzfoTX9Kn67WeNtXhG6Y6W8',
       'destroyAddress': 'NERVEepb63T1M8JgQ26jwZpZXYL8ZMLdUAK31L',
@@ -1003,7 +1185,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 1,
       'nerveFlag': false,
-      'usdPrice': 0.0264,
+      'usdPrice': 0.0213,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },

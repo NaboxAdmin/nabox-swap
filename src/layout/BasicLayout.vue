@@ -163,15 +163,6 @@ export default {
       tempData = window._naboxAccount;
     }
     console.log(tempData, '==_naboxAccount==');
-    this.initConnect();
-    if (this.address && getCurrentAccount(this.address)) {
-      this.refreshWallet();
-      // this.getOrderList()
-      if (this.timer) clearInterval(this.timer);
-      this.timer = setInterval(() => {
-        this.refreshWallet();
-      }, 300000);
-    }
     const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
     if (tempData && Object.keys(config).length === Object.keys(tempData.addressDict).length) {
       const accountList = [
@@ -188,6 +179,15 @@ export default {
         this.address = tempData.addressDict[this.fromNetwork];
       }
       localStorage.setItem('accountList', JSON.stringify(accountList));
+    }
+    this.initConnect();
+    if (this.address && getCurrentAccount(this.address)) {
+      this.refreshWallet();
+      // this.getOrderList()
+      if (this.timer) clearInterval(this.timer);
+      this.timer = setInterval(() => {
+        this.refreshWallet();
+      }, 300000);
     }
     // FIXME: 取消tab-bar展示
     // if (!tempData || tempData && !tempData.isTabbarSwap) {

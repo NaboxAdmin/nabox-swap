@@ -294,9 +294,9 @@ export default {
   },
   created() {
     if (this.statusTimer) clearInterval(this.statusTimer);
-    this.fromAddress && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
+    this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
     this.statusTimer = setInterval(() => {
-      this.fromAddress && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
+      this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
     }, 5000);
   },
   mounted() {
