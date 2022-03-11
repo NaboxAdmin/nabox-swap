@@ -19,7 +19,7 @@
             <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectAsset(item)">
               <div class="coin-item">
                 <span class="coin-icon">
-                  <img :src="getPicture(item.symbol)" @error="pictureError">
+                  <img :src="item.icon || getPicture(item.symbol)" @error="pictureError">
                 </span>
                 <span class="d-flex direction-column space-between h-40">
                   <span class="text-3a font-500">{{ item.symbol }}</span>

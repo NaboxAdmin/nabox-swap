@@ -12,7 +12,7 @@
       <div v-for="(item, index) in poolList" :key="index" class="pool-item mt-3">
         <div class="pool-icon_cont d-flex align-items-center">
           <div class="pool-icon">
-            <img :src="getPicture(item.depositAssetSymbol)" alt="" @error="pictureError">
+            <img :src="item.depositIcon || getPicture(item.depositAssetSymbol)" alt="" @error="pictureError">
           </div>
           <div class="ml-12 font-500 size-30">{{ item.depositAssetSymbol }}</div>
         </div>
@@ -96,6 +96,7 @@ export default {
             ...item,
             supportNetwork: item.swapAssets.map(asset => asset.chain),
             totalLp: this.numberFormat(tofix(divisionDecimals(item.tokenLp.amount, item.tokenLp.decimals), 2, -1), 2),
+            depositIcon: item.swapAssets.find(asset => asset.chain === this.fromNetwork) && item.swapAssets.find(asset => asset.chain === this.fromNetwork).icon || item.swapAssets[0].icon,
             depositAssetSymbol: item.swapAssets.find(asset => asset.chain === this.fromNetwork) && item.swapAssets.find(asset => asset.chain === this.fromNetwork).symbol || item.swapAssets[0].symbol
           })) : this.poolList;
           this.poolLoading = false;

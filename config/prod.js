@@ -14,7 +14,7 @@ export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'https://api.v2.nabox.io
 
 export const localChainConfig = [
   {
-    'id': 3,
+    'id': 125,
     'chain': 'Ethereum',
     'chainName': 'Ethereum',
     'prefix': '0x',
@@ -78,7 +78,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 2,
       'nerveFlag': false,
-      'usdPrice': 2942.4452,
+      'usdPrice': 2554.2366,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -88,34 +88,34 @@ export const localChainConfig = [
         'id': 27,
         'chain': 'Ethereum',
         'nativeId': 1,
-        'name': 'eth-1',
-        'apiUrl': 'http://geth.nerve.network'
+        'name': 'ETH-1',
+        'apiUrl': 'https://geth.nerve.network'
       },
       {
         'id': 28,
         'chain': 'Ethereum',
         'nativeId': 1,
-        'name': 'eth-2',
+        'name': 'ETH-2',
         'apiUrl': 'https://web3.mytokenpocket.vip'
       },
       {
         'id': 29,
         'chain': 'Ethereum',
         'nativeId': 1,
-        'name': 'eth-3',
+        'name': 'ETH-3',
         'apiUrl': 'https://geth.mytokenpocket.vip'
       },
       {
         'id': 30,
         'chain': 'Ethereum',
         'nativeId': 1,
-        'name': 'eth-4',
+        'name': 'ETH-4',
         'apiUrl': 'https://eth626892d.jccdex.cn'
       }
     ]
   },
   {
-    'id': 4,
+    'id': 126,
     'chain': 'BSC',
     'chainName': 'BSC',
     'prefix': '0x',
@@ -172,7 +172,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 25,
       'nerveFlag': false,
-      'usdPrice': 408.5149,
+      'usdPrice': 383.7334,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -182,35 +182,35 @@ export const localChainConfig = [
         'id': 31,
         'chain': 'BSC',
         'nativeId': 56,
-        'name': 'bsc-1',
+        'name': 'BSC-1',
         'apiUrl': 'https://bsc-dataseed4.ninicoin.io'
       },
       {
         'id': 32,
         'chain': 'BSC',
         'nativeId': 56,
-        'name': 'bsc-2',
+        'name': 'BSC-2',
         'apiUrl': 'https://bsc-dataseed1.binance.org'
       },
       {
         'id': 33,
         'chain': 'BSC',
         'nativeId': 56,
-        'name': 'bsc-3',
+        'name': 'BSC-3',
         'apiUrl': 'https://bsc-dataseed2.binance.org'
       },
       {
         'id': 34,
         'chain': 'BSC',
         'nativeId': 56,
-        'name': 'bsc-4',
+        'name': 'BSC-4',
         'apiUrl': 'https://bsc-dataseed3.binance.org'
       },
       {
         'id': 35,
         'chain': 'BSC',
         'nativeId': 56,
-        'name': 'bsc-5',
+        'name': 'BSC-5',
         'apiUrl': 'https://bsc-dataseed.binance.org'
       },
       {
@@ -244,7 +244,101 @@ export const localChainConfig = [
     ]
   },
   {
-    'id': 5,
+    'id': 130,
+    'chain': 'Polygon',
+    'chainName': 'Polygon',
+    'prefix': '0x',
+    'nativeId': 137,
+    'chainId': 106,
+    'chainType': 2,
+    'crossAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
+    'intro': null,
+    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Polygon.png',
+    'apiUrl': 'https://matic-mainnet.chainstacklabs.com',
+    'scanUrl': 'https://polygonscan.com/',
+    'psUrl': null,
+    'tokenUrl': 'https://polygonscan.com/token/',
+    'txUrl': 'https://polygonscan.com/tx/',
+    'nft': 'matic',
+    'sort': 3,
+    'status': 0,
+    'configs': {
+      'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
+      'crossAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
+      'nft': 'matic'
+    },
+    'mainAsset': {
+      'id': 1360884,
+      'chain': 'Polygon',
+      'registerChain': 'Polygon',
+      'chainId': 106,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'MATIC',
+      'symbol': 'MATIC',
+      'symbolBase': 'MATIC',
+      'configType': 1,
+      'source': 4,
+      'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Polygon.png',
+      'nulsCross': false,
+      'heterogeneousList': [
+        {
+          'heterogeneousChainId': 106,
+          'heterogeneousChainMultySignAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
+          'contractAddress': '',
+          'chainName': 'Polygon',
+          'token': false
+        }
+      ],
+      'nerveChainId': 9,
+      'nerveAssetId': 160,
+      'nerveFlag': false,
+      'usdPrice': 1.4397,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': [
+      {
+        'id': 40,
+        'chain': 'Polygon',
+        'nativeId': 137,
+        'name': 'MATIC-1',
+        'apiUrl': 'https://rpc-mainnet.matic.network'
+      },
+      {
+        'id': 41,
+        'chain': 'Polygon',
+        'nativeId': 137,
+        'name': 'MATIC-2',
+        'apiUrl': 'https://matic-mainnet.chainstacklabs.com'
+      },
+      {
+        'id': 42,
+        'chain': 'Polygon',
+        'nativeId': 137,
+        'name': 'MATIC-3',
+        'apiUrl': 'https://rpc-mainnet.maticvigil.com'
+      },
+      {
+        'id': 43,
+        'chain': 'Polygon',
+        'nativeId': 137,
+        'name': 'MATIC-4',
+        'apiUrl': 'https://polygon-rpc.com'
+      },
+      {
+        'id': 44,
+        'chain': 'Polygon',
+        'nativeId': 137,
+        'name': 'MATIC-5',
+        'apiUrl': 'https://matic-mainnet-archive-rpc.bwarelabs.com'
+      }
+    ]
+  },
+  {
+    'id': 127,
     'chain': 'Heco',
     'chainName': 'Heco',
     'prefix': '0x',
@@ -301,7 +395,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 55,
       'nerveFlag': false,
-      'usdPrice': 8.7087,
+      'usdPrice': 8.472,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -311,20 +405,20 @@ export const localChainConfig = [
         'id': 36,
         'chain': 'Heco',
         'nativeId': 128,
-        'name': 'heco-1',
+        'name': 'HECO-1',
         'apiUrl': 'https://http-mainnet.hecochain.com'
       },
       {
         'id': 37,
         'chain': 'Heco',
         'nativeId': 128,
-        'name': 'heco-2',
+        'name': 'HECO-2',
         'apiUrl': 'https://http-mainnet-node.defibox.com'
       }
     ]
   },
   {
-    'id': 6,
+    'id': 128,
     'chain': 'OKExChain',
     'chainName': 'OKExChain',
     'prefix': '0x',
@@ -374,7 +468,7 @@ export const localChainConfig = [
       'nerveChainId': 9,
       'nerveAssetId': 87,
       'nerveFlag': false,
-      'usdPrice': 34.3246,
+      'usdPrice': 34.3555,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -384,20 +478,276 @@ export const localChainConfig = [
         'id': 38,
         'chain': 'OKExChain',
         'nativeId': 66,
-        'name': 'oec-1',
+        'name': 'OEC-1',
         'apiUrl': 'https://exchainrpc.okex.org'
       },
       {
         'id': 39,
         'chain': 'OKExChain',
         'nativeId': 66,
-        'name': 'oec-2',
+        'name': 'OEC-2',
         'apiUrl': 'https://okchain.mytokenpocket.vip'
       }
     ]
   },
   {
-    'id': 1,
+    'id': 129,
+    'chain': 'Harmony',
+    'chainName': 'Harmony',
+    'prefix': '0x',
+    'nativeId': 1666600000,
+    'chainId': 105,
+    'chainType': 2,
+    'crossAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
+    'intro': null,
+    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Harmony.png',
+    'apiUrl': 'https://api.harmony.one/',
+    'scanUrl': 'https://explorer.harmony.one/',
+    'psUrl': null,
+    'tokenUrl': 'https://explorer.harmony.one/address/',
+    'txUrl': 'https://explorer.harmony.one/tx/',
+    'nft': '',
+    'sort': 7,
+    'status': 0,
+    'configs': {
+      'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
+      'crossAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
+      'nft': ''
+    },
+    'mainAsset': {
+      'id': 1360883,
+      'chain': 'Harmony',
+      'registerChain': 'Harmony',
+      'chainId': 105,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'ONE',
+      'symbol': 'ONE',
+      'symbolBase': 'ONE',
+      'configType': 1,
+      'source': 4,
+      'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Harmony.png',
+      'nulsCross': false,
+      'heterogeneousList': [
+        {
+          'heterogeneousChainId': 105,
+          'heterogeneousChainMultySignAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
+          'contractAddress': '',
+          'chainName': 'Harmony',
+          'token': false
+        }
+      ],
+      'nerveChainId': 9,
+      'nerveAssetId': 159,
+      'nerveFlag': false,
+      'usdPrice': 0.1294,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': [
+      {
+        'id': 45,
+        'chain': 'Harmony',
+        'nativeId': 1666600000,
+        'name': 'ONE-1',
+        'apiUrl': 'https://api.harmony.one/'
+      }
+    ]
+  },
+  {
+    'id': 131,
+    'chain': 'KCC',
+    'chainName': 'KCC',
+    'prefix': '0x',
+    'nativeId': 321,
+    'chainId': 107,
+    'chainType': 2,
+    'crossAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
+    'intro': null,
+    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/KCC.png',
+    'apiUrl': 'https://rpc-mainnet.kcc.network',
+    'scanUrl': 'https://explorer.kcc.io/cn/',
+    'psUrl': null,
+    'tokenUrl': 'https://explorer.kcc.io/cn/token/',
+    'txUrl': 'https://explorer.kcc.io/cn/tx/',
+    'nft': '',
+    'sort': 8,
+    'status': 0,
+    'configs': {
+      'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
+      'crossAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
+      'nft': ''
+    },
+    'mainAsset': {
+      'id': 1360885,
+      'chain': 'KCC',
+      'registerChain': 'KCC',
+      'chainId': 107,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'KCS',
+      'symbol': 'KCS',
+      'symbolBase': 'KCS',
+      'configType': 1,
+      'source': 4,
+      'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/KCC.png',
+      'nulsCross': false,
+      'heterogeneousList': [
+        {
+          'heterogeneousChainId': 107,
+          'heterogeneousChainMultySignAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
+          'contractAddress': '',
+          'chainName': 'KCC',
+          'token': false
+        }
+      ],
+      'nerveChainId': 9,
+      'nerveAssetId': 161,
+      'nerveFlag': false,
+      'usdPrice': 17.7445,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': [
+      {
+        'id': 46,
+        'chain': 'KCC',
+        'nativeId': 321,
+        'name': 'KCC-1',
+        'apiUrl': 'https://rpc-mainnet.kcc.network'
+      }
+    ]
+  },
+  {
+    'id': 133,
+    'chain': 'Cronos',
+    'chainName': 'Cronos',
+    'prefix': '0x',
+    'nativeId': 25,
+    'chainId': 109,
+    'chainType': 2,
+    'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5',
+    'intro': null,
+    'icon': 'https://files.nabox.io/icon/cronos.png',
+    'apiUrl': 'https://evm-cronos.crypto.org',
+    'scanUrl': 'https://cronos.crypto.org/explorer/',
+    'psUrl': '',
+    'tokenUrl': 'https://cronos.crypto.org/explorer/token/',
+    'txUrl': 'https://cronos.crypto.org/explorer/tx/',
+    'nft': '',
+    'sort': 9,
+    'status': 0,
+    'configs': {
+      'multiCallAddress': '0x51E54e092B93FE31FC277435B1380512D7d27eEe',
+      'crossAddress': '0x3758AA66caD9F2606F1F501c9CB31b94b713A6d5',
+      'nft': ''
+    },
+    'mainAsset': {
+      'id': 1364209,
+      'chain': 'Cronos',
+      'registerChain': 'Cronos',
+      'chainId': 109,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'CRO',
+      'symbol': 'CRO',
+      'symbolBase': 'CRO',
+      'configType': 1,
+      'source': 4,
+      'icon': 'https://files.nabox.io/icon/cronos.png',
+      'nulsCross': false,
+      'heterogeneousList': [
+        {
+          'heterogeneousChainId': 109,
+          'heterogeneousChainMultySignAddress': '0x3758aa66cad9f2606f1f501c9cb31b94b713a6d5',
+          'contractAddress': '',
+          'chainName': 'Cronos',
+          'token': false
+        }
+      ],
+      'nerveChainId': 9,
+      'nerveAssetId': 266,
+      'nerveFlag': false,
+      'usdPrice': 0.3831,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': [
+      {
+        'id': 56,
+        'chain': 'Cronos',
+        'nativeId': 25,
+        'name': 'cronos-1',
+        'apiUrl': 'https://evm-cronos.crypto.org'
+      }
+    ]
+  },
+  {
+    'id': 137,
+    'chain': 'CoinEx',
+    'chainName': 'CoinEx',
+    'prefix': '0x',
+    'nativeId': 52,
+    'chainId': 0,
+    'chainType': 2,
+    'crossAddress': '',
+    'intro': null,
+    'icon': 'https://files.nabox.io/icon/CoinEx.jpeg',
+    'apiUrl': 'https://rpc.coinex.net/',
+    'scanUrl': 'https://www.coinex.net/',
+    'psUrl': '',
+    'tokenUrl': 'https://www.coinex.net/token/',
+    'txUrl': 'https://www.coinex.net/tx/',
+    'nft': '',
+    'sort': 12,
+    'status': 0,
+    'configs': {
+      'multiCallAddress': '0xC1f4F265EC8A46ad19740E7d3c6960db4c595dE5',
+      'crossAddress': '',
+      'nft': ''
+    },
+    'mainAsset': {
+      'id': 1364288,
+      'chain': 'CoinEx',
+      'registerChain': 'CoinEx',
+      'chainId': 0,
+      'assetId': 1,
+      'contractAddress': '',
+      'decimals': 18,
+      'assetName': 'CET',
+      'symbol': 'CET',
+      'symbolBase': 'CET',
+      'configType': 1,
+      'source': 0,
+      'icon': 'https://files.nabox.io/icon/CoinEx.jpeg',
+      'nulsCross': false,
+      'heterogeneousList': null,
+      'nerveChainId': 0,
+      'nerveAssetId': 0,
+      'nerveFlag': false,
+      'usdPrice': 1.0,
+      'usdPlatform': 'cmc',
+      'usdUrl': null
+    },
+    'assets': [],
+    'urlList': [
+      {
+        'id': 57,
+        'chain': 'CoinEx',
+        'nativeId': 52,
+        'name': 'coined-01',
+        'apiUrl': 'https://rpc.coinex.net/'
+      }
+    ]
+  },
+  {
+    'id': 123,
     'chain': 'NULS',
     'chainName': 'NULS',
     'prefix': 'NULS',
@@ -405,7 +755,7 @@ export const localChainConfig = [
     'chainId': 1,
     'chainType': 1,
     'crossAddress': null,
-    'intro': '',
+    'intro': null,
     'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NULS.png',
     'apiUrl': 'https://api.nuls.io/jsonrpc',
     'scanUrl': 'https://nulscan.io/',
@@ -489,7 +839,7 @@ export const localChainConfig = [
       'nerveChainId': 1,
       'nerveAssetId': 1,
       'nerveFlag': true,
-      'usdPrice': 0.4208,
+      'usdPrice': 0.3807,
       'usdPlatform': 'cmc',
       'usdUrl': null
     },
@@ -499,281 +849,55 @@ export const localChainConfig = [
         'id': 10,
         'chain': 'NULS',
         'nativeId': -1,
-        'name': 'nuls-1',
+        'name': 'NULS-1',
         'apiUrl': 'https://api.nuls.io/jsonrpc'
       },
       {
         'id': 11,
         'chain': 'NULS',
         'nativeId': -1,
-        'name': 'nuls-2',
+        'name': 'NULS-2',
         'apiUrl': 'https://sg.api.nuls.io/jsonrpc'
       },
       {
         'id': 12,
         'chain': 'NULS',
         'nativeId': -1,
-        'name': 'nuls-3',
+        'name': 'NULS-3',
         'apiUrl': 'https://hk.api.nuls.io/jsonrpc'
       },
       {
         'id': 13,
         'chain': 'NULS',
         'nativeId': -1,
-        'name': 'nuls-4',
+        'name': 'NULS-4',
         'apiUrl': 'https://au.api.nuls.io/jsonrpc'
       },
       {
         'id': 14,
         'chain': 'NULS',
         'nativeId': -1,
-        'name': 'nuls-5',
+        'name': 'NULS-5',
         'apiUrl': 'https://us.api.nuls.io/jsonrpc '
       },
       {
         'id': 15,
         'chain': 'NULS',
         'nativeId': -1,
-        'name': 'nuls-6',
+        'name': 'NULS-6',
         'apiUrl': 'https://id.api.nuls.io/jsonrpc'
       },
       {
         'id': 16,
         'chain': 'NULS',
         'nativeId': -1,
-        'name': 'nuls-7',
+        'name': 'NULS-7',
         'apiUrl': 'http://in.api.nuls.io/jsonrpc'
       }
     ]
   },
   {
-    'id': 8,
-    'chain': 'Polygon',
-    'chainName': 'Polygon',
-    'prefix': '0x',
-    'nativeId': 137,
-    'chainId': 106,
-    'chainType': 2,
-    'crossAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
-    'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Polygon.png',
-    'apiUrl': 'https://matic-mainnet.chainstacklabs.com',
-    'scanUrl': 'https://polygonscan.com/',
-    'psUrl': null,
-    'tokenUrl': 'https://polygonscan.com/token/',
-    'txUrl': 'https://polygonscan.com/tx/',
-    'nft': 'matic',
-    'sort': 3,
-    'status': 0,
-    'configs': {
-      'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
-      'nft': 'matic'
-    },
-    'mainAsset': {
-      'id': 1360884,
-      'chain': 'Polygon',
-      'registerChain': 'Polygon',
-      'chainId': 106,
-      'assetId': 1,
-      'contractAddress': '',
-      'decimals': 18,
-      'assetName': 'MATIC',
-      'symbol': 'MATIC',
-      'symbolBase': 'MATIC',
-      'configType': 1,
-      'source': 4,
-      'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Polygon.png',
-      'nulsCross': false,
-      'heterogeneousList': [
-        {
-          'heterogeneousChainId': 106,
-          'heterogeneousChainMultySignAddress': '0x9ddc2fb726cf243305349587ae2a33dd7c91460e',
-          'contractAddress': '',
-          'chainName': 'Polygon',
-          'token': false
-        }
-      ],
-      'nerveChainId': 9,
-      'nerveAssetId': 160,
-      'nerveFlag': false,
-      'usdPrice': 1.6332,
-      'usdPlatform': 'cmc',
-      'usdUrl': null
-    },
-    'assets': [],
-    'urlList': [
-      {
-        'id': 40,
-        'chain': 'Polygon',
-        'nativeId': 137,
-        'name': 'matic-1',
-        'apiUrl': 'https://matic-mainnet.chainstacklabs.com'
-      },
-      {
-        'id': 41,
-        'chain': 'Polygon',
-        'nativeId': 137,
-        'name': 'matic-2',
-        'apiUrl': 'https://rpc-mainnet.matic.network'
-      },
-      {
-        'id': 42,
-        'chain': 'Polygon',
-        'nativeId': 137,
-        'name': 'matic-3',
-        'apiUrl': 'https://rpc-mainnet.maticvigil.com'
-      },
-      {
-        'id': 43,
-        'chain': 'Polygon',
-        'nativeId': 137,
-        'name': 'matic-4',
-        'apiUrl': 'https://polygon-rpc.com'
-      },
-      {
-        'id': 44,
-        'chain': 'Polygon',
-        'nativeId': 137,
-        'name': 'matic-5',
-        'apiUrl': 'https://matic-mainnet-archive-rpc.bwarelabs.com'
-      }
-    ]
-  },
-  {
-    'id': 7,
-    'chain': 'Harmony',
-    'chainName': 'Harmony',
-    'prefix': '0x',
-    'nativeId': 1666600000,
-    'chainId': 105,
-    'chainType': 2,
-    'crossAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
-    'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Harmony.png',
-    'apiUrl': 'https://api.harmony.one/',
-    'scanUrl': 'https://explorer.harmony.one/',
-    'psUrl': null,
-    'tokenUrl': 'https://explorer.harmony.one/address/',
-    'txUrl': 'https://explorer.harmony.one/tx/',
-    'nft': '',
-    'sort': 7,
-    'status': 0,
-    'configs': {
-      'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
-      'nft': ''
-    },
-    'mainAsset': {
-      'id': 1360883,
-      'chain': 'Harmony',
-      'registerChain': 'Harmony',
-      'chainId': 105,
-      'assetId': 1,
-      'contractAddress': '',
-      'decimals': 18,
-      'assetName': 'ONE',
-      'symbol': 'ONE',
-      'symbolBase': 'ONE',
-      'configType': 1,
-      'source': 4,
-      'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/Harmony.png',
-      'nulsCross': false,
-      'heterogeneousList': [
-        {
-          'heterogeneousChainId': 105,
-          'heterogeneousChainMultySignAddress': '0x32fae32961474e6d19b7a6346524b8a6a6fd1d9c',
-          'contractAddress': '',
-          'chainName': 'Harmony',
-          'token': false
-        }
-      ],
-      'nerveChainId': 9,
-      'nerveAssetId': 159,
-      'nerveFlag': false,
-      'usdPrice': 0.1636,
-      'usdPlatform': 'cmc',
-      'usdUrl': null
-    },
-    'assets': [],
-    'urlList': [
-      {
-        'id': 45,
-        'chain': 'Harmony',
-        'nativeId': 1666600000,
-        'name': 'one-1',
-        'apiUrl': 'https://api.harmony.one/'
-      }
-    ]
-  },
-  {
-    'id': 9,
-    'chain': 'KCC',
-    'chainName': 'KCC',
-    'prefix': '0x',
-    'nativeId': 321,
-    'chainId': 107,
-    'chainType': 2,
-    'crossAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
-    'intro': null,
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/KCC.png',
-    'apiUrl': 'https://rpc-mainnet.kcc.network',
-    'scanUrl': 'https://explorer.kcc.io/cn/',
-    'psUrl': null,
-    'tokenUrl': 'https://explorer.kcc.io/cn/token/',
-    'txUrl': 'https://explorer.kcc.io/cn/tx/',
-    'nft': '',
-    'sort': 8,
-    'status': 0,
-    'configs': {
-      'multiCallAddress': '0xd1F3BE686D64e1EA33fcF64980b65847aA43D79C',
-      'crossAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
-      'nft': ''
-    },
-    'mainAsset': {
-      'id': 1360885,
-      'chain': 'KCC',
-      'registerChain': 'KCC',
-      'chainId': 107,
-      'assetId': 1,
-      'contractAddress': '',
-      'decimals': 18,
-      'assetName': 'KCS',
-      'symbol': 'KCS',
-      'symbolBase': 'KCS',
-      'configType': 1,
-      'source': 4,
-      'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/KCC.png',
-      'nulsCross': false,
-      'heterogeneousList': [
-        {
-          'heterogeneousChainId': 107,
-          'heterogeneousChainMultySignAddress': '0xdb442dff8ff9fd10245406da9a32528c30c10c92',
-          'contractAddress': '',
-          'chainName': 'KCC',
-          'token': false
-        }
-      ],
-      'nerveChainId': 9,
-      'nerveAssetId': 161,
-      'nerveFlag': false,
-      'usdPrice': 20.325,
-      'usdPlatform': 'cmc',
-      'usdUrl': null
-    },
-    'assets': [],
-    'urlList': [
-      {
-        'id': 46,
-        'chain': 'KCC',
-        'nativeId': 321,
-        'name': 'kcc-1',
-        'apiUrl': 'https://rpc-mainnet.kcc.network'
-      }
-    ]
-  },
-  {
-    'id': 2,
+    'id': 124,
     'chain': 'NERVE',
     'chainName': 'NERVE',
     'prefix': 'NERVE',
@@ -889,49 +1013,49 @@ export const localChainConfig = [
         'id': 17,
         'chain': 'NERVE',
         'nativeId': -2,
-        'name': 'nvt-1',
+        'name': 'NVT-1',
         'apiUrl': 'https://api.nerve.network/jsonrpc'
       },
       {
         'id': 18,
         'chain': 'NERVE',
         'nativeId': -2,
-        'name': 'nvt-2',
+        'name': 'NVT-2',
         'apiUrl': 'https://sg.api.nerve.network/jsonrpc'
       },
       {
         'id': 19,
         'chain': 'NERVE',
         'nativeId': -2,
-        'name': 'nvt-3',
+        'name': 'NVT-3',
         'apiUrl': 'https://hk.api.nerve.network/jsonrpc'
       },
       {
         'id': 20,
         'chain': 'NERVE',
         'nativeId': -2,
-        'name': 'nvt-4',
+        'name': 'NVT-4',
         'apiUrl': 'https://us.api.nerve.network/jsonrpc'
       },
       {
         'id': 21,
         'chain': 'NERVE',
         'nativeId': -2,
-        'name': 'nvt-5',
+        'name': 'NVT-5',
         'apiUrl': 'https://au.api.nerve.network/jsonrpc'
       },
       {
         'id': 22,
         'chain': 'NERVE',
         'nativeId': -2,
-        'name': 'nvt-6',
+        'name': 'NVT-6',
         'apiUrl': 'https://id.api.nerve.network/jsonrpc'
       },
       {
         'id': 23,
         'chain': 'NERVE',
         'nativeId': -2,
-        'name': 'nvt-7',
+        'name': 'NVT-7',
         'apiUrl': 'http://in.api.nerve.network/jsonrpc'
       }
     ]

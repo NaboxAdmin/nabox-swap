@@ -11,7 +11,7 @@
     <div class="input-cont mt-2 d-flex align-items-center">
       <div class="d-flex align-items-center cursor-pointer" @click="showDropModal">
         <span class="image-cont">
-          <img :src="getPicture(currentAsset && currentAsset.symbol)" @error="pictureError" alt="">
+          <img :src="currentAsset && currentAsset.icon || getPicture(currentAsset && currentAsset.symbol)" alt="" @error="pictureError">
         </span>
         <div class="d-flex align-items-center ml-14 direction-column">
           <span class="font-500 size-30">{{ currentAsset && currentAsset.symbol || "USDT" }}</span>
@@ -54,7 +54,7 @@
       <div class="d-flex align-items-center space-between mt-2">
         <div class="d-flex align-items-center">
           <span class="image-cont mr-14">
-            <img :src="getPicture(liquidityInfo && liquidityInfo.symbol || 'USDTN')" alt="" @error="pictureError">
+            <img :src="liquidityInfo.icon || getPicture(liquidityInfo && liquidityInfo.symbol || 'USDTN')" alt="" @error="pictureError">
           </span>
           <span class="font-500 size-30">{{ liquidityInfo && liquidityInfo.symbol || 'USDTN' }}</span>
         </div>
@@ -99,7 +99,12 @@
           <span>{{ crossFee }}{{ mainAssetSymbol }}</span>
         </span>
       </div>
-      <div :class="{opacity_btn: canNext}" class="btn size-30 cursor-pointer" @click="submit">
+      <div v-if="computedFeeLoading" class="btn size-30 cursor-pointer opacity_btn">
+        <span>
+          {{ $t("swap.swap35") }}<span class="point_cont"/>
+        </span>
+      </div>
+      <div v-else :class="{opacity_btn: canNext}" class="btn size-30 cursor-pointer" @click="submit">
         {{ $t("pool.join4") }}
       </div>
     </div>
@@ -170,7 +175,9 @@ export default {
       accountType: [],
       currentToChain: null, // 目标链
       needAuth: false,
-      approvingLoading: false
+      approvingLoading: false,
+      poolList: [],
+      computedFeeLoading: false
     };
   },
   computed: {
@@ -192,7 +199,7 @@ export default {
       return total;
     },
     canNext() {
-      return !this.joinCount || !Number(this.joinCount) || this.amountMsg || this.requestLoading;
+      return this.requestLoading || !this.joinCount || !Number(this.joinCount) || this.amountMsg || this.computedFeeLoading;
       // return true;
     },
     mainAssetSymbol() {
@@ -253,10 +260,11 @@ export default {
     this.accountType = liquidityInfo.tokenLp.heterogeneousList || [];
     this.accountType.push({ chainName: 'NERVE' });
     this.currentToChain = this.accountType.find(item => item.chainName === 'NERVE') || this.accountType[0];
-    await this.getLiquidityInfo();
+    const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));
+    await this.getLiquidityInfo(tempData, false);
     this.infoTimer = setInterval(async() => {
-      await this.getLiquidityInfo(true);
-    }, 20000);
+      await this.getLiquidityPoolList();
+    }, 15000);
   },
   beforeDestroy() {
     if (this.assetTimer) clearInterval(this.assetTimer);
@@ -265,6 +273,65 @@ export default {
     this.infoTimer = null;
   },
   methods: {
+    async getLiquidityPoolList() {
+      try {
+        const res = await this.$request({
+          method: 'get',
+          url: '/swap/stable/info'
+        });
+        if (res.code === 1000 && res.data.length !== 0) {
+          const tempLiquidityData = JSON.parse(sessionStorage.getItem('liquidityItem'));
+          const tempRes = res.data.filter(item => item.pairAddress === tempLiquidityData.pairAddress);
+          const tempData = this.fromNetwork === 'NERVE' ? tempRes : tempRes.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
+          console.log(this.poolList.length === 0, 'this.poolList.length === 0');
+          this.poolList = tempData.map(item => ({
+            ...item,
+            supportNetwork: item.swapAssets.map(asset => asset.chain),
+            totalLp: this.numberFormat(tofix(divisionDecimals(item.tokenLp.amount, item.tokenLp.decimals), 2, -1), 2),
+            depositAssetSymbol: item.swapAssets.find(asset => asset.chain === this.fromNetwork) && item.swapAssets.find(asset => asset.chain === this.fromNetwork).symbol || item.swapAssets[0].symbol
+          }));
+          this.poolLoading = false;
+          const tempPoolList = await Promise.all(this.poolList.map(async item => ({
+            ...item,
+            myShare: await this.getUserShare(item.tokenLp)
+          })));
+          this.poolList = tempPoolList.map(item => ({
+            ...item,
+            poolRate: tofix(Times(Division(item.myShare, item.totalLp), 100), 2, -1) || 0
+          }));
+          const tempPoolItem = this.poolList.find(item => item.pairAddress === tempLiquidityData.pairAddress);
+          sessionStorage.setItem('liquidityItem', JSON.stringify(tempPoolItem));
+          await this.getLiquidityInfo(tempPoolItem, true);
+        } else {
+          this.poolList = [];
+        }
+        this.poolLoading = false;
+      } catch (e) {
+        this.poolLoading = false;
+        console.log(e, 'error');
+      }
+    },
+    async getUserShare(asset) {
+      if (this.fromNetwork === 'NERVE') {
+        return await this.getNerveAssetBalance(asset);
+      } else {
+        const transfer = new ETransfer({
+          chain: this.fromNetwork
+        });
+        if (asset.heterogeneousList) {
+          const currentAsset = asset.heterogeneousList && asset.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+          if (currentAsset.contractAddress) {
+            const tempAvailable = await transfer.getERC20Balance(currentAsset.contractAddress, asset.decimals, this.fromAddress);
+            return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
+          } else {
+            const tempAvailable = await transfer.getEthBalance(this.fromAddress);
+            return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
+          }
+        } else {
+          return 0;
+        }
+      }
+    },
     showDropModal() {
       if (this.fromNetwork !== 'NERVE') return;
       // eslint-disable-next-line vue/no-side-effects-in-computed-properties
@@ -343,40 +410,55 @@ export default {
       this.countInputDebounce();
     },
     async countInput() {
-      if (!this.joinCount) {
-        this.amountMsg = '';
-        return false;
-      }
-      const params = {
-        fromChain: this.fromNetwork,
-        toChain: this.currentType,
-        fromAddress: this.currentAccount['address'][this.fromNetwork],
-        toAddress: this.currentType === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
-        chainId: this.currentAsset.chainId,
-        assetId: this.currentAsset.assetId,
-        contractAddress: this.currentAsset.contractAddress,
-        // amount: this.inputType === 'amountIn' && timesDecimals(this.amountIn, this.chooseFromAsset.decimals) || timesDecimals(this.amountOut, this.chooseToAsset.decimals),
-        pairAddress: this.liquidityInfo.address,
-        lpType: 1,
-        swapChainId: this.currentType === 'NERVE' ? this.liquidityInfo.chainId : this.currentToChain.heterogeneousChainId,
-        swapAssetId: this.currentType === 'NERVE' ? this.liquidityInfo.assetId : '0',
-        swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress
-      };
-      if (Minus(this.joinCount, this.userAvailable) > 0) {
-        this.amountMsg = this.$t('tips.tips17');
-        return false;
-      } else {
-        this.amountMsg = '';
-      }
-      this.requestLoading = true;
-      const res = await this.$request({
-        url: '/swap/lp/fee',
-        data: params
-      });
-      if (res.code === 1000) {
-        this.crossFee = res.data.crossFee;
-        this.orderId = res.data.orderId;
-        this.requestLoading = false;
+      try {
+        if (!this.joinCount) {
+          this.amountMsg = '';
+          this.requestLoading = true;
+          return false;
+        }
+        this.computedFeeLoading = true;
+        const params = {
+          fromChain: this.fromNetwork,
+          toChain: this.currentType,
+          fromAddress: this.currentAccount['address'][this.fromNetwork],
+          toAddress: this.currentType === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
+          chainId: this.currentAsset.chainId,
+          assetId: this.currentAsset.assetId,
+          contractAddress: this.currentAsset.contractAddress,
+          // amount: this.inputType === 'amountIn' && timesDecimals(this.amountIn, this.chooseFromAsset.decimals) || timesDecimals(this.amountOut, this.chooseToAsset.decimals),
+          pairAddress: this.liquidityInfo.address,
+          lpType: 1,
+          swapChainId: this.currentType === 'NERVE' ? this.liquidityInfo.chainId : this.currentToChain.heterogeneousChainId,
+          swapAssetId: this.currentType === 'NERVE' ? this.liquidityInfo.assetId : '0',
+          swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress
+        };
+        if (Minus(this.joinCount, this.userAvailable) > 0) {
+          this.amountMsg = this.$t('tips.tips17');
+          this.computedFeeLoading = false;
+          return false;
+        } else {
+          this.amountMsg = '';
+        }
+        this.requestLoading = true;
+        const res = await this.$request({
+          url: '/swap/lp/fee',
+          data: params
+        });
+        if (res.code === 1000) {
+          this.crossFee = res.data.crossFee;
+          this.orderId = res.data.orderId;
+          this.requestLoading = false;
+        } else {
+          this.$message({
+            type: 'warning',
+            message: res.msg,
+            offset: 30
+          });
+        }
+        this.computedFeeLoading = false;
+      } catch (e) {
+        console.log(e, 'error');
+        this.computedFeeLoading = false;
       }
     },
     // 选择需要加入到流动性的资产
@@ -389,14 +471,10 @@ export default {
       this.showModal = false;
     },
     // 获取pool流动性信息
-    async getLiquidityInfo(refresh = false) {
-      // const res = await this.$request({
-      //   method: 'get',
-      //   url: '/swap/usdn/info'
-      // });
-      const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));
+    async getLiquidityInfo(tempData, refresh = false) {
       const currentNetwork = sessionStorage.getItem('network');
       this.liquidityInfo = {
+        icon: tempData.tokenLp.icon,
         lpCoinList: tempData.swapAssets,
         address: tempData.pairAddress,
         total: divisionDecimals(tempData.tokenLp.amount, tempData.tokenLp.decimals),
@@ -406,7 +484,6 @@ export default {
         decimals: tempData.tokenLp.decimals,
         heterogeneousList: tempData.tokenLp.heterogeneousList
       };
-      console.log(this.liquidityInfo, 'liquidityInfo');
       // this.liquidityInfo['total'] = res.data.total && divisionDecimals(res.data.total, res.data.decimals) || 0;
       // this.currentAsset = !this.currentAsset && res.data.lpCoinList.length !== 0 && (res.data.lpCoinList.filter(item => item.chain === this.$store.state.fromNetwork) || res.data.lpCoinList[0]) || this.currentAsset;
       if (!this.currentAsset) {
@@ -689,6 +766,8 @@ export default {
     height: 51px;
     width: 51px;
     background-color: #FFFFFF;
+    overflow: hidden;
+    border-radius: 50%;
     img {
       height: 100%;
       width: 100%;
@@ -756,6 +835,8 @@ export default {
 .image-cont {
   height: 51px;
   width: 51px;
+  border-radius: 50%;
+  overflow: hidden;
   background-color: #FFFFFF;
   img {
     height: 100%;
@@ -825,6 +906,24 @@ export default {
 }
 .top-30 {
   top: -30px;
+}
+.point_cont{
+  height: 5px;
+  width: 5px;
+  display: inline-block;
+  border-radius: 50%;
+  animation: dotting 1.4s infinite step-start;
+}
+@keyframes dotting {
+  25%{
+    box-shadow: 6px 0 0 #FFFFFF;
+  }
+  50%{
+    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF;
+  }
+  75%{
+    box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF, 34px 0 0 #FFFFFF;
+  }
 }
 
 </style>
