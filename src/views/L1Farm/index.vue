@@ -69,8 +69,7 @@
         <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
         <div class="pop-btn d-flex align-items-center space-between mt-4">
           <div class="btn" @click="showPop = false; lpCount=''; amountMsg=''">{{ $t("vaults.vaults7") }}</div>
-          <div v-if="!needAuth" class="btn btn_active" @click="confirm">{{ $t("vaults.vaults8") }}</div>
-          <div v-if="needAuth" class="btn btn_active" @click="approveERC20">{{ $t("vaults.over6") }}</div>
+          <div class="btn btn_active" @click="confirm">{{ $t("vaults.vaults8") }}</div>
         </div>
       </div>
     </PopUp>
@@ -120,7 +119,6 @@ export default {
       assetsItem: null,
       timer: null,
       timer1: null,
-      needAuth: true, // 是否需要授权
       farmLoading: false,
       authRefresh: true, // 授权后刷新
       currentFarm: null, // 当前操作的farm
@@ -212,17 +210,12 @@ export default {
       this.currentFarmHash = farmHash;
       this.currentFarm = item;
       this.stakedAsset = item.stakedAsset;
-      if (item.chain === 'NERVE') {
-        if (this.timer1) clearTimeout(this.timer1);
-        this.needAuth = false;
-      } else {
-        this.needAuth = false;
-      }
       if (type === 'increase') {
         this.assetsItem = item.stakedAsset;
         if (this.assetsItem.balance == 0) {
           this.availableLoading = true;
-          this.assetsItem.balance = await this.getBalance(this.assetsItem);
+          const assetBalance = await this.getBalance(this.assetsItem);
+          this.assetsItem.balance = assetBalance == '0.0' && '0' || assetBalance;
           this.availableLoading = false;
         }
       } else {
@@ -244,63 +237,7 @@ export default {
         console.log(e, 'error');
       }
     },
-    // 资产授权
-    async approveERC20() {
-      this.showLoading = true;
-      try {
-        const transfer = new ETransfer();
-        const contractAddress = this.assetsItem.contractAddress;
-        const res = await transfer.approveERC20(
-          contractAddress,
-          this.currentFarmHash,
-          this.currentAccount.address.Ethereum
-        );
-        if (res.hash) {
-          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
-          this.$message({
-            message: this.$t('tips.tips14'),
-            type: 'success',
-            offset: 30,
-            duration: 2000
-          });
-          await this.setGetERC20Allowance();
-        } else {
-          this.$message({
-            message: res.msg,
-            type: 'warning',
-            offset: 30,
-            duration: 2000 });
-        }
-        this.showLoading = false;
-      } catch (e) {
-        console.log(e);
-        this.$message({
-          message: e.message,
-          type: 'warning',
-          offset: 30,
-          duration: 2000 });
-        this.showPop = false;
-        this.showLoading = false;
-      }
-    },
-    async setGetERC20Allowance() {
-      if (this.timer1) clearTimeout(this.timer1);
-      const transfer = new ETransfer();
-      this.needAuth = await transfer.getERC20Allowance(
-        this.assetsItem.contractAddress,
-        this.currentFarmHash,
-        this.currentAccount.address.Ethereum
-      );
-      if (!this.needAuth) {
-        this.authRefresh = false;
-      }
-      if (this.authRefresh) {
-        this.timer1 = setTimeout(() => {
-          this.setGetERC20Allowance();
-        }, 5000);
-      }
-    },
-
+    // 获取tvl
     async getTvlInfo() {
       const res = await this.$request({
         method: 'get',
@@ -368,7 +305,17 @@ export default {
       });
       if (res.code === 1000 && res.data) {
         const tempFarmList = res.data.filter(item => item.chain === this.$store.state.network);
-        this.farmList = this.farmList.length === 0 ? tempFarmList.map(item => ({ ...item, showDetail: false })) : this.farmList;
+        this.farmList = this.farmList.length === 0 ? tempFarmList.map(item => ({
+          ...item,
+          showDetail: false,
+          stakedAsset: {
+            chainId: item.stakeToken && item.stakeToken.chainId,
+            assetId: item.stakeToken && item.stakeToken.assetId,
+            decimals: item.stakeToken && item.stakeToken.decimals,
+            contractAddress: item.stakeToken && item.stakeToken.contractAddress,
+            balance: 0
+          }
+        })) : this.farmList;
         if (this.fromNetwork === 'NERVE') {
           this.farmList = [];
         }
@@ -413,7 +360,7 @@ export default {
           ...item,
           stakedAsset,
           syrupAsset,
-          profit: item.pid==5 && item.farmKey === '0x28Cb8a295b8A78AA78d9E8E8b76e2777fEcD3818' && '0%' || item.profit,
+          profit: item.pid == 5 && item.farmKey === '0x28Cb8a295b8A78AA78d9E8E8b76e2777fEcD3818' && '0%' || item.profit,
           showDetail: false,
           amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
           approveLoading: this.farmList && this.farmList[index] && this.farmList.length > 0 && this.farmList[index].approveLoading || false,

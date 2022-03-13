@@ -41,7 +41,8 @@ async function getConfig(network, refresh) {
       const tempLocalData = localStorage.getItem('localChainConfig') && JSON.parse(localStorage.getItem('localChainConfig')) || localChainConfig;
       chainConfig = tempLocalData.sort((a, b) => a.sort - b.sort);
     }
-    setChainConfig(chainConfig);
+    const tempSwapChainConfig = chainConfig.filter(item => item.swap == 1);
+    setChainConfig(tempSwapChainConfig);
     !refresh && new Vue({
       i18n,
       router,
@@ -50,8 +51,9 @@ async function getConfig(network, refresh) {
     }).$mount('#app');
     const res = await request({ url: '/api/chain/config', method: 'get' });
     if (res.code === 1000 && res.data) {
-      setChainConfig(res.data);
-      network === 'beta' ? localStorage.setItem('localBetaChainConfig', JSON.stringify(res.data)) : localStorage.setItem('localChainConfig', JSON.stringify(res.data));
+      const tempData = res.data.filter(item => item.swap == 1);
+      setChainConfig(tempData);
+      network === 'beta' ? localStorage.setItem('localBetaChainConfig', JSON.stringify(tempData)) : localStorage.setItem('localChainConfig', JSON.stringify(tempData));
     } else {
       setTimeout(() => {
         getConfig(network, true);

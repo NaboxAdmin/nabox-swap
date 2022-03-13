@@ -790,18 +790,18 @@ export function numberFormat(val, float, returnBoo = false) {
 }
 
 export function setChainConfig(chainConfig) {
-  (function() {
-    if (!window.localStorage) {
-      console.log('浏览器不支持localStorage');
-    }
-    let size = 0;
-    for (const item in window.localStorage) {
-      if (window.localStorage.hasOwnProperty(item)) {
-        size += window.localStorage.getItem(item).length;
-      }
-    }
-    console.log('当前localStorage存储容量为' + (size / 1024).toFixed(2) + 'KB');
-  })();
+  // (function() {
+  //   if (!window.localStorage) {
+  //     console.log('浏览器不支持localStorage');
+  //   }
+  //   let size = 0;
+  //   for (const item in window.localStorage) {
+  //     if (window.localStorage.hasOwnProperty(item)) {
+  //       size += window.localStorage.getItem(item).length;
+  //     }
+  //   }
+  //   console.log('localStorage' + (size / 1024).toFixed(2) + 'KB');
+  // })();
   const config = {};
   if (chainConfig && chainConfig.length) {
     chainConfig.map(v => {

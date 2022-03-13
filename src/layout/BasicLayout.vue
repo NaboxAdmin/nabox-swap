@@ -124,9 +124,11 @@ export default {
         console.log(val, 'watch val');
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
+        console.log(currentAccount, 'currentAccount');
         const config = JSON.parse(sessionStorage.getItem('config'));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
+        console.log(chainLength, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
         // this.showSign = !chainLength || chainLength !== addressListLength;
         this.$store.commit('changeFromAddress', val);
         this.$store.commit('changeShowConnect', false);
@@ -447,18 +449,22 @@ export default {
         } = NULS_INFO;
         // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
         // 根据公钥获取NERVE和NULS的地址
-        account.address.NERVE = nerve.getAddressByPub(
-          chainId,
-          assetId,
-          pub,
-          prefix
-        );
-        account.address.NULS = nerve.getAddressByPub(
-          NULSChainId,
-          NULSAssetId,
-          pub,
-          NULSPrefix
-        );
+        if (Object.keys(config).indexOf('NERVE') !== -1) {
+          account.address.NERVE = nerve.getAddressByPub(
+            chainId,
+            assetId,
+            pub,
+            prefix
+          );
+        }
+        if (Object.keys(config).indexOf('NULS') !== -1) {
+          account.address.NULS = nerve.getAddressByPub(
+            NULSChainId,
+            NULSAssetId,
+            pub,
+            NULSPrefix
+          );
+        }
         const accountList = getAccountList();
         const existIndex = accountList.findIndex(v => v.pub === account.pub);
         // 原来存在就替换，找不到就push
