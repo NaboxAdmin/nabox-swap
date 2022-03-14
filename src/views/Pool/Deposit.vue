@@ -558,7 +558,7 @@ export default {
         if (currentAsset.contractAddress) {
           this.userAvailable = await transfer.getERC20Balance(currentAsset.contractAddress, currentAsset.decimals, this.fromAddress);
         } else {
-          this.userAvailable = await transfer.getEthBalance(this.fromAddress);
+          this.userAvailable = this.numberFormat(await transfer.getEthBalance(this.fromAddress));
         }
       }
       this.currentAvailable = this.numberFormat(tofix(this.userAvailable, 6, -1));
@@ -700,6 +700,8 @@ export default {
               this.reset();
               await this.recordHash(this.orderId, res.hash);
             }
+          } else {
+            throw orderRes.msg;
           }
         }
       } catch (e) {
