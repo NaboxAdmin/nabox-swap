@@ -12,7 +12,7 @@
       <div v-for="(item, index) in poolList" :key="index" class="pool-item mt-3">
         <div class="pool-icon_cont d-flex align-items-center">
           <div class="pool-icon">
-            <img :src="item.depositIcon || getPicture(item.depositAssetSymbol)" alt="" @error="pictureError">
+            <img v-lazy="item.depositIcon || getPicture(item.depositAssetSymbol)" alt="" @error="pictureError">
           </div>
           <div class="ml-12 font-500 size-30">{{ item.depositAssetSymbol }}</div>
         </div>
@@ -29,7 +29,7 @@
             <div class="size-28 text-90">{{ $t('tips.tips44') }}</div>
             <div class="d-flex align-items-center">
               <div v-for="(chain, Cindex) in item.supportNetwork" :key="Cindex" class="network-icon">
-                <img :src="getPicture(chain)" alt="" @error="pictureError">
+                <img v-lazy="getPicture(chain)" alt="" @error="pictureError">
               </div>
             </div>
           </div>

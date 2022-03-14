@@ -13,7 +13,7 @@
         <div class="d-flex direction-column">
           <div class="farm-icon d-flex align-items-center">
             <span class="icon">
-              <img :src="item.icon || pictureError" alt="" @error="pictureError">
+              <img v-lazy="item.icon || pictureError" alt="" @error="pictureError">
             </span>
             <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
           </div>
@@ -22,7 +22,10 @@
               <span class="text-90 size-26">
                 {{ $t("vaults.over2") }} {{ item.syrupToken && item.syrupToken.symbol }}
               </span>
-              <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading" class="mt-2"/>
+                <span v-else class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              </template>
             </div>
             <div class="d-flex direction-column">
               <span class="text-90 size-26">APR</span>
@@ -56,7 +59,10 @@
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
-              <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading"/>
+                <span v-else class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              </template>
               <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
             </div>
             <span
@@ -82,16 +88,22 @@
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
-              <span class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading" class="mt-1"/>
+                <span v-else class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              </template>
               <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
             </div>
             <div class="btn-group">
-              <template v-if="!item.needStakeAuth">
-                <div
-                  :class="{ disabled_btn: !item.amount || item.amount == 0 }"
-                  class="btn-item"
-                  @click="showClick('decrease', item.farmKey, item)">-</div>
-                <div class="btn-item ml-3 disabled_btn">+</div>
+              <Loading v-if="firstLoading" class="mt-1"/>
+              <template v-else>
+                <template v-if="!item.needStakeAuth">
+                  <div
+                    :class="{ disabled_btn: !item.amount || item.amount == 0 }"
+                    class="btn-item"
+                    @click="showClick('decrease', item.farmKey, item)">-</div>
+                  <div class="btn-item ml-3 disabled_btn">+</div>
+                </template>
               </template>
             </div>
           </div>
@@ -109,14 +121,20 @@
               <span>{{ $t("vaults.vaults12") }}{{ item.syrupToken && item.syrupToken.symbol || 'NABOX' }}</span>
             </span>
             <div class="d-flex align-items-center size-28">
-              <span class="text-3a">{{ item.lockNumbers | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading"/>
+                <span v-else class="text-3a">{{ item.lockNumbers | numFormat }}</span>
+              </template>
             </div>
           </div>
           <div class="vaults-item">
             <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupToken && item.syrupToken.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
               <div class="d-flex direction-column">
-                <span class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+                <template>
+                  <Loading v-if="firstLoading"/>
+                  <span v-else class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+                </template>
                 <span class="mt-1 text-90 size-26">≈${{ item.unlockUsdPrice || 0 }}</span>
               </div>
               <span
@@ -134,13 +152,13 @@
 </template>
 
 <script>
-import { divisionDecimals, tofix, Minus, Division } from '@/api/util';
+import { divisionDecimals, tofix, Minus, Division, Times } from '@/api/util';
 import { getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
-import { Times } from '../../api/util';
-import {MAIN_INFO} from "@/config";
+import { Loading } from '@/components';
 
 export default {
   name: 'Over',
+  components: { Loading },
   props: {
     networkType: {
       type: String,
@@ -152,7 +170,8 @@ export default {
       showDropList: false,
       farmList: [],
       farmLoading: false,
-      farmTimer: null
+      farmTimer: null,
+      firstLoading: true
     };
   },
   computed: {
@@ -228,7 +247,7 @@ export default {
         }
         this.farmLoading = false;
         await this.getStakeAccount(this.farmList);
-        this.isFirstRequest = false;
+        this.firstLoading = false;
       } else {
         this.farmList = [];
         this.farmLoading = false;
@@ -262,7 +281,7 @@ export default {
         const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
         return {
           ...item,
-          profit: item.pid==5 && item.farmKey === '0x28Cb8a295b8A78AA78d9E8E8b76e2777fEcD3818' && '0%' || item.profit,
+          profit: item.pid == 5 && item.farmKey === '0x28Cb8a295b8A78AA78d9E8E8b76e2777fEcD3818' && '0%' || item.profit,
           amount: divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals),
           unlockNumbers: this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
           lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4)),

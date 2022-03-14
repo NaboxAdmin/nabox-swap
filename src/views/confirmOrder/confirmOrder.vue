@@ -185,7 +185,7 @@ export default {
               gasFee: timesDecimals(currentChannel.outToken.relayerGas, crossFeeAsset && crossFeeAsset.decimals || 18),
               crossChainFee: timesDecimals(currentChannel.originCrossChainFee, crossFeeAsset && crossFeeAsset.decimals || 18),
               rewardsMin: 0,
-              channel: 'ISWAP',
+              channel: 'nabox-wallet',
               srcPath,
               destPath,
               srcChainSwapInfo,
@@ -293,7 +293,7 @@ export default {
           type: (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 2 || 1,
           deadline: 2524579200,
           isReturnEth: toAsset.symbol === toMainAssetSymbol,
-          channel: 'ISWAP'
+          channel: 'nabox-wallet'
         };
         const res = await iSwap.generateCrossChainBridgeOrder(params);
         if (res) {

@@ -9,6 +9,7 @@ import messages from './locales';
 import { isBeta, setChainConfig } from './api/util';
 import globalMixin from './mixin';
 import { localChainConfig } from '@/config';
+import VueLazyLoad from 'vue-lazyload';
 
 const development = process.env.NODE_ENV === 'development';
 Vue.config.devtools = development;
@@ -16,6 +17,11 @@ Vue.prototype.$request = request; // 网络请求
 Vue.prototype.$post = post;
 Vue.config.productionTip = false; // 开发环境提示
 Vue.mixin(globalMixin);
+Vue.use(VueLazyLoad, {
+  preLoad: 1,
+  error: 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NULL.png',
+  attempt: 2
+});
 
 if (!development) {
   console.log = () => {};

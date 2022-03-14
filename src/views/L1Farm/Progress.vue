@@ -17,7 +17,7 @@
         <div class="d-flex direction-column">
           <div class="farm-icon d-flex align-items-center">
             <span class="icon">
-              <img :src="item.icon || pictureError" alt="" @error="pictureError">
+              <img v-lazy="item.icon || pictureError" alt="" @error="pictureError">
             </span>
             <span class="size-30 ml-1 font-500">{{ item.farmName || '' }}</span>
           </div>
@@ -26,7 +26,10 @@
               <span class="text-90 size-26">
                 {{ $t("vaults.over2") }} {{ item.syrupToken && item.syrupToken.symbol }}
               </span>
-              <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading" class="mt-2"/>
+                <span v-else class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              </template>
             </div>
             <div class="d-flex direction-column">
               <span class="text-90 size-26">APR</span>
@@ -61,7 +64,10 @@
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
-              <span class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading"/>
+                <span v-else class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              </template>
               <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
             </div>
             <span
@@ -88,26 +94,34 @@
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
-              <span class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading" class="mt-1"/>
+                <span v-else class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              </template>
               <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
             </div>
             <div class="btn-group">
-              <template v-if="!item.needStakeAuth">
-                <div
-                  :class="{ disabled_btn: !item.amount || item.amount == 0 }"
-                  class="btn-item"
-                  @click="showClick('decrease', item.farmKey, item)">-</div>
-                <div
-                  class="btn-item ml-3"
-                  @click="showClick('increase', item.farmKey, item)">+</div>
+              <template>
+                <Loading v-if="firstLoading" class="mt-1"/>
+                <template v-else>
+                  <template v-if="!item.needStakeAuth">
+                    <div
+                      :class="{ disabled_btn: !item.amount || item.amount == 0 }"
+                      class="btn-item"
+                      @click="showClick('decrease', item.farmKey, item)">-</div>
+                    <div
+                      class="btn-item ml-3"
+                      @click="showClick('increase', item.farmKey, item)">+</div>
+                  </template>
+                  <div
+                    v-else
+                    class="item-btn size-30"
+                    @click="stakeApprove(item.farmKey, item, index)">
+                    <span :class="{'mr-1': item.approveLoading}">{{ $t("vaults.over6") }}</span>
+                    <Loading v-if="item.approveLoading" :is-active="false"/>
+                  </div>
+                </template>
               </template>
-              <div
-                v-else
-                class="item-btn size-30"
-                @click="stakeApprove(item.farmKey, item, index)">
-                <span :class="{'mr-1': item.approveLoading}">{{ $t("vaults.over6") }}</span>
-                <Loading v-if="item.approveLoading" :is-active="false"/>
-              </div>
             </div>
           </div>
         </div>
@@ -129,14 +143,20 @@
               <!--              </el-tooltip>-->
             </span>
             <div class="d-flex align-items-center size-28">
-              <span class="text-3a">{{ item.lockNumbers || 0 | numFormat }}</span>
+              <template>
+                <Loading v-if="firstLoading" class="mt-1"/>
+                <span v-else class="text-3a">{{ item.lockNumbers || 0 | numFormat }}</span>
+              </template>
             </div>
           </div>
           <div class="vaults-item">
             <div class="text-90 size-28">{{ $t("airdrop.airdrop5") }} {{ item.syrupToken && item.syrupToken.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
               <div class="d-flex direction-column">
-                <span class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+                <template>
+                  <Loading v-if="firstLoading" class="mt-1"/>
+                  <span v-else class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+                </template>
                 <span class="mt-1 text-90 size-26">≈${{ item.unlockUsdPrice || 0 }}</span>
               </div>
               <span
@@ -155,11 +175,11 @@
 
 <script>
 import { Division } from '@/api/util';
-import { Loading } from '@/components';
+import { Loading, FarmLoading } from '@/components';
 
 export default {
   name: 'Progress',
-  components: { Loading },
+  components: { Loading, FarmLoading },
   props: {
     farmList: {
       type: Array,
@@ -172,6 +192,10 @@ export default {
     approveLoading: {
       type: Boolean,
       default: false
+    },
+    firstLoading: {
+      type: Boolean,
+      default: true
     }
   },
   data() {

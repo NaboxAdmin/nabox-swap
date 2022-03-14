@@ -26,7 +26,7 @@
               @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
             <div v-else class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')">
               <div class="image-cont">
-                <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol)" alt="" @error="pictureError">
+                <img v-lazy="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol)" alt="" @error="pictureError">
               </div>
               <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
                 {{ chooseFromAsset.symbol }}
@@ -65,7 +65,7 @@
               @click.stop="openModal('receive')">{{ $t('swap.swap12') }}</div>
             <div v-else class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')">
               <div class="image-cont">
-                <img :src="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
+                <img v-lazy="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
               </div>
               <div class="w-90 text-truncate direction-column size-30 ml-1 text-3a">
                 {{ chooseToAsset.symbol }}
@@ -232,24 +232,28 @@ import Loading from '@/components/Loading/Loading';
 import {
   debounce,
   Division,
+  divisionDecimals,
+  isBeta,
   Minus,
+  Plus,
   supportChainList,
   Times,
   timesDecimals,
-  tofix,
-  divisionDecimals,
-  Plus
+  tofix
 } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
-import { ISWAP_VERSION, ISWAP_USDT_CONFIG, ISWAP_BRIDGE_VERSION } from './util/swapConfig';
-import { contractConfig, contractBridgeConfig } from './util/swapConfig';
+import {
+  contractBridgeConfig,
+  contractConfig,
+  ISWAP_BRIDGE_VERSION,
+  ISWAP_USDT_CONFIG,
+  ISWAP_VERSION
+} from './util/swapConfig';
 import Dodo from './util/Dodo';
 import { currentNet, MAIN_INFO } from '@/config';
-import NerveChannel from './util/Nerve';
-import { feeRate } from './util/Nerve';
+import NerveChannel, { feeRate } from './util/Nerve';
 import { swapAssetList } from './util/swapAssetList';
-import { isBeta } from '@/api/util';
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -403,7 +407,7 @@ export default {
           this.needAuth = false;
           this.approvingLoading = false;
           if (newVal.channel === 'iSwap') {
-            this.chooseFromAsset.contractAddress && await this.checkAssetAuthStatus();
+            await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'DODO') {
             newVal.approveAddress && await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'NERVE' && this.fromNetwork !== 'NERVE') {
@@ -489,16 +493,26 @@ export default {
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
-      const transfer = new ETransfer();
-      const contractAddress = this.chooseFromAsset.contractAddress;
-      const authContractAddress = this.getAuthContractAddress();
-      const needAuth = await transfer.getERC20Allowance(
-        contractAddress,
-        authContractAddress,
-        this.fromAddress
-      );
-      this.needAuth = needAuth;
-      if (!needAuth && this.getAllowanceTimer) {
+      if (this.chooseFromAsset.contractAddress) {
+        const transfer = new ETransfer();
+        const contractAddress = this.chooseFromAsset.contractAddress;
+        const authContractAddress = this.getAuthContractAddress();
+        this.needAuth = await transfer.getERC20Allowance(
+          contractAddress,
+          authContractAddress,
+          this.fromAddress
+        );
+      } else {
+        this.needAuth = false;
+      }
+      this.showComputedLoading = false;
+      if (this.inputType === 'amountIn') {
+        this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, 6, -1), 6);
+      } else {
+        this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, 6, -1), 6);
+      }
+      this.checkChannelLimitInfo();
+      if (!this.needAuth && this.getAllowanceTimer) {
         this.clearGetAllowanceTimer();
       }
     },
@@ -863,9 +877,9 @@ export default {
         this.getOptionalChannel();
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
-          this.amountOut = tempChannel.amountOut < 0 ? '' : this.numberFormat(tofix(tempChannel.amountOut || 0, 6, -1), 6);
+          // this.amountOut = tempChannel.amountOut < 0 ? '' : this.numberFormat(tofix(tempChannel.amountOut || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
-          this.checkChannelLimitInfo();
+          // this.checkChannelLimitInfo();
         } else {
           this.currentChannel = null;
         }
@@ -889,7 +903,6 @@ export default {
     checkLpBalance() {
       if (this.chooseFromAsset && this.chooseToAsset) {
         const pairAddress = this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'] && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '';
-        console.log(this.nerveLimitInfo, 'this.nerveLimitInfo');
         const swapAssets = pairAddress && this.nerveLimitInfo.find(item => item.pairAddress === pairAddress).swapAssets || [];
         const swapMap = {};
         swapAssets.forEach(item => {
@@ -916,8 +929,8 @@ export default {
       if (this.stableSwap) {
         if (this.currentChannel.channel === 'iSwap') {
           const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-          const currentLimitMax = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax) : limitAssetInfo.normalMax;
-          const currentLimitMin = this.chooseFromAsset.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT') ? limitAssetInfo && limitAssetInfo.normalMin : limitAssetInfo.normalMin;
+          const currentLimitMax = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax) : limitAssetInfo.normalMax;
+          const currentLimitMin = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? limitAssetInfo && limitAssetInfo.normalMin : limitAssetInfo.normalMin;
           console.log(currentLimitMax, 'currentLimitMax', currentLimitMin, 'currentLimitMin');
           if (Minus(this.amountIn, currentLimitMin) < 0) {
             this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
@@ -967,9 +980,9 @@ export default {
         this.getOptionalChannel();
         const tempChannel = await this.getChannelList();
         if (tempChannel) {
-          this.amountIn = tempChannel.amount < 0 ? '' : this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
+          // this.amountIn = tempChannel.amount < 0 ? '' : this.numberFormat(tofix(tempChannel.amount || 0, 6, -1), 6);
           this.currentChannel = tempChannel;
-          this.checkChannelLimitInfo();
+          // this.checkChannelLimitInfo();
         } else {
           this.amountMsg = '';
           this.currentChannel = null;
@@ -1095,11 +1108,11 @@ export default {
           return item;
         }));
         this.getChannelBool = true;
-        console.log(tempChannelConfig, 'tempChannelConfig');
-        this.showComputedLoading = false;
+        // console.log(tempChannelConfig, 'tempChannelConfig');
+        // this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
-        // this.showComputedLoading = false;
+        this.showComputedLoading = false;
         console.log(e.message, 'error');
         if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
           // this.$message.warning({ message: e.message, offset: 30 });

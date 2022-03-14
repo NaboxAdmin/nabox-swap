@@ -19,7 +19,7 @@
             <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectAsset(item)">
               <div class="coin-item">
                 <span class="coin-icon">
-                  <img :src="item.icon || getPicture(item.symbol) || pictureError" @error="pictureError">
+                  <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" @error="pictureError">
                 </span>
                 <span :class="type==='assets' && 'space-between' || 'justify-content-center'" class="d-flex direction-column h-40">
                   <span class="text-3a font-500">{{ item.symbol }}</span>

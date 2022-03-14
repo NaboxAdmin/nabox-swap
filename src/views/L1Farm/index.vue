@@ -26,6 +26,7 @@
         v-if="currentIndex===0"
         :farm-list="farmList"
         :farmLoading="farmLoading"
+        :firstLoading="isFirstRequest"
         @stakeApprove="stakeApprove"
         @receiveClick="harvestReward"
         @confirmUnlocked="harvestReward"
@@ -77,7 +78,7 @@
 </template>
 
 <script>
-import { PopUp } from '@/components';
+import { PopUp, FarmLoading } from '@/components';
 import Progress from './Progress';
 import Over from './Over';
 import { currentNet, MAIN_INFO } from '@/config';
@@ -97,7 +98,7 @@ currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
   name: 'Vaults',
-  components: { PopUp, Progress, Over },
+  components: { PopUp, Progress, Over, FarmLoading },
   data() {
     return {
       checkList: [this.$t('vaults.vaults2'), this.$t('vaults.vaults3')],
@@ -455,6 +456,7 @@ export default {
     // 切换 tab
     checkTab(i) {
       this.currentIndex = i;
+      this.isFirstRequest = true;
       if (i === 0) {
         this.getFarmInfo(i === 0);
         if (!this.timer) {

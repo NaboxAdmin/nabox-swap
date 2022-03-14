@@ -13,7 +13,7 @@
         <div class="d-flex direction-column">
           <div class="farm-icon d-flex align-items-center">
             <span class="icon">
-              <img :src="item.icon || pictureError" alt="" @error="pictureError">
+              <img v-lazy="item.icon || pictureError" alt="" @error="pictureError">
             </span>
             <span class="size-30 ml-1">{{ item.farmName || '' }}</span>
           </div>
@@ -23,7 +23,10 @@
                 <!--{{ item.syrupAsset && item.syrupAsset.symbol }}-->
                 {{ $t("vaults.over2") }} {{ item.syrupToken && item.syrupToken.symbol }}
               </span>
-              <span class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstRequest" class="mt-2"/>
+                <span v-else class="font-500 size-36 mt-1">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              </template>
             </div>
             <div class="d-flex direction-column">
               <span class="text-90 size-26">APR</span>
@@ -57,7 +60,10 @@
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
-              <span class="size-40 word-break w-330 mt-2">{{ item.syrupTokenBalance == '0' ? '0' : (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstRequest"/>
+                <span v-else class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
+              </template>
               <span class="mt-1 text-90 size-26">≈${{ item.syrupTokenBalance != '0' && item.syrupUsdPrice || 0 }}</span>
             </div>
             <span
@@ -83,7 +89,10 @@
           </div>
           <div class="d-flex align-items-center space-between mt-1">
             <div class="d-flex direction-column">
-              <span class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstRequest"/>
+                <span v-else class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
+              </template>
               <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
             </div>
             <div class="btn-group">
@@ -94,10 +103,6 @@
                   @click="showClick('decrease', item.farmKey, item)">-</div>
                 <div class="btn-item ml-3 disabled_btn">+</div>
               </template>
-              <div
-                v-else
-                class="item-btn size-30"
-                @click="stakeApprove(item.farmKey, item)">{{ $t("vaults.over6") }}</div>
             </div>
           </div>
         </div>
@@ -114,13 +119,19 @@
               <span>{{ $t("vaults.vaults12") }}{{ item.syrupToken && item.syrupToken.symbol || 'NABOX' }}</span>
             </span>
             <div class="d-flex align-items-center size-28">
-              <span class="text-3a">{{ item.lockNumbers | numFormat }}</span>
+              <template>
+                <Loading v-if="firstRequest"/>
+                <span v-else class="text-3a">{{ item.lockNumbers | numFormat }}</span>
+              </template>
             </div>
           </div>
           <div class="vaults-item">
             <div class="text-90 size-28">{{ $t("vaults.vaults13") }}{{ item.syrupToken && item.syrupToken.symbol }}</div>
             <div class="d-flex align-items-center space-between mt-1">
-              <span class="size-40 word-break w-330">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+              <template>
+                <Loading v-if="firstRequest"/>
+                <span v-else class="size-40 word-break w-330">{{ (item.unlockNumbers || 0) | numFormat }}</span>
+              </template>
               <span
                 v-if="!item.needReceiveAuth"
                 :class="{ active_btn: item.unlockNumbers == 0 }"
@@ -138,9 +149,11 @@
 <script>
 import { divisionDecimals, tofix, Division, Times } from '@/api/util';
 import { MAIN_INFO } from '@/config';
+import { Loading } from '@/components';
 
 export default {
   name: 'Over',
+  components: { Loading },
   props: {
     networkType: {
       type: String,
@@ -152,7 +165,8 @@ export default {
       showDropList: false,
       farmList: [],
       farmLoading: false,
-      farmTimer: null
+      farmTimer: null,
+      firstRequest: true
     };
   },
   watch: {
@@ -220,7 +234,7 @@ export default {
         this.farmList = this.farmList.length === 0 ? tempFarmList.map(item => ({ ...item, showDetail: false })) : this.farmList;
         this.farmLoading = false;
         await this.getStakeAccount(this.farmList);
-        this.isFirstRequest = false;
+        this.firstRequest = false;
       } else {
         this.farmList = [];
         this.farmLoading = false;

@@ -26,6 +26,7 @@
         v-if="currentIndex===0"
         :farm-list="farmList"
         :farmLoading="farmLoading"
+        :first-loading="isFirstRequest"
         @stakeApprove="stakeApprove"
         @receiveClick="harvestReward"
         @confirmUnlocked="harvestReward"
@@ -509,6 +510,7 @@ export default {
     // 切换 tab
     checkTab(i) {
       this.currentIndex = i;
+      this.isFirstRequest = true;
       if (i === 0) {
         this.getFarmInfo(i === 0);
         if (!this.timer) {
