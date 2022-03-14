@@ -45,7 +45,7 @@
         <div class="d-flex align-items-center space-between">
           <span class="text-90 size-28">{{ $t("airdrop.airdrop3") }}</span>
           <div class="d-flex align-items-center size-28">
-            <span class="text-3a">${{ item.tvl }}</span>
+            <span class="text-3a">${{ item.tvl | numberFormatLetter }}</span>
           </div>
         </div>
         <div class="vaults-item">
