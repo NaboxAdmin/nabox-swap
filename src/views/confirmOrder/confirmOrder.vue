@@ -186,6 +186,7 @@ export default {
               crossChainFee: timesDecimals(currentChannel.originCrossChainFee, crossFeeAsset && crossFeeAsset.decimals || 18),
               rewardsMin: 0,
               channel: 'nabox-wallet',
+              toAsset: toAsset.contractAddress || 0,
               srcPath,
               destPath,
               srcChainSwapInfo,
@@ -293,7 +294,8 @@ export default {
           type: (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 2 || 1,
           deadline: 2524579200,
           isReturnEth: toAsset.symbol === toMainAssetSymbol,
-          channel: 'nabox-wallet'
+          channel: 'nabox-wallet',
+          fromAssetSymbol: fromAsset.symbol
         };
         const res = await iSwap.generateCrossChainBridgeOrder(params);
         if (res) {
