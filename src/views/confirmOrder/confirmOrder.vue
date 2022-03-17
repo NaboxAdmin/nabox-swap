@@ -70,7 +70,7 @@
 
 <script>
 import NavBar from '@/components/NavBar/NavBar';
-import { timesDecimals, getCurrentAccount, Minus } from '@/api/util';
+import { timesDecimals, Minus } from '@/api/util';
 import ISwap from '../Swap/util/iSwap';
 import { ISWAP_VERSION, ISWAP_BRIDGE_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
@@ -105,12 +105,6 @@ export default {
     this.orderInfo = JSON.parse(sessionStorage.getItem('swapInfo'));
   },
   methods: {
-    // async testStableTransfer() {
-    //   console.log(window.stableTransfer, 'crossChainFee')
-    //   const { fromAddress, fromAsset, toAsset, amountIn, currentChannel } = this.orderInfo;
-    //   const res = await window.stableTransfer(fromAddress, fromAsset, toAsset, amountIn, currentChannel.crossChainFee, currentChannel.orderId);
-    //   console.log(res, 'ressssss');
-    // },
     // 确认订单
     async confirmOrder() {
       try {
@@ -273,7 +267,10 @@ export default {
     // 调用合约发送iSwapCross交易
     async sendISwapCrossTransaction() {
       try {
-        const { fromAsset, toAsset, address, toAddress, amountIn, currentChannel } = this.orderInfo;
+        const { fromAsset, toAsset, address, toAddress, amountIn, currentChannel, bridgeLimitInfo } = this.orderInfo;
+        const tempLimitInfo = bridgeLimitInfo || JSON.parse(localStorage.getItem('bridgeLimitInfo'));
+        const limitAssetInfo = tempLimitInfo.find(item => fromAsset.symbol === item.symbol);
+        const currentLimitMin = limitAssetInfo && limitAssetInfo.biggerMin;
         const config = JSON.parse(sessionStorage.getItem('config'));
         const fromMainAssetSymbol = config[fromAsset.chain].symbol;
         const toMainAssetSymbol = config[toAsset.chain].symbol;
@@ -291,7 +288,7 @@ export default {
           gasFee: currentChannel.iSwapConfig.gasFee,
           crossChainFee: currentChannel.iSwapConfig.crossChainFee,
           rewardsMin: 0,
-          type: (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 2 || 1,
+          type: (Minus(amountIn, currentLimitMin) > 0 || Minus(amountIn, currentLimitMin) == 0) && 2 || 1,
           deadline: 2524579200,
           isReturnEth: toAsset.symbol === toMainAssetSymbol,
           channel: 'nabox-wallet',
@@ -365,7 +362,8 @@ export default {
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset,
-          swapPairInfo
+          swapPairInfo,
+          swapPairTradeList
         });
         const tAssemble = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork], swapPairTradeList);
         const transfer = new NTransfer({ chain: 'NERVE' });

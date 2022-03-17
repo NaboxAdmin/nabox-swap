@@ -161,7 +161,7 @@
               </div>
               <span
                 v-if="!item.needReceiveAuth"
-                :class="{ active_btn: item.unlockNumbers == 0 }"
+                :class="{ active_btn: !item.unlockNumbers || item.unlockNumbers == 0 }"
                 class="item-btn size-30"
                 @click="confirmUnlocked(item.farmKey, item)">{{ $t("vaults.over3") }}</span>
             </div>

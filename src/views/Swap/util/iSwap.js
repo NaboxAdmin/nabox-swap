@@ -87,7 +87,7 @@ export default class ISwap {
       return null;
     } catch (e) {
       console.log(e, 'error');
-      throw e;
+      // throw e;
     }
   }
   // 获取iSwapBridge费率信息
@@ -108,7 +108,7 @@ export default class ISwap {
       return null;
     } catch (e) {
       console.log(e, 'error');
-      throw e;
+      // throw e;
     }
   }
   // 生成跨链swap订单

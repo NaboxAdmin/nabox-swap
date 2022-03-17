@@ -42,7 +42,7 @@
           <div>{{ $t('tips.tips48') }}</div>
           <div/>
           <div v-for="(item, index) in accountType" :key="index">
-            <div class="d-flex align-items-center" @click="currentType=item.chainName;showAccountList=false;currentToChain=item">
+            <div v-if="currentAccount['address'][item.chainName]" class="d-flex align-items-center" @click="currentType=item.chainName;showAccountList=false;currentToChain=item">
               <span class="chain-icon mr-3">
                 <img :src="getPicture(item.chainName)" alt="" @error="pictureError">
               </span>
@@ -258,6 +258,7 @@ export default {
   async created() {
     const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
     this.accountType = liquidityInfo.tokenLp.heterogeneousList || [];
+    console.log(this.accountType, 'this.accountType');
     this.accountType.push({ chainName: 'NERVE' });
     this.currentToChain = this.accountType.find(item => item.chainName === 'NERVE') || this.accountType[0];
     const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));

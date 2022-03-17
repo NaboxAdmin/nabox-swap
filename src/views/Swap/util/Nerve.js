@@ -12,11 +12,20 @@ const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default class NerveChannel {
-  constructor({ chooseFromAsset, chooseToAsset, swapPairInfo }) {
-    this.chooseFromAsset = chooseFromAsset;
+  constructor({ chooseFromAsset, chooseToAsset, swapPairInfo, swapPairTradeList }) {
+    const nerveSwapAssetList = JSON.parse(sessionStorage.getItem('nerveSwapAssetList'));
+    const fromAssetKey = `${chooseFromAsset.chainId}-${chooseFromAsset.assetId}`;
+    const swapPairTradeInfo = swapPairTradeList && swapPairTradeList.find(item => Object.keys(item.groupCoin).indexOf(fromAssetKey) !== -1) || null;
+    const lpToken = swapPairTradeInfo && swapPairTradeInfo.lpToken || null;
+    this.originalFromAsset = chooseFromAsset;
+    let tempFromAsset;
+    if (swapPairTradeInfo && lpToken) {
+      tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === lpToken);
+    } else {
+      tempFromAsset = chooseFromAsset;
+    }
+    this.chooseFromAsset = tempFromAsset;
     this.chooseToAsset = chooseToAsset;
-    // this.chooseFromAsset = MAIN_INFO;
-    // this.chooseToAsset = NULS_INFO;
     this.storeSwapPairInfo = {};
     this.getStoreSwapPairInfo(swapPairInfo);
   }
@@ -107,7 +116,7 @@ export default class NerveChannel {
   }
   // 获取nerve链上兑换的配置
   getNerveChannelConfig(type, amount, swapPairTradeList) {
-    const [swapAmount, priceImpact, routeSymbolList] = this.getSwapAmount(type, amount);
+    const [swapAmount, priceImpact, routeSymbolList] = this.getSwapAmount(type, amount, swapPairTradeList);
     if (swapAmount != 0) {
       return {
         amountIn: type === 'amountIn' ? amount : swapAmount,
@@ -177,13 +186,12 @@ export default class NerveChannel {
   // 发送nerve链上兑换交易
   async sendNerveSwapTransaction(nerveChannel, nerveAddress, swapPairTradeList) {
     console.log(swapPairTradeList, 'swapPairTradeList');
-    const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
+    const fromAssetKey = `${this.originalFromAsset.chainId}-${this.originalFromAsset.assetId}`;
     const toAssetKey = `${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
-    const mainAssetKey = `${MAIN_INFO.chainId}-${MAIN_INFO.assetId}`;
     const swapPairTradeInfo = swapPairTradeList.find(item => Object.keys(item.groupCoin).indexOf(fromAssetKey) !== -1) || null;
     const lpToken = swapPairTradeInfo && swapPairTradeInfo.lpToken;
     const pairAddress = swapPairTradeInfo && swapPairTradeInfo.address;
-    const fromAssetDecimals = this.chooseFromAsset.decimals;
+    const fromAssetDecimals = this.originalFromAsset.decimals;
     const toAssetDecimals = this.chooseToAsset.decimals;
     const fromAddress = nerveAddress;
     const { amount, minReceive } = nerveChannel;
@@ -194,9 +202,9 @@ export default class NerveChannel {
     const deadline = nerve.swap.currentTime() + 300; // 过期时间
     const toAddress = fromAddress; // 资产接收地址
     const remark = 'Swap...';
-    if (toAssetKey === mainAssetKey && lpToken && pairAddress) {
+    if (lpToken && pairAddress) {
       const swapAmountIn = timesDecimals(amountIn, fromAssetDecimals); // 卖出的资产数量
-      const tokenPath = [nerve.swap.token(this.chooseFromAsset.chainId, this.chooseFromAsset.assetId), nerve.swap.token(lpToken.split('-')[0], lpToken.split('-')[1]), nerve.swap.token(this.chooseToAsset.chainId, this.chooseToAsset.assetId)];
+      const tokenPath = [nerve.swap.token(this.originalFromAsset.chainId, this.originalFromAsset.assetId), nerve.swap.token(lpToken.split('-')[0], lpToken.split('-')[1]), nerve.swap.token(this.chooseToAsset.chainId, this.chooseToAsset.assetId)];
       const tx = await nerve.swap.stableLpSwapTrade(
         fromAddress,
         pairAddress,

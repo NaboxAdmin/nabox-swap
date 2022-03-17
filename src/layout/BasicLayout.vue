@@ -28,6 +28,32 @@
               <span class="ml-2 size-28 font-bold">{{ item.name }}</span>
             </div>
           </div>
+          <!--          <div class="follow-cont d-flex direction-column align-items-center">-->
+          <!--            <div class="follow-item" @click="toUrl('twitter')">-->
+          <!--              <span class="mr-3">-->
+          <!--                <img src="@/assets/image/twitter.png" alt="">-->
+          <!--              </span>-->
+          <!--              <div>Twitter</div>-->
+          <!--            </div>-->
+          <!--            <div class="follow-item" @click="toUrl('medium')">-->
+          <!--              <span class="mr-3">-->
+          <!--                <img src="@/assets/image/medium.png" alt="">-->
+          <!--              </span>-->
+          <!--              <div>Medium</div>-->
+          <!--            </div>-->
+          <!--            <div class="follow-item" @click="toUrl('telegram')">-->
+          <!--              <span class="mr-3">-->
+          <!--                <img src="@/assets/image/telegram.png" alt="">-->
+          <!--              </span>-->
+          <!--              <div>Telegram</div>-->
+          <!--            </div>-->
+          <!--            <div class="follow-item" @click="toUrl('Discord')">-->
+          <!--              <span class="mr-3">-->
+          <!--                <img src="@/assets/image/discord.png" alt="">-->
+          <!--              </span>-->
+          <!--              <div>Discord</div>-->
+          <!--            </div>-->
+          <!--          </div>-->
         </div>
         <div v-else-if="!showConnect && showSign" class="sign-btn" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
       </div>
@@ -223,6 +249,24 @@ export default {
     this.timer = null;
   },
   methods: {
+    toUrl(type) {
+      switch (type) {
+        case 'twitter':
+          this.isMobile ? window.location.href = 'https://twitter.com/naboxwallet' : window.open('https://twitter.com/naboxwallet');
+          break;
+        case 'telegram':
+          this.isMobile ? window.location.href = 'https://t.me/naboxcommunity' : window.open('https://t.me/naboxcommunity');
+          break;
+        case 'Discord':
+          this.isMobile ? window.location.href = 'https://discord.gg/mQVXZJXMkn' : window.open('https://discord.gg/mQVXZJXMkn');
+          break;
+        case 'medium':
+          this.isMobile ? window.location.href = 'https://medium.com/@naboxwallet' : window.open('https://medium.com/naboxwallet');
+          break;
+        default:
+          return false;
+      }
+    },
     // 五分钟一次
     refreshWallet() {
       this.$request({
@@ -707,7 +751,25 @@ export default {
         }
       }
     }
-
+  }
+  .follow-cont {
+    margin-top: 300px;
+    .follow-item {
+      display: flex;
+      align-items: center;
+      width: 230px;
+      margin-bottom: 15px;
+      span {
+        height: 40px;
+        width: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        img {
+          height: 100%;
+          width: 100%;
+        }
+      }
+    }
   }
 }
 </style>

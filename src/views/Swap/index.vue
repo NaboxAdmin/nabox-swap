@@ -403,6 +403,7 @@ export default {
     },
     currentChannel: {
       async handler(newVal) {
+        console.log(newVal, 'newVal');
         if (newVal) {
           this.needAuth = false;
           this.approvingLoading = false;
@@ -411,6 +412,8 @@ export default {
           } else if (newVal.channel === 'DODO') {
             newVal.approveAddress && await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'NERVE' && this.fromNetwork !== 'NERVE') {
+            await this.checkAssetAuthStatus();
+          } else if (newVal.channel === 'NERVE' && this.fromNetwork === 'NERVE') {
             await this.checkAssetAuthStatus();
           }
           if (newVal.impact > 20) {
@@ -493,7 +496,7 @@ export default {
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
-      if (this.chooseFromAsset.contractAddress) {
+      if (this.chooseFromAsset.contractAddress && this.fromNetwork !== 'NERVE') {
         const transfer = new ETransfer();
         const contractAddress = this.chooseFromAsset.contractAddress;
         const authContractAddress = this.getAuthContractAddress();
@@ -502,6 +505,8 @@ export default {
           authContractAddress,
           this.fromAddress
         );
+      } else if (this.fromNetwork !== 'NERVE') {
+        this.needAuth = false;
       } else {
         this.needAuth = false;
       }
@@ -672,7 +677,8 @@ export default {
         crossFeeAsset,
         mainAssetSymbol,
         swapPairInfo,
-        swapPairTradeList
+        swapPairTradeList,
+        bridgeLimitInfo
       } = this;
       const fromAddress = this.currentAccount['address'][this.fromNetwork];
       const toChain = this.chooseToAsset.chain;
@@ -693,7 +699,8 @@ export default {
         crossFeeAsset,
         mainAssetSymbol,
         swapPairInfo,
-        swapPairTradeList
+        swapPairTradeList,
+        bridgeLimitInfo
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -882,6 +889,7 @@ export default {
           // this.checkChannelLimitInfo();
         } else {
           this.currentChannel = null;
+          this.showComputedLoading = false;
         }
       } else {
         if (!this.amountIn) { this.amountMsg = ''; this.btnErrorMsg = ''; this.getChannelBool = false; }
@@ -986,6 +994,7 @@ export default {
         } else {
           this.amountMsg = '';
           this.currentChannel = null;
+          this.showComputedLoading = false;
         }
       } else {
         if (!this.amountOut) { this.amountMsg = ''; this.getChannelBool = false; }
@@ -1112,7 +1121,7 @@ export default {
         // this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
-        this.showComputedLoading = false;
+        // this.showComputedLoading = false;
         console.log(e.message, 'error');
         if (e.message.indexOf('/api/swap/estimate-fee-info') === -1) {
           // this.$message.warning({ message: e.message, offset: 30 });
@@ -1176,7 +1185,8 @@ export default {
     async _getNerveEstimateFeeInfo() {
       const NerveSwap = new NerveChannel({
         chooseFromAsset: this.chooseFromAsset,
-        chooseToAsset: this.chooseToAsset
+        chooseToAsset: this.chooseToAsset,
+        swapPairTradeList: this.swapPairTradeList
       });
       const params = {
         channel: 'NERVE',
@@ -1243,9 +1253,19 @@ export default {
     },
     // 获取nerve通道上面
     async getNerveSwapRoute() {
+      const nerveSwapAssetList = JSON.parse(sessionStorage.getItem('nerveSwapAssetList'));
+      const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
+      const swapPairTradeInfo = this.swapPairTradeList.find(item => Object.keys(item.groupCoin).indexOf(fromAssetKey) !== -1) || null;
+      const lpToken = swapPairTradeInfo && swapPairTradeInfo.lpToken;
+      let tempFromAsset;
+      if (swapPairTradeInfo && lpToken) {
+        tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === lpToken);
+      } else {
+        tempFromAsset = this.chooseFromAsset;
+      }
       const data = {
-        chainId: this.chooseFromAsset.nerveChainId,
-        assetId: this.chooseFromAsset.nerveAssetId,
+        chainId: tempFromAsset.nerveChainId,
+        assetId: tempFromAsset.nerveAssetId,
         swapChainId: this.chooseToAsset.nerveChainId,
         swapAssetId: this.chooseToAsset.nerveAssetId,
         maxPairSize: 4
@@ -1262,12 +1282,13 @@ export default {
       const nerveChannel = new NerveChannel({
         chooseFromAsset: { ...this.chooseFromAsset, chainId: this.chooseFromAsset.nerveChainId, assetId: this.chooseFromAsset.nerveAssetId },
         chooseToAsset: { ...this.chooseToAsset, chainId: this.chooseToAsset.nerveChainId, assetId: this.chooseToAsset.nerveAssetId },
-        swapPairInfo: this.swapPairInfo || []
+        swapPairInfo: this.swapPairInfo || [],
+        swapPairTradeList: this.swapPairTradeList
       });
       if (this.inputType === 'amountIn') {
-        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn);
+        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn, this.swapPairTradeList);
       } else {
-        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut);
+        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut, this.swapPairTradeList);
       }
     },
     // 最大

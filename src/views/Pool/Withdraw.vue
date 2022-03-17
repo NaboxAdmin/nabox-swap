@@ -33,7 +33,7 @@
           <div>{{ $t('tips.tips48') }}</div>
           <div/>
           <div v-for="(item, index) in accountType" :key="index">
-            <div class="d-flex align-items-center" @click="currentType=item.chain;showAccountList=false;currentToChain=item">
+            <div v-if="currentAccount['address'][item.chain]" class="d-flex align-items-center" @click="currentType=item.chain;showAccountList=false;currentToChain=item">
               <span class="chain-icon mr-3">
                 <img :src="getPicture(item.chain)" alt="" @error="pictureError">
               </span>

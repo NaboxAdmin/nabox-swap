@@ -90,7 +90,7 @@ export default {
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'NULS', 'NERVE'],
+      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OEC', 'Avalanche', 'Arbitrum', 'Fantom', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -118,7 +118,8 @@ export default {
           const chainConfig = Object.keys(JSON.parse(sessionStorage.getItem('config')));
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'NULS', 'NERVE'];
+            // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OEC', 'Avalanche', 'Arbitrum', 'Fantom', 'NERVE'];
             this.timer = setTimeout(() => {
               this.getSwapAssetList(this.picList[this.currentIndex]);
             }, 0);
@@ -138,6 +139,10 @@ export default {
       immediate: true,
       deep: true
     }
+  },
+  created() {
+    // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
+    // this.picList = tempConfig.map(item => item.chain);
   },
   mounted() {
     this.$nextTick(() => {
@@ -248,7 +253,11 @@ export default {
               if (this.toAsset.contractAddress) {
                 tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.toAsset.contractAddress);
               } else {
-                tempCoins = tempCoins.filter(coin => coin.assetId !== this.toAsset.assetId);
+                if (this.fromNetwork !== 'NERVE') {
+                  tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+                } else {
+                  tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+                }
               }
             }
           }
