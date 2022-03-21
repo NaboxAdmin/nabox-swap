@@ -213,13 +213,12 @@ export default {
                 if (currentAsset && currentAsset.contractAddress) {
                   return currentAsset.contractAddress;
                 }
-                return batchQueryContract;
+                return '';
               }
             });
             const tempAddress = addresses.filter(item => item);
             assetBalanceList = await getBatchERC20Balance(tempAddress, fromAddress, batchQueryContract, RPCUrl);
           }
-          console.log(assetBalanceList, 'console.log(assetBalanceList)');
           const tempPoolList = await Promise.all(tempFormatList.map(async(item, index) => ({
             ...item,
             myShare: await this.formatUserShare(index, assetBalanceList, item)
@@ -270,6 +269,7 @@ export default {
       }
     },
     async formatUserShare(i, balanceList, asset) {
+      if (balanceList.length === 0) return 0;
       if (this.fromNetwork === 'NERVE') {
         return this.numberFormat(tofix(divisionDecimals(balanceList[i].balance, asset.tokenLp.decimals), 2, -1), 2);
       } else {
