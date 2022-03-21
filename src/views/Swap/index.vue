@@ -115,7 +115,7 @@
           </div>
           <span class="text-3a">{{ currentChannel.feeAmount | numberFormat }}{{ chooseFromAsset && chooseFromAsset.symbol }}</span>
         </div>
-        <div v-if="currentChannel.minReceive && !stableSwap" class="d-flex space-between size-28 mt-3">
+        <div v-if="(fromNetwork==='NERVE' && currentChannel.minReceive && stableSwap) || (currentChannel.minReceive && !stableSwap)" class="d-flex space-between size-28 mt-3">
           <span class="text-90">{{ (currentChannel && currentChannel.isCross ? $t("swap.swap32") : $t("swap.swap20")) || $t("swap.swap20") }}</span>
           <span class="text-3a">
             {{ currentChannel.minReceive | numberFormat }}{{ chooseToAsset && chooseToAsset.symbol }}
@@ -807,13 +807,18 @@ export default {
         case 'receive': // 选择接受资产
           this.chooseToAsset = coin;
           this.resetData();
-          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
-            this.crossTransaction = false;
-            this.switchAsset = true;
-          } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
+          console.log(123, this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === 'NERVE' && this.chooseToAsset.chain === 'NERVE');
+          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
+          } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === 'NERVE' && this.chooseToAsset.chain === 'NERVE') {
+            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+            this.crossTransaction = false;
+            this.switchAsset = true;
+          } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.crossTransaction = false;
+            this.switchAsset = true;
           } else {
             this.crossTransaction = true;
             this.switchAsset = false;
@@ -977,6 +982,7 @@ export default {
       }
     },
     computedSwapRate(isCross, amountIn, amountOut) {
+      console.log(amountIn, amountOut, 'amountOut');
       return `1${this.chooseFromAsset.symbol}≈${this.numberFormat(tofix((Division(amountOut, amountIn) < 0 && '0' || Division(amountOut, amountIn)), 4, -1), 4)}${this.chooseToAsset.symbol}`;
     },
     async amountOutInput() {
@@ -1077,6 +1083,19 @@ export default {
               };
             }
             return null;
+          } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && this.stableSwap) {
+            // currentConfig = await this._getNerveStableSwapFeeInfo();
+            return {
+              icon: item.icon,
+              amount: this.inputType === 'amountIn' ? this.amountIn : this.amountOut,
+              channel: item.channel,
+              amountOut: this.inputType === 'amountOut' ? this.amountOut : this.amountIn,
+              minReceive: this.inputType === 'amountIn' ? this.amountIn : this.amountOut,
+              impact: '0',
+              isBest: false,
+              isCurrent: false,
+              swapRate: this.computedSwapRate(false, 1, 1)
+            };
           } else if (item.channel === 'iSwap' && this.stableSwap) {
             currentConfig = await this.getBridgeEstimateFeeInfo();
             if (currentConfig) {
@@ -1207,6 +1226,14 @@ export default {
         pairAddress: this.chooseFromAsset.channelInfo['NERVE'].pairAddress
       };
       return await NerveSwap.getNerveEstimateFeeInfo(params);
+    },
+    async _getNerveStableSwapFeeInfo() {
+      const NerveSwap = new NerveChannel({
+        chooseFromAsset: this.chooseFromAsset,
+        chooseToAsset: this.chooseToAsset,
+        swapPairTradeList: this.swapPairTradeList
+      });
+      return await NerveSwap.getNerveStableSwapFeeInfo();
     },
     /**
      * 根据chain获取当前最优的dex

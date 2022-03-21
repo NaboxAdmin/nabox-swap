@@ -258,6 +258,13 @@ export default class NerveChannel {
     }
     return null;
   }
+  getNerveStableSwapFeeInfo() {
+    return {
+      crossChainFee: res.data.crossFee,
+      swapFee: res.data.swapFee,
+      orderId: res.data.orderId
+    };
+  }
   // 发送nerve通道异构链稳定币兑换交易
   async sendNerveBridgeTransaction(params) {
     const transfer = new ETransfer();
