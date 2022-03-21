@@ -47,7 +47,9 @@ const en = {
     tips45: 'Deposit/Withdraw',
     tips46: ' address ',
     tips47: ' will receive',
-    tips48: 'Select receiving network'
+    tips48: 'Select receiving network',
+    tips49: 'Enter asset name to search',
+    tips50: 'Pls switch to the corresponding Network'
   },
   swap: {
     swap1: 'From',

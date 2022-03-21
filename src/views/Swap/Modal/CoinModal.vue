@@ -52,9 +52,9 @@
 </template>
 
 <script>
-import {divisionDecimals, isBeta, tofix} from '@/api/util';
+import { divisionDecimals, isBeta, tofix } from '@/api/util';
 import { getBatchERC20Balance } from '@/api/api';
-import {swapAssetList} from "@/views/Swap/util/swapAssetList";
+import { swapAssetList } from '@/views/Swap/util/swapAssetList';
 
 export default {
   name: 'CoinModal',

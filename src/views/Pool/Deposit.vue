@@ -494,7 +494,7 @@ export default {
       if (!this.currentAsset) {
         if (this.liquidityInfo.lpCoinList.length !== 0) {
           this.currentAsset = this.liquidityInfo.lpCoinList.find(item => item.chain === currentNetwork) || this.liquidityInfo.lpCoinList[0];
-          if (this.fromNetwork !== 'NERVE') {
+          if (this.fromNetwork !== 'NERVE' && this.currentAsset.contractAddress) {
             this.checkAssetAuthStatus();
           }
         }
