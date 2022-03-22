@@ -239,6 +239,26 @@ export default class NerveChannel {
       return nerve.deserializationTx(tx.hex);
     }
   }
+  // 发送NERVE稳定币swap交易
+  async sendNerveStableSwapTransaction(amount, fromAddress, tokenOutIndex) {
+    const stablePairAddress = this.chooseFromAsset.channelInfo['NERVE'].pairAddress;
+    const amountIns = [nerve.swap.tokenAmount(this.chooseFromAsset.chainId, this.chooseFromAsset.assetId, amount)];
+    const feeTo = null;
+    const deadline = nerve.swap.currentTime() + 300;
+    const toAddress = fromAddress;
+    const remark = 'stable swap trade remark...';
+    const tx = await nerve.swap.stableSwapTrade(
+      fromAddress,
+      stablePairAddress,
+      amountIns,
+      tokenOutIndex,
+      feeTo,
+      deadline,
+      toAddress,
+      remark
+    );
+    return nerve.deserializationTx(tx.hex);
+  }
   // 获取资产的key
   generateAssetKey() {
     return `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}_${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
