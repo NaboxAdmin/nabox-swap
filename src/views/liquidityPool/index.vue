@@ -18,17 +18,17 @@
           </template>
         </div>
         <div class="search-cont d-flex align-items-center">
-        <span class="search-icon">
-          <img src="@/assets/image/search.png" alt="">
-        </span>
+          <span class="search-icon">
+            <img src="@/assets/image/search.png" alt="">
+          </span>
           <input v-model="searchVal" :placeholder="$t('tips.tips49')" type="text" >
         </div>
       </div>
       <div
-          v-loading="poolLoading"
-          v-if="poolLoading"
-          class="loading-cont"
-          element-loading-background="rgba(255, 255, 255, 0.1)" />
+        v-loading="poolLoading"
+        v-if="poolLoading"
+        class="loading-cont"
+        element-loading-background="rgba(255, 255, 255, 0.1)" />
       <template v-else-if="poolList.length>0">
         <div v-for="(item, index) in poolList" :key="index" class="pool-item mt-3">
           <div class="pool-icon_cont d-flex align-items-center">
@@ -64,8 +64,8 @@
 </template>
 
 <script>
-import {Division, divisionDecimals, Times, tofix} from '@/api/util';
-import {ETransfer, getBatchERC20Balance} from '@/api/api';
+import { Division, divisionDecimals, Times, tofix } from '@/api/util';
+import { ETransfer, getBatchERC20Balance } from '@/api/api';
 
 export default {
   name: 'LiquidityPool',
