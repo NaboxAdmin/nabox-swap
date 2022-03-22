@@ -26,7 +26,7 @@
                   <span class="sign size-16">{{ item.registerChain }}</span>
                 </span>
               </div>
-              <span class="text-3a font-bold size-30">{{ (item.userBalance || 0) | numberFormat }}</span>
+              <span class="text-3a font-bold size-30">{{ (item.userBalance || 0) | numFormatFixSix }}</span>
             </div>
           </div>
         </div>

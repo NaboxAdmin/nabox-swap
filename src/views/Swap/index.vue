@@ -13,7 +13,7 @@
           <div>{{ $t("swap.swap1") }}<span v-if="chooseFromAsset" class="size-20 sign">{{ chooseFromAsset.chain }}</span></div>
           <div>{{ $t("swap.swap4") }}：
             <span v-if="balanceLoading" class="text-3a"><i class="el-icon-loading"/></span>
-            <span v-else-if="available" class="text-3a">{{ available | numberFormat }}</span>
+            <span v-else-if="available" class="text-3a">{{ available | numFormatFixSix }}</span>
             <span v-else class="text-3a">--</span>
             <!--          <span class="word-break">{{ (available || 0.0) | numberFormat }}</span>-->
           </div>

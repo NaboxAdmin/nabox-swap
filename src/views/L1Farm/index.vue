@@ -50,14 +50,14 @@
           <div class="text-right mt-2 text-90 size-26 d-flex justify-content-end">
             {{ $t("vaults.vaults5") }}：
             <span v-if="availableLoading" class="text-3a"><i class="el-icon-loading"/></span>
-            <span v-else>{{ assetsItem && assetsItem.balance || 0 }}</span>
+            <span v-else>{{ (assetsItem && assetsItem.balance || 0) | numFormat }}</span>
           </div>
         </template>
         <template v-else>
           <div class="text-right mt-2 text-90 size-26">
             {{ $t("vaults.vaults5") }}：
             <span v-if="availableLoading" class="text-3a"><i class="el-icon-loading"/></span>
-            <span v-else>{{ assetsItem && assetsItem.amount || 0 }}</span>
+            <span v-else>{{ (assetsItem && assetsItem.amount || 0) | numFormat }}</span>
           </div>
         </template>
         <div class="input-cont">

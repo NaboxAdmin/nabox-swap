@@ -90,7 +90,7 @@
           <div>
             {{ $t("transfer.transfer5") }}：
             <span v-if="availableLoading"><i class="el-icon-loading"/></span>
-            <span v-else-if="userAvailable">{{ (userAvailable || 0) | numberFormat }}</span>
+            <span v-else-if="userAvailable">{{ (userAvailable || 0) | numFormatFixSix }}</span>
             <span v-else>--</span>
           </div>
         </template>
@@ -340,7 +340,7 @@ export default {
             this.crossInAuth = false;
           }
           this.availableLoading = false;
-          if (this.toNerve && this.fromNetwork !== 'NULS') {
+          if (this.toNerve && this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE') {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
             const fromAddress = this.currentAccount['address'][this.fromNetwork];

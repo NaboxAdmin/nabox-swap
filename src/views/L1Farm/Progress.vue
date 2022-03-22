@@ -68,7 +68,7 @@
                 <Loading v-if="firstLoading"/>
                 <span v-else class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
               </template>
-              <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ (10000.7855) | numFormatFix }}</span>
             </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
@@ -98,7 +98,7 @@
                 <Loading v-if="firstLoading" class="mt-1"/>
                 <span v-else class="size-40 word-break w-330 mt-2">{{ (item.amount || 0) | numFormat }}</span>
               </template>
-              <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ (item.stakeUsdPrice || 0) | numFormatFix }}</span>
             </div>
             <div class="btn-group">
               <template>
@@ -157,7 +157,7 @@
                   <Loading v-if="firstLoading" class="mt-1"/>
                   <span v-else class="size-40 word-break w-330 mt-2">{{ (item.unlockNumbers || 0) | numFormat }}</span>
                 </template>
-                <span class="mt-1 text-90 size-26">≈${{ item.unlockUsdPrice || 0 }}</span>
+                <span class="mt-1 text-90 size-26">≈${{ (item.unlockUsdPrice || 0) | numFormatFix }}</span>
               </div>
               <span
                 v-if="!item.needReceiveAuth"

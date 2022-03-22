@@ -46,8 +46,8 @@
           <div v-if="vaultsType==='increase'" class="size-36 font-500">{{ assetsItem && assetsItem.symbol }} {{ $t("vaults.vaults15") }}</div>
           <div v-else class="size-36 font-500">{{ assetsItem && assetsItem.stakedAsset && assetsItem.stakedAsset.symbol }} {{ $t("vaults.vaults16") }}</div>
         </template>
-        <div v-if="vaultsType==='increase'" class="text-right mt-2 text-90 size-26">{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.balance || 0 }}</div>
-        <div v-else class="text-right mt-2 text-90 size-26">{{ $t("vaults.vaults5") }}：{{ assetsItem && assetsItem.amount || 0 }}</div>
+        <div v-if="vaultsType==='increase'" class="text-right mt-2 text-90 size-26">{{ $t("vaults.vaults5") }}：{{ (assetsItem && assetsItem.balance || 0) | numFormat }}</div>
+        <div v-else class="text-right mt-2 text-90 size-26">{{ $t("vaults.vaults5") }}：{{ (assetsItem && assetsItem.amount || 0) | numFormat }}</div>
         <div class="input-cont">
           <input
             :placeholder="$t('vaults.vaults9')"

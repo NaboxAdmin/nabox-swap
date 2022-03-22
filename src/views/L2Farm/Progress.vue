@@ -68,7 +68,7 @@
                 <Loading v-if="firstLoading"/>
                 <span v-else class="size-40 word-break w-330 mt-2">{{ (item.lockCandy && item.pendingReward || item.reward || 0) | numFormat }}</span>
               </template>
-              <span class="mt-1 text-90 size-26">≈${{ item.syrupUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ (item.syrupUsdPrice || 0) | numFormatFix }}</span>
             </div>
             <span
               v-if="!item.needReceiveAuth && !item.lockCandy"
@@ -98,12 +98,12 @@
                 <Loading v-if="firstLoading"/>
                 <span v-else class="mt-2 size-40 word-break w-330">{{ (item.amount || 0) | numFormat }}</span>
               </template>
-              <span class="mt-1 text-90 size-26">≈${{ item.stakeUsdPrice || 0 }}</span>
+              <span class="mt-1 text-90 size-26">≈${{ (item.stakeUsdPrice || 0) | numFormatFix }}</span>
             </div>
             <div class="btn-group">
               <template v-if="!item.needStakeAuth">
                 <div
-                  :class="{ disabled_btn: !item.amount || item.amount == 0 || !item.reward || item.reward==0 || item.reward<0 }"
+                  :class="{ disabled_btn: !item.amount || item.amount == 0 }"
                   class="btn-item"
                   @click="showClick('decrease', item.farmKey, item)">-</div>
                 <div
@@ -222,7 +222,7 @@ export default {
     },
     showClick(type, farmHash, item) {
       // if (!item.amount || item.amount == 0 || !item.reward || item.reward==0) return false;
-      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0 || !item.reward || item.reward == 0 || item.reward < 0)) return false;
+      if (type === 'decrease' && (!Number(item.amount) || !item.amount || item.amount == 0)) return false;
       this.$emit('showClick', { type, farmHash: item.farmKey, item });
     },
     // 领取

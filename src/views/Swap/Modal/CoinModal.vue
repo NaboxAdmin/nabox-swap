@@ -40,7 +40,7 @@
                 <span v-if="item.showBalanceLoading" class="box_loading">
                   <img src="@/assets/image/loading.svg" alt="">
                 </span>
-                <span v-else class="text-3a font-500 size-30">{{ item.balance | numberFormat }}</span>
+                <span v-else class="text-3a font-500 size-30">{{ (item.balance || 0) | numFormatFixSix }}</span>
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@
     <div class="d-flex align-items-center size-26 text-90 justify-content-end">
       {{ $t("swap.swap4") }}：
       <span v-if="availableLoading"><i class="el-icon-loading"/></span>
-      <span v-else-if="addedLiquidityInfo">{{ addedLiquidityInfo && addedLiquidityInfo.balance || 0 }}</span>
+      <span v-else-if="addedLiquidityInfo">{{ (addedLiquidityInfo && addedLiquidityInfo.balance || 0) | numFormatFixSix }}</span>
       <span v-else>--</span>
     </div>
     <div class="input-cont mt-2 d-flex align-items-center">

@@ -28,7 +28,7 @@
               </div>
               <template>
                 <Loading v-if="item.showBalanceLoading"/>
-                <span v-else class="text-3a font-500 size-30">{{ (item.balance || 0) | numberFormat }}</span>
+                <span v-else class="text-3a font-500 size-30">{{ (item.balance || 0) | numFormatFixSix }}</span>
               </template>
             </div>
           </div>

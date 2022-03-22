@@ -45,7 +45,15 @@ export default {
     },
     numFormatFix(val) {
       if (!val) return 0;
-      const tempNum = tofix(val.toString(), 2);
+      const tempNum = tofix(val.toString(), 2, -1);
+      const int = tempNum.split('.')[0];
+      const float = tempNum.split('.')[1] || '';
+      const intPart = Number(int).toFixed(0); // 获取整数部分
+      return intPart.toString().replace(/(\d)(?=(?:\d{3})+$)/g, '$1,') + (float ? '.' + float : '');
+    },
+    numFormatFixSix(val) {
+      if (!val) return 0;
+      const tempNum = numberFormat(tofix(val.toString(), 6, -1), 6);
       const int = tempNum.split('.')[0];
       const float = tempNum.split('.')[1] || '';
       const intPart = Number(int).toFixed(0); // 获取整数部分
