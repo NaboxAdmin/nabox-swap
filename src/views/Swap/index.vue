@@ -1114,10 +1114,10 @@ export default {
             }
             return null;
           }
-          return item;
+          return null;
         }));
         this.getChannelBool = true;
-        // console.log(tempChannelConfig, 'tempChannelConfig');
+        console.log(tempChannelConfig, 'tempChannelConfig');
         // this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {

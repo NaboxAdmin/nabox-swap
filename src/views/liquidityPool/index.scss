@@ -126,3 +126,14 @@
     border: 1px solid #ABB1BA !important;
     background-color: #ABB1BA !important;
 }
+
+@media screen and (min-width: 1000px) {
+    .mobile_class {
+        height: 1440px;
+        overflow-y: auto;
+    }
+    &::-webkit-scrollbar {
+        width: 0px !important;
+        height: 0px !important;
+    }
+}

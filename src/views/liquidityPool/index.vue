@@ -1,63 +1,65 @@
 <template>
-  <div class="pool-cont">
-    <div class="title-cont bg-f0 size-26">
-      <div class="title-text">{{ $t('tips.tips41') }}</div>
-      <div class="tvl-cont">
-        <div class="size-34 font-500 text-center">${{ poolTvl | numFormatFix }}</div>
-        <div class="mt-1 text-90 size-26 text-center">TVL</div>
+  <div :class="{ mobile_class: !isMobile }">
+    <div class="pool-cont">
+      <div class="title-cont bg-f0 size-26">
+        <div class="title-text">{{ $t('tips.tips41') }}</div>
+        <div class="tvl-cont">
+          <div class="size-34 font-500 text-center">${{ poolTvl | numFormatFix }}</div>
+          <div class="mt-1 text-90 size-26 text-center">TVL</div>
+        </div>
       </div>
-    </div>
-    <div class="d-flex align-items-center mt-3">
-      <div class="flex-1 d-flex align-items-center">
-        <template v-if="!poolLoading">
-          <div class="size-30">{{ $t("airdrop.airdrop3") }}</div>
-          <div :class="{ 'switch-active': isStaked }" class="switch-cont d-flex align-items-center" @click="isStaked=!isStaked">
-            <div class="switch-item"/>
-          </div>
-        </template>
-      </div>
-      <div class="search-cont d-flex align-items-center">
+      <div class="d-flex align-items-center mt-3">
+        <div class="flex-1 d-flex align-items-center">
+          <template v-if="!poolLoading">
+            <div class="size-30">{{ $t("airdrop.airdrop3") }}</div>
+            <div :class="{ 'switch-active': isStaked }" class="switch-cont d-flex align-items-center" @click="isStaked=!isStaked">
+              <div class="switch-item"/>
+            </div>
+          </template>
+        </div>
+        <div class="search-cont d-flex align-items-center">
         <span class="search-icon">
           <img src="@/assets/image/search.png" alt="">
         </span>
-        <input v-model="searchVal" :placeholder="$t('tips.tips49')" type="text" >
-      </div>
-    </div>
-    <div
-      v-loading="poolLoading"
-      v-if="poolLoading"
-      class="loading-cont"
-      element-loading-background="rgba(255, 255, 255, 0.1)" />
-    <template v-else-if="poolList.length>0">
-      <div v-for="(item, index) in poolList" :key="index" class="pool-item mt-3">
-        <div class="pool-icon_cont d-flex align-items-center">
-          <div class="pool-icon">
-            <img v-lazy="item.depositIcon || getPicture(item.depositAssetSymbol)" alt="" @error="pictureError">
-          </div>
-          <div class="ml-12 font-500 size-30">{{ item.depositAssetSymbol }}</div>
+          <input v-model="searchVal" :placeholder="$t('tips.tips49')" type="text" >
         </div>
-        <div>
-          <div class="d-flex align-items-center space-between mt-3">
-            <div class="size-28 text-90">{{ $t('tips.tips42') }}</div>
-            <div class="size-28 text-3a font-500">{{ item.totalLp | numberFormatLetter }} {{ item.tokenLp.symbol }}</div>
+      </div>
+      <div
+          v-loading="poolLoading"
+          v-if="poolLoading"
+          class="loading-cont"
+          element-loading-background="rgba(255, 255, 255, 0.1)" />
+      <template v-else-if="poolList.length>0">
+        <div v-for="(item, index) in poolList" :key="index" class="pool-item mt-3">
+          <div class="pool-icon_cont d-flex align-items-center">
+            <div class="pool-icon">
+              <img v-lazy="item.depositIcon || getPicture(item.depositAssetSymbol)" alt="" @error="pictureError">
+            </div>
+            <div class="ml-12 font-500 size-30">{{ item.depositAssetSymbol }}</div>
           </div>
-          <div class="d-flex align-items-center space-between mt-3">
-            <div class="size-28 text-90">{{ $t('tips.tips43') }}</div>
-            <div class="size-28 text-3a font-500">{{ item.myShare | numberFormatLetter }} {{ item.tokenLp.symbol }} | {{ (item.poolRate || 0) | rateFormat }}</div>
-          </div>
-          <div class="d-flex align-items-center space-between mt-3">
-            <div class="size-28 text-90">{{ $t('tips.tips44') }}</div>
-            <div class="d-flex align-items-center">
-              <div v-for="(chain, Cindex) in item.supportNetwork" :key="Cindex" class="network-icon">
-                <img v-lazy="getPicture(chain)" alt="" @error="pictureError">
+          <div>
+            <div class="d-flex align-items-center space-between mt-3">
+              <div class="size-28 text-90">{{ $t('tips.tips42') }}</div>
+              <div class="size-28 text-3a font-500">{{ item.totalLp | numberFormatLetter }} {{ item.tokenLp.symbol }}</div>
+            </div>
+            <div class="d-flex align-items-center space-between mt-3">
+              <div class="size-28 text-90">{{ $t('tips.tips43') }}</div>
+              <div class="size-28 text-3a font-500">{{ item.myShare | numberFormatLetter }} {{ item.tokenLp.symbol }} | {{ (item.poolRate || 0) | rateFormat }}</div>
+            </div>
+            <div class="d-flex align-items-center space-between mt-3">
+              <div class="size-28 text-90">{{ $t('tips.tips44') }}</div>
+              <div class="d-flex align-items-center">
+                <div v-for="(chain, Cindex) in item.supportNetwork" :key="Cindex" class="network-icon">
+                  <img v-lazy="getPicture(chain)" alt="" @error="pictureError">
+                </div>
               </div>
             </div>
+            <div :class="{ 'disabled_btn': fromNetwork !== 'NERVE' && item.supportNetwork.indexOf(fromNetwork) === -1 }" class="option-btn cursor-pointer" @click="optionClick(item)">{{ (fromNetwork == 'NERVE' || fromNetwork !== 'NERVE' && item.supportNetwork.indexOf(fromNetwork) !== -1) && $t('tips.tips45') || $t('tips.tips50') }}</div>
           </div>
-          <div :class="{ 'disabled_btn': fromNetwork !== 'NERVE' && item.supportNetwork.indexOf(fromNetwork) === -1 }" class="option-btn cursor-pointer" @click="optionClick(item)">{{ (fromNetwork == 'NERVE' || fromNetwork !== 'NERVE' && item.supportNetwork.indexOf(fromNetwork) !== -1) && $t('tips.tips45') || $t('tips.tips50') }}</div>
         </div>
-      </div>
-    </template>
-    <div v-else class="text-center mt-4 text-grey">{{ $t('modal.modal3') }}</div>
+      </template>
+      <div v-else class="text-center mt-4 text-grey">{{ $t('modal.modal3') }}</div>
+    </div>
   </div>
 </template>
 
