@@ -1103,7 +1103,7 @@ export default {
             const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
             const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
             const currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
-            const limitMax = divisionDecimals(currentAsset.amount || 0, currentAsset.decimals || 18);
+            const limitMax = divisionDecimals(currentAsset && currentAsset.amount || 0, currentAsset.decimals || 18);
             if (Minus(this.amountIn, limitMax) > 0) {
               // this.amountMsg = `${this.$t('tips.tips4')}${limitMax}${this.chooseFromAsset.symbol}`;
               return null;
