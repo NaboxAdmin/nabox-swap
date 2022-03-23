@@ -241,8 +241,10 @@ export default class NerveChannel {
   }
   // 发送NERVE稳定币swap交易
   async sendNerveStableSwapTransaction(amount, fromAddress, tokenOutIndex) {
-    const stablePairAddress = this.chooseFromAsset.channelInfo['NERVE'].pairAddress;
-    const amountIns = [nerve.swap.tokenAmount(this.chooseFromAsset.chainId, this.chooseFromAsset.assetId, amount)];
+    const stablePairAddress = this.originalFromAsset.channelInfo['NERVE'].pairAddress;
+    console.log(this.originalFromAsset, 'this.originalFromAsset');
+    const amountIn = timesDecimals(amount || 0, this.originalFromAsset.decimals);
+    const amountIns = [nerve.swap.tokenAmount(this.originalFromAsset.chainId, this.originalFromAsset.assetId, amountIn)];
     const feeTo = null;
     const deadline = nerve.swap.currentTime() + 300;
     const toAddress = fromAddress;
@@ -277,13 +279,6 @@ export default class NerveChannel {
       };
     }
     return null;
-  }
-  getNerveStableSwapFeeInfo() {
-    return {
-      crossChainFee: res.data.crossFee,
-      swapFee: res.data.swapFee,
-      orderId: res.data.orderId
-    };
   }
   // 发送nerve通道异构链稳定币兑换交易
   async sendNerveBridgeTransaction(params) {
@@ -326,6 +321,6 @@ export default class NerveChannel {
     if (res.result && res.result.hash) {
       return { hash: res.result.hash, success: true };
     }
-    return { hash: null, msg: res.error.msg || res.error.data };
+    return { hash: null, msg: `${res.error.code}:${res.error.data}` || res.error.data };
   }
 }

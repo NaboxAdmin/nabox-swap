@@ -426,6 +426,13 @@ export default {
           });
           this.confirmLoading = false;
           this.$emit('confirm');
+        } else {
+          this.$message({
+            type: 'warning',
+            message: res.msg || this.$t('tips.tips51'),
+            offset: 30
+          });
+          this.confirmLoading = false;
         }
       } catch (e) {
         console.error(e, 'error');

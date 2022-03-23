@@ -25,7 +25,7 @@
     "lib-flexible": "^0.3.2",
     "log4js": "^4.5.1",
     "moment": "^2.27.0",
-    "nerve-sdk-js": "^1.0.18",
+    "nerve-sdk-js": "^1.0.19",
     "normalize.css": "^8.0.1",
     "nuls-sdk-js": "^2.4.8",
     "postcss-px2rem-exclude": "^0.0.6",
