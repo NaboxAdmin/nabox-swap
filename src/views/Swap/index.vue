@@ -662,7 +662,7 @@ export default {
     },
     // 下一步
     nextStep() {
-      // if (!this.canNext) return false;
+      if (!this.canNext) return false;
       const {
         currentChannel,
         chooseFromAsset,
@@ -793,13 +793,17 @@ export default {
           this.chooseFromAsset = coin;
           await this.getBalance(this.chooseFromAsset, true);
           this.refreshBalance();
-          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+          if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === 'NERVE' && this.chooseToAsset.chain === 'NERVE') {
+            this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
             this.switchAsset = false;
+          } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.crossTransaction = false;
+            this.switchAsset = true;
           } else {
             this.crossTransaction = true;
             this.switchAsset = false;
@@ -1448,6 +1452,7 @@ export default {
       this.btnErrorMsg = '';
       this.stableSwap = false;
       this.getChannelBool = false;
+      this.nerveChainStableSwap = false;
     },
     changeShowDetail() {
       this.showOrderDetail = false;

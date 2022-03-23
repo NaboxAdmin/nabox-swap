@@ -242,7 +242,7 @@ export default {
                 if (this.fromNetwork !== 'NERVE') {
                   tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
                 } else {
-                  tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
                 }
                 // tempCoins = tempCoins.filter(coin => this.fromNetwork !== 'NERVE' && coin.assetId !== this.fromAsset.assetId || (this.fromAsset.registerChain !== 'NERVE' && coin.chainId !== this.fromAsset.chainId || coin.chainId !== this.fromAsset.chainId));
               }
@@ -254,9 +254,10 @@ export default {
                 tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.toAsset.contractAddress);
               } else {
                 if (this.fromNetwork !== 'NERVE') {
-                  tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+                  tempCoins = tempCoins.filter(coin => coin.assetId !== this.toAsset.assetId);
                 } else {
-                  tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
+                  // tempCoins = tempCoins.filter(coin => coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId);
                 }
               }
             }

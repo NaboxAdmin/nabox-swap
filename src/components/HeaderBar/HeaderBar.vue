@@ -559,7 +559,7 @@ export default {
             if (res && res.result) {
               return {
                 ...tx,
-                status: res.result.status == '1' ? 1 : -1
+                status: res.result.status == '1' ? 1 : res.result.status == '0' ? 0 : -1
               };
             }
           }
