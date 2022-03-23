@@ -109,7 +109,7 @@ export default {
     async confirmOrder() {
       try {
         this.confirmLoading = true;
-        const { currentChannel, stableSwap } = this.orderInfo;
+        const { currentChannel, stableSwap, nerveChainStableSwap } = this.orderInfo;
         switch (currentChannel.channel) {
           case 'iSwap':
             await this.sendISwapTransaction();
@@ -118,7 +118,9 @@ export default {
             await this.sendDodoTransaction();
             break;
           case 'NERVE':
-            if (stableSwap) {
+            if (stableSwap && nerveChainStableSwap) {
+              await this.sendNerveStableSwapTransaction();
+            } else if (stableSwap) {
               await this.sendNerveBridgeTransaction();
             } else {
               await this.sendNerveSwapTransaction();
@@ -390,7 +392,54 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.message,
+          message: e.message || this.$t('tips.tips51'),
+          offset: 30
+        });
+      }
+    },
+    // 发送nerve链上稳定币交易
+    async sendNerveStableSwapTransaction() {
+      try {
+        const { toAsset, fromAsset, currentChannel, swapPairInfo, swapPairTradeList, tokenOutIndex } = this.orderInfo;
+        const nerveChannel = new NerveChannel({
+          chooseToAsset: toAsset,
+          chooseFromAsset: fromAsset,
+          swapPairInfo,
+          swapPairTradeList
+        });
+        const tAssemble = await nerveChannel.sendNerveStableSwapTransaction(currentChannel.amount, this.currentAccount['address']['NERVE'], tokenOutIndex);
+        const transfer = new NTransfer({ chain: 'NERVE' });
+        const txHex = await transfer.getTxHex({
+          tAssemble,
+          pub: this.currentAccount.pub,
+          signAddress: this.currentAccount.address.Ethereum
+        });
+        console.log(txHex, '===txHex===');
+        const res = await nerveChannel.broadcastHex(txHex);
+        if (res && res.hash) {
+          this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+          this.$message({
+            type: 'success',
+            message: this.$t('tips.tips24'),
+            offset: 30,
+            duration: 1500
+          });
+          this.confirmLoading = false;
+          this.$emit('confirm');
+        } else {
+          this.$message({
+            type: 'warning',
+            message: res.msg || this.$t('tips.tips51'),
+            offset: 30
+          });
+          this.confirmLoading = false;
+        }
+      } catch (e) {
+        console.error(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: e.message || this.$t('tips.tips51'),
           offset: 30
         });
       }

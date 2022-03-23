@@ -239,6 +239,28 @@ export default class NerveChannel {
       return nerve.deserializationTx(tx.hex);
     }
   }
+  // 发送NERVE稳定币swap交易
+  async sendNerveStableSwapTransaction(amount, fromAddress, tokenOutIndex) {
+    const stablePairAddress = this.originalFromAsset.channelInfo['NERVE'].pairAddress;
+    console.log(this.originalFromAsset, 'this.originalFromAsset');
+    const amountIn = timesDecimals(amount || 0, this.originalFromAsset.decimals);
+    const amountIns = [nerve.swap.tokenAmount(this.originalFromAsset.chainId, this.originalFromAsset.assetId, amountIn)];
+    const feeTo = null;
+    const deadline = nerve.swap.currentTime() + 300;
+    const toAddress = fromAddress;
+    const remark = 'stable swap trade remark...';
+    const tx = await nerve.swap.stableSwapTrade(
+      fromAddress,
+      stablePairAddress,
+      amountIns,
+      tokenOutIndex,
+      feeTo,
+      deadline,
+      toAddress,
+      remark
+    );
+    return nerve.deserializationTx(tx.hex);
+  }
   // 获取资产的key
   generateAssetKey() {
     return `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}_${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
@@ -299,6 +321,6 @@ export default class NerveChannel {
     if (res.result && res.result.hash) {
       return { hash: res.result.hash, success: true };
     }
-    return { hash: null, msg: res.error.msg || res.error.data };
+    return { hash: null, msg: `${res.error.code}:${res.error.data}` || res.error.data };
   }
 }
