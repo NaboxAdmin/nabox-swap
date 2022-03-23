@@ -28,8 +28,11 @@
               <div class="image-cont">
                 <img v-lazy="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol)" alt="" @error="pictureError">
               </div>
-              <div class="w-90 direction-column size-30 ml-1 text-truncate text-3a">
-                {{ chooseFromAsset.symbol }}
+              <div class="d-flex direction-column align-items-center">
+                <div class="w-90 direction-column size-30 text-center text-truncate text-3a">
+                  {{ chooseFromAsset.symbol }}
+                </div>
+                <div v-if="fromNetwork==='NERVE' && chooseFromAsset.chain === 'NERVE'" class="sign-small size-20">{{ chooseFromAsset.registerChain }}</div>
               </div>
             </div>
           </template>
@@ -67,8 +70,11 @@
               <div class="image-cont">
                 <img v-lazy="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
               </div>
-              <div class="w-90 text-truncate direction-column size-30 ml-1 text-3a">
-                {{ chooseToAsset.symbol }}
+              <div class="d-flex direction-column align-items-center">
+                <div class="w-90 text-truncate direction-column text-center size-30 text-3a">
+                  {{ chooseToAsset.symbol }}
+                </div>
+                <div v-if="chooseToAsset.chain === 'NERVE'" class="sign-small size-20">{{ chooseToAsset.registerChain }}</div>
               </div>
             </div>
             <div class="icon-cont" @click.stop="openModal('receive')">
@@ -1103,7 +1109,7 @@ export default {
             const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
             const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
             const currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
-            const limitMax = divisionDecimals(currentAsset && currentAsset.amount || 0, currentAsset.decimals || 18);
+            const limitMax = divisionDecimals(currentAsset && currentAsset.amount || 0, currentAsset && currentAsset.decimals || 18);
             if (Minus(this.amountIn, limitMax) > 0) {
               // this.amountMsg = `${this.$t('tips.tips4')}${limitMax}${this.chooseFromAsset.symbol}`;
               return null;
