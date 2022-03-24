@@ -483,8 +483,8 @@ export async function getSymbolInfo(chainId, assetId, refresh = false) {
  * @param side 1|-1 对应 入|舍
  * @returns {string|number}
  */
-export function tofix(val, len, side) {
-  const numval = Number(val);
+export function tofix(val, len, side = -1) {
+  const numval = Minus(val, 0); // Number(val);
   if (isNaN(numval)) return 0;
   const str = val.toString();
   if (str.indexOf('.') > -1) {
@@ -497,15 +497,17 @@ export function tofix(val, len, side) {
         if (tempnum < 1) return (1 / Math.pow(10, len));
         return (Math.ceil(tempnum) / Math.pow(10, len)).toFixed(len);
       } else if (side === -1) {
-        return (Math.floor(tempnum) / Math.pow(10, len)).toFixed(len);
+        // return (Math.floor(tempnum) / Math.pow(10, len)).toFixed(len);
+        return str.substring(0, str.indexOf('.') + 1 + len);
       } else {
         return Number(val.toFixed(len));
       }
     } else {
-      return Number(str).toFixed(len);
+      // return Number(str).toFixed(len);
+      return str;
     }
   } else {
-    return Number(val).toFixed(len);
+    return str;
   }
 }
 

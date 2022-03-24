@@ -79,7 +79,7 @@
                   </span>
                 </div>
               </div>
-              <div class="text-left mt-3 size-36 font-500">{{ currentChainAvailable || 0 }} {{ currentChainSymbol }}</div>
+              <div class="text-left mt-3 size-36 font-500">{{ (currentChainAvailable || 0) | numFormatFixSix }} {{ currentChainSymbol }}</div>
             </div>
             <div class="account-cont mt-4">
               <div class="account-info_pop">
@@ -93,7 +93,7 @@
                   </span>
                 </div>
               </div>
-              <div class="text-left mt-3 size-36 font-500">{{ nerveChainAvailable || 0 }} {{ nerveChainSymbol }}</div>
+              <div class="text-left mt-3 size-36 font-500">{{ (nerveChainAvailable || 0) | numFormatFixSix }} {{ nerveChainSymbol }}</div>
             </div>
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">

@@ -19,7 +19,7 @@ export default class NerveChannel {
     const lpToken = swapPairTradeInfo && swapPairTradeInfo.lpToken || null;
     this.originalFromAsset = chooseFromAsset;
     let tempFromAsset;
-    if (swapPairTradeInfo && lpToken) {
+    if (swapPairTradeInfo && lpToken && chooseToAsset.chain === 'NERVE' && chooseFromAsset.chain === 'NERVE') {
       tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === lpToken);
     } else {
       tempFromAsset = chooseFromAsset;
@@ -87,6 +87,7 @@ export default class NerveChannel {
   }
   // 获取交易对信息
   getStoreSwapPairInfo(swapPairInfo) {
+    console.log(this.chooseFromAsset, 'this.chooseFromAsset');
     const pairsInfo = {};
     const fromAssetKey = `${this.chooseFromAsset.chainId}-${this.chooseFromAsset.assetId}`;
     const toAssetKey = `${this.chooseToAsset.chainId}-${this.chooseToAsset.assetId}`;
