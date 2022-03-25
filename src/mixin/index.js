@@ -87,7 +87,7 @@ export default {
   },
   methods: {
     getPicture(suffix) {
-      const baseUrl = 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/';
+      const baseUrl = 'https://files.nabox.io/icon/';
       return `${baseUrl}${suffix}.png`;
     },
     pictureError(e) {

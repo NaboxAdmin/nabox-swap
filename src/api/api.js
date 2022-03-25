@@ -699,7 +699,7 @@ export class ETransfer {
       const allNumber = Plus(crossChainFee, numbers);
       const amount = ethers.utils.parseEther(allNumber);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      const data = iface.functions.crossOutII.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
+      const data = iface.functions.crossOutII.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000', orderId]);
       transactionParameters = await this.setGasLimit({
         from: fromAddress,
         to: multySignAddress,
