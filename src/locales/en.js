@@ -50,7 +50,8 @@ const en = {
     tips48: 'Select receiving network',
     tips49: 'Enter asset name to search',
     tips50: 'Pls switch to the corresponding Network',
-    tips51: 'Network timed out, please try again later...'
+    tips51: 'Network timed out, please try again later...',
+    tips52: 'The current chain is not currently supported'
   },
   swap: {
     swap1: 'From',
@@ -99,7 +100,7 @@ const en = {
     swap44: 'Transaction successful',
     swap45: 'Transaction failed',
     swap46: 'Processing transaction',
-    tips47: 'The maximum exchange amount is '
+    swap47: 'The maximum exchange amount is '
   },
   transfer: {
     transfer1: 'From',

@@ -417,7 +417,7 @@ export default {
           if (newVal.channel === 'iSwap') {
             await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'DODO') {
-            newVal.approveAddress && await this.checkAssetAuthStatus();
+            await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'NERVE' && this.fromNetwork !== 'NERVE') {
             await this.checkAssetAuthStatus();
           } else if (newVal.channel === 'NERVE' && this.fromNetwork === 'NERVE') {
@@ -589,10 +589,9 @@ export default {
         authContractAddress = contractBridgeConfig[this.fromNetwork];
       } else if (this.currentChannel.channel === 'NERVE') {
         authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
+      } else if (this.currentChannel.channel === 'DODO') {
+        authContractAddress = this.currentChannel.approveAddress;
       }
-      // else if (this.currentChannel.channel === 'DODO') {
-      //   authContractAddress = this.currentChannel.approveAddress;
-      // }
       return authContractAddress;
     },
 
@@ -1067,7 +1066,7 @@ export default {
             }
             return null;
             // TODO: 修改为tempDODO => DODO
-          } else if (item.channel === 'tempDODO') {
+          } else if (item.channel === 'DODO') {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
               return {
@@ -1236,6 +1235,7 @@ export default {
       });
       const params = {
         channel: 'NERVE',
+        // platform: 'SWFT',
         platform: 'NABOX',
         swapType: 2,
         fromChain: this.chooseFromAsset.chain,

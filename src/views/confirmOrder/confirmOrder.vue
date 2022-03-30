@@ -541,6 +541,7 @@ export default {
       const naboxParams = {
         orderId: res.orderId,
         channel: currentChannel.channel,
+        // platform: 'SWFT',
         platform: 'NABOX',
         fromChain: fromAsset.chain,
         toChain: toAsset.chain,

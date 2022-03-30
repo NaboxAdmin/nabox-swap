@@ -6,6 +6,7 @@
       :current-account="currentAccount"
       :show-connect="showConnect"
       :header-color="typeBoolean && '#6EB6A9' || '#ffffff'"
+      @changeChainId="changeChainId"
       @disConnect="disConnect"
       @derivedAddress="derivedAddress"
       @connectMetamask="connectMetamask"
@@ -150,7 +151,6 @@ export default {
         console.log(val, 'watch val');
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
-        console.log(currentAccount, 'currentAccount');
         const config = JSON.parse(sessionStorage.getItem('config'));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
@@ -168,6 +168,7 @@ export default {
         console.log(val, this.fromNetwork, 'valllll');
         const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
         const chain = tempSupportChainList.find(v => v[ETHNET] === val);
+        console.log(chain.value, 'chain value chain chain');
         if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
           this.$store.commit('changeNetwork', this.fromNetwork);
         } else if (chain) {
@@ -383,6 +384,9 @@ export default {
       this.wallet.on('chainChanged', (chainId) => {
         if (chainId && this.walletType) {
           this.fromChainId = chainId;
+          console.log('chainId chainIdchainIdchainIdchainIdchainId')
+          // window.location.reload();
+          // TODO:NABOX插件特殊处理
           this.walletType !== 'NaboxWallet' && window.location.reload();
         }
       });
@@ -517,7 +521,14 @@ export default {
         } else {
           accountList.push(account);
         }
-        console.log(accountList, 'accountList');
+        if (!(accountList.find(account => Object.keys(account.address).find(item => account.address[item] === this.address)))) {
+          this.$message({
+            type: 'warning',
+            message: this.$t('tips.tips52')
+          });
+          this.loading = false;
+          return false;
+        }
         const syncRes = await this.syncAccount(pub, account.address);
         if (syncRes) {
           localStorage.setItem('accountList', JSON.stringify(accountList));
@@ -547,6 +558,9 @@ export default {
         });
       }
       this.loading = false;
+    },
+    changeChainId(chainId) {
+      this.fromChainId = chainId;
     },
     swapClick() {
       // this.showType = "Swap";

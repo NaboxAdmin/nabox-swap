@@ -154,7 +154,7 @@ import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
 import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
-import { MAIN_INFO } from '../../config';
+import { MAIN_INFO } from '@/config';
 
 // eslint-disable-next-line no-unused-vars
 const lang = localStorage.getItem('locale') || 'cn';
@@ -348,6 +348,7 @@ export default {
           // window.location.reload();
           this.currentChain = tempChain.chainName;
           this.$store.commit('changeNetwork', tempChain.chainName);
+          this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
           return;
         }
@@ -355,14 +356,12 @@ export default {
         delete tempChain['icon'];
         this.showDropList = false;
         if (tempChain.chainName !== 'Ethereum') {
-          console.log('tempChain.chainName')
           window[walletType] && window[walletType].request({
             method: 'wallet_addEthereumChain',
             params: [tempChain]
           }).then((res) => {
             this.currentChain = tempChain.chainName;
             this.$store.commit('changeNetwork', tempChain.chainName);
-            console.log('12312');
             setTimeout(() => {
               window.location.reload();
             }, 0);
@@ -385,6 +384,9 @@ export default {
           }).then(() => {
             this.currentChain = tempChain.chainName;
             this.$store.commit('changeNetwork', tempChain.chainName);
+            setTimeout(() => {
+              window.location.reload();
+            }, 0);
           }).catch(err => {
             this.$message({
               message: err.message || err,

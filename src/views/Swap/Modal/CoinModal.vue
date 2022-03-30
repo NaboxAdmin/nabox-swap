@@ -33,7 +33,7 @@
                     <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">
                   </span>
                   <span :class="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && 'space-between' || 'justify-content-center'" class="d-flex direction-column h-40">
-                    <span class="text-3a font-500">{{ item.symbol }}</span>
+                    <span class="text-3a font-500 text-truncate w-150">{{ item.symbol }}</span>
                     <span v-if="item.registerChain && (modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE')" class="sign size-16">{{ item.registerChain }}</span>
                   </span>
                 </div>

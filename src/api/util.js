@@ -835,7 +835,9 @@ export function setChainConfig(chainConfig) {
           hashLink: `${item.scanUrl}transaction/info?hash=`,
           addressLink: `${item.scanUrl}address/info?address=`,
           symbol: item.mainAsset.symbol || '',
-          sort: item.sort
+          sort: item.sort,
+          ropsten: `0x${Number(item.nativeId).toString(16)}`,
+          homestead: `0x${Number(item.nativeId).toString(16)}`
         };
       } else if (item.chainType === 2) {
         return {
