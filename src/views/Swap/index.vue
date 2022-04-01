@@ -562,7 +562,11 @@ export default {
         this.showApproveLoading = false;
       } catch (e) {
         console.log(e, 'error');
-        this.$message.warning({ message: e.message, offset: 30 });
+        this.$message({
+          type: 'warning',
+          message: this.$t('tips.tips51'),
+          offset: 30
+        });
         this.showApproveLoading = false;
       }
     },
