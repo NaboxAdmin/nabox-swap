@@ -26,15 +26,15 @@
     <div class="output-cont d-flex justify-content-center direction-column cursor-pointer">
       <div class="account-info d-flex align-items-center size-28 text-90">
         <div @click.stop="showAccountList = !showAccountList">
-          <span v-if="!currentType">{{ $t('tips.tips54') }}</span>
-          <span v-else>{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}</span>
+          <span v-if="!currentType" class="text-primary">{{ $t('tips.tips54') }}</span>
+          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}</span>
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
           <div>{{ $t('tips.tips48') }}</div>
           <div/>
           <div v-for="(item, index) in accountType" :key="index">
-            <div v-if="currentAccount['address'][item.chain]" class="d-flex align-items-center" @click="currentType=item.chain;showAccountList=false;currentToChain=item">
+            <div v-if="currentAccount['address'][item.chain]" class="d-flex align-items-center" @click="selectReceiveNetwork(item)">
               <span class="chain-icon mr-3">
                 <img :src="getPicture(item.chain)" alt="" @error="pictureError">
               </span>
@@ -169,7 +169,6 @@ export default {
       crossFee: 0,
       requestLoading: true,
       accountType: [],
-      currentToChain: null,
       originLpAssetList: [],
       needAuth: false,
       approvingLoading: false,
@@ -216,7 +215,6 @@ export default {
           console.log(this.originLpAssetList, 'this.originLpAssetList');
           if (val !== 'NERVE') {
             this.currentWithdrawAssetInfo = this.originLpAssetList.find(item => item.chain === val) || this.originLpAssetList[0];
-            console.log(this.currentWithdrawAssetInfo, 'currentWithdrawAssetInfo currentWithdrawAssetInfo');
             // this.lpAssetsList = this.originLpAssetList.filter(item => item.chain === val);
             this.getChainAssetBalance(val, this.originLpAssetList.filter(item => item.chain === val));
           } else {
@@ -272,6 +270,10 @@ export default {
     }, false);
   },
   methods: {
+    selectReceiveNetwork(item) {
+      this.currentType = item.chain;
+      this.showAccountList = false;
+    },
     async getLiquidityPoolList() {
       try {
         const res = await this.$request({
@@ -543,7 +545,7 @@ export default {
           ...item,
           registerChain: item.chain
         }));
-        await this.getChainAssetBalance(this.currentType, tempLpAssetsList);
+        await this.getChainAssetBalance(this.currentType || this.fromNetwork, tempLpAssetsList);
         this.originLpAssetList = this.lpAssetsList;
       }
       // } else {

@@ -35,8 +35,8 @@
     <div class="output-cont d-flex direction-column">
       <div class="account-info d-flex align-items-center size-28 text-90 cursor-pointer">
         <div @click.stop="showAccountList = !showAccountList">
-          <span v-if="!currentType">{{ $t('tips.tips54') }}</span>
-          <span v-else>{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}</span>
+          <span v-if="!currentType" class="text-primary">{{ $t('tips.tips54') }}</span>
+          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}</span>
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
