@@ -427,7 +427,7 @@ export default {
           fromChain: this.fromNetwork,
           toChain: this.currentType,
           fromAddress: this.currentAccount['address'][this.fromNetwork],
-          toAddress: this.currentType === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
+          toAddress: this.currentAccount['address'][this.currentType],
           chainId: this.currentAsset.chainId,
           assetId: this.currentAsset.assetId,
           contractAddress: this.currentAsset.contractAddress,
