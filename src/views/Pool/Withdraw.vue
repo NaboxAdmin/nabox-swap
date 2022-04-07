@@ -419,6 +419,10 @@ export default {
           this.requestLoading = true;
           return false;
         }
+        if (!this.currentType) {
+          this.amountMsg = this.$t('tips.tips54');
+          return false;
+        }
         this.computedFeeLoading = true;
         const heterAsset = this.addedLiquidityInfo.heterogeneousList && this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
         const params = {

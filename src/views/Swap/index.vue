@@ -1245,7 +1245,7 @@ export default {
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,
         fromAddress: this.fromAddress,
-        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.fromAddress,
+        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.currentAccount['address'][this.chooseToAsset.chain],
         chainId: this.chooseFromAsset.chainId,
         assetId: this.chooseFromAsset.assetId,
         contractAddress: this.chooseFromAsset.contractAddress,

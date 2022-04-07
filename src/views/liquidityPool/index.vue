@@ -85,7 +85,8 @@ export default {
       poolTimer: null,
       isStaked: false,
       searchVal: '',
-      poolTvl: 0
+      poolTvl: 0,
+      originalPoolList: []
     };
   },
   watch: {
@@ -97,22 +98,21 @@ export default {
               const depositAssetSymbol = item.depositAssetSymbol.toLocaleUpperCase();
               const searchKey = this.searchVal.toLocaleUpperCase();
               return depositAssetSymbol.indexOf(searchKey) !== -1;
-            });
-            this.poolList = tempList.filter(item => item.myShare != 0);
+            }) || [];
+            this.poolList = tempList.filter(item => item.myShare != 0) || [];
           } else {
-            this.poolList = this.originalPoolList.filter(item => item.myShare != 0);
+            this.poolList = this.originalPoolList.filter(item => item.myShare != 0) || [];
           }
         } else {
           console.log(1111, this.searchVal);
           if (this.searchVal) {
-            console.log(this.originalPoolList, 'this.originalPoolList');
             this.poolList = this.originalPoolList.filter(item => {
               const depositAssetSymbol = item.depositAssetSymbol.toLocaleUpperCase();
               const searchKey = this.searchVal.toLocaleUpperCase();
               return depositAssetSymbol.indexOf(searchKey) !== -1;
-            });
+            }) || [];
           } else {
-            this.poolList = this.originalPoolList;
+            this.poolList = this.originalPoolList  || [];
           }
         }
       }
@@ -121,27 +121,27 @@ export default {
       handler(newVal, oldVal) {
         if (newVal) {
           if (this.isStaked) {
-            const tempList = this.originalPoolList.filter(item => item.myShare != 0);
+            const tempList = this.originalPoolList.filter(item => item.myShare != 0) || [];
             this.poolList = tempList.filter(item => {
               const depositAssetSymbol = item.depositAssetSymbol.toLocaleUpperCase();
               const searchKey = newVal.toLocaleUpperCase();
               return depositAssetSymbol.indexOf(searchKey) !== -1;
-            });
+            }) || [];
           } else {
             this.poolList = this.originalPoolList.filter(item => {
               const depositAssetSymbol = item.depositAssetSymbol.toLocaleUpperCase();
               const searchKey = newVal.toLocaleUpperCase();
               return depositAssetSymbol.indexOf(searchKey) !== -1;
-            });
+            }) || [];
           }
         } else {
           if (this.isStaked) {
-            const tempList = this.originalPoolList.filter(item => item.myShare != 0);
+            const tempList = this.originalPoolList.filter(item => item.myShare != 0) || [];
             this.poolList = tempList.filter(item => {
               const depositAssetSymbol = item.depositAssetSymbol.toLocaleUpperCase();
               const searchKey = this.searchVal.toLocaleUpperCase();
               return depositAssetSymbol.indexOf(searchKey) !== -1;
-            });
+            }) || [];
           } else {
             this.poolList = this.originalPoolList;
           }
