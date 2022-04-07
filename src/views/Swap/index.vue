@@ -564,7 +564,7 @@ export default {
         console.log(e, 'error');
         this.$message({
           type: 'warning',
-          message: this.$t('tips.tips51'),
+          message: e.message,
           offset: 30
         });
         this.showApproveLoading = false;

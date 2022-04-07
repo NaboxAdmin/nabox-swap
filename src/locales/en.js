@@ -13,7 +13,7 @@ const en = {
     tips11: 'Generate L2 address',
     tips12: 'Connect Wallet',
     tips13: 'Copy successful',
-    tips14: 'Authorization is successful, please wait for confirmation',
+    tips14: 'Approve is successful, please wait for confirmation',
     tips15: 'Broadcast transaction failed',
     tips16: 'The available staking balance is insufficient',
     tips17: 'The available balance of the selected asset is insufficient',
@@ -51,7 +51,9 @@ const en = {
     tips49: 'Enter asset name to search',
     tips50: 'Pls switch to the corresponding Network',
     tips51: 'Network timed out, please try again later...',
-    tips52: 'The current chain is not currently supported'
+    tips52: 'The current chain is not currently supported',
+    tips53: 'The network connection is unstable, please resend the transaction',
+    tips54: 'Please select the receiving network'
   },
   swap: {
     swap1: 'From',

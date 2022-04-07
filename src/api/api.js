@@ -1,16 +1,16 @@
 import nuls from 'nuls-sdk-js';
 import nerve from 'nerve-sdk-js';
-import { ethers } from 'ethers';
-import { htmlEncode, Minus, Plus, timesDecimals } from './util';
-import { post, request } from '../network/http';
-import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
-import { getCurrentAccount } from '@/api/util';
+import {ethers} from 'ethers';
+import {htmlEncode, Minus, Plus, timesDecimals} from './util';
+import {post, request} from '../network/http';
+import {ETHNET, MAIN_INFO, NULS_INFO} from '@/config';
+import {getCurrentAccount} from '@/api/util';
 import BufferReader from 'nerve-sdk-js/lib/utils/bufferreader';
 import txs from 'nerve-sdk-js/lib/model/txs';
-import { MultiCall } from './Multicall1';
+import {MultiCall} from './Multicall1';
 import Web3 from 'web3';
-import { airDropABI } from '../views/airdrop/airDropABI';
-import { farmABI } from '../views/L1Farm/FarmABI';
+import {airDropABI} from '../views/airdrop/airDropABI';
+import {farmABI} from '../views/L1Farm/FarmABI';
 
 // 查询余额
 const erc20BalanceAbiFragment = [
@@ -185,24 +185,19 @@ export class NTransfer {
     const { inputs, outputs, txData, remarks = '', pub, signAddress, tAssemble: temptAssemble } = data;
     // 组装交易
     const tAssemble = temptAssemble || this.sdk.transactionAssemble(inputs, outputs, htmlEncode(remarks), this.type, txData);
+    const walletType = localStorage.getItem('walletType');
     // 调用metamask签名hash，然后拼接公钥完成交易签名
     const hash = '0x' + tAssemble.getHash().toString('hex');
-    let flat = await window.ethereum.request({
+    let flat = await window[walletType || 'ethereum'].request({
       method: 'eth_sign',
       params: [signAddress, hash]
     });
-    // console.log(flat, 66, signAddress)
     flat = flat.slice(2); // 去掉0x
     const r = flat.slice(0, 64);
     const s = flat.slice(64, 128);
-    // const recoveryParam = flat.slice(128)
     const signature = new Signature({ r, s }).toDER('hex');
-    // signature = signature.slice(2)
-
-    const signData = this.sdk.appSplicingPub(signature, pub);
-    tAssemble.signatures = signData;
-    const txHex = tAssemble.txSerialize().toString('hex');
-    return txHex;
+    tAssemble.signatures = this.sdk.appSplicingPub(signature, pub);
+    return tAssemble.txSerialize().toString('hex');
   }
 
   async appendSignature(data) {
@@ -212,14 +207,13 @@ export class NTransfer {
     const tAssemble = new txs.Transaction();
     tAssemble.parse(bufferReader);
     const hash = '0x' + tAssemble.getHash().toString('hex');
-
+    const walletType = localStorage.getItem('walletType');
     /* //初始化签名对象
     const txSignData = new txsignatures.TransactionSignatures();
     // // 反序列化签名对象
     const reader = new BufferReader(tAssemble.signatures, 0);
     txSignData.parse(reader); */
-
-    let flat = await window.ethereum.request({
+    let flat = await window[walletType || 'ethereum'].request({
       method: 'eth_sign',
       params: [signAddress, hash]
     });

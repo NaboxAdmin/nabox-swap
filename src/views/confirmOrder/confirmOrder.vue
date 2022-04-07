@@ -151,7 +151,7 @@ export default {
         });
         const isCross = fromAsset.chain !== toAsset.chain;
         if (isCross) {
-        // 稳定币swao
+        // 稳定币swap
           if (stableSwap) {
             await this.sendISwapCrossTransaction();
           } else {
@@ -222,14 +222,14 @@ export default {
               } else {
                 this.$message({
                   type: 'warning',
-                  message: res.msg
+                  message: this.$t('tips.tips53')
                 });
                 this.confirmLoading = false;
               }
             }
           }
         } else {
-          const { currentChannel, toAddress, toAssetDex, currentDex } = this.orderInfo;
+          const { currentChannel, toAddress } = this.orderInfo;
           const paths = currentChannel.router.map(item => item.address);
           const deadTimes = 30;
           const channelBytes32 = this.formatBytes32(web3.utils.fromAscii(currentChannel.channel));
@@ -298,7 +298,7 @@ export default {
         };
         const res = await iSwap.generateCrossChainBridgeOrder(params);
         if (res) {
-          const swapRes = await this.recordSwapOrder(res, (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) === 0) && 3 || 2);
+          const swapRes = await this.recordSwapOrder(res, (Minus(amountIn, 10000) > 0 || Minus(amountIn, 10000) == 0) && 3 || 2);
           let transferResult;
           if (swapRes.code === 1000) {
             if (fromMainAssetSymbol === fromAsset.symbol) {
@@ -318,7 +318,7 @@ export default {
               await this.recordHash(res.orderId, transferResult.hash);
             }
           } else {
-            throw swapRes.msg;
+            throw this.$t('tips.tips53');
           }
         }
       } catch (e) {
@@ -494,9 +494,7 @@ export default {
               fee: currentChannel.crossChainFee,
               orderId: currentChannel.orderId
             };
-            console.log(crossOutPrams, 'crossOutPrams');
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
-            console.log(res, 'ressss');
           }
           if (res && res.hash) {
             this.$message({
@@ -512,7 +510,8 @@ export default {
             throw res.msg;
           }
         } else {
-          throw swapRes.msg;
+          // throw swapRes.msg;
+          throw this.$t('tips.tips53');
         }
       } catch (e) {
         console.log(e, 'error');

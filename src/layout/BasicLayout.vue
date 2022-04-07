@@ -9,7 +9,6 @@
       @changeChainId="changeChainId"
       @disConnect="disConnect"
       @derivedAddress="derivedAddress"
-      @connectMetamask="connectMetamask"
       @swapClick="swapClick"
       @transferClick="transferClick"
       @vaultsClick="vaultsClick"
@@ -18,7 +17,6 @@
       @l1FarmClick="l1FarmClick"
       @l2FarmClick="l2FarmClick">
       <div v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)" class="connect-item">
-        <!--        <div v-if="showConnect" class="connect-btn" @click="connectMetamask">{{ $t("tips.tips12") }}</div>-->
         <div v-if="showConnect" class="wallet-cont size-36 font-500">
           <div class="mb-3 font-bold">{{ $t("tips.tips12") }}</div>
           <div class="wallet-item d-flex align-items-center">
@@ -168,7 +166,6 @@ export default {
         console.log(val, this.fromNetwork, 'valllll');
         const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
         const chain = tempSupportChainList.find(v => v[ETHNET] === val);
-        console.log(chain.value, 'chain value chain chain');
         if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
           this.$store.commit('changeNetwork', this.fromNetwork);
         } else if (chain) {
@@ -384,7 +381,7 @@ export default {
       this.wallet.on('chainChanged', (chainId) => {
         if (chainId && this.walletType) {
           this.fromChainId = chainId;
-          console.log('chainId chainIdchainIdchainIdchainIdchainId')
+          console.log('chainId chainIdchainIdchainIdchainIdchainId');
           // window.location.reload();
           // TODO:NABOX插件特殊处理
           this.walletType !== 'NaboxWallet' && window.location.reload();
@@ -392,34 +389,13 @@ export default {
       });
     },
     async connectProvider(provider) {
-      if (!window[provider]) {
+      const tempProvider = this.isMobile ? 'ethereum' : provider;
+      if (!window[tempProvider]) {
         this.$message({ message: 'No provider was found', type: 'warning' });
         return;
       }
-      localStorage.setItem('walletType', provider);
+      localStorage.setItem('walletType', tempProvider);
       await this.initMetamask();
-    },
-    // 连接metamask钱包
-    async connectMetamask() {
-      if (!window.ethereum) {
-        this.$message({
-          message: this.$t('tips.tips1'),
-          type: 'warning',
-          offset: 30
-        });
-      } else {
-        try {
-          this.walletType = 'metamask';
-          sessionStorage.setItem('walletType', 'metamask');
-          await this.initMetamask();
-        } catch (e) {
-          this.$message({
-            message: e.message,
-            type: 'warning',
-            offset: 30
-          });
-        }
-      }
     },
     async syncAccount(pub, accounts) {
       const addressList = [];
@@ -464,28 +440,41 @@ export default {
           const jsonRpcSigner = this.provider.getSigner();
           const message = 'Generate L2 Address';
           const signature = await jsonRpcSigner.signMessage(message);
-          const msgHash = ethers.utils.hashMessage(message);
-          const msgHashBytes = ethers.utils.arrayify(msgHash);
-          const recoveredPubKey = ethers.utils.recoverPublicKey(
-            msgHashBytes,
-            signature
-          );
-          const addressMap = {};
-          for (const item of networkList) {
-            addressMap[item] = this.address;
-          }
-          console.log(addressMap, 'addressMap');
-          account = {
-            address: addressMap
-          };
-          if (recoveredPubKey.startsWith('0x04')) {
-            const compressPub = ethers.utils.computePublicKey(
-              recoveredPubKey,
-              true
-            );
-            pub = compressPub.slice(2);
+          if (localStorage.getItem('walletType') === 'NaboxWallet') {
+            pub = await window.nabox.getPub({
+              address: this.address
+            });
+            const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
+            const addressMap = {};
+            for (const item of networkList) {
+              addressMap[item] = address;
+            }
+            account = {
+              address: addressMap
+            };
           } else {
-            throw 'sign error';
+            const msgHash = ethers.utils.hashMessage(message);
+            const msgHashBytes = ethers.utils.arrayify(msgHash);
+            const recoveredPubKey = ethers.utils.recoverPublicKey(
+              msgHashBytes,
+              signature
+            );
+            const addressMap = {};
+            for (const item of networkList) {
+              addressMap[item] = this.address;
+            }
+            account = {
+              address: addressMap
+            };
+            if (recoveredPubKey.startsWith('0x04')) {
+              const compressPub = ethers.utils.computePublicKey(
+                recoveredPubKey,
+                true
+              );
+              pub = compressPub.slice(2);
+            } else {
+              throw 'sign error';
+            }
           }
         }
         account.pub = pub;
@@ -521,6 +510,7 @@ export default {
         } else {
           accountList.push(account);
         }
+        console.log(accountList, existIndex, 'existIndexexistIndexexistIndex');
         if (!(accountList.find(account => Object.keys(account.address).find(item => account.address[item] === this.address)))) {
           this.$message({
             type: 'warning',

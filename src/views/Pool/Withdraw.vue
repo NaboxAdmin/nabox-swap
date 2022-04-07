@@ -22,11 +22,12 @@
         <span class="text-primary size-28" @click="maxCount">{{ $t("swap.swap3") }}</span>
       </div>
     </div>
-    <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
+    <div v-if="amountMsg" class="text-red mt-2 size-24">{{ amountMsg }}</div>
     <div class="output-cont d-flex justify-content-center direction-column cursor-pointer">
       <div class="account-info d-flex align-items-center size-28 text-90">
         <div @click.stop="showAccountList = !showAccountList">
-          {{ `${currentType}${$t('tips.tips46')}${superLong(currentAccount['address'][currentType])}${$t('tips.tips47')}` }}
+          <span v-if="!currentType">{{ $t('tips.tips54') }}</span>
+          <span v-else>{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}</span>
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
@@ -164,7 +165,7 @@ export default {
       // userAvailable: 0, // 用户可用的流动性
       lpAssetsList: [],
       showAccountList: false,
-      currentType: 'NERVE',
+      currentType: '',
       crossFee: 0,
       requestLoading: true,
       accountType: [],
@@ -458,7 +459,7 @@ export default {
         } else {
           this.$message({
             type: 'warning',
-            message: res.msg,
+            message: res.msg || this.$t('tips.tips51'),
             offset: 30
           });
         }
@@ -660,7 +661,7 @@ export default {
               await this.broadcastHex(txHex);
             }
           } else {
-            throw orderRes.msg;
+            throw this.$t('tips.tips53');
           }
         } else {
           const transfer = new ETransfer();
@@ -691,7 +692,7 @@ export default {
               await this.recordHash(this.orderId, res.hash);
             }
           } else {
-            throw orderRes.msg;
+            throw this.$t('tips.tips53');
           }
         }
       } catch (e) {

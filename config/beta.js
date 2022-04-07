@@ -7,7 +7,7 @@ export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS', symbol: 'NUL
 // ETH 网络信息 测试网:ropsten, 主网:homestead
 export const ETHNET = 'ropsten';
 // export const BRIDGE_API_URL = "/nabox-api";
-export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'http://nabox_api.zhoulijun.top/nabox-api';
+export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'http://122.9.162.107:19001/nabox-api';
 
 export const localChainConfig = [
   {

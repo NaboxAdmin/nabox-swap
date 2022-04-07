@@ -333,8 +333,6 @@ export default {
     },
     addressClick() {
       this.showAccount = true;
-      // this.getTxOrderList(this.fromAddress);
-      // this.getOrderList(this.fromAddress);
       this.getTxList();
     },
     chainClick(chain) {
@@ -345,14 +343,12 @@ export default {
         };
         if (this.currentChain === tempChain.chainName) return;
         if (tempChain.chainName === 'NULS' || tempChain.chainName === 'NERVE') {
-          // window.location.reload();
           this.currentChain = tempChain.chainName;
           this.$store.commit('changeNetwork', tempChain.chainName);
           this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
           return;
         }
-        console.log(tempChain.chainName, 'tempChain.chainName');
         delete tempChain['icon'];
         this.showDropList = false;
         if (tempChain.chainName !== 'Ethereum') {
