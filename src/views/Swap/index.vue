@@ -254,7 +254,7 @@ import {
   contractConfig,
   ISWAP_BRIDGE_VERSION,
   ISWAP_USDT_CONFIG,
-  ISWAP_VERSION
+  ISWAP_VERSION, localChannelList
 } from './util/swapConfig';
 import Dodo from './util/Dodo';
 import { currentNet, MAIN_INFO } from '@/config';
@@ -642,24 +642,21 @@ export default {
     },
     // 获取当前支持的通道
     async getChanelConfig() {
-      const res = await this.$request({
-        url: '/swap/channel',
-        method: 'get'
-      });
-      if (res.code === 1000 && res.data) {
-        console.log(res.data, 'channelConfigList');
-        // @FIXME: 暂时不上
-        // const tempDodoConfig = {
-        //   channel: 'DODO',
-        //   swap: true,
-        //   crossSwap: false,
-        //   icon: 'https://dodoex.github.io/docs/zh/img/logo.svg'
-        // };
-        localStorage.setItem('channelConfig', JSON.stringify(res.data));
-        // this.orginChannelConfigList = res.data.concat([tempDodoConfig]);
-        // this.channelConfigList = res.data.concat([tempDodoConfig]);
-        this.originChannelConfigList = res.data;
-        this.channelConfigList = res.data;
+      if (localStorage.getItem('channelConfig')) {
+        this.originChannelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
+        this.channelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
+        const res = await this.$request({
+          url: '/swap/channel',
+          method: 'get'
+        });
+        if (res.code === 1000 && res.data) {
+          localStorage.setItem('channelConfig', JSON.stringify(res.data));
+          this.originChannelConfigList = res.data;
+          this.channelConfigList = res.data;
+        }
+      } else {
+        this.originChannelConfigList = localChannelList;
+        this.channelConfigList = localChannelList;
       }
     },
     // 获取当前是否为稳定币资产兑换

@@ -1,6 +1,6 @@
 <template>
   <div :class="{'show_modal': showModal}" class="mask-cont" @click="maskClick" @touchmove.prevent>
-    <div :class="{'show_modal-cont': showModal}" class="modal-cont" @click.stop>
+    <div :class="{'show_modal-cont': showModal}" class="modal-cont" @click.stop @touchmove.stop>
       <div class="header-cont size-36 font-500 mt-2">
         {{ $t('modal.modal1') }}
         <div class="back-icon" @click="back">

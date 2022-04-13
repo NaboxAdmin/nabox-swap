@@ -416,3 +416,32 @@ export const ISWAP_USDT_CONFIG = {
   42161: 'USDT',
   43114: 'USDT.e'
 };
+
+export const localChannelList = [
+  {
+    'id': 1,
+    'channel': 'iSwap',
+    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/dapp/iSwap-swap.svg',
+    'swap': true,
+    'crossSwap': true,
+    'bridge': true,
+    'status': 1
+  },
+  {
+    'id': 2,
+    'channel': 'NERVE',
+    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/dapp/Nerve_swap.png',
+    'swap': true,
+    'crossSwap': false,
+    'bridge': true,
+    'status': 1 },
+  {
+    'id': 3,
+    'channel': 'DODO',
+    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/dapp/DODO-swap.png',
+    'swap': true,
+    'crossSwap': false,
+    'bridge': false,
+    'status': 0
+  }
+];

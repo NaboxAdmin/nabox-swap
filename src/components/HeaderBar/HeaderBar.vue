@@ -321,6 +321,7 @@ export default {
     },
     showDropClick() {
       !this.isL2Farm && (this.showDropList = !this.showDropList);
+      this.showPop = false;
     },
     // 断开连接
     disConnect() {
@@ -330,19 +331,21 @@ export default {
     },
     showClick() {
       this.showPop = !this.showPop;
+      this.showAccount = false;
     },
     addressClick() {
       this.showAccount = true;
+      this.showPop = false;
       this.getTxList();
     },
-    chainClick(chain) {
+    async chainClick(chain) {
       try {
         const walletType = localStorage.getItem('walletType') || 'ethereum';
         const tempChain = {
           ...chain
         };
         if (this.currentChain === tempChain.chainName) return;
-        if (tempChain.chainName === 'NULS' || tempChain.chainName === 'NERVE') {
+        if (tempChain.chainName === 'NULS' || tempChain.chainName === 'NERVE' || tempChain.chainId === window[walletType].chainId) {
           this.currentChain = tempChain.chainName;
           this.$store.commit('changeNetwork', tempChain.chainName);
           this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
@@ -352,43 +355,14 @@ export default {
         delete tempChain['icon'];
         this.showDropList = false;
         if (tempChain.chainName !== 'Ethereum') {
-          window[walletType] && window[walletType].request({
+          window[walletType] && await window[walletType].request({
             method: 'wallet_addEthereumChain',
             params: [tempChain]
-          }).then((res) => {
-            this.currentChain = tempChain.chainName;
-            this.$store.commit('changeNetwork', tempChain.chainName);
-            setTimeout(() => {
-              window.location.reload();
-            }, 0);
-          }).catch(err => {
-            console.log(err);
-            this.$message({
-              message: err.message || err,
-              offset: 30,
-              type: 'warning'
-            });
           });
         } else {
-          window[walletType] && window[walletType].request({
+          window[walletType] && await window[walletType].request({
             method: 'wallet_switchEthereumChain',
-            params: [
-              {
-                chainId: tempChain.chainId
-              }
-            ]
-          }).then(() => {
-            this.currentChain = tempChain.chainName;
-            this.$store.commit('changeNetwork', tempChain.chainName);
-            setTimeout(() => {
-              window.location.reload();
-            }, 0);
-          }).catch(err => {
-            this.$message({
-              message: err.message || err,
-              offset: 30,
-              type: 'warning'
-            });
+            params: [{ chainId: tempChain.chainId }]
           });
         }
       } catch (e) {

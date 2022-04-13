@@ -158,27 +158,6 @@ export default {
         this.$store.commit('changeShowConnect', false);
         this.$store.commit('changeShowSign', !chainLength || chainLength !== addressListLength);
       }
-    },
-    fromChainId: {
-      immediate: true,
-      handler(val) {
-        if (!val) return;
-        console.log(val, this.fromNetwork, 'valllll');
-        const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-        const chain = tempSupportChainList.find(v => v[ETHNET] === val);
-        if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
-          this.$store.commit('changeNetwork', this.fromNetwork);
-        } else if (chain) {
-          this.$store.commit('changeNetwork', chain.value);
-        } else {
-          const tempAddress = this.address.toUpperCase();
-          if (tempAddress.startsWith('TNULS') || tempAddress.startsWith('NULS')) {
-            this.$store.commit('changeNetwork', 'NULS');
-          } else {
-            this.$store.commit('changeNetwork', 'NERVE');
-          }
-        }
-      }
     }
   },
   created() {
@@ -360,7 +339,7 @@ export default {
             this.switchNetwork(this.address);
           }
           window.location.reload();
-          // this.getBalance();
+          window.location.reload();
         } else {
           this.address = '';
           this.$store.commit('changeShowConnect', true);
@@ -380,11 +359,10 @@ export default {
     listenNetworkChange() {
       this.wallet.on('chainChanged', (chainId) => {
         if (chainId && this.walletType) {
-          this.fromChainId = chainId;
-          console.log('chainId chainIdchainIdchainIdchainIdchainId');
-          // window.location.reload();
-          // TODO:NABOX插件特殊处理
-          this.walletType !== 'NaboxWallet' && window.location.reload();
+          const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+          const chain = tempSupportChainList.find(v => v[ETHNET] === chainId);
+          this.$store.commit('changeNetwork', chain && chain.value || 'NERVE');
+          window.location.reload();
         }
       });
     },
@@ -510,7 +488,6 @@ export default {
         } else {
           accountList.push(account);
         }
-        console.log(accountList, existIndex, 'existIndexexistIndexexistIndex');
         if (!(accountList.find(account => Object.keys(account.address).find(item => account.address[item] === this.address)))) {
           this.$message({
             type: 'warning',

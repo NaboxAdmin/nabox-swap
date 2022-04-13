@@ -233,19 +233,18 @@ export default {
             tempCoins = [];
           } else if (this.fromAsset && this.modalType === 'receive') {
             if (this.picList[this.currentIndex] === this.fromNetwork) {
-              console.log(this.fromAsset, 'this.fromAsset');
               // tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
               if (this.fromAsset.contractAddress) {
                 tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.fromAsset.contractAddress);
               } else {
-                console.log(this.fromAsset.registerChain, 'registerChain');
                 if (this.fromNetwork !== 'NERVE') {
                   tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
                 } else {
-                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.nerveChainId !== this.fromAsset.nerveChainId && coin.assetId !== this.fromAsset.assetId));
                 }
-                // tempCoins = tempCoins.filter(coin => this.fromNetwork !== 'NERVE' && coin.assetId !== this.fromAsset.assetId || (this.fromAsset.registerChain !== 'NERVE' && coin.chainId !== this.fromAsset.chainId || coin.chainId !== this.fromAsset.chainId));
               }
+            } else {
+              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.nerveChainId !== this.fromAsset.nerveChainId && coin.assetId !== this.fromAsset.assetId));
             }
           } else if (this.toAsset && this.modalType === 'send') {
             if (this.toAsset.chain === this.fromNetwork) {
@@ -260,6 +259,8 @@ export default {
                   // tempCoins = tempCoins.filter(coin => coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId);
                 }
               }
+            } else {
+              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && (coin.nerveAssetId !== this.toAsset.nerveAssetId && coin.nerveChainId !== this.toAsset.nerveChainId && coin.assetId !== this.toAsset.assetId));
             }
           }
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
@@ -329,177 +330,6 @@ export default {
       const localSwapAssetMap = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'));
       localSwapAssetMap[chain || this.fromNetwork] = assetList || [];
       localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
-    },
-    // 获取swft支持的闪兑列表
-    async getCoins(val) {
-      if (this.timer) {
-        clearTimeout(this.timer);
-        this.timer = null;
-      }
-      this.showLoading = true;
-      this.showCoinList = [];
-      const res = await this.$request({
-        url: '/swap/exchange/coins',
-        data: {
-          chain: val || this.fromNetwork || '',
-          address: this.fromAddress
-        }
-      });
-      const supportChainList = JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-      const validNetwork = supportChainList.map(chain => chain.SwftChain);
-      if (res.code === 1000) {
-        const coins = res.data.filter(v => validNetwork.indexOf(v.chain) > -1) || [];
-        let tempCoins = coins.map(v => ({
-          ...v,
-          balance: this.numberFormat(tofix(divisionDecimals(v.balance, v.decimals), 6, -1), 6),
-          symbol: v.swftInfo && v.swftInfo.coinCode || v.symbol,
-          symbolImg: v.swftInfo && v.swftInfo.coinCode.split('(')[0] || v.symbol,
-          showBalanceLoading: true,
-          ...v.swftInfo
-        }));
-        // 当前选择的资产是否支持跨链
-        if (!this.fromAsset && this.modalType === 'recieve') {
-          tempCoins = [];
-        }
-        const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
-        const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
-        const { chainId: usdtChainId, assetId: usdtAssetId, contractAddress: usdtContractAddress } = this.usdtInfo[this.fromNetwork] || {};
-        const { chainId: usdtnChainId, assetId: usdtnAssetId, contractAddress: usdtnContractAddress } = this.usdtnInfo[this.fromNetwork] || {};
-        const { chainId: fromChainId, assetId: fromAssetId, contractAddress: fromContractAddress } = this.fromAsset || {};
-        const { chainId: toChainId, assetId: toAssetId, contractAddress: toContractAddress } = this.toAsset || {};
-        const currentNetwork = this.picList[this.currentIndex];
-        if (this.modalType === 'receive' && this.fromAsset) {
-          if (this.fromAsset.isSupportAdvanced !== 'Y') {
-            this.showCoinList = [];
-          } else {
-            const tempCoinList = tempList.filter(item => {
-              return this.fromAsset.noSupportCoin && this.fromAsset.noSupportCoin.indexOf(item.symbol === -1) || true;
-            });
-            if (fromChainId === usdtnChainId && (fromContractAddress && usdtnContractAddress && fromContractAddress === usdtnContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtnAssetId)) { // from资产为usdtn
-              if (this.fromNetwork === this.picList[this.currentIndex]) {
-                this.showCoinList = tempCoinList.filter(item => {
-                  if (item.contractAddress) {
-                    return item.contractAddress === usdtContractAddress;
-                  } else {
-                    return (item.chainId === usdtChainId && item.assetId === usdtAssetId);
-                  }
-                });
-              } else {
-                this.showCoinList = [];
-              }
-            } else if (fromChainId === usdtChainId && (fromContractAddress && usdtContractAddress && fromContractAddress === usdtContractAddress || this.fromNetwork === 'NERVE' && fromAssetId === usdtAssetId)) { // from资产为usdt
-              if (this.fromNetwork !== this.picList[this.currentIndex]) {
-                this.showCoinList = tempCoinList.filter(coin => {
-                  if (coin.contractAddress) {
-                    return (coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== usdtnContractAddress) && coin.symbol !== 'USDTN';
-                  } else {
-                    return (coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId && coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtnChainId && coin.assetId !== usdtnAssetId)) && coin.symbol !== 'USDTN';
-                  }
-                });
-              } else {
-                this.showCoinList = tempCoinList.filter(coin => {
-                  if (coin.contractAddress) {
-                    return coin.chain === this.picList[this.currentIndex] && coin.contractAddress !== this.fromAsset.contractAddress;
-                  } else {
-                    return coin.chain === this.picList[this.currentIndex] && (coin.chainId !== this.fromAsset.chainId || coin.assetId !== this.fromAsset.assetId) && (coin.chainId !== usdtChainId || coin.assetId !== usdtAssetId);
-                  }
-                });
-              }
-            } else {
-              // console.log('233333', tempList, currentNetwork)
-              this.showCoinList = tempCoinList.filter(coin => {
-                if (coin.contractAddress) {
-                  return coin.chain === currentNetwork && coin.contractAddress !== this.fromAsset.contractAddress && coin.contractAddress !== (this.usdtnInfo[currentNetwork] && this.usdtnInfo[currentNetwork].contractAddress);
-                } else {
-                  // console.log('123', coin.chain === currentNetwork, coin.chainId !== this.fromAsset.chainId, coin.assetId !== this.fromAsset.assetId)
-                  return coin.chain === currentNetwork && (coin.chainId !== this.fromAsset.chainId) && coin.symbol !== 'USDTN';
-                  //  && (coin.chainId !== this.usdtnInfo['NERVE'].chainId && coin.assetId !== this.usdtnInfo['NERVE'].assetId)
-                }
-              });
-            }
-          }
-        } else if (this.modalType === 'send' && this.toAsset) {
-          const tempShowCoinList = tempList.filter(coin => {
-            return coin.isSupportAdvanced === 'Y' && (this.toAsset.noSupportCoin && this.toAsset.noSupportCoin.indexOf(coin.symbol) === -1 || true);
-          });
-          if (toChainId === usdtnChainId && (toContractAddress && usdtnContractAddress && toContractAddress === usdtnContractAddress || this.fromNetwork === 'NERVE' && toAssetId === usdtnAssetId)) {
-            this.showCoinList = tempShowCoinList.filter(coin => {
-              if (coin.contractAddress) {
-                return this.fromNetwork === this.picList[this.currentIndex] && coin.contractAddress === usdtContractAddress;
-              } else {
-                return this.fromNetwork === this.picList[this.currentIndex] && (coin.chain === usdtChainId && coin.assetId === usdtAssetId);
-              }
-            });
-          } else if (toChainId === usdtChainId && (toContractAddress && usdtContractAddress && toContractAddress === usdtContractAddress || this.fromNetwork === 'NERVE' && toAssetId === usdtAssetId)) {
-            this.showCoinList = tempShowCoinList.filter((coin, index) => {
-              if (coin.contractAddress) {
-                return coin.contractAddress !== this.toAsset.contractAddress || coin.contractAddress !== usdtContractAddress;
-              } else {
-                return (coin.chainId === this.toAsset.chainId) && (coin.assetId !== this.toAsset.assetId);
-              }
-            });
-          } else {
-            this.showCoinList = tempShowCoinList.filter(coin => {
-              if (coin.contractAddress) {
-                return coin.contractAddress !== this.toAsset.contractAddress && coin.contractAddress !== usdtnContractAddress;
-              } else {
-                return (coin.chainId !== this.toAsset.chainId) && (coin.assetId !== this.toAsset.assetId) && coin.symbol !== 'USDTN';
-              }
-            });
-          }
-        } else {
-          if (this.modalType === 'send') {
-            this.showCoinList = tempList.filter(coin => {
-              return coin.isSupportAdvanced === 'Y';
-            });
-          } else {
-            this.showCoinList = [];
-          }
-        }
-        this.showLoading = false;
-        this.allList = [...this.showCoinList];
-        if (tempNetwork === 'NULS') {
-          const tempData = await this.getNulsBatchData(this.allList);
-          for (let i = 0; i < this.allList.length; i++) {
-            const asset = this.allList[i];
-            this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
-            this.allList[i].showBalanceLoading = false;
-          }
-          this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
-        } else if (tempNetwork === 'NERVE') {
-          const tempData = await this.getNerveBatchData(this.allList);
-          for (let i = 0; i < this.allList.length; i++) {
-            const asset = this.allList[i];
-            this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
-            this.allList[i].showBalanceLoading = false;
-          }
-          this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
-        } else {
-          const config = JSON.parse(sessionStorage.getItem('config'));
-          const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
-          const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]];
-          const RPCUrl = config[this.picList[this.currentIndex]]['apiUrl'];
-          const addresses = this.allList.map(asset => {
-            if (asset.contractAddress) {
-              return asset.contractAddress;
-            }
-            return batchQueryContract;
-          });
-          const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
-          this.allList.forEach((item, index) => {
-            balanceData.forEach(data => {
-              if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
-                this.allList[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
-                this.allList[index].showBalanceLoading = false;
-              }
-            });
-          });
-          this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
-          // console.log(this.allList, "allList")
-        }
-      } else {
-        this.showLoading = false;
-      }
     }
   }
 };
