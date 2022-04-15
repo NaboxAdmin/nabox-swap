@@ -568,7 +568,7 @@ export default {
         const addedLiquidityBalance = await this.getNerveAssetBalance(params);
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: this.numberFormat(addedLiquidityBalance, 6, -1)
+          balance: addedLiquidityBalance // this.numberFormat(addedLiquidityBalance, 6, -1)
         };
         this.userAvailable = addedLiquidityBalance;
         this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);

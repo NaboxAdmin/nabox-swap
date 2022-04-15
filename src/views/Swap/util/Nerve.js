@@ -1,7 +1,7 @@
 import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
 import { tempStorePairInfo } from './tempData';
 import { tempAssetList } from './tempData';
-import { divisionAndFix, tofix, timesDecimals } from '@/api/util';
+import { divisionAndFix, tofix, timesDecimals, Plus, Times } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import { request, post } from '@/network/http';
 import { NTransfer } from '@/api/api';

@@ -743,8 +743,6 @@ export default {
         this.currentCoin.decimals
       );
       if (res.success) {
-        // console.log(res, 55);
-        // this.fee = res.data.fee;
         this.NULSContractGas = res.data.gas;
         this.NULSContractTxData = res.data.contractCallData;
         return res.data.fee;

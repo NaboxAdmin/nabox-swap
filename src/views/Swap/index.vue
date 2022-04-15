@@ -238,7 +238,7 @@ import Loading from '@/components/Loading/Loading';
 import {
   debounce,
   Division,
-  divisionDecimals,
+  divisionDecimals, getCurrentAccount,
   isBeta,
   Minus,
   Plus,
@@ -257,9 +257,11 @@ import {
   ISWAP_VERSION, localChannelList
 } from './util/swapConfig';
 import Dodo from './util/Dodo';
-import { currentNet, MAIN_INFO } from '@/config';
+import {currentNet, MAIN_INFO, NULS_INFO} from '@/config';
 import NerveChannel, { feeRate } from './util/Nerve';
 import { swapAssetList } from './util/swapAssetList';
+import { getContractCallData } from '@/api/nulsContractValidate';
+import {getNulsBalance} from "@/api/requestData";
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -329,7 +331,10 @@ export default {
       getChannelBool: false, // 是否寻找了最优通道
       swapPairInfo: [],
       swapPairTradeList: [],
-      nerveChainStableSwap: false
+      nerveChainStableSwap: false,
+      nulsBalance: 0,
+      swapNerveAddress: '',
+      swapNulsAddress: ''
     };
   },
   computed: {
@@ -454,18 +459,18 @@ export default {
     if (this.fromNetwork === 'NERVE') {
       this.getNerveSwapPairTrade();
     }
-    // const nerveChannel = new NerveChannel({
-    //   chooseFromAsset: this.chooseFromAsset,
-    //   chooseToAsset: this.chooseToAsset
-    // });
-    // nerveChannel.getNerveChannelConfig('amountIn', 1);
-
-    // this.getUsdtnAssets();
+    if (this.fromNetwork === 'NULS') {
+      this.nulsBalance = this.getNulsAssetBalance({
+        assetId: NULS_INFO.assetId,
+        chainId: NULS_INFO.assetId,
+        contractAddress: ''
+      });
+    }
     // setTimeout 0 不然获取不到地址
     setTimeout(() => {
       this.getSwapAssetList();
     }, 0);
-    // this.getLiquidityInfo(); // 获取当前池子的余额
+    this.getSwapAddress();
     this.getNerveLimitInfo();
     this.getChanelConfig();
     this.initISwapConfig();
@@ -503,7 +508,7 @@ export default {
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
-      if (this.chooseFromAsset.contractAddress && this.fromNetwork !== 'NERVE') {
+      if (this.chooseFromAsset.contractAddress && (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS')) {
         const transfer = new ETransfer();
         const contractAddress = this.chooseFromAsset.contractAddress;
         const authContractAddress = this.getAuthContractAddress();
@@ -512,7 +517,7 @@ export default {
           authContractAddress,
           this.fromAddress
         );
-      } else if (this.fromNetwork !== 'NERVE') {
+      } else if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
         this.needAuth = false;
       } else {
         this.needAuth = false;
@@ -584,7 +589,6 @@ export default {
     },
 
     getAuthContractAddress() {
-      // TODO: dodo还需要验证合约地址
       let authContractAddress;
       const config = JSON.parse(sessionStorage.getItem('config'));
       if (this.currentChannel.channel === 'iSwap' && !this.stableSwap) {
@@ -642,21 +646,27 @@ export default {
     },
     // 获取当前支持的通道
     async getChanelConfig() {
-      if (localStorage.getItem('channelConfig')) {
-        this.originChannelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
-        this.channelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
-        const res = await this.$request({
-          url: '/swap/channel',
-          method: 'get'
-        });
-        if (res.code === 1000 && res.data) {
-          localStorage.setItem('channelConfig', JSON.stringify(res.data));
-          this.originChannelConfigList = res.data;
-          this.channelConfigList = res.data;
+      try {
+        if (localStorage.getItem('channelConfig')) {
+          this.originChannelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
+          this.channelConfigList = JSON.parse(localStorage.getItem('channelConfig'));
+          const res = await this.$request({
+            url: '/swap/channel',
+            method: 'get'
+          });
+          if (res.code === 1000 && res.data) {
+            localStorage.setItem('channelConfig', JSON.stringify(res.data));
+            this.originChannelConfigList = res.data;
+            this.channelConfigList = res.data;
+          }
+        } else {
+          this.originChannelConfigList = localChannelList;
+          this.channelConfigList = localChannelList;
         }
-      } else {
+      } catch (e) {
         this.originChannelConfigList = localChannelList;
         this.channelConfigList = localChannelList;
+        console.log(e, 'error');
       }
     },
     // 获取当前是否为稳定币资产兑换
@@ -825,7 +835,6 @@ export default {
         case 'receive': // 选择接受资产
           this.chooseToAsset = coin;
           this.resetData();
-          console.log(123, this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === 'NERVE' && this.chooseToAsset.chain === 'NERVE');
           if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = true;
@@ -993,12 +1002,34 @@ export default {
       }
     },
     // 检查当前余额是否足够
-    checkBalance() {
+    async checkBalance() {
       const { amountIn, available, chooseFromAsset } = this;
-      if (Minus(amountIn, available) > 0) {
-        this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
+      if (this.fromNetwork === 'NULS') {
+        if (this.chooseFromAsset.contractAddress) { // 合约资产
+          if (Minus(amountIn, available) > 0) {
+            this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
+          } else if (Minus(this.currentChannel.crossChainFee || 0, this.nulsBalance) > 0) {
+            this.amountMsg = `NULS ${this.$t('tips.tips9')}`;
+          } else {
+            this.amountMsg = '';
+          }
+        } else {
+          // if (Minus(amountIn, available) > 0) {
+          //   this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
+          // } else
+          console.log(this.nulsBalance, 'this.nulsBalance');
+          if (Minus(this.currentChannel.crossChainFee || 0, this.nulsBalance) > 0) {
+            this.amountMsg = `NULS ${this.$t('tips.tips9')}`;
+          } else {
+            this.amountMsg = '';
+          }
+        }
       } else {
-        this.amountMsg = '';
+        if (Minus(amountIn, available) > 0) {
+          this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
+        } else {
+          this.amountMsg = '';
+        }
       }
     },
     computedSwapRate(isCross, amountIn, amountOut) {
@@ -1030,10 +1061,7 @@ export default {
     },
     // 获取当前支持的config
     async getChannelList() {
-      console.log(this.stableSwap, 'stableSwap');
-      console.log(this.nerveChainStableSwap, 'nerveChainStableSwap');
       try {
-        const config = JSON.parse(sessionStorage.getItem('config'));
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
         this.amountMsg = '';
@@ -1143,6 +1171,10 @@ export default {
           } else if (item.channel === 'NERVE' && this.stableSwap) {
             console.log('this.stableSwap NERVEBRIDGE');
             currentConfig = await this._getNerveEstimateFeeInfo();
+            let contractFee;
+            if (this.fromNetwork === 'NULS' && this.chooseFromAsset.contractAddress) {
+              contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
+            }
             if (currentConfig) {
               return {
                 icon: item.icon,
@@ -1151,7 +1183,7 @@ export default {
                 amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
                 minReceive: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
                 swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
-                crossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+                crossChainFee: tofix(this.numberFormat(contractFee ? Plus(currentConfig.crossChainFee, contractFee) : currentConfig.crossChainFee, 6), 6, -1),
                 originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
                 isBest: false,
                 isCurrent: false,
@@ -1344,6 +1376,46 @@ export default {
         return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn, this.swapPairTradeList);
       } else {
         return nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut, this.swapPairTradeList);
+      }
+    },
+    // 计算nuls合约资产需要的手续费
+    async getContractCallData(swapFee) {
+      const transferAmount = swapFee && (this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountIn, swapFee || 0));
+      console.log(swapFee, 'transferAmount');
+      const price = 25;
+      const res = await getContractCallData(
+        this.fromAddress,
+        this.swapNerveAddress,
+        price,
+        this.chooseFromAsset.contractAddress,
+        'transferCrossChain',
+        transferAmount,
+        this.chooseFromAsset.decimals
+      );
+      if (res.success) {
+        const { gasLimit, price } = res.data.contractCallData;
+        this.NULSContractGas = gasLimit;
+        this.NULSContractTxData = res.data.contractCallData;
+        return divisionDecimals(Plus(10100000, Times(gasLimit, price)), 8);
+      } else {
+        this.$message({
+          message: res.msg,
+          type: 'warning',
+          duration: 2000,
+          offset: 30
+        });
+        return null;
+      }
+    },
+    // 获取中间账户地址
+    async getSwapAddress() {
+      const configRes = await this.$request({
+        method: 'get',
+        url: '/api/common/config'
+      });
+      if (configRes.code === 1000) {
+        this.swapNerveAddress = configRes.data.swapNerveAddress;
+        this.swapNulsAddress = configRes.data.swapNulsAddress;
       }
     },
     // 最大

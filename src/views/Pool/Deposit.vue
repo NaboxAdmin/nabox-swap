@@ -586,7 +586,7 @@ export default {
         const addedLiquidityBalance = await this.getNerveAssetBalance(params);
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+          balance: addedLiquidityBalance
         };
       } else {
         const transfer = new ETransfer({

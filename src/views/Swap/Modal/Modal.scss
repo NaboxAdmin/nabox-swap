@@ -229,8 +229,16 @@
     background-image: url("../../../assets/image/Fantom.png");
   }
 }
-
 .nav-cont_11 {
+  width: 52px;
+  height: 52px;
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/NULS.png");
+  &.active_image {
+    background-image: url("../../../assets/image/NULS_active.png");
+  }
+}
+.nav-cont_12 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;

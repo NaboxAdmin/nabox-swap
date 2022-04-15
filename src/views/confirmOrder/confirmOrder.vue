@@ -458,7 +458,6 @@ export default {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
         const { toAsset, fromAsset, currentChannel, amountIn } = this.orderInfo;
-        console.log(fromAsset, amountIn, 'amountIn 213');
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
@@ -473,7 +472,6 @@ export default {
           crossChainFee: currentChannel.crossChainFee,
           nerveAddress: swapNerveAddress
         };
-        console.log(params, 'params');
         const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, 2);
         if (swapRes.code === 1000) {
           let res;
