@@ -119,10 +119,6 @@
                   </template>
                   <span>{{ item.createTime }}</span>
                   <span class="status-icon">
-                    <!--swap订单-->
-                    <!--<i v-if="orderType === 3 && item.status !== 5 && item.status !== 4" class="el-icon-loading" style="color: #6EB6A9"/>
-                    <i v-else-if="orderType === 3 && item.status === 4" class="el-icon-success" style="color: #6EB6A9"/>
-                    <i v-else-if="orderType === 3 && item.status === 5" class="el-icon-error" style="color: #eb7d62"/>-->
                     <!--iswap订单-->
                     <template>
                       <i v-if="orderType === 3 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>

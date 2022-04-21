@@ -70,6 +70,14 @@ import nerve from 'nerve-sdk-js';
 import { supportChainList, getCurrentAccount } from '@/api/util';
 import MetaMask from '@/assets/image/metamask.svg';
 import Nabox from '@/assets/image/nabox_wallet.svg';
+import TrustWallet from '@/assets/image/trustwallet.svg';
+import Tokenpocket from '@/assets/image/Tokenpocket.svg';
+import Mathwallet from '@/assets/image/mathwallet.svg';
+import binancechain from '@/assets/image/trustwallet.svg';
+import OKEx from '@/assets/image/metax.jpg';
+import safepal from '@/assets/image/safepal.svg';
+import coin98 from '@/assets/image/coin98.svg';
+import bitkeep from '@/assets/image/bitkeep.jpg';
 
 const ethers = require('ethers');
 
@@ -78,13 +86,23 @@ function getAccountList() {
 }
 const MetaMaskProvider = 'ethereum';
 const NaboxProvider = 'NaboxWallet';
+const OKExProvider = 'okexchain';
+const BSCProvider = 'BinanceChain';
 export default {
   name: 'BasicLayout',
   components: { HeaderBar },
   data() {
     this.providerList = [
       { name: 'MetaMask', src: MetaMask, provider: MetaMaskProvider },
-      { name: 'Nabox', src: Nabox, provider: NaboxProvider }
+      { name: 'Nabox', src: Nabox, provider: NaboxProvider },
+      { name: 'Trust Wallet', src: TrustWallet, provider: MetaMaskProvider },
+      { name: 'TokenPocket', src: Tokenpocket, provider: MetaMaskProvider },
+      { name: 'MathWallet', src: Mathwallet, provider: MetaMaskProvider },
+      { name: 'Binance Wallet', src: binancechain, provider: BSCProvider },
+      { name: 'MetaX', src: OKEx, provider: OKExProvider },
+      { name: 'SafePal', src: safepal, provider: MetaMaskProvider },
+      { name: 'Coin98', src: coin98, provider: MetaMaskProvider },
+      { name: 'BitKeep', src: bitkeep, provider: MetaMaskProvider }
     ];
     return {
       tabList: [
@@ -107,9 +125,7 @@ export default {
         }
       ],
       currentIndex: 0,
-      address: '', // 合约地址
-      // showConnect: true, // 显示可连接钱包
-      // showSign: true, // 显示派发多链地址
+      address: '',
       provider: '',
       loading: false, // 加载
       walletType: localStorage.getItem('walletType') || 'ethereum', // 钱包类型（metamask）
@@ -291,31 +307,23 @@ export default {
       }
       this.initMetamask();
     },
-    async iniConnect() {
-      const walletType = localStorage.getItem('walletType') || this.walletType;
-      // this.wallet = window[walletType];
-      const provider = window[walletType];
-      if (!walletType || !provider) return;
-      const address = provider.selectedAddress;
-      if (!address) {
-        await this.requestAccounts();
-      } else {
-        this.$store.commit('changeShowConnect', false);
-      }
-      this.listenAccountChange();
-      this.listenNetworkChange();
-    },
     // 初始化metamask wallet provider address
     async initMetamask() {
       const walletType = localStorage.getItem('walletType') || this.walletType;
       this.wallet = window[walletType];
       this.fromChainId = this.wallet.chainId;
-      this.address = this.wallet.selectedAddress;
-      // console.log(this.wallet.selectedAddress);
+      this.address = this.wallet.selectedAddress || this.wallet.address;
       if (!this.address) {
         await this.requestAccounts();
       }
       this.fromChainId = this.wallet.chainId;
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      const chain = tempSupportChainList.find(v => v[ETHNET] === this.wallet.chainId);
+      if (!sessionStorage.getItem('network')) {
+        this.$store.commit('changeNetwork', chain && chain.value || 'NERVE');
+      } else {
+        this.$store.commit('changeNetwork', sessionStorage.getItem('network'));
+      }
       this.provider = new ethers.providers.Web3Provider(window[walletType]);
       // this.showConnect = false;
       this.$store.commit('changeShowConnect', false);
@@ -358,6 +366,7 @@ export default {
     // 监听网络改变
     listenNetworkChange() {
       this.wallet.on('chainChanged', (chainId) => {
+        console.log(chainId, 'chainId');
         if (chainId && this.walletType) {
           const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
           const chain = tempSupportChainList.find(v => v[ETHNET] === chainId);

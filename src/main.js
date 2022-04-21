@@ -20,6 +20,7 @@ Vue.mixin(globalMixin);
 Vue.use(VueLazyLoad, {
   preLoad: 1,
   error: 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NULL.png',
+  loading: 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NULL.png',
   attempt: 2
 });
 

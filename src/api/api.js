@@ -1,16 +1,16 @@
 import nuls from 'nuls-sdk-js';
 import nerve from 'nerve-sdk-js';
-import {ethers} from 'ethers';
-import {htmlEncode, Minus, Plus, timesDecimals} from './util';
-import {post, request} from '../network/http';
-import {ETHNET, MAIN_INFO, NULS_INFO} from '@/config';
-import {getCurrentAccount} from '@/api/util';
+import { ethers } from 'ethers';
+import { htmlEncode, Minus, Plus, timesDecimals } from './util';
+import { post, request } from '@/network/http';
+import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
+import { getCurrentAccount } from '@/api/util';
 import BufferReader from 'nerve-sdk-js/lib/utils/bufferreader';
 import txs from 'nerve-sdk-js/lib/model/txs';
-import {MultiCall} from './Multicall1';
+import { MultiCall } from './Multicall1';
 import Web3 from 'web3';
-import {airDropABI} from '../views/airdrop/airDropABI';
-import {farmABI} from '../views/L1Farm/FarmABI';
+import { airDropABI } from '@/views/airdrop/airDropABI';
+import { farmABI } from '@/views/L1Farm/FarmABI';
 
 // 查询余额
 const erc20BalanceAbiFragment = [
@@ -244,6 +244,7 @@ export class NTransfer {
   }
 
   async inputsOrOutputs(data) {
+    console.log(this.type, data, 'this.typethis.typethis.type')
     if (!this.type) {
       throw '获取交易类型失败';
     }
@@ -275,12 +276,15 @@ export class NTransfer {
 
   // nuls nerve普通转账input output
   async transferTransaction(transferInfo) {
-    const inputs = [], outputs = [];
+    // eslint-disable-next-line one-var
+    let inputs = [], outputs = [];
     // 转账资产nonce
     const nonce = await this.getNonce(transferInfo);
+    console.log(nonce, 'noncenoncenonce');
     if (!nonce) throw localStorage.getItem('locale') === 'en' ? 'Failed to get the nonce value' : '获取nonce值失败';
     const config = JSON.parse(sessionStorage.getItem('config'));
     const mainAsset = config[this.chain];
+    console.log(mainAsset, 'mainAsset')
     if (mainAsset.chainId === transferInfo.assetsChainId && mainAsset.assetId === transferInfo.assetsId) {
       // 转账资产为本链主资产, 将手续费和转账金额合成一个input
       const newAmount = Plus(transferInfo.amount, transferInfo.fee).toFixed();
@@ -306,14 +310,26 @@ export class NTransfer {
         locked: 0,
         nonce: transferInfo.nonce || nonce // 闪兑资产和跨链资产一样，闪兑后nonce值使用hash后16位
       });
-      inputs.push({
-        address: transferInfo.from,
-        assetsChainId: mainAsset.chainId,
-        assetsId: mainAsset.assetId,
-        amount: transferInfo.fee,
-        locked: 0,
-        nonce: mainAssetNonce
-      });
+      if (transferInfo.isLayer2) {
+        inputs.push({
+          address: transferInfo.from,
+          assetsChainId: mainAsset.chainId,
+          assetsId: mainAsset.assetId,
+          amount: transferInfo.fee,
+          locked: 0,
+          nonce: mainAssetNonce
+        });
+      }
+      if (this.chain === 'NULS') {
+        inputs.push({
+          address: transferInfo.from,
+          assetsChainId: mainAsset.chainId,
+          assetsId: mainAsset.assetId,
+          amount: transferInfo.fee,
+          locked: 0,
+          nonce: mainAssetNonce
+        });
+      }
     }
     outputs.push({
       address: transferInfo.to,
@@ -329,6 +345,7 @@ export class NTransfer {
   async crossChainTransaction(transferInfo) {
     const { inputs, outputs } = await this.transferTransaction(transferInfo);
     const CROSS_INFO = JSON.parse(sessionStorage.getItem('config'))['NULS'];
+    console.log(this.chain, '123')
     if (this.chain === 'NERVE') {
       // nerve资产跨链到nuls,要收取nuls手续费
       let isNULS = false;
@@ -370,31 +387,45 @@ export class NTransfer {
 
   // 调用合约交易
   async callContractTransaction(transferInfo) {
-    // console.log("callContractTransaction:");
-    // console.log(transferInfo);
+    console.log(transferInfo, 'transferInfo')
+    const { toContractValue, nulsValueToOthers, assetsChainId, amount, assetsId } = transferInfo;
     const nonce = await this.getNonce(transferInfo);
-    // const defaultFee = timesDecimals(0.001, 8);
-    const defaultFee = 0;
+    const defaultFee = timesDecimals(0.001, 8);
+    let newAmount = Plus(amount, defaultFee).toFixed();
+    const outputs = [];
+    if (toContractValue) {
+      outputs.push({
+        address: transferInfo.to,
+        assetsChainId: transferInfo.assetsChainId,
+        assetsId: transferInfo.assetsId,
+        amount: toContractValue,
+        lockTime: 0
+      });
+    }
+    if (nulsValueToOthers) {
+      const length = nulsValueToOthers.length;
+      for (let i = 0; i < length; i++) {
+        const nulsValueToOther = nulsValueToOthers[i];
+        newAmount = Plus(newAmount, nulsValueToOther.value).toFixed();
+        outputs.push({
+          address: nulsValueToOther.address,
+          assetsChainId,
+          assetsId,
+          amount: nulsValueToOther.value,
+          lockTime: 0
+        });
+      }
+    }
     const inputs = [
       {
         address: transferInfo.from,
         assetsChainId: transferInfo.assetsChainId,
         assetsId: transferInfo.assetsId,
-        amount: Plus(transferInfo.amount, defaultFee).toFixed(),
+        amount: newAmount,
         locked: 0,
         nonce: nonce
       }
     ];
-    const outputs = [];
-    if (transferInfo.toContractValue) {
-      outputs.push({
-        address: transferInfo.to,
-        assetsChainId: transferInfo.assetsChainId,
-        assetsId: transferInfo.assetsId,
-        amount: transferInfo.toContractValue,
-        lockTime: 0
-      });
-    }
     return { inputs, outputs };
   }
 
@@ -482,7 +513,7 @@ export class NTransfer {
         assetId: info.assetsId,
         refresh: true
       };
-      // console.log(data);
+      console.log(data, '123data');
       const nonce = this.chain === 'NERVE' ? await this.getNerveAssetNonce(data) : await this.getNulsAssetNonce(data);
       if (nonce) {
         return nonce;
@@ -518,6 +549,7 @@ export class NTransfer {
       assetId,
       contractAddress
     }];
+    console.log(address, 'address')
     const currentAccount = getCurrentAccount(address);
     const params = [NULS_INFO.chainId, currentAccount['address']['NULS'], tempParams];
     const url = NULS_INFO.batchRPC;

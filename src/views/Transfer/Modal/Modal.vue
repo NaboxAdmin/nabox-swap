@@ -33,7 +33,7 @@
             </div>
           </div>
         </div>
-        <div v-else class="text-center text-90 flex-1 pt-4">{{ $t('modal.modal3') }}</div>
+        <div v-else class="text-center text-90 flex-1 pt-4 size-28">{{ $t('modal.modal3') }}</div>
       </div>
     </div>
   </div>

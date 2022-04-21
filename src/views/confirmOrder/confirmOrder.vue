@@ -45,7 +45,10 @@
         <div v-if="orderInfo && orderInfo.currentChannel.crossChainFee" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap6') }}</span>
           <div class="d-flex align-items-center justify-content-end">
-            <span class="ml-4 text-3a">
+            <span v-if="orderInfo && orderInfo.fromAsset.chain==='NERVE' && orderInfo.toAsset.chain==='NULS'">
+              {{ `${crossFee}NVT+${crossFee}NULS` }}
+            </span>
+            <span v-else class="ml-4 text-3a">
               <span>{{ (orderInfo.currentChannel.crossChainFee || '0') | numberFormat }}</span>
               <span>{{ (orderInfo.stableSwap && orderInfo.currentChannel.channel === 'NERVE' && orderInfo.mainAssetSymbol) || (orderInfo.stableSwap && orderInfo.fromAsset.symbol || 'USDT') }}</span>
             </span>
@@ -77,7 +80,7 @@ import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
 import NerveChannel from '../Swap/util/Nerve';
-import { NTransfer } from '@/api/api';
+import { NTransfer, crossFee } from '@/api/api';
 // import '../../views/Swap/util/stableTransfer-min'
 
 const ethers = require('ethers');
@@ -93,7 +96,8 @@ export default {
       getAllowanceTimer: null,
       crossInAuth: false,
       swapOrderTimer: null,
-      orderTimes: 300000
+      orderTimes: 300000,
+      crossFee
     };
   },
   computed: {
@@ -451,13 +455,14 @@ export default {
           method: 'get',
           url: '/api/common/config'
         });
-        let swapNerveAddress;
+        let swapNerveAddress, swapNulsAddress;
         if (configRes.code === 1000) {
           swapNerveAddress = configRes.data.swapNerveAddress;
+          swapNulsAddress = configRes.data.swapNulsAddress;
         }
         const config = JSON.parse(sessionStorage.getItem('config'));
         const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
-        const { toAsset, fromAsset, currentChannel, amountIn } = this.orderInfo;
+        const { toAsset, fromAsset, currentChannel, amountIn, NULSContractGas, NULSContractTxData } = this.orderInfo;
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
@@ -475,22 +480,29 @@ export default {
         const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, 2);
         if (swapRes.code === 1000) {
           let res;
-          if (this.fromNetwork !== 'NERVE') {
+          if (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') { // 异构链转到中间账户
             res = await nerveChannel.sendNerveBridgeTransaction(params);
           } else {
             // const { amountIn } = this.orderInfo.fromAsset;
             const crossOutPrams = {
-              from: this.fromAddress,
+              from: this.currentAccount['address'][this.fromNetwork],
               chainId: fromAsset.nerveChainId,
               assetId: fromAsset.nerveAssetId,
               amountIn: timesDecimals(amountIn, fromAsset.decimals),
               type: 2,
               pub: this.currentAccount.pub,
               signAddress: this.currentAccount.address.Ethereum,
-              crossAddress: swapNerveAddress,
+              swapNerveAddress: swapNerveAddress,
+              swapNulsAddress: swapNulsAddress,
               currentAccount: this.currentAccount,
               fee: currentChannel.crossChainFee,
-              orderId: currentChannel.orderId
+              orderId: currentChannel.orderId,
+              fromNetwork: this.fromNetwork,
+              toNetwork: toAsset.chain,
+              fromAsset,
+              NULSContractGas,
+              NULSContractTxData,
+              currentChannel
             };
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
           }
@@ -538,7 +550,6 @@ export default {
       const naboxParams = {
         orderId: res.orderId,
         channel: currentChannel.channel,
-        // platform: 'SWFT',
         platform: 'NABOX',
         fromChain: fromAsset.chain,
         toChain: toAsset.chain,
@@ -550,10 +561,8 @@ export default {
         swapChainId: toAsset.chainId,
         swapAssetId: toAsset.assetId,
         swapContractAddress: toAsset.contractAddress || '',
-        // amount: timesDecimals(amountIn, fromAsset.decimals || 18),
         amount: amountIn,
-        // fee: currentChannel.channel === 'NERVE' ? currentChannel.originCrossChainFee : currentChannel.crossChainFee,
-        crossFee: currentChannel.channel === 'NERVE' ? currentChannel.crossChainFee : currentChannel.crossChainFee,
+        crossFee: this.fromNetwork === 'NULS' ? currentChannel.originCrossChainFee : currentChannel.crossChainFee,
         swapFee: currentChannel.swapFee,
         slippage: currentChannel.channel === 'NERVE' && stableSwap ? '0' : slippage,
         pairAddress: fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress || '',

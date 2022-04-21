@@ -59,7 +59,10 @@
           <span class="text-aa">{{ $t('swap.swap34') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span class="ml-4 text-ec">
-              <span class="text-0">
+              <span v-if="detailInfo && detailInfo.fromChain === 'NERVE' && detailInfo.toChain === 'NULS'" class="text-0">
+                {{ `${crossFee}NVT+${crossFee}NULS` }}
+              </span>
+              <span v-else class="text-0">
                 {{ detailInfo && detailInfo.crossFee | numberFormat }}{{ detailInfo && (detailInfo.channel === 'NERVE' || orderType == 2) && mainAssetSymbol || 'USDT' }}
               </span>
             </span>
@@ -87,6 +90,7 @@
 <script>
 import { NavBar } from '@/components';
 import { copys, tofix } from '@/api/util';
+import { crossFee } from '@/api/api';
 
 export default {
   name: 'OrderDetail',
@@ -95,7 +99,8 @@ export default {
     return {
       detailInfo: null,
       orderTimer: null,
-      orderType: ''
+      orderType: '',
+      crossFee
     };
   },
   computed: {
@@ -149,7 +154,7 @@ export default {
       }
     },
     iSwapOrderStatus(val) {
-      console.log('123123')
+      console.log('123123');
       switch (val) {
         case 0:
           return this.$t('swap.swap37');
