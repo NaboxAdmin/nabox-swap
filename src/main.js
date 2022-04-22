@@ -23,14 +23,12 @@ Vue.use(VueLazyLoad, {
   loading: 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NULL.png',
   attempt: 2
 });
-
 if (!development) {
   console.log = () => {};
 }
+
 // 国际化
 const locale = localStorage.getItem('locale') ? localStorage.getItem('locale') : store.state.lang;
-store.commit('changeLang', locale);
-localStorage.setItem('locale', locale);
 const i18n = new VueI18n({
   locale,
   fallbackLocale: 'en',
@@ -38,6 +36,9 @@ const i18n = new VueI18n({
   messages
 });
 const network = isBeta ? 'beta' : 'main';
+store.commit('changeLang', locale);
+localStorage.setItem('locale', locale);
+
 async function getConfig(network, refresh) {
   try {
     let chainConfig;

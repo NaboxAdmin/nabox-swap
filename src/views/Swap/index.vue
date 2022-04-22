@@ -1124,9 +1124,7 @@ export default {
             }
             return null;
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap) {
-            console.log('!this.stableSwap NERVE');
             currentConfig = await this.getNerveSwapRoute();
-            console.log(currentConfig, 'currentConfig NERVE SWAP');
             if (currentConfig) {
               return {
                 icon: item.icon,
