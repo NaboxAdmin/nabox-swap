@@ -53,7 +53,9 @@ const en = {
     tips51: 'Network timed out, please try again later...',
     tips52: 'The current chain is not currently supported',
     tips53: 'The network connection is unstable, please resend the transaction',
-    tips54: 'Please select the receiving network'
+    tips54: 'Please select the receiving network',
+    tips55: 'No provider was found',
+    tips56: 'Please log in to the plugin first'
   },
   swap: {
     swap1: 'From',

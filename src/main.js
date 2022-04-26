@@ -6,7 +6,7 @@ import { post, request } from './network/http';
 import './api/rem';
 import 'normalize.css'; // 初始化css
 import messages from './locales';
-import { isBeta, setChainConfig } from './api/util';
+import {isBeta, setChainConfig, TRON} from './api/util';
 import globalMixin from './mixin';
 import { localChainConfig } from '@/config';
 import VueLazyLoad from 'vue-lazyload';
@@ -49,7 +49,8 @@ async function getConfig(network, refresh) {
       const tempLocalData = localStorage.getItem('localChainConfig') && JSON.parse(localStorage.getItem('localChainConfig')) || localChainConfig;
       chainConfig = tempLocalData.sort((a, b) => a.sort - b.sort);
     }
-    const tempSwapChainConfig = chainConfig.filter(item => item.swap == 1);
+    // TODO: 测试数据后面要修改
+    const tempSwapChainConfig = chainConfig.filter(item => item.swap == 1 || item.chain === TRON);
     setChainConfig(tempSwapChainConfig);
     !refresh && new Vue({
       i18n,
@@ -59,7 +60,9 @@ async function getConfig(network, refresh) {
     }).$mount('#app');
     const res = await request({ url: '/api/chain/config', method: 'get' });
     if (res.code === 1000 && res.data) {
-      const tempData = res.data.filter(item => item.swap == 1);
+      // TODO: 测试数据后面要修改
+      const tempData = res.data.filter(item => item.swap == 1 || item.chain === TRON);
+      console.log(tempData, 'tempData');
       setChainConfig(tempData);
       network === 'beta' ? localStorage.setItem('localBetaChainConfig', JSON.stringify(tempData)) : localStorage.setItem('localChainConfig', JSON.stringify(tempData));
     } else {

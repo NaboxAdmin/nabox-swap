@@ -270,7 +270,7 @@ export default {
           // console.log(JSON.stringify(this.allList));
           this.showLoading = false;
           if (tempNetwork === 'NULS') {
-            const tempData = await this.getNulsBatchData(this.allList);
+            const tempData = await this.getNulsNerveBatchData(this.allList, tempNetwork);
             for (let i = 0; i < this.allList.length; i++) {
               const asset = this.allList[i];
               this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);

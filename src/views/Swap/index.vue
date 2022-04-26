@@ -32,7 +32,7 @@
                 <div class="w-90 direction-column size-30 text-center text-truncate text-3a">
                   {{ chooseFromAsset.symbol }}
                 </div>
-                <div v-if="fromNetwork==='NERVE' && chooseFromAsset.chain === 'NERVE'" class="sign-small size-20">{{ chooseFromAsset.registerChain }}</div>
+                <div v-if="chooseFromAsset.registerChain && fromNetwork==='NERVE' && chooseFromAsset.chain === 'NERVE'" class="sign-small size-20">{{ chooseFromAsset.registerChain }}</div>
               </div>
             </div>
           </template>
@@ -74,7 +74,7 @@
                 <div class="w-90 text-truncate direction-column text-center size-30 text-3a">
                   {{ chooseToAsset.symbol }}
                 </div>
-                <div v-if="chooseToAsset.chain === 'NERVE'" class="sign-small size-20">{{ chooseToAsset.registerChain }}</div>
+                <div v-if="chooseToAsset.registerChain && chooseToAsset.chain === 'NERVE'" class="sign-small size-20">{{ chooseToAsset.registerChain }}</div>
               </div>
             </div>
             <div class="icon-cont" @click.stop="openModal('receive')">
@@ -248,7 +248,7 @@ import {
   supportChainList,
   Times,
   timesDecimals,
-  tofix
+  tofix, TRON
 } from '@/api/util';
 import { crossFee, ETransfer } from '@/api/api';
 import ISwap from './util/iSwap';
@@ -264,6 +264,7 @@ import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
 import NerveChannel, { feeRate } from './util/Nerve';
 import { swapAssetList } from './util/swapAssetList';
 import { getContractCallData } from '@/api/nulsContractValidate';
+import TronLink from '@/api/tronLink';
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -504,18 +505,23 @@ export default {
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
-      if (this.chooseFromAsset.contractAddress && (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS')) {
+      const contractAddress = this.chooseFromAsset.contractAddress;
+      const authContractAddress = this.getAuthContractAddress();
+      if (this.chooseFromAsset.contractAddress && this.chainType === 2) {
         const transfer = new ETransfer();
-        const contractAddress = this.chooseFromAsset.contractAddress;
-        const authContractAddress = this.getAuthContractAddress();
         this.needAuth = await transfer.getERC20Allowance(
           contractAddress,
           authContractAddress,
           this.fromAddress
         );
-      } else if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
-        this.needAuth = false;
-      } else {
+      } else if (this.chainType === 3) {
+        const transfer = new TronLink();
+        this.needAuth = await transfer.getTrc20Allowance(
+          this.currentAccount['address'][this.fromNetwork],
+          authContractAddress,
+          contractAddress
+        );
+      } else if (this.chainType === 1) {
         this.needAuth = false;
       }
       // this.showComputedLoading = false;
@@ -534,16 +540,26 @@ export default {
       if (this.approvingLoading) return false;
       this.showApproveLoading = true;
       try {
-        const transfer = new ETransfer();
         const authContractAddress = this.getAuthContractAddress();
         const contractAddress = this.chooseFromAsset.contractAddress;
-        const res = await transfer.approveERC20(
-          contractAddress,
-          authContractAddress,
-          this.fromAddress
-        );
-        if (res.hash) {
-          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        let transfer, res;
+        if (this.fromNetwork === TRON) {
+          transfer = new TronLink();
+          res = await transfer.approveTrc20(
+            this.currentAccount['address'][this.fromNetwork],
+            authContractAddress,
+            contractAddress
+          );
+        } else {
+          transfer = new ETransfer();
+          res = await transfer.approveERC20(
+            contractAddress,
+            authContractAddress,
+            this.fromAddress
+          );
+        }
+        if (res.hash && this.fromNetwork !== TRON || res && this.fromNetwork === TRON) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: this.fromNetwork === TRON && res || res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',
@@ -860,16 +876,16 @@ export default {
         default:
           return false;
       }
-      console.log(this.stableSwap, this.crossTransaction, 'this.stableSwap')
+      console.log(this.stableSwap, this.crossTransaction, 'this.stableSwap');
     },
     // 获取钱包余额
     async getBalance(asset, clickBoo = false) {
       if (this.balanceRequest || clickBoo) {
         this.balanceLoading = true;
       }
-      if (this.$store.state.network === 'NERVE' || this.$store.state.network === 'NULS') {
+      if (this.chainType === 1) {
         this.available = this.$store.state.network === 'NULS' ? await this.getNulsAssetBalance(asset) : await this.getNerveAssetBalance(asset);
-      } else {
+      } else if (this.chainType === 2) {
         try {
           const transfer = new ETransfer({
             chain: this.fromNetwork
@@ -893,6 +909,10 @@ export default {
             offset: 30
           });
         }
+      } else if (this.chainType === 3) {
+        const tempAvailable = await this.getTronAssetBalance(asset);
+        this.available = tempAvailable && tofix(tempAvailable, 6, -1);
+        this.userAvailable = tempAvailable;
       }
       this.balanceLoading = false;
       this.balanceRequest = false;
@@ -933,7 +953,7 @@ export default {
         if (this.crossTransaction && !this.stableSwap) {
           return channel.crossSwap === true && channel.status === 1;
         } else if (this.crossTransaction && this.stableSwap) {
-          console.log(this.checkLpBalance(), 'this.checkLpBalance()')
+          console.log(this.checkLpBalance(), 'this.checkLpBalance()');
           return this.checkLpBalance() && channel.channel === 'NERVE' && channel.bridge === true && channel.status === 1 || channel.channel !== 'NERVE' && channel.bridge === true && channel.status === 1;
         }
         return channel.swap === true && channel.status === 1;
@@ -942,7 +962,7 @@ export default {
     // 查看当前nerve通道流动性
     checkLpBalance() {
       if (this.chooseFromAsset && this.chooseToAsset) {
-        console.log('checkLpBalancecheckLpBalancecheckLpBalance')
+        console.log('checkLpBalancecheckLpBalancecheckLpBalance');
         const pairAddress = this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'] && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '';
         const swapAssets = pairAddress && this.nerveLimitInfo.find(item => item.pairAddress === pairAddress).swapAssets || [];
         const swapMap = {};

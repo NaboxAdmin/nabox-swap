@@ -1,7 +1,8 @@
 import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
-import { divisionAndFix, Minus, Plus, Times, timesDecimals, tofix } from '@/api/util';
+import {divisionAndFix, Minus, Plus, Times, timesDecimals, tofix, TRON} from '@/api/util';
 import { crossFee, ETransfer, NTransfer } from '@/api/api';
 import { post, request } from '@/network/http';
+import TronLink from "@/api/tronLink";
 
 export const feeRate = 0.0002; // nerve链上兑换稳定币手续费万二
 
@@ -276,8 +277,17 @@ export default class NerveChannel {
   }
   // 发送nerve通道异构链稳定币兑换交易
   async sendNerveBridgeTransaction(params) {
-    const transfer = new ETransfer();
-    return await transfer.crossInII(params);
+    const { fromNetwork } = params;
+    if (fromNetwork === TRON) {
+      const tron = new TronLink();
+      const hash = await tron.crossOutToNerveII(params);
+      return {
+        hash
+      };
+    } else {
+      const transfer = new ETransfer();
+      return await transfer.crossInII(params);
+    }
   }
   // 发送nerve通道nerve => 异构链稳定币兑换交易
   async sendNerveCommonTransaction(params) {

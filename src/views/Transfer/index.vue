@@ -143,13 +143,15 @@ import {
   supportChainList,
   Times,
   timesDecimals,
-  tofix
+  tofix,
+  TRON
 } from '@/api/util';
 import { MAIN_INFO, NULS_INFO } from '@/config';
 import { crossFee, ETransfer, getBatchERC20Balance, getSymbolUSD, NTransfer } from '@/api/api';
 import { getContractCallData } from '@/api/nulsContractValidate';
 import Modal from './Modal/Modal';
 import { Loading } from '@/components';
+import TronLink from '@/api/tronLink';
 
 export default {
   name: 'Transfer',
@@ -339,7 +341,22 @@ export default {
             this.crossInAuth = false;
           }
           this.availableLoading = false;
-          if (this.toNerve && this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE') {
+          if (this.toNerve && this.chainType === 1) {
+            const tempParams = this.transferAssets.map(item => ({
+              chainId: item.chainId,
+              assetId: item.assetId,
+              contractAddress: item.contractAddress || ''
+            }));
+            const res = await this.getNulsNerveBatchData(tempParams, this.fromNetwork);
+            if (res && res.length !== 0) {
+              this.transferAssets.forEach((asset, index) => {
+                res.forEach(() => {
+                  this.transferAssets[index].balance = res[index].balance && tofix(divisionDecimals(res[index].balance, asset.decimals), 6, -1) || 0;
+                  this.transferAssets[index].showBalanceLoading = false;
+                });
+              });
+            }
+          } else if (this.chainType === 2) {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
             const fromAddress = this.currentAccount['address'][this.fromNetwork];
@@ -359,13 +376,13 @@ export default {
                 }
               });
             });
-          } else if (this.toNerve && this.fromNetwork === 'NULS') {
+          } else if (this.toNerve && this.chainType === 1) {
             const tempParams = this.transferAssets.map(item => ({
               chainId: item.chainId,
               assetId: item.assetId,
               contractAddress: item.contractAddress || ''
             }));
-            const res = await this.getNulsBatchData(tempParams);
+            const res = await this.getNulsNerveBatchData(tempParams, this.fromNetwork);
             if (res && res.length !== 0) {
               this.transferAssets.forEach((asset, index) => {
                 res.forEach(() => {
@@ -373,25 +390,28 @@ export default {
                   this.transferAssets[index].showBalanceLoading = false;
                 });
               });
-              console.log(this.transferAssets, 'transferAssetstransferAssetstransferAssets');
             }
-          } else {
-            const tempParams = this.transferAssets.map(item => ({
-              chainId: item.chainId,
-              assetId: item.assetId,
-              contractAddress: item.contractAddress || ''
-            }));
-            const params = [MAIN_INFO.chainId, this.currentAccount['address']['NERVE'], tempParams];
-            const url = MAIN_INFO.batchRPC;
-            const res = await this.$post(url, 'getBalanceList', params);
-            if (res.result && res.result.length !== 0) {
-              this.transferAssets.forEach((asset, index) => {
-                res.result.forEach(() => {
-                  this.transferAssets[index].balance = res.result[index].balance && tofix(divisionDecimals(res.result[index].balance, asset.decimals), 6, -1) || 0;
-                  this.transferAssets[index].showBalanceLoading = false;
-                });
-              });
-            }
+          } else if (this.chainType === 3) {
+            const config = JSON.parse(sessionStorage.getItem('config'));
+            const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
+            const fromAddress = this.currentAccount['address'][this.fromNetwork];
+            const RPCUrl = config[this.fromNetwork]['apiUrl'];
+            const addresses = this.transferAssets.map(asset => {
+              if (asset.contractAddress) {
+                return asset.contractAddress;
+              }
+              return batchQueryContract;
+            });
+            const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl, true);
+            console.log(balanceData, 'balanceData');
+            // this.transferAssets.forEach((item, index) => {
+            //   balanceData.forEach(data => {
+            //     if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
+            //       this.transferAssets[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
+            //       this.transferAssets[index].showBalanceLoading = false;
+            //     }
+            //   });
+            // });
           }
           this.transferAssets = (tempList.length > 0 && tempList.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
           // await this.getTransferFee();
@@ -436,11 +456,15 @@ export default {
           this.userAvailable = tofix(this.available, 6, -1) || 0;
           this.availableLoading = false;
           !refresh && (this.fromNetwork !== 'NULS' || this.fromNetwork === 'NULS' && (!assetInfo.contractAddress || tempNetwork === 'NERVE')) && await this.getTransferFee();
-        } else {
+        } else if (this.chainType === 2) {
           this.available = await this.getHeterogeneousAssetBalance(assetInfo);
           this.userAvailable = tofix(this.available, 6, -1);
           this.availableLoading = false;
           !this.toNerve && !refresh && await this.getTransferFee();
+        } else if (this.chainType === 3) {
+          this.available = await this.getTronAssetBalance(assetInfo);
+          this.userAvailable = tofix(this.available, 6, -1);
+          this.availableLoading = false;
         }
       } catch (e) {
         this.availableLoading = false;
@@ -510,15 +534,25 @@ export default {
     },
     // 查询异构链token资产授权情况
     async checkCrossInAuthStatus() {
-      const transfer = new ETransfer();
       const config = JSON.parse(sessionStorage.getItem('config'));
       const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       const contractAddress = this.currentCoin.contractAddress;
-      const needAuth = await transfer.getERC20Allowance(
-        contractAddress,
-        authContractAddress,
-        this.fromAddress
-      );
+      let needAuth;
+      if (this.chainType === 2) {
+        const transfer = new ETransfer();
+        needAuth = await transfer.getERC20Allowance(
+          contractAddress,
+          authContractAddress,
+          this.fromAddress
+        );
+      } else if (this.chainType === 3) {
+        const tron = new TronLink();
+        needAuth = await tron.getTrc20Allowance(
+          this.currentAccount['address'][this.fromNetwork],
+          authContractAddress,
+          contractAddress
+        );
+      }
       this.crossInAuth = needAuth;
       if (!needAuth && this.getAllowanceTimer) {
         this.showApproveLoading = false;
@@ -682,7 +716,7 @@ export default {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const mainAsset = config['NERVE'];
       const isToken = assetHeterogeneousInfo && assetHeterogeneousInfo.token;
-      const transfer = new ETransfer({ chain: temToNetwork });
+      const transfer = new ETransfer();
       const { decimals, chainId, assetId } = this.currentFeeAsset;
       const feeIsNvt = chainId === mainAsset.chainId && assetId === mainAsset.assetId;
       let feeUSD = await getSymbolUSD(this.currentFeeChain); // 获取手续费资产稳定币价格
@@ -691,22 +725,43 @@ export default {
       heterogeneousChainUSD = heterogeneousChainUSD + '';
       let res;
       if (this.currentFeeChain === temToNetwork) {
-        res = await transfer.calWithdrawFee(
-          '',
-          '',
-          isToken,
-          decimals || 8,
-          true
-        );
+        if (temToNetwork !== TRON) {
+          res = await transfer.calWithdrawFee(
+            '',
+            '',
+            isToken,
+            decimals || 8,
+            true
+          );
+        } else {
+          res = await transfer.calWithdrawalFeeForTRON(
+            '',
+            '',
+            decimals || 8,
+            true
+          );
+        }
       } else {
-        res = await transfer.calWithdrawFee(
-          heterogeneousChainUSD,
-          feeUSD,
-          isToken,
-          decimals || 8,
-          false,
-          feeIsNvt
-        );
+        if (temToNetwork !== TRON) {
+          res = await transfer.calWithdrawFee(
+            heterogeneousChainUSD,
+            feeUSD,
+            isToken,
+            decimals || 8,
+            false,
+            feeIsNvt,
+            this.currentFeeChain === TRON
+          );
+        } else {
+          console.log('123123');
+          res = await transfer.calWithdrawalFeeForTRON(
+            heterogeneousChainUSD,
+            feeUSD,
+            decimals || 8,
+            false,
+            feeIsNvt
+          );
+        }
       }
       let nvtFee;
       this.showFeeLoading = false;
@@ -782,7 +837,6 @@ export default {
       const tempToNetwork = this.toNerve && 'NERVE' || this.$store.state.network;
       const config = JSON.parse(sessionStorage.getItem('config'));
       const mainAssetInfo = config[tempFromNetwork];
-      console.log(tempFromNetwork, 'tempFromNetwork');
       const transferInfo = {
         fromChain: tempFromNetwork,
         toChain: tempToNetwork,
@@ -804,7 +858,6 @@ export default {
       const nerveAddress = currentAccount.address.NERVE;
       const amount = timesDecimals(this.transferCount, asset.decimals);
       const assetsId = assetId === 0 ? asset.assetId : assetId; // nuls上的token资产通过getAssetNerveInfo查出来assetId为0
-
       // nerve nuls跨链
       const crossInfo = {
         from,
@@ -868,9 +921,9 @@ export default {
         }
       } else {
         // 异构链跨链转入nerve
-        const heterogeneousChain_In = asset.heterogeneousList.filter(
+        const heterogeneousChain_In = asset.heterogeneousList.find(
           (v) => v.chainName === tempFromNetwork
-        )[0];
+        );
         const config = JSON.parse(sessionStorage.getItem('config'));
         const multySignAddress = config[this.fromNetwork]['config']['crossAddress'];
         transferInfo.crossInInfo = {
@@ -878,7 +931,7 @@ export default {
           nerveAddress: nerveAddress,
           numbers: this.transferCount.toString(),
           fromAddress: from,
-          contractAddress: heterogeneousChain_In.contractAddress,
+          contractAddress: heterogeneousChain_In && heterogeneousChain_In.contractAddress || '',
           decimals: asset.decimals
         };
         if (tempToNetwork !== 'NERVE') {
@@ -928,7 +981,11 @@ export default {
         console.log(transferInfo, type, 'type');
         await this.constructTx(fromChain, type, transferInfo, txData || {}, this.$t('transfer.transfer5'), true);
       } else {
-        await this.constructCrossInTx(crossInInfo, this.$t('transfer.transfer2')); // 异构链转入
+        if (this.fromNetwork === TRON) {
+          await this.constructTRONCrossInTx(crossInInfo, this.$t('transfer.transfer2'));
+        } else {
+          await this.constructCrossInTx(crossInInfo, this.$t('transfer.transfer2')); // 异构链转入
+        }
       }
       await this.runTransfer();
     },
@@ -982,6 +1039,16 @@ export default {
         fn
       };
     },
+    async constructTRONCrossInTx(crossInInfo, label) {
+      const tron = new TronLink();
+      const { nerveAddress, multySignAddress, numbers, decimals, contractAddress } = crossInInfo;
+      const fn = async() => await tron.crossOutToNerve(nerveAddress, numbers, multySignAddress, contractAddress, decimals);
+      this.transactionInfo = {
+        label,
+        done: false,
+        fn
+      };
+    },
     // 执行转账
     async runTransfer() {
       this.transferLoading = true;
@@ -992,8 +1059,19 @@ export default {
           await this.broadcastHex();
         } else {
           if (res) {
-            if (res.hash) {
+            console.log(res, '12123123123');
+            if (res.hash && this.chainType === 2) {
               this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+              this.$message({
+                message: this.$t('tips.tips10'),
+                type: 'success',
+                duration: 2000,
+                offset: 30
+              });
+              this.transferLoading = false;
+              this.reset();
+            } else if (res && this.chainType === 3) {
+              this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -1044,17 +1122,27 @@ export default {
       if (this.showApproveLoading) return false;
       this.transferLoading = true;
       try {
-        const transfer = new ETransfer();
         const config = JSON.parse(sessionStorage.getItem('config'));
         const multySignAddress = config[this.fromNetwork]['config']['crossAddress'];
         const contractAddress = this.currentCoin.contractAddress;
-        const res = await transfer.approveERC20(
-          contractAddress,
-          multySignAddress,
-          this.fromAddress
-        );
-        if (res.hash) {
-          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        let transfer, res;
+        if (this.fromNetwork === TRON) {
+          transfer = new TronLink();
+          res = await transfer.approveTrc20(
+            this.currentAccount['address'][this.fromNetwork],
+            multySignAddress,
+            contractAddress
+          );
+        } else {
+          transfer = new ETransfer();
+          res = await transfer.approveERC20(
+            contractAddress,
+            multySignAddress,
+            this.fromAddress
+          );
+        }
+        if (res.hash && this.fromNetwork !== TRON || res && this.fromNetwork === TRON) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: this.fromNetwork === TRON && res || res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',

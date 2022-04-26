@@ -12,6 +12,8 @@ export const ETHNET = 'homestead';
 
 export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'https://api.v2.nabox.io/nabox-api'; // Prod
 
+export const trxWithdrawFee = '40000000';
+
 export const localChainConfig = [
   {
     'id': 3,

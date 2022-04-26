@@ -1,8 +1,9 @@
-import { superLong, divisionDecimals, tofix, numberFormat } from '@/api/util';
+import { superLong, divisionDecimals, tofix, numberFormat, getCurrentAccount, getCurrentAccountIndex } from '@/api/util';
 import moment from 'moment';
 import { Division, Minus } from '@/api/util';
 import { ETransfer } from '@/api/api';
 import { MAIN_INFO, NULS_INFO } from '@/config';
+import TronLink from '@/api/tronLink';
 
 export default {
   data() {
@@ -32,6 +33,12 @@ export default {
     },
     isMobile() {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    },
+    // 1:NULS系 2:以太坊系列 3:TRON
+    chainType() {
+      const network = this.$store.state.network;
+      const chainConfig = JSON.parse(sessionStorage.getItem('config'));
+      return chainConfig[network] && chainConfig[network]['chainType'];
     }
   },
   filters: {
@@ -146,6 +153,23 @@ export default {
         return await transfer.getEthBalance(this.fromAddress);
       }
     },
+    setTRONAddress(address, TRONAddress) {
+      const currentAccount = getCurrentAccount(address);
+      const tempIndex = getCurrentAccountIndex(address);
+      const accountList = JSON.parse(localStorage.getItem('accountList'));
+      currentAccount['address']['TRON'] = TRONAddress;
+      accountList[tempIndex] = currentAccount;
+      localStorage.setItem('accountList', JSON.stringify(accountList));
+    },
+    async getTronAssetBalance(assetInfo) {
+      const { contractAddress, decimals } = assetInfo;
+      const tron = new TronLink();
+      if (contractAddress) {
+        return await tron.getTrc20Balance(this.currentAccount['address'][this.fromNetwork], contractAddress, decimals);
+      } else {
+        return await tron.getTrxBalance(this.currentAccount['address'][this.fromNetwork]);
+      }
+    },
     // 获取NULS上面的余额信息
     async getNulsAssetBalance(assetInfo) {
       const { chainId, assetId, contractAddress, decimals } = assetInfo;
@@ -165,14 +189,16 @@ export default {
       }
     },
     // 批量查询NULS上面的资产信息
-    async getNulsBatchData(assetList) {
+    async getNulsNerveBatchData(assetList, network) {
       const tempParams = assetList.map(item => ({
         chainId: item.chainId,
         assetId: item.assetId,
         contractAddress: item.contractAddress
       }));
-      const params = [NULS_INFO.chainId, this.currentAccount['address']['NULS'], tempParams];
-      const url = NULS_INFO.batchRPC;
+      const chainConfig = JSON.parse(sessionStorage.getItem('config'));
+      const currentConfig = chainConfig[network];
+      const params = [currentConfig.chainId, this.currentAccount['address'][network], tempParams];
+      const url = currentConfig.apiUrl;
       const res = await this.$post(url, 'getBalanceList', params);
       if (res.result && res.result.length !== 0) {
         return res.result;

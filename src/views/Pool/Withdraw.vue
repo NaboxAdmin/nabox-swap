@@ -116,13 +116,14 @@
 </template>
 
 <script>
-import { divisionDecimals, timesDecimals, Times, tofix, Division, Minus, debounce, Plus } from '@/api/util';
+import { divisionDecimals, timesDecimals, Times, tofix, Division, Minus, debounce, Plus, TRON } from '@/api/util';
 import { crossFee as commonFee, ETransfer, getBatchERC20Balance, NTransfer } from '@/api/api';
 import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
 import Modal from './Modal/Modal';
 import Loading from '@/components/Loading/Loading';
 import { getContractCallData } from '@/api/nulsContractValidate';
-import NerveChannel from "@/views/Swap/util/Nerve";
+import NerveChannel from '@/views/Swap/util/Nerve';
+import TronLink from '@/api/tronLink';
 
 const ethers = require('ethers');
 const nerve = require('nerve-sdk-js');
@@ -315,9 +316,9 @@ export default {
       }
     },
     async getUserShare(asset) {
-      if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
+      if (this.chainType === 1) {
         return this.fromNetwork === 'NERVE' ? await this.getNerveAssetBalance(asset) : await this.getNulsAssetBalance(asset);
-      } else {
+      } else if (this.chainType === 2) {
         const transfer = new ETransfer({
           chain: this.fromNetwork
         });
@@ -333,6 +334,14 @@ export default {
         } else {
           return 0;
         }
+      } else if (this.chainType === 3) {
+        if (asset.heterogeneousList) {
+          const currentAsset = asset.heterogeneousList && asset.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+          const tempAvailable = currentAsset && await this.getTronAssetBalance(currentAsset) || 0;
+          return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
+        } else {
+          return 0;
+        }
       }
     },
     showDropModal() {
@@ -341,17 +350,27 @@ export default {
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
-      const transfer = new ETransfer();
       const config = JSON.parse(sessionStorage.getItem('config'));
       const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       // const contractAddress = this.accountType.find(item => item.chain === this.fromNetwork).contractAddress;
       if (!this.addedLiquidityInfo.heterogeneousList) return false;
       const contractAddress = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork).contractAddress;
-      const needAuth = await transfer.getERC20Allowance(
-        contractAddress,
-        authContractAddress,
-        this.fromAddress
-      );
+      let needAuth;
+      if (this.chainType === 2) {
+        const transfer = new ETransfer();
+        needAuth = await transfer.getERC20Allowance(
+          contractAddress,
+          authContractAddress,
+          this.fromAddress
+        );
+      } else if (this.chainType === 3) {
+        const tron = new TronLink();
+        needAuth = await tron.getTrc20Allowance(
+          this.currentAccount['address'][this.fromNetwork],
+          authContractAddress,
+          contractAddress
+        );
+      }
       this.needAuth = needAuth;
       if (!needAuth && this.getAllowanceTimer) {
         this.clearGetAllowanceTimer();
@@ -363,17 +382,26 @@ export default {
       this.withDrawLoading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
       try {
-        const transfer = new ETransfer();
         const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
-        // const contractAddress = this.accountType.find(item => item.chain === this.fromNetwork).contractAddress;
         const contractAddress = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork).contractAddress;
-        const res = await transfer.approveERC20(
-          contractAddress,
-          authContractAddress,
-          this.fromAddress
-        );
-        if (res.hash) {
-          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        let transfer, res;
+        if (this.fromNetwork === TRON) {
+          transfer = new TronLink();
+          res = await transfer.approveTrc20(
+            this.currentAccount['address'][this.fromNetwork],
+            authContractAddress,
+            contractAddress
+          );
+        } else {
+          transfer = new ETransfer();
+          res = await transfer.approveERC20(
+            contractAddress,
+            authContractAddress,
+            this.fromAddress
+          );
+        }
+        if (res.hash && this.fromNetwork !== TRON || res && this.fromNetwork === TRON) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: this.fromNetwork === TRON && res || res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
             message: this.$t('tips.tips14'),
             type: 'success',
@@ -616,8 +644,7 @@ export default {
     },
     // 获取已添加流动性资产信息
     async getAddedLiquidity() {
-      console.log('getAddedLiquidity');
-      if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
+      if (this.chainType === 1) {
         const params = {
           chain: this.fromNetwork,
           address: this.nerveAddress,
@@ -634,11 +661,11 @@ export default {
         };
         this.userAvailable = addedLiquidityBalance;
         this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
-      } else {
+      } else if (this.chainType === 2) {
         const transfer = new ETransfer({
           chain: this.fromNetwork
         });
-        let addedLiquidityBalance;
+        let addedLiquidityBalance = 0;
         if (this.liquidityInfo.heterogeneousList) {
           const currentAsset = this.liquidityInfo.heterogeneousList && this.liquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
           if (currentAsset.contractAddress) {
@@ -646,6 +673,18 @@ export default {
           } else {
             addedLiquidityBalance = await transfer.getEthBalance(this.fromAddress);
           }
+        }
+        this.userAvailable = addedLiquidityBalance;
+        this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
+        this.addedLiquidityInfo = {
+          ...this.liquidityInfo,
+          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+        };
+      } else if (this.chainType === 3) {
+        let addedLiquidityBalance = 0;
+        if (this.liquidityInfo.heterogeneousList) {
+          const currentAsset = this.liquidityInfo.heterogeneousList && this.liquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+          addedLiquidityBalance = currentAsset && await this.getTronAssetBalance(currentAsset) || 0;
         }
         this.userAvailable = addedLiquidityBalance;
         this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
@@ -856,23 +895,28 @@ export default {
             this.originLpAssetList = this.lpAssetsList;
           }
         } else if (chain !== 'NERVE') {
-          const addresses = assetList.map(asset => {
-            if (asset.contractAddress) {
-              return asset.contractAddress;
-            }
-            return batchQueryContract;
-          });
-          const fromAddress = this.currentAccount['address'][chain];
-          const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
-          assetList.forEach((item, index) => {
-            balanceData.forEach(data => {
-              if (data.contractAddress === item.contractAddress) {
-                assetList[index].userBalance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
-                assetList[index].showBalanceLoading = false;
+          if (this.fromNetwork !== TRON) {
+            const addresses = assetList.map(asset => {
+              if (asset.contractAddress) {
+                return asset.contractAddress;
               }
+              return batchQueryContract;
             });
-          });
-          this.lpAssetsList = [...assetList];
+            const fromAddress = this.currentAccount['address'][chain];
+            const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
+            assetList.forEach((item, index) => {
+              balanceData.forEach(data => {
+                if (data.contractAddress === item.contractAddress) {
+                  assetList[index].userBalance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
+                  assetList[index].showBalanceLoading = false;
+                }
+              });
+            });
+            this.lpAssetsList = [...assetList];
+          } else {
+            // TODO
+            this.lpAssetsList = [...assetList];
+          }
         }
       } catch (e) {
         console.log(e, 'error');

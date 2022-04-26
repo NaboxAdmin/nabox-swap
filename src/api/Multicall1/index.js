@@ -173,6 +173,7 @@ export class MultiCall {
   }
 
   encodeAbi(groupsOfShapes) {
+    console.log(groupsOfShapes, 'groupsOfShapes');
     return groupsOfShapes.map((group) =>
       group.map((shape) => {
         const originAddresses = Object.values(shape).map(

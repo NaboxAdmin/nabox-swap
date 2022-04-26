@@ -67,7 +67,7 @@
 import { HeaderBar } from '../components';
 import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import nerve from 'nerve-sdk-js';
-import { supportChainList, getCurrentAccount } from '@/api/util';
+import { supportChainList, getCurrentAccount, TRON } from '@/api/util';
 import MetaMask from '@/assets/image/metamask.svg';
 import Nabox from '@/assets/image/nabox_wallet.svg';
 import TrustWallet from '@/assets/image/trustwallet.svg';
@@ -78,6 +78,7 @@ import OKEx from '@/assets/image/metax.jpg';
 import safepal from '@/assets/image/safepal.svg';
 import coin98 from '@/assets/image/coin98.svg';
 import bitkeep from '@/assets/image/bitkeep.jpg';
+import tronLink from '@/api/tronLink';
 
 const ethers = require('ethers');
 
@@ -162,13 +163,12 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return '';
-        console.log(val, 'watch val');
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
         const config = JSON.parse(sessionStorage.getItem('config'));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
-        console.log(chainLength, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
+        // console.log(chainLength, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
         // this.showSign = !chainLength || chainLength !== addressListLength;
         this.$store.commit('changeFromAddress', val);
         this.$store.commit('changeShowConnect', false);
@@ -236,12 +236,23 @@ export default {
   },
   mounted() {
     window.scrollTo(0, 0);
+    window.addEventListener('message', this.messageListener);
   },
   beforeDestroy() {
+    window.removeEventListener('message', this.messageListener);
     this.timer && clearInterval(this.timer);
     this.timer = null;
   },
   methods: {
+    messageListener(e) {
+      console.log(e.data.message, 'e.data.message')
+      if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb')) {
+        this.setTRONAddress(this.address, e.data.message.data.address);
+        if (this.fromNetwork === TRON) {
+          window.location.reload();
+        }
+      }
+    },
     toUrl(type) {
       switch (type) {
         case 'twitter':
@@ -268,19 +279,6 @@ export default {
           pubKey: getCurrentAccount(this.address).pub
         }
       });
-    },
-    async getPubByAddress(address) {
-      const data = {
-        address
-      };
-      const res = await this.$request({
-        url: '/wallet/query',
-        data
-      });
-      // if (res.data) {
-      //   await this.derivedAddress(res.data);
-      // }
-      return res.data;
     },
     // 获取订单列表
     async getOrderList(val) {
@@ -378,7 +376,7 @@ export default {
     async connectProvider(provider) {
       const tempProvider = this.isMobile ? 'ethereum' : provider;
       if (!window[tempProvider]) {
-        this.$message({ message: 'No provider was found', type: 'warning' });
+        this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
         return;
       }
       localStorage.setItem('walletType', tempProvider);
@@ -402,7 +400,7 @@ export default {
     async derivedAddress() {
       this.loading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
-      const networkList = Object.values(config).filter(item => item.chainType !== 1).map(item => item.chain);
+      const networkList = Object.values(config).filter(item => item.chainType === 2).map(item => item.chain);
       try {
         if (!this.address) {
           await this.requestAccounts();
@@ -489,6 +487,11 @@ export default {
             NULSPrefix
           );
         }
+        if (this.fromNetwork === TRON && window.tronWeb && window.tronWeb.defaultAddress.base58) {
+          account.address.TRON = window.tronWeb.defaultAddress.base58;
+        } else if (Object.keys(config).indexOf(TRON) !== -1) {
+          account.address.TRON = '';
+        }
         const accountList = getAccountList();
         const existIndex = accountList.findIndex(v => v.pub === account.pub);
         // 原来存在就替换，找不到就push
@@ -528,7 +531,7 @@ export default {
         console.log(e, 'error');
         this.address = '';
         this.$message({
-          message: this.$t('tips.tips22'),
+          message: e || this.$t('tips.tips22'),
           type: 'warning',
           offset: 30
         });

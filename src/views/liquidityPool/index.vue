@@ -112,7 +112,7 @@ export default {
               return depositAssetSymbol.indexOf(searchKey) !== -1;
             }) || [];
           } else {
-            this.poolList = this.originalPoolList  || [];
+            this.poolList = this.originalPoolList || [];
           }
         }
       }
@@ -201,6 +201,7 @@ export default {
           }
           this.poolLoading = false;
           let assetBalanceList = [];
+          // TODO
           if (this.fromNetwork === 'NERVE') {
             const assetList = tempFormatList.map(item => ({ chainId: item.tokenLp.chainId, assetId: item.tokenLp.assetId, contractAddress: item.tokenLp.contractAddress }));
             assetBalanceList = await this.getNerveBatchData(assetList);
@@ -227,7 +228,6 @@ export default {
               console.log(e, 'error');
             }
           }
-          console.log(assetBalanceList, 'assetBalanceList')
           const tempPoolList = await Promise.all(tempFormatList.map(async(item, index) => ({
             ...item,
             myShare: await this.formatUserShare(index, assetBalanceList, item)
@@ -256,30 +256,10 @@ export default {
         console.log(e, 'error');
       }
     },
-    async getUserShare(asset) {
-      if (this.fromNetwork === 'NERVE') {
-        return await this.getNerveAssetBalance(asset);
-      } else {
-        const transfer = new ETransfer({
-          chain: this.fromNetwork
-        });
-        if (asset.heterogeneousList) {
-          const currentAsset = asset.heterogeneousList && asset.heterogeneousList.find(item => item.chainName === this.fromNetwork);
-          if (currentAsset.contractAddress) {
-            const tempAvailable = await transfer.getERC20Balance(currentAsset.contractAddress, asset.decimals, this.fromAddress);
-            return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
-          } else {
-            const tempAvailable = await transfer.getEthBalance(this.fromAddress);
-            return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
-          }
-        } else {
-          return 0;
-        }
-      }
-    },
     async formatUserShare(i, balanceList, asset) {
+      // TODO
       if (balanceList.length === 0) return 0;
-      if (this.fromNetwork === 'NERVE') {
+      if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
         return this.numberFormat(tofix(divisionDecimals(balanceList[i] && balanceList[i].balance || 0, asset.tokenLp.decimals), 2, -1), 2);
       } else {
         if (asset.tokenLp.heterogeneousList) {

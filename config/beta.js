@@ -1,13 +1,14 @@
 // 测试网
 export const IS_DEV = process.env.NODE_ENV === 'development';
 export const currentNet = 'testnet';
-// chainId、assetId、prefix
 export const MAIN_INFO = { chainId: 5, assetId: 1, prefix: 'TNVT', symbol: 'NVT', decimal: 8, rpc: 'http://beta.public.nerve.network', batchRPC: 'http://beta.api.nerve.network/jsonrpc' };
 export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS', symbol: 'NULS', decimal: 8, rpc: 'http://beta.public1.nuls.io', batchRPC: ' http://beta.api.nuls.io/jsonrpc' };
 // ETH 网络信息 测试网:ropsten, 主网:homestead
 export const ETHNET = 'ropsten';
-// export const BRIDGE_API_URL = "/nabox-api";
+
 export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'http://122.9.162.107:19001/nabox-api';
+
+export const trxWithdrawFee = '40000000';
 
 export const localChainConfig = [
   {
@@ -1022,5 +1023,6 @@ export const localChainConfig = [
         'apiUrl': 'http://beta.api.nerve.network/jsonrpc'
       }
     ]
-  }
+  },
+  { 'id': 43, 'chain': 'TRON', 'chainName': 'TRON', 'prefix': '0x', 'nativeId': 100000001, 'chainId': 108, 'chainType': 3, 'intro': null, 'icon': 'https://files.nabox.io/icon/tron.png', 'apiUrl': '', 'scanUrl': 'https://shasta.tronscan.org/', 'psUrl': '', 'sort': 9, 'status': 1, 'bridge': 1, 'swap': 0, 'configs': { 'multiCallAddress': 'TJfF8mmmy3Br1VvBygq16TSnnsiNL6LEBD', 'crossAddress': 'TYVxuksybZdbyQwoR25V2YUgXYAHikcLro', 'nft': '' }, 'mainAsset': { 'id': 19144, 'chain': 'TRON', 'registerChain': '', 'chainId': 108, 'assetId': 1, 'contractAddress': '', 'decimals': 6, 'assetName': 'TRX', 'symbol': 'TRX', 'symbolBase': 'TRX', 'configType': 1, 'source': 9, 'icon': 'https://files.nabox.io/icon/tron.png', 'nulsCross': true, 'heterogeneousList': [{ 'heterogeneousChainId': 104, 'heterogeneousChainMultySignAddress': '0xb490f2a3ec0b90e5faa1636be046d82ab7cdac74', 'contractAddress': '0x2785f6458c3bab956ccb1542f602c69d1188b28f', 'chainName': 'OKX', 'token': true }, { 'heterogeneousChainId': 108, 'heterogeneousChainMultySignAddress': 'TYVxuksybZdbyQwoR25V2YUgXYAHikcLro', 'contractAddress': '', 'chainName': 'TRX', 'token': false }], 'nerveChainId': 5, 'nerveAssetId': 55, 'nerveFlag': false, 'usdPrice': 0.0708, 'usdPlatform': null, 'usdUrl': null }, 'assets': [{ 'id': 19144, 'chain': 'TRON', 'registerChain': '', 'chainId': 108, 'assetId': 1, 'contractAddress': '', 'decimals': 6, 'assetName': 'TRX', 'symbol': 'TRX', 'symbolBase': 'TRX', 'configType': 1, 'source': 9, 'icon': 'https://files.nabox.io/icon/tron.png', 'nulsCross': true, 'heterogeneousList': [{ 'heterogeneousChainId': 104, 'heterogeneousChainMultySignAddress': '0xb490f2a3ec0b90e5faa1636be046d82ab7cdac74', 'contractAddress': '0x2785f6458c3bab956ccb1542f602c69d1188b28f', 'chainName': 'OKX', 'token': true }, { 'heterogeneousChainId': 108, 'heterogeneousChainMultySignAddress': 'TYVxuksybZdbyQwoR25V2YUgXYAHikcLro', 'contractAddress': '', 'chainName': 'TRX', 'token': false }], 'nerveChainId': 5, 'nerveAssetId': 55, 'nerveFlag': false, 'usdPrice': 0.0708, 'usdPlatform': null, 'usdUrl': null }], 'urlList': [{ 'id': 23, 'chain': 'TRON', 'nativeId': 100000001, 'name': 'tron-1', 'apiUrl': '' }] }
 ];

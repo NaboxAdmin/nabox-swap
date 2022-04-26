@@ -11,6 +11,7 @@ import { MultiCall } from './Multicall1';
 import Web3 from 'web3';
 import { airDropABI } from '@/views/airdrop/airDropABI';
 import { farmABI } from '@/views/L1Farm/FarmABI';
+import { trxWithdrawFee } from '@/config';
 
 // 查询余额
 const erc20BalanceAbiFragment = [
@@ -77,6 +78,15 @@ const erc20BalanceAbiFragment = [
     'type': 'function'
   }
 ];
+const trc20ABI = [
+  {
+    'outputs': [{ 'name': 'balance', 'type': 'uint256' }],
+    'inputs': [{ 'name': 'addr', 'type': 'address' }],
+    'name': 'getEthBalance',
+    'stateMutability': 'View',
+    'type': 'Function'
+  }
+];
 const Signature = require('elliptic/lib/elliptic/ec/signature');
 const txsignatures = require('nerve-sdk-js/lib/model/txsignatures');
 const nSdk = { NERVE: nerve, NULS: nuls };
@@ -88,20 +98,32 @@ const nSdk = { NERVE: nerve, NULS: nuls };
  * @param multiCallContract 当前网络下面的批量查询合约地址
  * @returns tokensRes {Promise<*>} 当前返回的批量查询数据
  */
-export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = '0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B', RPCUrl) {
+export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f8447191c38f5134d8c58f874335028d', multiCallContract = '0xFe73616F621d1C42b12CA14d2aB68Ed689d1D38B', RPCUrl, isTRON = false) {
   // console.log(addresses, multiCallContract, '123');
   // multiCallContract = '0xb966f6Df75Ff460887d66DEb0b246886374C2Fa5';
   const web3 = new Web3(RPCUrl || window.ethereum);
   const multicall = new MultiCall(web3, multiCallContract);
-  const tokens = addresses.map(address => {
-    const token = new web3.eth.Contract(erc20BalanceAbiFragment, address);
-    return {
-      balance: address === multiCallContract ? token.methods.getEthBalance(userAddress) : token.methods.balanceOf(userAddress),
-      symbol: address === multiCallContract ? '' : token.methods.symbol(),
-      contractAddress: address === multiCallContract ? '' : address,
-      decimals: address === multiCallContract ? '' : token.methods.decimals()
-    };
-  });
+  let tokens;
+  if (!isTRON) {
+    tokens = addresses.map(address => {
+      const token = new web3.eth.Contract(erc20BalanceAbiFragment, address);
+      return {
+        balance: address === multiCallContract ? token.methods.getEthBalance(userAddress) : token.methods.balanceOf(userAddress),
+        symbol: address === multiCallContract ? '' : token.methods.symbol(),
+        contractAddress: address === multiCallContract ? '' : address,
+        decimals: address === multiCallContract ? '' : token.methods.decimals()
+      };
+    });
+  } else {
+    tokens = addresses.map(address => {
+      const tronWeb = window.tronLink.tronWeb;
+      const instance = tronWeb.contract(trc20ABI, address);
+      return {
+        balance: instance.getEthBalance(userAddress)
+      };
+    });
+    console.log(tokens, 'tokens');
+  }
   const [tokensRes] = await multicall.all([tokens]);
   return tokensRes;
 }
@@ -244,7 +266,7 @@ export class NTransfer {
   }
 
   async inputsOrOutputs(data) {
-    console.log(this.type, data, 'this.typethis.typethis.type')
+    console.log(this.type, data, 'this.typethis.typethis.type');
     if (!this.type) {
       throw '获取交易类型失败';
     }
@@ -284,7 +306,7 @@ export class NTransfer {
     if (!nonce) throw localStorage.getItem('locale') === 'en' ? 'Failed to get the nonce value' : '获取nonce值失败';
     const config = JSON.parse(sessionStorage.getItem('config'));
     const mainAsset = config[this.chain];
-    console.log(mainAsset, 'mainAsset')
+    console.log(mainAsset, 'mainAsset');
     if (mainAsset.chainId === transferInfo.assetsChainId && mainAsset.assetId === transferInfo.assetsId) {
       // 转账资产为本链主资产, 将手续费和转账金额合成一个input
       const newAmount = Plus(transferInfo.amount, transferInfo.fee).toFixed();
@@ -345,7 +367,7 @@ export class NTransfer {
   async crossChainTransaction(transferInfo) {
     const { inputs, outputs } = await this.transferTransaction(transferInfo);
     const CROSS_INFO = JSON.parse(sessionStorage.getItem('config'))['NULS'];
-    console.log(this.chain, '123')
+    console.log(this.chain, '123');
     if (this.chain === 'NERVE') {
       // nerve资产跨链到nuls,要收取nuls手续费
       let isNULS = false;
@@ -387,7 +409,7 @@ export class NTransfer {
 
   // 调用合约交易
   async callContractTransaction(transferInfo) {
-    console.log(transferInfo, 'transferInfo')
+    console.log(transferInfo, 'transferInfo');
     const { toContractValue, nulsValueToOthers, assetsChainId, amount, assetsId } = transferInfo;
     const nonce = await this.getNonce(transferInfo);
     const defaultFee = timesDecimals(0.001, 8);
@@ -549,7 +571,7 @@ export class NTransfer {
       assetId,
       contractAddress
     }];
-    console.log(address, 'address')
+    console.log(address, 'address');
     const currentAccount = getCurrentAccount(address);
     const params = [NULS_INFO.chainId, currentAccount['address']['NULS'], tempParams];
     const url = NULS_INFO.batchRPC;
@@ -937,8 +959,9 @@ export class ETransfer {
    * @param feeDecimals 手续费精度
    * @param isMainAsset 手续费是否是提现网络主资产
    * @param isNVT 手续费是否是NVT
+   * @param isTRX
    * */
-  async calWithdrawFee(mainAssetUSD, feeUSD, isToken, feeDecimals, isMainAsset, isNVT) {
+  async calWithdrawFee(mainAssetUSD, feeUSD, isToken, feeDecimals, isMainAsset, isNVT, isTRX = false) {
     const gasPrice = await this.getWithdrawGas();
     let gasLimit;
     if (isToken) {
@@ -964,6 +987,41 @@ export class ETransfer {
       result = ethers.utils.parseUnits(ceil.toString(), feeDecimals).toString();
     }
     return this.formatEthers(result, feeDecimals);
+  }
+
+  /**
+   * @desc 计算提现到tron的手续费
+   * @param mainAssetUSD 提现网络主资产USD
+   * @param feeUSD 手续费USD
+   * @param feeDecimals 手续费精度
+   * @param isMainAsset 手续费为trx
+   * @param isNVT 是否是NVT
+   * */
+  calWithdrawalFeeForTRON(mainAssetUSD = '', feeUSD = '', feeDecimals, isMainAsset, isNVT) {
+    console.log(mainAssetUSD, feeUSD, feeDecimals, isMainAsset, isNVT, '123134235246');
+    if (isMainAsset) {
+      return this.formatEthers(trxWithdrawFee, feeDecimals);
+    } else {
+      const feeUSDBig = ethers.utils.parseUnits(feeUSD.toString(), 6);
+      const mainAssetUSDBig = ethers.utils.parseUnits(
+        mainAssetUSD.toString(),
+        6
+      );
+      let result = mainAssetUSDBig
+        .mul(trxWithdrawFee)
+        .mul(ethers.utils.parseUnits('1', feeDecimals))
+        .div(ethers.utils.parseUnits('1', 6))
+        .div(feeUSDBig);
+      if (isNVT) {
+        // 如果是nvt，向上取整
+        const numberStr = ethers.utils.formatUnits(result, feeDecimals);
+        const ceil = Math.ceil(+numberStr);
+        result = ethers.utils
+          .parseUnits(ceil.toString(), feeDecimals)
+          .toString();
+      }
+      return this.formatEthers(result, feeDecimals);
+    }
   }
 
   formatEthers(amount, decimals) {

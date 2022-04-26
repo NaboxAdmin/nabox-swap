@@ -468,21 +468,22 @@ export default {
           chooseFromAsset: fromAsset
         });
         const params = {
-          fromAddress: this.fromAddress,
+          fromAddress: this.currentAccount['address'][this.fromNetwork],
           decimals: fromAsset.decimals,
           contractAddress: fromAsset.contractAddress,
           orderId: ethers.utils.toUtf8Bytes(currentChannel.orderId),
           numbers: amountIn,
           multySignAddress,
           crossChainFee: currentChannel.crossChainFee,
-          nerveAddress: swapNerveAddress
+          nerveAddress: swapNerveAddress,
+          fromNetwork: this.fromNetwork
         };
         const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, 2);
         if (swapRes.code === 1000) {
           let res;
-          if (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') { // 异构链转到中间账户
+          if (this.chainType === 2) { // 异构链转到中间账户
             res = await nerveChannel.sendNerveBridgeTransaction(params);
-          } else {
+          } else if (this.chainType === 1) {
             // const { amountIn } = this.orderInfo.fromAsset;
             const crossOutPrams = {
               from: this.currentAccount['address'][this.fromNetwork],
@@ -505,6 +506,8 @@ export default {
               currentChannel
             };
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
+          } else if (this.chainType === 3) {
+            res = await nerveChannel.sendNerveBridgeTransaction(params);
           }
           if (res && res.hash) {
             this.$message({

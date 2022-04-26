@@ -151,6 +151,7 @@ import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
 import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
 import { MAIN_INFO } from '@/config';
+import {deepCopy} from "@/utils/util";
 
 // eslint-disable-next-line no-unused-vars
 const lang = localStorage.getItem('locale') || 'cn';
@@ -210,7 +211,8 @@ export default {
           symbol: chain.symbol,
           decimals: chain.decimals
         },
-        blockExplorerUrls: [chain.origin]
+        blockExplorerUrls: [chain.origin],
+        chainType: chain.chainType
       }));
     },
     hashLinkList() {
@@ -336,6 +338,7 @@ export default {
     },
     async chainClick(chain) {
       try {
+        console.log(chain);
         const walletType = localStorage.getItem('walletType') || 'ethereum';
         const tempChain = {
           ...chain
@@ -346,20 +349,37 @@ export default {
           this.$store.commit('changeNetwork', tempChain.chainName);
           this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
-          return;
-        }
-        delete tempChain['icon'];
-        this.showDropList = false;
-        if (tempChain.chainName !== 'Ethereum') {
-          window[walletType] && await window[walletType].request({
-            method: 'wallet_addEthereumChain',
-            params: [tempChain]
-          });
-        } else {
-          window[walletType] && await window[walletType].request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: tempChain.chainId }]
-          });
+        } else if (tempChain.chainType === 2) {
+          delete tempChain['icon'];
+          delete tempChain['chainType'];
+          if (tempChain.chainName !== 'Ethereum') {
+            window[walletType] && await window[walletType].request({
+              method: 'wallet_addEthereumChain',
+              params: [tempChain]
+            });
+          } else {
+            window[walletType] && await window[walletType].request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: tempChain.chainId }]
+            });
+          }
+        } else if (tempChain.chainType === 3) {
+          const TRONAddress = window.tronWeb.defaultAddress.base58;
+          if (!window.tronWeb) {
+            this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
+            return;
+          } else if (!TRONAddress) {
+            this.$message({ message: this.$t('tips.tips56'), type: 'warning' });
+            return;
+          }
+          const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
+          if (res.code === 200) {
+            this.setTRONAddress(this.address, TRONAddress);
+            this.currentChain = tempChain.chainName;
+            this.$store.commit('changeFromAddress', TRONAddress);
+            this.$store.commit('changeNetwork', tempChain.chainName);
+            window.location.reload();
+          }
         }
       } catch (e) {
         this.$message({
@@ -641,8 +661,13 @@ export default {
           tempCurrentAvailable = await this.getNulsAssetBalance(tempAsset);
           tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
           this.currentChainAvailable = this.numberFormat(tofix(divisionDecimals(tempCurrentAvailable, config && config['NULS'].decimals || 18), 6, -1), 6, false);
-        } else {
+        } else if (this.chainType === 2) {
           tempCurrentAvailable = await this.getHeterogeneousAssetBalance(tempAsset);
+          tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
+          this.currentChainAvailable = this.numberFormat(tofix(tempCurrentAvailable, 6, -1), 6, false);
+        } else if (this.chainType === 3) {
+          console.log('TRON');
+          tempCurrentAvailable = await this.getTronAssetBalance(tempAsset);
           tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
           this.currentChainAvailable = this.numberFormat(tofix(tempCurrentAvailable, 6, -1), 6, false);
         }
