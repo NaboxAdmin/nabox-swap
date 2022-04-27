@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { divisionDecimals, isBeta, tofix } from '@/api/util';
+import { divisionDecimals, isBeta, tofix, TRON } from '@/api/util';
 import { getBatchERC20Balance } from '@/api/api';
 import { swapAssetList } from '@/views/Swap/util/swapAssetList';
 
@@ -90,7 +90,7 @@ export default {
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'],
+      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -119,7 +119,7 @@ export default {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
               this.getSwapAssetList(this.picList[this.currentIndex]);
             }, 0);
@@ -267,24 +267,20 @@ export default {
           const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
           this.showCoinList = [...tempList];
           this.allList = [...tempList];
-          // console.log(JSON.stringify(this.allList));
           this.showLoading = false;
-          if (tempNetwork === 'NULS') {
+          if (tempNetwork === 'NULS' || tempNetwork === 'NERVE') {
             const tempData = await this.getNulsNerveBatchData(this.allList, tempNetwork);
             for (let i = 0; i < this.allList.length; i++) {
               const asset = this.allList[i];
               this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
               this.allList[i].showBalanceLoading = false;
             }
-            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
-          } else if (tempNetwork === 'NERVE') {
-            const tempData = await this.getNerveBatchData(this.allList);
+          } else if (tempNetwork === TRON) {
+            // TODO: 需要修改为批量查询（暂时使用循环查询）
             for (let i = 0; i < this.allList.length; i++) {
-              const asset = this.allList[i];
-              this.allList[i].balance = divisionDecimals(tempData[i].balance, asset.decimals);
-              this.allList[i].showBalanceLoading = false;
+              this.allList[i]['balance'] = await this.getTronAssetBalance(this.allList[i]);
+              this.allList[i]['showBalanceLoading'] = false;
             }
-            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
           } else {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
@@ -305,16 +301,16 @@ export default {
                 }
               });
             });
-            if (this.searchVal) {
-              this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])].filter(v => {
-                const search = this.searchVal.toUpperCase();
-                const symbol = v.symbol.toUpperCase();
-                const contractAddress = v.contractAddress.toUpperCase();
-                return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1;
-              });
-            } else {
-              this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
-            }
+          }
+          if (this.searchVal) {
+            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])].filter(v => {
+              const search = this.searchVal.toUpperCase();
+              const symbol = v.symbol.toUpperCase();
+              const contractAddress = v.contractAddress.toUpperCase();
+              return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1;
+            });
+          } else {
+            this.showCoinList = [...(this.allList.sort((a, b) => b.balance - a.balance) || [])];
           }
         } else {
           this.showCoinList = [];

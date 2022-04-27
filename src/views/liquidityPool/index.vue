@@ -201,10 +201,10 @@ export default {
           }
           this.poolLoading = false;
           let assetBalanceList = [];
-          if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
+          if (this.chainType === 1) {
             const assetList = tempFormatList.map(item => ({ chainId: item.tokenLp.chainId, assetId: item.tokenLp.assetId, contractAddress: item.tokenLp.contractAddress }));
             assetBalanceList = this.fromNetwork === 'NERVE' ? await this.getNerveBatchData(assetList) : await this.getNulsAssetBalance(assetList);
-          } else {
+          } else if (this.chainType === 2) {
             // fixme：预防节点调用超时抛错影响后面代码
             try {
               const config = JSON.parse(sessionStorage.getItem('config'));
@@ -226,7 +226,15 @@ export default {
             } catch (e) {
               console.log(e, 'error');
             }
+          } else if (this.chainType === 3) {
+            // assetBalanceList = await Promise.all(tempFormatList.map(async item => {
+            //   return {
+            //     ...item,
+            //     balance: await this.getTronAssetBalance(item)
+            //   };
+            // }));
           }
+          console.log(assetBalanceList, 'assetBalanceList assetBalanceList assetBalanceList');
           const tempPoolList = await Promise.all(tempFormatList.map(async(item, index) => ({
             ...item,
             myShare: await this.formatUserShare(index, assetBalanceList, item)

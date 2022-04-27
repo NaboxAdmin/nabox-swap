@@ -182,8 +182,16 @@
     background-image: url("../../../assets/image/Avalanche.png");
   }
 }
-
 .nav-cont_6 {
+  width: 52px;
+  height: 52px;
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/TRON.png");
+  &.active_image {
+    background-image: url("../../../assets/image/TRON_active.png");
+  }
+}
+.nav-cont_7 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -192,7 +200,7 @@
     background-image: url("../../../assets/image/Harmony_active.png");
   }
 }
-.nav-cont_7 {
+.nav-cont_8 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -201,7 +209,7 @@
     background-image: url("../../../assets/image/KCC_active.png");
   }
 }
-.nav-cont_8 {
+.nav-cont_9 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -211,7 +219,7 @@
   }
 }
 
-.nav-cont_9 {
+.nav-cont_10 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -220,7 +228,7 @@
     background-image: url("../../../assets/image/Arbitrum.png");
   }
 }
-.nav-cont_10 {
+.nav-cont_11 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -229,7 +237,7 @@
     background-image: url("../../../assets/image/Fantom.png");
   }
 }
-.nav-cont_11 {
+.nav-cont_12 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -238,7 +246,7 @@
     background-image: url("../../../assets/image/NULS_active.png");
   }
 }
-.nav-cont_12 {
+.nav-cont_13 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;

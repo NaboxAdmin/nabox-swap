@@ -341,13 +341,13 @@ export default {
             this.crossInAuth = false;
           }
           this.availableLoading = false;
-          if (this.toNerve && this.chainType === 1) {
+          if (!this.toNerve) {
             const tempParams = this.transferAssets.map(item => ({
               chainId: item.chainId,
               assetId: item.assetId,
               contractAddress: item.contractAddress || ''
             }));
-            const res = await this.getNulsNerveBatchData(tempParams, this.fromNetwork);
+            const res = await this.getNulsNerveBatchData(tempParams, 'NERVE');
             if (res && res.length !== 0) {
               this.transferAssets.forEach((asset, index) => {
                 res.forEach(() => {
@@ -392,29 +392,13 @@ export default {
               });
             }
           } else if (this.chainType === 3) {
-            const config = JSON.parse(sessionStorage.getItem('config'));
-            const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
-            const fromAddress = this.currentAccount['address'][this.fromNetwork];
-            const RPCUrl = config[this.fromNetwork]['apiUrl'];
-            const addresses = this.transferAssets.map(asset => {
-              if (asset.contractAddress) {
-                return asset.contractAddress;
-              }
-              return batchQueryContract;
-            });
-            const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl, true);
-            console.log(balanceData, 'balanceData');
-            // this.transferAssets.forEach((item, index) => {
-            //   balanceData.forEach(data => {
-            //     if (data.contractAddress === item.contractAddress && item.showBalanceLoading) {
-            //       this.transferAssets[index].balance = data.balance && tofix(divisionDecimals(data.balance, item.decimals), 6, -1) || 0;
-            //       this.transferAssets[index].showBalanceLoading = false;
-            //     }
-            //   });
-            // });
+            // TODO: 需要修改为批量查询（暂时使用循环查询）
+            for (let i = 0; i < this.transferAssets.length; i++) {
+              this.transferAssets[i]['balance'] = await this.getTronAssetBalance(this.transferAssets[i]);
+              this.transferAssets[i]['showBalanceLoading'] = false;
+            }
           }
-          this.transferAssets = (tempList.length > 0 && tempList.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
-          // await this.getTransferFee();
+          this.transferAssets = (this.transferAssets.length > 0 && this.transferAssets.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
         } else {
           this.transferAssets = [];
         }

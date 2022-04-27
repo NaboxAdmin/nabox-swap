@@ -1,4 +1,12 @@
-import { superLong, divisionDecimals, tofix, numberFormat, getCurrentAccount, getCurrentAccountIndex } from '@/api/util';
+import {
+  superLong,
+  divisionDecimals,
+  tofix,
+  numberFormat,
+  getCurrentAccount,
+  getCurrentAccountIndex,
+  TRON
+} from '@/api/util';
 import moment from 'moment';
 import { Division, Minus } from '@/api/util';
 import { ETransfer } from '@/api/api';
@@ -165,9 +173,9 @@ export default {
       const { contractAddress, decimals } = assetInfo;
       const tron = new TronLink();
       if (contractAddress) {
-        return await tron.getTrc20Balance(this.currentAccount['address'][this.fromNetwork], contractAddress, decimals);
+        return await tron.getTrc20Balance(this.currentAccount['address'][TRON], contractAddress, decimals);
       } else {
-        return await tron.getTrxBalance(this.currentAccount['address'][this.fromNetwork]);
+        return await tron.getTrxBalance(this.currentAccount['address'][TRON]);
       }
     },
     // 获取NULS上面的余额信息
