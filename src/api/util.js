@@ -756,8 +756,36 @@ export function setChainConfig(chainConfig) {
   chains.forEach(chain => {
     tradeHashMap[chain] = [];
   });
-  !localStorage.getItem('tradeHashMap') && localStorage.setItem('tradeHashMap', JSON.stringify(tradeHashMap));
-  !localStorage.getItem('localSwapAssetMap') && localStorage.setItem('localSwapAssetMap', JSON.stringify(tradeHashMap));
+  if (!localStorage.getItem('tradeHashMap')) { // 兼容处理防止改名
+    localStorage.setItem('tradeHashMap', JSON.stringify(tradeHashMap));
+  } else {
+    const tradeHashMap = JSON.parse(localStorage.getItem('tradeHashMap'));
+    const hashKeys = Object.keys(tradeHashMap);
+    const diffKeys = hashKeys.filter(key => {
+      return chains.indexOf(key) === -1;
+    });
+    if (diffKeys.length !== 0) {
+      for (const item of diffKeys) {
+        delete tradeHashMap[item];
+      }
+      localStorage.setItem('tradeHashMap', JSON.stringify(tradeHashMap));
+    }
+  }
+  if (!localStorage.getItem('localSwapAssetMap')) {
+    localStorage.setItem('localSwapAssetMap', JSON.stringify(tradeHashMap));
+  } else {
+    const localSwapAssetMap = JSON.parse(localStorage.getItem('localSwapAssetMap'));
+    const hashKeys = Object.keys(localSwapAssetMap);
+    const diffKeys = hashKeys.filter(key => {
+      return chains.indexOf(key) === -1;
+    });
+    if (diffKeys.length !== 0) {
+      for (const item of diffKeys) {
+        delete localSwapAssetMap[item];
+      }
+      localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
+    }
+  }
   !localStorage.getItem('l2HashList') && localStorage.setItem('l2HashList', JSON.stringify([]));
   sessionStorage.setItem('config', JSON.stringify(config));
 }

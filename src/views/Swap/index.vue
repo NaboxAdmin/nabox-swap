@@ -1066,7 +1066,7 @@ export default {
       this.showComputedLoading = false;
     },
     computedSwapRate(isCross, amountIn, amountOut) {
-      return `1${this.chooseFromAsset.symbol}≈${this.numberFormat(tofix((Division(amountOut, amountIn) < 0 && '0' || Division(amountOut, amountIn)), 4, -1), 4)}${this.chooseToAsset.symbol}`;
+      return `1${this.chooseFromAsset.symbol}≈${this.numberFormat(tofix((Division(amountOut, amountIn) < 0.000001 && '0' || Division(amountOut, amountIn)), 4, -1), 4)}${this.chooseToAsset.symbol}`;
     },
     async amountOutInput() {
       this.inputType = 'amountOut';

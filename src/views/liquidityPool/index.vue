@@ -201,10 +201,9 @@ export default {
           }
           this.poolLoading = false;
           let assetBalanceList = [];
-          // TODO
-          if (this.fromNetwork === 'NERVE') {
+          if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
             const assetList = tempFormatList.map(item => ({ chainId: item.tokenLp.chainId, assetId: item.tokenLp.assetId, contractAddress: item.tokenLp.contractAddress }));
-            assetBalanceList = await this.getNerveBatchData(assetList);
+            assetBalanceList = this.fromNetwork === 'NERVE' ? await this.getNerveBatchData(assetList) : await this.getNulsAssetBalance(assetList);
           } else {
             // fixme：预防节点调用超时抛错影响后面代码
             try {
