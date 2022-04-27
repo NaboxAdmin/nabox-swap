@@ -201,9 +201,9 @@ export default {
           }
           this.poolLoading = false;
           let assetBalanceList = [];
-          if (this.fromNetwork === 'NERVE') {
+          if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
             const assetList = tempFormatList.map(item => ({ chainId: item.tokenLp.chainId, assetId: item.tokenLp.assetId, contractAddress: item.tokenLp.contractAddress }));
-            assetBalanceList = await this.getNerveBatchData(assetList);
+            assetBalanceList = this.fromNetwork === 'NERVE' ? await this.getNerveBatchData(assetList) : await this.getNulsAssetBalance(assetList);
           } else {
             // fixme：预防节点调用超时抛错影响后面代码
             try {
@@ -257,7 +257,7 @@ export default {
       }
     },
     async getUserShare(asset) {
-      if (this.fromNetwork === 'NERVE') {
+      if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
         return await this.getNerveAssetBalance(asset);
       } else {
         const transfer = new ETransfer({
@@ -279,7 +279,7 @@ export default {
     },
     async formatUserShare(i, balanceList, asset) {
       if (balanceList.length === 0) return 0;
-      if (this.fromNetwork === 'NERVE') {
+      if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
         return this.numberFormat(tofix(divisionDecimals(balanceList[i] && balanceList[i].balance || 0, asset.tokenLp.decimals), 2, -1), 2);
       } else {
         if (asset.tokenLp.heterogeneousList) {

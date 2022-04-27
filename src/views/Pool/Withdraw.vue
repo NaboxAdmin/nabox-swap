@@ -218,10 +218,11 @@ export default {
           if (val !== 'NERVE') {
             this.currentWithdrawAssetInfo = this.originLpAssetList.find(item => item.chain === val) || this.originLpAssetList[0];
             // this.lpAssetsList = this.originLpAssetList.filter(item => item.chain === val);
-            this.getChainAssetBalance(val, this.originLpAssetList.filter(item => item.chain === val));
+            // this.getChainAssetBalance(val, this.originLpAssetList.filter(item => item.chain === val));
           } else {
             this.currentWithdrawAssetInfo = this.originLpAssetList.find(item => item.chain === val) || this.originLpAssetList[0];
             this.lpAssetsList = this.originLpAssetList;
+            this.getChainAssetBalance(val, this.originLpAssetList);
           }
           this.countInputDebounce();
         }
@@ -583,7 +584,7 @@ export default {
       await this.getAddedLiquidity();
       const config = JSON.parse(sessionStorage.getItem('config'));
       const url = config[this.fromNetwork].apiUrl;
-      if (this.liquidityInfo.lpCoinList && (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS')) {
+      if (this.liquidityInfo.lpCoinList && (this.fromNetwork === 'NERVE')) {
         const tempParams = this.liquidityInfo.lpCoinList.map(item => ({
           chainId: item.nerveChainId,
           assetId: item.nerveAssetId,
@@ -607,8 +608,9 @@ export default {
           ...item,
           registerChain: item.chain
         }));
-        await this.getChainAssetBalance(this.currentType || this.fromNetwork, tempLpAssetsList);
-        this.originLpAssetList = this.lpAssetsList;
+        console.log(tempLpAssetsList, 'tempLpAssetsList');
+        this.originLpAssetList = tempLpAssetsList;
+        // await this.getChainAssetBalance(this.currentType || this.fromNetwork, tempLpAssetsList);
       }
       // } else {
       //   this.availableLoading = false;
@@ -837,17 +839,18 @@ export default {
     // 获取当前选择撤出的资产余额
     async getChainAssetBalance(chain, assetList) {
       const config = JSON.parse(sessionStorage.getItem('config'));
-      const RPCUrl = config[chain].apiUrl;
       const batchQueryContract = config[chain]['config'].multiCallAddress || '';
       try {
-        if (chain === 'NERVE' && this.fromNetwork !== 'NERVE') {
+        if ((chain === 'NERVE' || chain === 'NULS') && this.fromNetwork !== 'NERVE') {
+          const RPCUrl = config['NERVE'].apiUrl;
           const tempParams = assetList.map(item => ({
             chainId: item.nerveChainId,
             assetId: item.nerveAssetId,
-            contractAddress: item.contractAddress
+            contractAddress: ''
           }));
-          const params = [config[chain]['chainId'], this.currentAccount['address'][chain], tempParams];
+          const params = [config['NERVE']['chainId'], this.currentAccount['address']['NERVE'], tempParams];
           const res = await this.$post(RPCUrl, 'getBalanceList', params);
+          console.log(res, params, 'ressssssss');
           if (res.result && res.result.length !== 0) {
             this.lpAssetsList = assetList.map((item, index) => ({
               ...item,
@@ -856,6 +859,8 @@ export default {
             this.originLpAssetList = this.lpAssetsList;
           }
         } else if (chain !== 'NERVE') {
+          const RPCUrl = config[chain].apiUrl;
+          assetList = assetList.filter(item => item.chain === this.fromNetwork);
           const addresses = assetList.map(asset => {
             if (asset.contractAddress) {
               return asset.contractAddress;
@@ -863,6 +868,7 @@ export default {
             return batchQueryContract;
           });
           const fromAddress = this.currentAccount['address'][chain];
+          console.log(addresses, fromAddress, RPCUrl, '1234');
           const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
           assetList.forEach((item, index) => {
             balanceData.forEach(data => {
