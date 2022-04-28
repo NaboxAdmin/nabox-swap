@@ -119,7 +119,7 @@ export default {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
+            this.picList = ['Ethereum', 'BNB Chain', 'Polygon', 'Heco', 'OKX', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
               this.getSwapAssetList(this.picList[this.currentIndex]);
             }, 0);
