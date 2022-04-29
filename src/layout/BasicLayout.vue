@@ -245,7 +245,7 @@ export default {
   },
   methods: {
     messageListener(e) {
-      console.log(e.data.message, 'e.data.message')
+      console.log(e.data.message, this.fromAddress, this.fromChainId, 'e.data.message')
       if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb')) {
         this.setTRONAddress(this.address, e.data.message.data.address);
         if (this.fromNetwork === TRON) {

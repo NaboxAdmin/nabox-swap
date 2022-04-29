@@ -12,6 +12,7 @@ import Web3 from 'web3';
 import { airDropABI } from '@/views/airdrop/airDropABI';
 import { farmABI } from '@/views/L1Farm/FarmABI';
 import { trxWithdrawFee } from '@/config';
+import TronLinkApi from '@/api/tronLink';
 
 // 查询余额
 const erc20BalanceAbiFragment = [
@@ -87,9 +88,90 @@ const trc20ABI = [
     'type': 'Function'
   }
 ];
+const TRC20ABI = [
+  {
+    'outputs': [{ 'name': 'info', 'type': 'uint256[]' }],
+    'constant': true,
+    'inputs': [{ 'name': '_user', 'type': 'address' }, { 'name': '_tokens', 'type': 'address[]' }],
+    'name': 'getBalance',
+    'stateMutability': 'View',
+    'type': 'Function' }
+];
 const Signature = require('elliptic/lib/elliptic/ec/signature');
 const txsignatures = require('nerve-sdk-js/lib/model/txsignatures');
 const nSdk = { NERVE: nerve, NULS: nuls };
+
+/**
+ * 编码
+ */
+const AbiCoder = ethers.utils.AbiCoder;
+const ADDRESS_PREFIX_REGEX = /^(41)/;
+const ADDRESS_PREFIX = '41';
+const tronWeb = new TronLinkApi();
+async function encodeParams(inputs) {
+  const typesValues = inputs;
+  let parameters = '';
+  if (typesValues.length == 0) { return parameters; }
+  const abiCoder = new AbiCoder();
+  const types = [];
+  const values = [];
+  for (let i = 0; i < typesValues.length; i++) {
+    // eslint-disable-next-line prefer-const
+    let { type, value } = typesValues[i];
+    if (type === 'address') {
+      value = value.replace(ADDRESS_PREFIX_REGEX, '0x');
+    } else if (type === 'address[]') {
+      value = value.map(v => tronWeb.toHex(v).replace(ADDRESS_PREFIX_REGEX, '0x'));
+    }
+    types.push(type);
+    values.push(value);
+  }
+  try {
+    parameters = abiCoder.encode(types, values).replace(/^(0x)/, '');
+  } catch (ex) {
+    console.log(ex);
+  }
+  return parameters;
+}
+
+async function decodeParams(types, output, ignoreMethodHash) {
+  if (!output || typeof output === 'boolean') {
+    ignoreMethodHash = output;
+    output = types;
+  }
+
+  if (ignoreMethodHash && output.replace(/^0x/, '').length % 64 === 8) { output = '0x' + output.replace(/^0x/, '').substring(8); }
+
+  const abiCoder = new AbiCoder();
+
+  if (output.replace(/^0x/, '').length % 64) { throw new Error('The encoded string is not valid. Its length must be a multiple of 64.'); }
+  return abiCoder.decode(types, output).reduce((obj, arg, index) => {
+    if (types[index] == 'address') { arg = ADDRESS_PREFIX + arg.substr(2).toLowerCase(); }
+    obj.push(arg);
+    return obj;
+  }, []);
+}
+
+/**
+ * 波场批量查询
+ */
+const data = '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+
+export async function getBatchTRC20Balance() {
+  const result = await decodeParams(['uint256[]'], data, true);
+  console.log(result);
+  const params = [
+    { type: 'address', value: '4121decdab7af693437e77936e081c2f4d4391094a' },
+    { type: 'address[]', value: ['TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8', 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'] }
+  ];
+  const encodePrams = await encodeParams(params);
+  const tron = tronWeb.getTronWeb();
+  const transaction = await tron.transactionBuilder.triggerConstantContract(
+    '411a5a32bd07c33cd8d9f4bd158f235613480c7eef', 'getBalance(address,address[])', {}, params, '4121decdab7af693437e77936e081c2f4d4391094a'
+  );
+  console.log(encodePrams, transaction, 'encodePrams');
+}
+getBatchTRC20Balance();
 
 /**
  * 批量查询资产余额

@@ -153,6 +153,12 @@ class TronLinkApi {
     return tronWeb.isAddress(address);
   }
 
+  toHex(address) {
+    if (!address) return true;
+    const tronWeb = this.getTronWeb();
+    return tronWeb.address.toHex(address);
+  }
+
   async getTrxBalance(address) {
     // console.log(address, '8777');
     const tronWeb = this.getTronWeb();
