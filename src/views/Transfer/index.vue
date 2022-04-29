@@ -782,19 +782,18 @@ export default {
       const tempToNetwork = this.toNerve && 'NERVE' || this.$store.state.network;
       const config = JSON.parse(sessionStorage.getItem('config'));
       const mainAssetInfo = config[tempFromNetwork];
-      console.log(tempFromNetwork, 'tempFromNetwork');
       const transferInfo = {
         fromChain: tempFromNetwork,
         toChain: tempToNetwork,
-        fromAddress: currentAccount.address[tempFromNetwork],
-        toAddress: currentAccount.address[tempToNetwork],
+        fromAddress: currentAccount.address[tempFromNetwork] || currentAccount.address[this.chainNameToId[tempFromNetwork]],
+        toAddress: currentAccount.address[tempToNetwork] || currentAccount.address[this.chainNameToId[tempToNetwork]],
         chainId: asset.chainId,
         assetId: asset.assetId,
         contractAddress: asset.contractAddress,
         amount: this.transferCount,
         symbol: asset.symbol,
         pub: currentAccount.pub,
-        signAddress: currentAccount.address.Ethereum,
+        signAddress: currentAccount.address[1] || currentAccount.address[3],
         isTransferMainAsset: mainAssetInfo.symbol === asset.symbol,
         asset
       };
@@ -826,7 +825,7 @@ export default {
           (v) => v.chainName === tempToNetwork
         )[0];
         const txData = {
-          heterogeneousAddress: currentAccount.address[tempToNetwork],
+          heterogeneousAddress: currentAccount.address[tempToNetwork] || currentAccount.address[this.chainNameToId[tempToNetwork]],
           heterogeneousChainId: heterogeneousChain_Out && heterogeneousChain_Out.heterogeneousChainId
         };
         crossOutInfo = {
