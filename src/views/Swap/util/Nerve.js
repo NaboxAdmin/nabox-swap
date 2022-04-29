@@ -374,6 +374,7 @@ export default class NerveChannel {
       signAddress,
       remarks: orderId || ''
     });
+    console.log(fromNetwork, '123fromNetwork')
     return await this.broadcastHex(txHex, fromNetwork);
   }
   // 将手续费转到nerve中转地址

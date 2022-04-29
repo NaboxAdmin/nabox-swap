@@ -379,7 +379,7 @@ export default {
           signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3]
         });
         console.log(txHex, '===txHex===');
-        const res = await nerveChannel.broadcastHex(txHex);
+        const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
         if (res && res.hash) {
           this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
@@ -419,7 +419,7 @@ export default {
           signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3]
         });
         console.log(txHex, '===txHex===');
-        const res = await nerveChannel.broadcastHex(txHex);
+        const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
         if (res && res.hash) {
           this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
