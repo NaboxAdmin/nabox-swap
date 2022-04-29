@@ -504,12 +504,29 @@ export default {
       if (txList.length !== 0) {
         const tempTxList = await Promise.all(txList.map(async tx => {
           if (tx.type === 'L1' && tx.status === 0) {
-            const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
-            if (res && res.result) {
-              return {
-                ...tx,
-                status: res.result.status === '0x1' ? 1 : -1
-              };
+            if (tx.chain === 'NULS') {
+              const res = await this.$post(l1Url, 'getTx', [config['NULS']['chainId'], tx.txHash]);
+              const contractRes = await this.$post(l1Url, 'getContractTxResult', [config['NULS']['chainId'], tx.txHash]);
+              if (res.result && res.result.status && !tx.isContractTransfer) {
+                return {
+                  ...tx,
+                  status: Number(res.result.status)
+                };
+              } else if (contractRes.result && contractRes.result && tx.isContractTransfer) {
+                return {
+                  ...tx,
+                  status: contractRes.result && Number(res.result.status) || -1
+                };
+              }
+              return tx;
+            } else {
+              const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
+              if (res && res.result) {
+                return {
+                  ...tx,
+                  status: res.result.status === '0x1' ? 1 : -1
+                };
+              }
             }
           } else if (tx.type === 'L2' && tx.status === 0 && !tx.isPure) {
             const params = [MAIN_INFO.chainId, tx.txHash];

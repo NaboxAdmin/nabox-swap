@@ -162,13 +162,13 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return '';
-        console.log(val, 'watch val');
+        // console.log(val, 'watch val');
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
         const config = JSON.parse(sessionStorage.getItem('config'));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
-        console.log(chainLength, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
+        // console.log(chainLength, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
         // this.showSign = !chainLength || chainLength !== addressListLength;
         this.$store.commit('changeFromAddress', val);
         this.$store.commit('changeShowConnect', false);

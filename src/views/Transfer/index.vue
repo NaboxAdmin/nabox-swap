@@ -373,7 +373,6 @@ export default {
                   this.transferAssets[index].showBalanceLoading = false;
                 });
               });
-              console.log(this.transferAssets, 'transferAssetstransferAssetstransferAssets');
             }
           } else {
             const tempParams = this.transferAssets.map(item => ({
@@ -924,7 +923,6 @@ export default {
           type = 10; // 普通交易
           transferInfo = crossInfo;
         }
-        console.log(transferInfo, type, 'type');
         await this.constructTx(fromChain, type, transferInfo, txData || {}, this.$t('transfer.transfer5'), true);
       } else {
         await this.constructCrossInTx(crossInInfo, this.$t('transfer.transfer2')); // 异构链转入
@@ -961,7 +959,6 @@ export default {
           signAddress
         };
         this.txHex = await transfer.getTxHex(data);
-        console.log(this.txHex, '==this.txHex==');
         return this.txHex;
       };
       this.transactionInfo = {
@@ -1025,7 +1022,11 @@ export default {
       const chainId = config[tempNetwork].chainId;
       const res = await this.$post(url, 'broadcastTx', [chainId, this.txHex]);
       if (res.result && res.result.hash) {
-        this.formatArrayLength('NERVE', { type: 'L2', userAddress: this.fromAddress, chain: this.fromNetwork, isPure: this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        if (this.fromNetwork === 'NULS' && this.toNerve) {
+          this.formatArrayLength('NULS', { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, isPure: this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS', txHash: res.result.hash, isContractTransfer: this.currentCoin.contractAddress, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        } else {
+          this.formatArrayLength('NERVE', { type: 'L2', userAddress: this.fromAddress, chain: this.fromNetwork, isPure: this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        }
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',

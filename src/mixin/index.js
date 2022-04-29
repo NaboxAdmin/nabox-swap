@@ -245,9 +245,7 @@ export default {
       const tempTradeHashList = {
         ...tradeHashMap
       };
-      console.log(tempTradeHashList[chain]);
       tempTradeHashList[chain] = [...tempArr];
-      console.log(tempTradeHashList, 'tempTradeHashList');
       const tempL1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[chain] || [];
       const tempL2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
       const tempL1Length = tempL1HashList.length;
