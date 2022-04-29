@@ -389,12 +389,12 @@ export default {
       localStorage.setItem('walletType', tempProvider);
       await this.initMetamask();
     },
-    async syncAccount(pub, accounts) {
+    async syncAccount(pub, accounts, chainList) {
       const addressList = [];
-      Object.keys(accounts).map((v) => {
+      chainList.forEach(v => {
         addressList.push({
           chain: v,
-          address: accounts[v]
+          address: accounts[v] || accounts[this.chainNameToId[v]]
         });
       });
       const res = await this.$request({
@@ -408,6 +408,7 @@ export default {
       this.loading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
       const networkList = Object.values(config).filter(item => item.chainType === 2).map(item => item.nativeId);
+      const chainList = Object.values(config).filter(item => item.chainType === 2).map(item => item.chain);
       console.log(networkList, 'networkList');
       try {
         if (!this.address) {
@@ -480,6 +481,7 @@ export default {
         // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
         // 根据公钥获取NERVE和NULS的地址
         if (Object.keys(config).indexOf('NERVE') !== -1) {
+          chainList.push('NERVE');
           account.address.NERVE = nerve.getAddressByPub(
             chainId,
             assetId,
@@ -488,6 +490,7 @@ export default {
           );
         }
         if (Object.keys(config).indexOf('NULS') !== -1) {
+          chainList.push('NULS');
           account.address.NULS = nerve.getAddressByPub(
             NULSChainId,
             NULSAssetId,
@@ -511,7 +514,7 @@ export default {
           this.loading = false;
           return false;
         }
-        const syncRes = await this.syncAccount(pub, account.address);
+        const syncRes = await this.syncAccount(pub, account.address, chainList);
         if (syncRes) {
           localStorage.setItem('accountList', JSON.stringify(accountList));
           // 重新计算fromAddress

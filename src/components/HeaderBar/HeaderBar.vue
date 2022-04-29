@@ -614,8 +614,10 @@ export default {
       this.showPop = false;
     },
     async initAssetInfo() {
+      console.log(this.nativeId, 'initAssetInfo');
       try {
         const config = JSON.parse(sessionStorage.getItem('config'));
+        this.currentChain = !config[this.currentChain] && Object.values(config).find(item => item.nativeId === this.nativeId).chain || this.currentChain;
         const tempAsset = {
           chain: this.currentChain,
           address: this.address,
