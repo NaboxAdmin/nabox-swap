@@ -207,7 +207,7 @@ export default {
       this.needAuth = await transfer.getERC20Allowance(
         this.assetsItem.contractAddress,
         this.currentFarmHash,
-        this.currentAccount.address.Ethereum
+        this.currentAccount.address[1] || this.currentAccount['address'][3]
       );
       if (!this.needAuth) {
         this.authRefresh = false;
@@ -258,7 +258,7 @@ export default {
           outputs: outputs,
           txData: {},
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address.Ethereum
+          signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3]
         };
         const txHex = await transfer.getTxHex(data);
         if (txHex) {
@@ -374,7 +374,7 @@ export default {
           data: {
             chain: item.chain,
             farmHash: item.farmKey,
-            address: this.currentAccount['address'][item.chain]
+            address: this.currentAccount['address'][item.chain] || this.currentAccount['address'][this.chainNameToId[item.chain]]
           }
         });
         if (accountRes.data) {
@@ -447,7 +447,7 @@ export default {
           inputs,
           outputs,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address.Ethereum
+          signAddress: this.currentAccount.address[1] || this.currentAccount.address[3]
         };
         const txHex = await transfer.getTxHex(txData);
         if (txHex) {
@@ -489,7 +489,7 @@ export default {
           inputs,
           outputs,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address.Ethereum
+          signAddress: this.currentAccount.address[1] || this.currentAccount.address[3]
         };
         const txHex = await transfer.getTxHex(txData);
         if (txHex) {
@@ -565,7 +565,7 @@ export default {
         const res = await transfer.approveERC20(
           contractAddress,
           farmHash,
-          this.currentAccount.address.Ethereum
+          this.currentAccount.address[1] || this.currentAccount.address[3]
         );
         if (res.hash) {
           this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });

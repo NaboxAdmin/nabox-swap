@@ -209,7 +209,7 @@ export default {
             try {
               const config = JSON.parse(sessionStorage.getItem('config'));
               const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
-              const fromAddress = this.currentAccount['address'][this.fromNetwork];
+              const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId];
               const RPCUrl = config[this.fromNetwork]['apiUrl'];
               const addresses = tempFormatList.map(asset => {
                 if (asset.tokenLp.heterogeneousList) {
@@ -219,7 +219,7 @@ export default {
                   }
                   return '';
                 }
-                return this.currentAccount['address'][this.fromNetwork]; // 占位
+                return this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]; // 占位
               });
               console.log(addresses, 'addresses');
               assetBalanceList = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
@@ -227,7 +227,6 @@ export default {
               console.log(e, 'error');
             }
           }
-          console.log(assetBalanceList, 'assetBalanceList')
           const tempPoolList = await Promise.all(tempFormatList.map(async(item, index) => ({
             ...item,
             myShare: await this.formatUserShare(index, assetBalanceList, item)

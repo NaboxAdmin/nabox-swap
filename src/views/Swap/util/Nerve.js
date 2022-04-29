@@ -296,13 +296,14 @@ export default class NerveChannel {
       orderId,
       fromNetwork,
       NULSContractGas,
-      NULSContractTxData
+      NULSContractTxData,
+      nativeId
     } = params;
     const originCrossChainFee = currentChannel.originCrossChainFee || 0;
     let type = 2;
     let txData = {};
     let transferInfo = {
-      from: currentAccount && currentAccount['address'][fromNetwork] || '',
+      from: currentAccount && currentAccount['address'][fromNetwork] || currentAccount && currentAccount['address'][nativeId] || '',
       to: swapNerveAddress,
       amount: amountIn,
       fee: timesDecimals(fee, MAIN_INFO['decimal']),
@@ -344,7 +345,7 @@ export default class NerveChannel {
     if (fromNetwork === 'NERVE') {
       const data = {
         inputOutputs: inputsOutputs,
-        from: currentAccount && currentAccount['address'][fromNetwork] || '',
+        from: currentAccount && currentAccount['address']['NERVE'] || '',
         to: swapNerveAddress,
         originCrossChainFee,
         fromAsset,
@@ -356,7 +357,7 @@ export default class NerveChannel {
     if (fromNetwork === 'NULS' && !fromAsset.contractAddress) {
       const data = {
         inputOutputs: inputsOutputs,
-        from: currentAccount && currentAccount['address'][fromNetwork] || '',
+        from: currentAccount && currentAccount['address']['NULS'] || '',
         to: swapNulsAddress,
         originCrossChainFee,
         fromAsset,

@@ -32,7 +32,7 @@
               <span class="chain-icon mr-2">
                 <img v-lazy="item.icon" alt="" @error="pictureError">
               </span>
-              {{ item.chainName === 'OKExChain' && 'OEC' || item.chainName }}
+              {{ item.chainName }}
             </span>
           </div>
         </div>
@@ -98,8 +98,8 @@
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
             <span :class="{'active': orderType === 1}" class="cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
-            <span :class="{'active': orderType === 3}" class="ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork])">{{ $t('tips.tips40') }}</span>
-            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork])">{{ $t('navBar.navBar2') }}</span>
+            <span :class="{'active': orderType === 3}" class="ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('tips.tips40') }}</span>
+            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('navBar.navBar2') }}</span>
             <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
           </div>
           <div v-loading="orderLoading" class="customer-p pt-1">
@@ -290,9 +290,9 @@ export default {
   },
   created() {
     if (this.statusTimer) clearInterval(this.statusTimer);
-    this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
+    this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     this.statusTimer = setInterval(() => {
-      this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
+      this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     }, 5000);
   },
   mounted() {

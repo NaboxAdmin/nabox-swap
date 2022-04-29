@@ -818,7 +818,8 @@ export function setChainConfig(chainConfig) {
         assets: v.assets,
         config: v.configs,
         apiUrl: v.apiUrl,
-        chainType: v.chainType
+        chainType: v.chainType,
+        nativeId: v.nativeId
       };
     });
     // chainType: 2 以太系
@@ -837,7 +838,8 @@ export function setChainConfig(chainConfig) {
           symbol: item.mainAsset.symbol || '',
           sort: item.sort,
           ropsten: `0x${Number(item.nativeId).toString(16)}`,
-          homestead: `0x${Number(item.nativeId).toString(16)}`
+          homestead: `0x${Number(item.nativeId).toString(16)}`,
+          nativeId: item.nativeId
         };
       } else if (item.chainType === 2) {
         return {

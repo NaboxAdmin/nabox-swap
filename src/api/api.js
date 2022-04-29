@@ -549,7 +549,6 @@ export class NTransfer {
       assetId,
       contractAddress
     }];
-    console.log(address, 'address')
     const currentAccount = getCurrentAccount(address);
     const params = [NULS_INFO.chainId, currentAccount['address']['NULS'], tempParams];
     const url = NULS_INFO.batchRPC;

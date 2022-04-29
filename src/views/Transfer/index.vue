@@ -18,9 +18,9 @@
               <span class="icon-item">
                 <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
-              <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
+              <span class="size-30 ml-12">{{ fromNetwork }}</span>
             </div>
-            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork]) }}</div>
+            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId]) }}</div>
             <div class="drop_down">
               <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -45,9 +45,9 @@
               <span class="icon-item">
                 <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
-              <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
+              <span class="size-30 ml-12">{{ fromNetwork }}</span>
             </div>
-            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork]) }}</div>
+            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork] || currentAccount['address'][chainNameToId[fromNetwork]]) }}</div>
             <div class="drop_down">
               <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -342,7 +342,7 @@ export default {
           if (this.toNerve && this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE') {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
-            const fromAddress = this.currentAccount['address'][this.fromNetwork];
+            const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId];
             const RPCUrl = config[this.fromNetwork]['apiUrl'];
             const addresses = this.transferAssets.map(asset => {
               if (asset.contractAddress) {
@@ -741,7 +741,7 @@ export default {
       const NERVEAddress = currentAccount.address.NERVE;
       const price = 25;
       const res = await getContractCallData(
-        this.currentAccount['address'][this.fromNetwork],
+        this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
         NERVEAddress,
         price,
         this.currentCoin.contractAddress,

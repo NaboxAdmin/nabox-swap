@@ -1,14 +1,17 @@
-import { superLong, divisionDecimals, tofix, numberFormat } from '@/api/util';
+import { superLong, divisionDecimals, tofix, numberFormat, isBeta } from '@/api/util';
 import moment from 'moment';
 import { Division, Minus } from '@/api/util';
 import { ETransfer } from '@/api/api';
-import { MAIN_INFO, NULS_INFO } from '@/config';
+import { localChainConfig, MAIN_INFO, NULS_INFO } from '@/config';
 
 export default {
   data() {
     return {};
   },
   computed: {
+    nativeId() {
+      return this.$store.state.nativeId;
+    },
     currentAccount() {
       return this.$store.getters.currentAccount;
     },
@@ -32,6 +35,23 @@ export default {
     },
     isMobile() {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    },
+    chainNameToId() {
+      let chainConfig;
+      const network = isBeta ? 'beta' : 'main';
+      if (network === 'beta') {
+        const tempLocalData = localStorage.getItem('localBetaChainConfig') && JSON.parse(localStorage.getItem('localBetaChainConfig')) || localChainConfig;
+        chainConfig = tempLocalData.sort((a, b) => a.sort - b.sort);
+      } else {
+        const tempLocalData = localStorage.getItem('localChainConfig') && JSON.parse(localStorage.getItem('localChainConfig')) || localChainConfig;
+        chainConfig = tempLocalData.sort((a, b) => a.sort - b.sort);
+      }
+      const tempSwapChainConfig = chainConfig.filter(item => item.swap == 1 && item.chainType == 2);
+      const tempMap = {};
+      tempSwapChainConfig.forEach(item => {
+        tempMap[item.chain] = item.nativeId;
+      });
+      return tempMap;
     }
   },
   filters: {
@@ -197,7 +217,6 @@ export default {
       }
     },
     formatArrayLength(chain, data) {
-      console.log('123131314343');
       const tradeHashList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
       const l1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[chain] || [];
       const l2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];

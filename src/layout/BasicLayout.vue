@@ -144,8 +144,8 @@ export default {
     },
     fromAddress() {
       const currentAccount = getCurrentAccount(this.address);
-      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : '');
-      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : '';
+      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.nativeId] : '');
+      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.nativeId] : '';
     },
     currentAccount() {
       return this.$store.getters.currentAccount;
@@ -182,6 +182,10 @@ export default {
       tempData = window._naboxAccount && JSON.parse(window._naboxAccount);
     } else {
       tempData = window._naboxAccount;
+    }
+    if (!tempData && !localStorage.getItem('hackBoolean')) {
+      localStorage.removeItem('accountList');
+      localStorage.setItem('hackBoolean', 'true');
     }
     console.log(tempData, '==_naboxAccount==');
     const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
@@ -324,6 +328,7 @@ export default {
       } else {
         this.$store.commit('changeNetwork', sessionStorage.getItem('network'));
       }
+      this.$store.commit('changeNativeId', chain && chain.nativeId || 1);
       this.provider = new ethers.providers.Web3Provider(window[walletType]);
       // this.showConnect = false;
       this.$store.commit('changeShowConnect', false);
@@ -402,7 +407,8 @@ export default {
     async derivedAddress() {
       this.loading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
-      const networkList = Object.values(config).filter(item => item.chainType !== 1).map(item => item.chain);
+      const networkList = Object.values(config).filter(item => item.chainType === 2).map(item => item.nativeId);
+      console.log(networkList, 'networkList');
       try {
         if (!this.address) {
           await this.requestAccounts();

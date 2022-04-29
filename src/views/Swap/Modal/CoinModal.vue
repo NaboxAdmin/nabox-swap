@@ -2,7 +2,7 @@
   <div :class="{'show_modal': showModal}" class="mask-cont" @click="maskClick" @touchmove.prevent>
     <div :class="{'show_modal-cont': showModal}" class="modal-cont" @click.stop @touchmove.stop>
       <div class="header-cont size-36 font-500 mt-2">
-        {{ picList[currentIndex] === 'OKExChain' && 'OEC' || picList[currentIndex] }}
+        {{ picList[currentIndex] }}
         <div class="back-icon" @click="back">
           <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"/></svg>
         </div>
@@ -90,7 +90,7 @@ export default {
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'],
+      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -119,7 +119,7 @@ export default {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
               this.getSwapAssetList(this.picList[this.currentIndex]);
             }, 0);
@@ -288,7 +288,8 @@ export default {
           } else {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
-            const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]];
+            // TODO
+            const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]] || this.currentAccount['address'][this.chainNameToId[this.picList[this.currentIndex]]];
             const RPCUrl = config[this.picList[this.currentIndex]]['apiUrl'];
             const addresses = this.allList.map(asset => {
               if (asset.contractAddress) {

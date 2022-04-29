@@ -700,12 +700,12 @@ export default {
       const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
       const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
       const tokenOutIndex = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId).coinIndex || 0;
-      const fromAddress = this.currentAccount['address'][this.fromNetwork];
+      const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId];
       const toChain = this.chooseToAsset.chain;
       const tempParams = {
         address: fromAddress,
         fromAsset: chooseFromAsset,
-        toAddress: this.currentAccount['address'][toChain] || '',
+        toAddress: this.currentAccount['address'][toChain] || this.currentAccount['address'][this.chainNameToId[toChain]] || '',
         toAsset: chooseToAsset,
         fromNetwork,
         amountIn,
@@ -1283,8 +1283,8 @@ export default {
         swapType: 2,
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,
-        fromAddress: this.fromAddress,
-        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.currentAccount['address'][this.chooseToAsset.chain],
+        fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.chainNameToId[this.fromNetwork]],
+        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]],
         chainId: this.chooseFromAsset.chainId,
         assetId: this.chooseFromAsset.assetId,
         contractAddress: this.chooseFromAsset.contractAddress,
@@ -1394,7 +1394,7 @@ export default {
       console.log(swapFee, 'transferAmount');
       const price = 25;
       const res = await getContractCallData(
-        this.currentAccount['address'][this.fromNetwork],
+        this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
         this.swapNerveAddress,
         price,
         this.chooseFromAsset.contractAddress,
