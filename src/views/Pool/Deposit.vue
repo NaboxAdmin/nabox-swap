@@ -36,18 +36,18 @@
       <div class="account-info d-flex align-items-center size-28 text-90 cursor-pointer">
         <div @click.stop="showAccountList = !showAccountList">
           <span v-if="!currentType" class="text-primary">{{ $t('tips.tips54') }}</span>
-          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}</span>
+          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType] || currentAccount['address'][chainNameToId[currentType]])}${ $t('tips.tips47') }` }}</span>
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
           <div>{{ $t('tips.tips48') }}</div>
           <div/>
           <div v-for="(item, index) in accountType" :key="index">
-            <div v-if="currentAccount['address'][item.chainName]" class="d-flex align-items-center" @click="currentType=item.chainName;showAccountList=false;currentToChain=item">
+            <div v-if="currentAccount['address'][item.chainName] || currentAccount['address'][chainNameToId[item.chainName]]" class="d-flex align-items-center" @click="currentType=item.chainName;showAccountList=false;currentToChain=item">
               <span class="chain-icon mr-3">
                 <img :src="getPicture(item.chainName)" alt="" @error="pictureError">
               </span>
-              {{ superLong(currentAccount['address'][item.chainName]) }}
+              {{ superLong(currentAccount['address'][item.chainName] || currentAccount['address'][chainNameToId[item.chainName]]) }}
             </div>
           </div>
         </div>
@@ -477,8 +477,8 @@ export default {
         const params = {
           fromChain: this.fromNetwork,
           toChain: this.currentType,
-          fromAddress: this.currentAccount['address'][this.fromNetwork],
-          toAddress: this.currentAccount['address'][this.currentType],
+          fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
+          toAddress: this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
           chainId: this.fromNetwork === 'NERVE' && this.currentAsset.nerveChainId || this.currentAsset.chainId,
           assetId: this.fromNetwork === 'NERVE' && this.currentAsset.nerveAssetId || this.currentAsset.assetId,
           contractAddress: this.currentAsset.contractAddress || '',
@@ -535,7 +535,7 @@ export default {
     async getContractCallData() {
       const price = 25;
       const res = await getContractCallData(
-        this.currentAccount['address'][this.fromNetwork],
+        this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
         this.lpNerveAddress,
         price,
         this.currentAsset.contractAddress,
@@ -644,7 +644,7 @@ export default {
           assetId: item.nerveAssetId,
           contractAddress: item.contractAddress
         }));
-        const params = [config[this.fromNetwork]['chainId'], this.currentAccount['address'][this.fromNetwork], tempParams];
+        const params = [config[this.fromNetwork]['chainId'], this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId], tempParams];
         const res = await this.$post(url, 'getBalanceList', params);
         if (res.result && res.result.length !== 0) {
           console.log(this.liquidityInfo.lpCoinList, 'this.liquidityInfo.lpCoinList');
@@ -758,8 +758,8 @@ export default {
           orderId: this.orderId,
           fromChain: this.fromNetwork,
           toChain: this.currentType,
-          fromAddress: this.currentAccount['address'][this.fromNetwork],
-          toAddress: this.currentAccount['address'][this.currentType],
+          fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
+          toAddress: this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
           chainId: this.fromNetwork === 'NERVE' && this.currentAsset.nerveChainId || this.currentAsset.chainId,
           assetId: this.fromNetwork === 'NERVE' && this.currentAsset.nerveAssetId || this.currentAsset.assetId,
           contractAddress: this.currentAsset.contractAddress || '',
@@ -803,13 +803,14 @@ export default {
             toNetwork: currentType,
             chainId: currentAsset.nerveChainId,
             assetId: currentAsset.nerveAssetId,
-            signAddress: this.currentAccount['address']['Ethereum'],
+            signAddress: this.currentAccount['address'][1] || this.currentAccount['address'][3],
             amountIn: timesDecimals(joinCount, this.currentAsset.decimals),
             fee: this.crossFee || 0,
             orderId,
             fromNetwork,
             NULSContractGas,
-            NULSContractTxData
+            NULSContractTxData,
+            nativeId: this.chainNameToId[this.fromNetwork]
           };
           if (orderRes.code === 1000) {
             const res = await nerveChannel.sendNerveCommonTransaction(params);

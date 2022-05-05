@@ -18,6 +18,9 @@ export default {
     return {};
   },
   computed: {
+    nativeId() {
+      return this.$store.state.nativeId;
+    },
     currentAccount() {
       return this.$store.getters.currentAccount;
     },
@@ -47,6 +50,23 @@ export default {
       const network = this.$store.state.network;
       const chainConfig = JSON.parse(sessionStorage.getItem('config'));
       return chainConfig[network] && chainConfig[network]['chainType'];
+      },
+    chainNameToId() {
+      let chainConfig;
+      const network = isBeta ? 'beta' : 'main';
+      if (network === 'beta') {
+        const tempLocalData = localStorage.getItem('localBetaChainConfig') && JSON.parse(localStorage.getItem('localBetaChainConfig')) || localChainConfig;
+        chainConfig = tempLocalData.sort((a, b) => a.sort - b.sort);
+      } else {
+        const tempLocalData = localStorage.getItem('localChainConfig') && JSON.parse(localStorage.getItem('localChainConfig')) || localChainConfig;
+        chainConfig = tempLocalData.sort((a, b) => a.sort - b.sort);
+      }
+      const tempSwapChainConfig = chainConfig.filter(item => item.swap == 1 && item.chainType == 2);
+      const tempMap = {};
+      tempSwapChainConfig.forEach(item => {
+        tempMap[item.chain] = item.nativeId;
+      });
+      return tempMap;
     }
   },
   filters: {
@@ -231,7 +251,6 @@ export default {
       }
     },
     formatArrayLength(chain, data) {
-      console.log('123131314343');
       const tradeHashList = JSON.parse(localStorage.getItem('tradeHashList')) || [];
       const l1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[chain] || [];
       const l2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
@@ -260,9 +279,7 @@ export default {
       const tempTradeHashList = {
         ...tradeHashMap
       };
-      console.log(tempTradeHashList[chain]);
       tempTradeHashList[chain] = [...tempArr];
-      console.log(tempTradeHashList, 'tempTradeHashList');
       const tempL1HashList = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[chain] || [];
       const tempL2HashList = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
       const tempL1Length = tempL1HashList.length;

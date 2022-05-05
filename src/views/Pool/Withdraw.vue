@@ -34,11 +34,11 @@
           <div>{{ $t('tips.tips48') }}</div>
           <div/>
           <div v-for="(item, index) in accountType" :key="index">
-            <div v-if="currentAccount['address'][item.chain]" class="d-flex align-items-center" @click="selectReceiveNetwork(item)">
+            <div v-if="currentAccount['address'][item.chain] || currentAccount['address'][chainNameToId[item.chain]]" class="d-flex align-items-center" @click="selectReceiveNetwork(item)">
               <span class="chain-icon mr-3">
                 <img :src="getPicture(item.chain)" alt="" @error="pictureError">
               </span>
-              {{ superLong(currentAccount['address'][item.chain]) }}
+              {{ superLong(currentAccount['address'][item.chain] || currentAccount['address'][chainNameToId[item.chain]]) }}
             </div>
           </div>
         </div>
@@ -256,6 +256,7 @@ export default {
     const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
     this.accountType = liquidityInfo.swapAssets;
     !this.accountType.find(item => item.chain === 'NERVE') && this.accountType.push({ chain: 'NERVE' });
+    console.log(this.accountType, 'this.accountType');
     const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));
     this.getLiquidityInfo(tempData, false);
     this.infoTimer = setInterval(async() => {
@@ -461,8 +462,8 @@ export default {
         const params = {
           fromChain: this.fromNetwork,
           toChain: this.currentType,
-          fromAddress: this.currentAccount['address'][this.fromNetwork],
-          toAddress: this.currentAccount['address'][this.currentType],
+          fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
+          toAddress: this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
           chainId: heterAsset && heterAsset.heterogeneousChainId || this.addedLiquidityInfo.chainId,
           assetId: heterAsset && '0' || this.addedLiquidityInfo.assetId,
           contractAddress: heterAsset && heterAsset.contractAddress || '',
@@ -523,7 +524,7 @@ export default {
     async getContractCallData() {
       const price = 25;
       const res = await getContractCallData(
-        this.currentAccount['address'][this.fromNetwork],
+        this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
         this.swapNerveAddress,
         price,
         this.addedLiquidityInfo.contractAddress,
@@ -618,7 +619,7 @@ export default {
           assetId: item.nerveAssetId,
           contractAddress: item.contractAddress
         }));
-        const params = [config[this.fromNetwork]['chainId'], this.currentAccount['address'][this.fromNetwork], tempParams];
+        const params = [config[this.fromNetwork]['chainId'], this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId], tempParams];
         const res = await this.$post(url, 'getBalanceList', params);
         if (res.result && res.result.length !== 0) {
           this.lpAssetsList = this.liquidityInfo.lpCoinList.map((item, index) => ({
@@ -724,8 +725,8 @@ export default {
           orderId: this.orderId,
           fromChain: this.fromNetwork,
           toChain: this.currentType,
-          fromAddress: this.currentAccount['address'][this.fromNetwork],
-          toAddress: this.currentAccount['address'][this.currentType],
+          fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
+          toAddress: this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
           chainId: heterAsset && heterAsset.heterogeneousChainId || this.addedLiquidityInfo.chainId,
           assetId: heterAsset && '0' || this.addedLiquidityInfo.assetId,
           contractAddress: heterAsset && heterAsset.contractAddress || this.addedLiquidityInfo.contractAddress,
@@ -766,13 +767,14 @@ export default {
             toNetwork: currentType,
             chainId: this.addedLiquidityInfo.chainId,
             assetId: this.addedLiquidityInfo.assetId,
-            signAddress: this.currentAccount['address']['Ethereum'],
+            signAddress: this.currentAccount['address'][1] || this.currentAccount['address'][3],
             amountIn: timesDecimals(this.withdrawCount, this.addedLiquidityInfo.decimals),
             fee: this.crossFee || 0,
             orderId,
             fromNetwork,
             NULSContractGas,
-            NULSContractTxData
+            NULSContractTxData,
+            nativeId: this.chainNameToId[this.fromNetwork]
           };
           if (orderRes.code === 1000) {
             const res = await nerveChannel.sendNerveCommonTransaction(params);
@@ -906,7 +908,7 @@ export default {
             }
             return batchQueryContract;
           });
-          const fromAddress = this.currentAccount['address'][chain];
+          const fromAddress = this.currentAccount['address'][chain] || this.currentAccount['address'][this.chainNameToId[chain]];
           console.log(addresses, fromAddress, RPCUrl, '1234');
           const balanceData = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
           assetList.forEach((item, index) => {

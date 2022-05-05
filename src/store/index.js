@@ -13,9 +13,13 @@ export default new Vuex.Store({
     showSign: false,
     isDapp: true,
     lang: 'en',
-    isSwap: false
+    isSwap: false,
+    nativeId: ''
   },
   mutations: {
+    changeNativeId(state, data) {
+      state.nativeId = data;
+    },
     changeNetwork(state, data) {
       state.network = data;
       sessionStorage.setItem('network', data);

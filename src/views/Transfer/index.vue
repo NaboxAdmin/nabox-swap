@@ -18,9 +18,9 @@
               <span class="icon-item">
                 <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
-              <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
+              <span class="size-30 ml-12">{{ fromNetwork }}</span>
             </div>
-            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork]) }}</div>
+            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId]) }}</div>
             <div class="drop_down">
               <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -45,9 +45,9 @@
               <span class="icon-item">
                 <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
-              <span class="size-30 ml-12">{{ fromNetwork === 'OKExChain' && 'OEC' || fromNetwork }}</span>
+              <span class="size-30 ml-12">{{ fromNetwork }}</span>
             </div>
-            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork]) }}</div>
+            <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork] || currentAccount['address'][chainNameToId[fromNetwork]]) }}</div>
             <div class="drop_down">
               <!--              <img src="@/assets/image/drop_down.png" alt="">-->
             </div>
@@ -359,7 +359,7 @@ export default {
           } else if (this.chainType === 2) {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
-            const fromAddress = this.currentAccount['address'][this.fromNetwork];
+            const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId];
             const RPCUrl = config[this.fromNetwork]['apiUrl'];
             const addresses = this.transferAssets.map(asset => {
               if (asset.contractAddress) {
@@ -780,7 +780,7 @@ export default {
       const NERVEAddress = currentAccount.address.NERVE;
       const price = 25;
       const res = await getContractCallData(
-        this.currentAccount['address'][this.fromNetwork],
+        this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
         NERVEAddress,
         price,
         this.currentCoin.contractAddress,
@@ -824,15 +824,15 @@ export default {
       const transferInfo = {
         fromChain: tempFromNetwork,
         toChain: tempToNetwork,
-        fromAddress: currentAccount.address[tempFromNetwork],
-        toAddress: currentAccount.address[tempToNetwork],
+        fromAddress: currentAccount.address[tempFromNetwork] || currentAccount.address[this.chainNameToId[tempFromNetwork]],
+        toAddress: currentAccount.address[tempToNetwork] || currentAccount.address[this.chainNameToId[tempToNetwork]],
         chainId: asset.chainId,
         assetId: asset.assetId,
         contractAddress: asset.contractAddress,
         amount: this.transferCount,
         symbol: asset.symbol,
         pub: currentAccount.pub,
-        signAddress: currentAccount.address.Ethereum,
+        signAddress: currentAccount.address[1] || currentAccount.address[3],
         isTransferMainAsset: mainAssetInfo.symbol === asset.symbol,
         asset
       };
@@ -863,7 +863,7 @@ export default {
           (v) => v.chainName === tempToNetwork
         )[0];
         const txData = {
-          heterogeneousAddress: currentAccount.address[tempToNetwork],
+          heterogeneousAddress: currentAccount.address[tempToNetwork] || currentAccount.address[this.chainNameToId[tempToNetwork]],
           heterogeneousChainId: heterogeneousChain_Out && heterogeneousChain_Out.heterogeneousChainId
         };
         crossOutInfo = {
@@ -962,7 +962,6 @@ export default {
           type = 10; // 普通交易
           transferInfo = crossInfo;
         }
-        console.log(transferInfo, type, 'type');
         await this.constructTx(fromChain, type, transferInfo, txData || {}, this.$t('transfer.transfer5'), true);
       } else {
         if (this.fromNetwork === TRON) {
@@ -1003,7 +1002,6 @@ export default {
           signAddress
         };
         this.txHex = await transfer.getTxHex(data);
-        console.log(this.txHex, '==this.txHex==');
         return this.txHex;
       };
       this.transactionInfo = {
@@ -1088,7 +1086,11 @@ export default {
       const chainId = config[tempNetwork].chainId;
       const res = await this.$post(url, 'broadcastTx', [chainId, this.txHex]);
       if (res.result && res.result.hash) {
-        this.formatArrayLength('NERVE', { type: 'L2', userAddress: this.fromAddress, chain: this.fromNetwork, isPure: this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        if (this.fromNetwork === 'NULS' && this.toNerve) {
+          this.formatArrayLength('NULS', { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, isPure: this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS', txHash: res.result.hash, isContractTransfer: this.currentCoin.contractAddress, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        } else {
+          this.formatArrayLength('NERVE', { type: 'L2', userAddress: this.fromAddress, chain: this.fromNetwork, isPure: this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+        }
         this.$message({
           message: this.$t('tips.tips10'),
           type: 'success',

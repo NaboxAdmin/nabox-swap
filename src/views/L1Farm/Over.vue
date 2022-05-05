@@ -258,7 +258,7 @@ export default {
       this.farmList = (await Promise.all(farmList.map(async item => {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
-        const fromAddress = this.currentAccount['address'][item.chain || 'BSC'];
+        const fromAddress = this.currentAccount['address'][item.chain] || this.currentAccount['address'][this.chainNameToId[item.chain] || 'BSC'] || this.currentAccount['address'][this.nativeId];
         const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
         const tokenBalance = await getBatchERC20Balance([item.stakeToken && item.stakeToken.contractAddress || batchQueryContract, item.syrupToken && item.syrupToken.contractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
         const stakedAsset = {

@@ -282,7 +282,7 @@ export default {
           data: {
             chain: item.chain,
             farmHash: item.farmKey,
-            address: this.currentAccount['address'][item.chain]
+            address: this.currentAccount['address'][item.chain] || this.currentAccount['address'][this.chainNameToId[item.chain]] || this.currentAccount['address'][this.nativeId]
           }
         });
         if (accountRes.data) {

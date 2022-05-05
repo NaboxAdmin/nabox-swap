@@ -32,7 +32,7 @@
               <span class="chain-icon mr-2">
                 <img v-lazy="item.icon" alt="" @error="pictureError">
               </span>
-              {{ item.chainName === 'OKExChain' && 'OEC' || item.chainName }}
+              {{ item.chainName }}
             </span>
           </div>
         </div>
@@ -98,8 +98,8 @@
           </div>
           <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
             <span :class="{'active': orderType === 1}" class="cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
-            <span :class="{'active': orderType === 3}" class="ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork])">{{ $t('tips.tips40') }}</span>
-            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork])">{{ $t('navBar.navBar2') }}</span>
+            <span :class="{'active': orderType === 3}" class="ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('tips.tips40') }}</span>
+            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('navBar.navBar2') }}</span>
             <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
           </div>
           <div v-loading="orderLoading" class="customer-p pt-1">
@@ -292,9 +292,9 @@ export default {
   },
   created() {
     if (this.statusTimer) clearInterval(this.statusTimer);
-    this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
+    this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     this.statusTimer = setInterval(() => {
-      this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork]);
+      this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     }, 5000);
   },
   mounted() {
@@ -524,12 +524,29 @@ export default {
       if (txList.length !== 0) {
         const tempTxList = await Promise.all(txList.map(async tx => {
           if (tx.type === 'L1' && tx.status === 0) {
-            const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
-            if (res && res.result) {
-              return {
-                ...tx,
-                status: res.result.status === '0x1' ? 1 : -1
-              };
+            if (tx.chain === 'NULS') {
+              const res = await this.$post(l1Url, 'getTx', [config['NULS']['chainId'], tx.txHash]);
+              const contractRes = await this.$post(l1Url, 'getContractTxResult', [config['NULS']['chainId'], tx.txHash]);
+              if (res.result && res.result.status && !tx.isContractTransfer) {
+                return {
+                  ...tx,
+                  status: Number(res.result.status)
+                };
+              } else if (contractRes.result && contractRes.result && tx.isContractTransfer) {
+                return {
+                  ...tx,
+                  status: contractRes.result && Number(res.result.status) || -1
+                };
+              }
+              return tx;
+            } else {
+              const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
+              if (res && res.result) {
+                return {
+                  ...tx,
+                  status: res.result.status === '0x1' ? 1 : -1
+                };
+              }
             }
           } else if (tx.type === 'L2' && tx.status === 0 && !tx.isPure) {
             const params = [MAIN_INFO.chainId, tx.txHash];
@@ -634,8 +651,10 @@ export default {
       this.showPop = false;
     },
     async initAssetInfo() {
+      console.log(this.nativeId, 'initAssetInfo');
       try {
         const config = JSON.parse(sessionStorage.getItem('config'));
+        this.currentChain = !config[this.currentChain] && Object.values(config).find(item => item.nativeId === this.nativeId).chain || this.currentChain;
         const tempAsset = {
           chain: this.currentChain,
           address: this.address,

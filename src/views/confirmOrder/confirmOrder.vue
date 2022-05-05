@@ -371,15 +371,15 @@ export default {
           swapPairInfo,
           swapPairTradeList
         });
-        const tAssemble = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork], swapPairTradeList);
+        const tAssemble = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId], swapPairTradeList);
         const transfer = new NTransfer({ chain: 'NERVE' });
         const txHex = await transfer.getTxHex({
           tAssemble,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address.Ethereum
+          signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3]
         });
         console.log(txHex, '===txHex===');
-        const res = await nerveChannel.broadcastHex(txHex);
+        const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
         if (res && res.hash) {
           this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
@@ -416,10 +416,10 @@ export default {
         const txHex = await transfer.getTxHex({
           tAssemble,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address.Ethereum
+          signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3]
         });
         console.log(txHex, '===txHex===');
-        const res = await nerveChannel.broadcastHex(txHex);
+        const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
         if (res && res.hash) {
           this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
           this.$message({
@@ -486,13 +486,13 @@ export default {
           } else if (this.chainType === 1) {
             // const { amountIn } = this.orderInfo.fromAsset;
             const crossOutPrams = {
-              from: this.currentAccount['address'][this.fromNetwork],
+              from: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
               chainId: fromAsset.nerveChainId,
               assetId: fromAsset.nerveAssetId,
               amountIn: timesDecimals(amountIn, fromAsset.decimals),
               type: 2,
               pub: this.currentAccount.pub,
-              signAddress: this.currentAccount.address.Ethereum,
+              signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3],
               swapNerveAddress: swapNerveAddress,
               swapNulsAddress: swapNulsAddress,
               currentAccount: this.currentAccount,
@@ -503,7 +503,8 @@ export default {
               fromAsset,
               NULSContractGas,
               NULSContractTxData,
-              currentChannel
+              currentChannel,
+              nativeId: this.chainNameToId[this.fromNetwork]
             };
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
           } else if (this.chainType === 3) {

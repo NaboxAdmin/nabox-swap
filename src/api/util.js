@@ -680,8 +680,9 @@ export function setChainConfig(chainConfig) {
         decimals: mainInfo ? mainInfo.decimals : '',
         assets: v.assets,
         config: v.configs,
-        apiUrl: v.chainType === 3 ? 'http://47.95.206.44:50061/jsonrpc' : v.apiUrl,
-        chainType: v.chainType
+        apiUrl: v.apiUrl,
+        chainType: v.chainType,
+        nativeId: v.nativeId
       };
     });
     // chainType: 2 以太系
@@ -700,7 +701,8 @@ export function setChainConfig(chainConfig) {
           symbol: item.mainAsset.symbol || '',
           sort: item.sort,
           ropsten: `0x${Number(item.nativeId).toString(16)}`,
-          homestead: `0x${Number(item.nativeId).toString(16)}`
+          homestead: `0x${Number(item.nativeId).toString(16)}`,
+          nativeId: item.nativeId
         };
       } else if (item.chainType === 2) {
         return {

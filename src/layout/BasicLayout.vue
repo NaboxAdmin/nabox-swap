@@ -145,8 +145,8 @@ export default {
     },
     fromAddress() {
       const currentAccount = getCurrentAccount(this.address);
-      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : '');
-      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : '';
+      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.nativeId] : '');
+      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.nativeId] : '';
     },
     currentAccount() {
       return this.$store.getters.currentAccount;
@@ -163,6 +163,7 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return '';
+        // console.log(val, 'watch val');
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
         const config = JSON.parse(sessionStorage.getItem('config'));
@@ -182,6 +183,10 @@ export default {
       tempData = window._naboxAccount && JSON.parse(window._naboxAccount);
     } else {
       tempData = window._naboxAccount;
+    }
+    if (!tempData && !localStorage.getItem('hackBoolean')) {
+      localStorage.removeItem('accountList');
+      localStorage.setItem('hackBoolean', 'true');
     }
     console.log(tempData, '==_naboxAccount==');
     const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
@@ -322,6 +327,7 @@ export default {
       } else {
         this.$store.commit('changeNetwork', sessionStorage.getItem('network'));
       }
+      this.$store.commit('changeNativeId', chain && chain.nativeId || 1);
       this.provider = new ethers.providers.Web3Provider(window[walletType]);
       // this.showConnect = false;
       this.$store.commit('changeShowConnect', false);
@@ -382,12 +388,12 @@ export default {
       localStorage.setItem('walletType', tempProvider);
       await this.initMetamask();
     },
-    async syncAccount(pub, accounts) {
+    async syncAccount(pub, accounts, chainList) {
       const addressList = [];
-      Object.keys(accounts).map((v) => {
+      chainList.forEach(v => {
         addressList.push({
           chain: v,
-          address: accounts[v]
+          address: accounts[v] || accounts[this.chainNameToId[v]]
         });
       });
       const res = await this.$request({
@@ -400,7 +406,9 @@ export default {
     async derivedAddress() {
       this.loading = true;
       const config = JSON.parse(sessionStorage.getItem('config'));
-      const networkList = Object.values(config).filter(item => item.chainType === 2).map(item => item.chain);
+      const networkList = Object.values(config).filter(item => item.chainType === 2).map(item => item.nativeId);
+      const chainList = Object.values(config).filter(item => item.chainType === 2).map(item => item.chain);
+      console.log(networkList, 'networkList');
       try {
         if (!this.address) {
           await this.requestAccounts();
@@ -472,6 +480,7 @@ export default {
         // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
         // 根据公钥获取NERVE和NULS的地址
         if (Object.keys(config).indexOf('NERVE') !== -1) {
+          chainList.push('NERVE');
           account.address.NERVE = nerve.getAddressByPub(
             chainId,
             assetId,
@@ -480,6 +489,7 @@ export default {
           );
         }
         if (Object.keys(config).indexOf('NULS') !== -1) {
+          chainList.push('NULS');
           account.address.NULS = nerve.getAddressByPub(
             NULSChainId,
             NULSAssetId,
@@ -508,7 +518,7 @@ export default {
           this.loading = false;
           return false;
         }
-        const syncRes = await this.syncAccount(pub, account.address);
+        const syncRes = await this.syncAccount(pub, account.address, chainList);
         if (syncRes) {
           localStorage.setItem('accountList', JSON.stringify(accountList));
           // 重新计算fromAddress
