@@ -803,7 +803,7 @@ export class ETransfer {
 
   async crossInII(params) {
     const { multySignAddress, numbers, fromAddress, contractAddress, decimals, crossChainFee, orderId, nerveAddress } = params;
-    console.log(nerveAddress, 'nerveAddress');
+    console.log(nerveAddress, multySignAddress, 'nerveAddress', params);
     let transactionParameters;
     if (contractAddress) {
       // token 转入

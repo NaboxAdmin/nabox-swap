@@ -5,7 +5,8 @@ import {
   numberFormat,
   getCurrentAccount,
   getCurrentAccountIndex,
-  TRON
+  TRON,
+  isBeta
 } from '@/api/util';
 import moment from 'moment';
 import { Division, Minus } from '@/api/util';
@@ -50,7 +51,7 @@ export default {
       const network = this.$store.state.network;
       const chainConfig = JSON.parse(sessionStorage.getItem('config'));
       return chainConfig[network] && chainConfig[network]['chainType'];
-      },
+    },
     chainNameToId() {
       let chainConfig;
       const network = isBeta ? 'beta' : 'main';
@@ -182,10 +183,11 @@ export default {
       }
     },
     setTRONAddress(address, TRONAddress) {
+      console.log(TRONAddress, 'TRONAddress');
       const currentAccount = getCurrentAccount(address);
       const tempIndex = getCurrentAccountIndex(address);
       const accountList = JSON.parse(localStorage.getItem('accountList'));
-      currentAccount['address']['TRON'] = TRONAddress;
+      currentAccount['address']['TRON'] = TRONAddress || '';
       accountList[tempIndex] = currentAccount;
       localStorage.setItem('accountList', JSON.stringify(accountList));
     },

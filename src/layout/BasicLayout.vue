@@ -250,10 +250,16 @@ export default {
   },
   methods: {
     messageListener(e) {
-      console.log(e.data.message, this.fromAddress, this.fromChainId, 'e.data.message')
-      if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb')) {
+      console.log(e.data.message, e.data.message.data.address, this.fromAddress, this.fromChainId, 'e.data.message');
+      // setAccount
+      // e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb'
+      if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setAccount')) {
         this.setTRONAddress(this.address, e.data.message.data.address);
-        if (this.fromNetwork === TRON) {
+        if (this.fromNetwork === TRON && !sessionStorage.getItem('throttling')) {
+          sessionStorage.setItem('throttling', 'true');
+          setTimeout(() => {
+            sessionStorage.removeItem('throttling');
+          }, 5000);
           window.location.reload();
         }
       }

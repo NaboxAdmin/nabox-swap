@@ -468,7 +468,7 @@ export default {
           chooseFromAsset: fromAsset
         });
         const params = {
-          fromAddress: this.currentAccount['address'][this.fromNetwork],
+          fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
           decimals: fromAsset.decimals,
           contractAddress: fromAsset.contractAddress,
           orderId: ethers.utils.toUtf8Bytes(currentChannel.orderId),
