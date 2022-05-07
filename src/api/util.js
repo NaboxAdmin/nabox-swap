@@ -666,7 +666,6 @@ export function numberFormat(val, float, returnBoo = false) {
 }
 
 export function setChainConfig(chainConfig) {
-  console.log(chainConfig, 'chainConfig chainConfig');
   const config = {};
   if (chainConfig && chainConfig.length) {
     chainConfig.map(v => {
