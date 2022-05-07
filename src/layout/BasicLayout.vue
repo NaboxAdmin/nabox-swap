@@ -79,6 +79,7 @@ import safepal from '@/assets/image/safepal.svg';
 import coin98 from '@/assets/image/coin98.svg';
 import bitkeep from '@/assets/image/bitkeep.jpg';
 import tronLinkWallet from '@/assets/image/tronLink.png';
+import ONTO from '@/assets/image/ONTO.jpg';
 
 const ethers = require('ethers');
 
@@ -89,6 +90,7 @@ const MetaMaskProvider = 'ethereum';
 const NaboxProvider = 'NaboxWallet';
 const OKExProvider = 'okexchain';
 const BSCProvider = 'BinanceChain';
+const ONTOProvider = 'onto';
 // const TRONProvider = 'tronWeb';
 export default {
   name: 'BasicLayout',
@@ -105,7 +107,8 @@ export default {
       { name: 'MetaX', src: OKEx, provider: OKExProvider },
       { name: 'SafePal', src: safepal, provider: MetaMaskProvider },
       { name: 'Coin98', src: coin98, provider: MetaMaskProvider },
-      { name: 'BitKeep', src: bitkeep, provider: MetaMaskProvider }
+      { name: 'BitKeep', src: bitkeep, provider: MetaMaskProvider },
+      { name: 'ONTO Wallet', src: ONTO, provider: ONTOProvider }
     ];
     return {
       tabList: [
