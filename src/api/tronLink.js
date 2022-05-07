@@ -159,10 +159,49 @@ class TronLinkApi {
     return tronWeb.address.toHex(address);
   }
 
+  async getBalances(multiCallAddress, user, tokens) {
+    const tronWeb = this.getTronWeb();
+    const funABI = {
+      'outputs': [{ 'name': 'info', 'type': 'uint256[]' }],
+      'constant': true,
+      'inputs': [{ 'name': '_user', 'type': 'address' }, { 'name': '_tokens', 'type': 'address[]' }],
+      'name': 'getBalance',
+      'stateMutability': 'view',
+      'type': 'function'
+    };
+    const senderHex = this.toHex('T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb');
+    const contractAddressCall = this.toHex(multiCallAddress);
+    const params = [];
+    params.push({ type: 'address', value: user });
+    params.push({ type: 'address[]', value: tokens });
+    const tx = await tronWeb.transactionBuilder.triggerConstantContract(
+      contractAddressCall,
+      'getBalance(address,address[])',
+      {},
+      params,
+      senderHex
+    );
+
+    const constantResult = tx.constant_result;
+    if (!constantResult) {
+      return;
+    }
+    const output = '0x' + constantResult[0];
+    const result = tronWeb.utils.abi.decodeParamsV2ByABI(funABI, output);
+    if (!result || result.length == 0) {
+      return;
+    }
+    const arr = result[0];
+    const values = [];
+    for (let i = 0; i < arr.length; i++) {
+      values.push(arr[i].toString());
+    }
+    return values;
+  }
+
   async getTrxBalance(address) {
     // console.log(address, '8777');
     const tronWeb = this.getTronWeb();
-
     const balance = await tronWeb.trx.getBalance(address);
     return divisionDecimals(balance, 6);
   }

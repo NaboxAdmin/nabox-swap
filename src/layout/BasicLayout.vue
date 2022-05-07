@@ -78,7 +78,7 @@ import OKEx from '@/assets/image/metax.jpg';
 import safepal from '@/assets/image/safepal.svg';
 import coin98 from '@/assets/image/coin98.svg';
 import bitkeep from '@/assets/image/bitkeep.jpg';
-import tronLink from '@/api/tronLink';
+import tronLinkWallet from '@/assets/image/tronLink.png';
 
 const ethers = require('ethers');
 
@@ -89,6 +89,7 @@ const MetaMaskProvider = 'ethereum';
 const NaboxProvider = 'NaboxWallet';
 const OKExProvider = 'okexchain';
 const BSCProvider = 'BinanceChain';
+// const TRONProvider = 'tronWeb';
 export default {
   name: 'BasicLayout',
   components: { HeaderBar },
@@ -96,6 +97,7 @@ export default {
     this.providerList = [
       { name: 'MetaMask', src: MetaMask, provider: MetaMaskProvider },
       { name: 'Nabox', src: Nabox, provider: NaboxProvider },
+      // { name: 'tronLink', src: tronLinkWallet, provider: TRONProvider },
       { name: 'Trust Wallet', src: TrustWallet, provider: MetaMaskProvider },
       { name: 'TokenPocket', src: Tokenpocket, provider: MetaMaskProvider },
       { name: 'MathWallet', src: Mathwallet, provider: MetaMaskProvider },
@@ -145,8 +147,8 @@ export default {
     },
     fromAddress() {
       const currentAccount = getCurrentAccount(this.address);
-      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.nativeId] : '');
-      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.nativeId] : '';
+      this.$store.commit('changeFromAddress', currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.chainNameToId[this.fromNetwork]] || currentAccount.address[this.nativeId] : '');
+      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] || currentAccount.address[this.chainNameToId[this.fromNetwork]] || currentAccount.address[this.nativeId] : '';
     },
     currentAccount() {
       return this.$store.getters.currentAccount;
@@ -197,9 +199,10 @@ export default {
           address: tempData.addressDict
         }
       ];
-      if (this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE') {
-        this.$store.commit('changeNetwork', tempData.chain);
-        this.address = tempData.addressDict[tempData.chain];
+      if (this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'TRON') {
+        const tempChain = Object.keys(config).indexOf(tempData.chain) === -1 ? 'NERVE' : tempData.chain;
+        this.$store.commit('changeNetwork', tempChain);
+        this.address = tempData.addressDict[tempChain];
       } else {
         this.$store.commit('changeNetwork', this.fromNetwork);
         this.address = tempData.addressDict[this.fromNetwork];
@@ -250,17 +253,23 @@ export default {
   },
   methods: {
     messageListener(e) {
-      console.log(e.data.message, e.data.message.data.address, this.fromAddress, this.fromChainId, 'e.data.message');
+      // console.log(e.data.message, this.fromAddress, this.fromChainId, 'e.data.message');
       // setAccount
       // e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb'
-      if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setAccount')) {
-        this.setTRONAddress(this.address, e.data.message.data.address);
-        if (this.fromNetwork === TRON && !sessionStorage.getItem('throttling')) {
-          sessionStorage.setItem('throttling', 'true');
-          setTimeout(() => {
-            sessionStorage.removeItem('throttling');
-          }, 5000);
-          window.location.reload();
+      if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb')) {
+        if (this.fromNetwork === TRON) {
+          if (!window.tronLink.ready) {
+            const config = Object.values(JSON.parse(sessionStorage.getItem('config')));
+            const currentChain = config.find(item => item.nativeId === this.nativeId);
+            if (currentChain) {
+              this.$store.commit('changeNetwork', currentChain.chain);
+            } else {
+              this.$store.commit('changeShowWalletList', true);
+            }
+          } else if (e.data.message.data.address || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb') {
+            this.setTRONAddress(this.address, e.data.message.data.address);
+            window.location.reload();
+          }
         }
       }
     },
@@ -754,6 +763,8 @@ export default {
       .icon-cont {
         height: 55px;
         width: 55px;
+        border-radius: 10px;
+        overflow: hidden;
         img {
           height: 100%;
           width: 100%;

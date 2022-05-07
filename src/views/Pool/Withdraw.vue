@@ -27,18 +27,18 @@
       <div class="account-info d-flex align-items-center size-28 text-90">
         <div @click.stop="showAccountList = !showAccountList">
           <span v-if="!currentType" class="text-primary">{{ $t('tips.tips54') }}</span>
-          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType])}${ $t('tips.tips47') }` }}</span>
+          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentType==='TRON' && !addressError && toAddress || currentAccount['address'][currentType] || currentAccount['address'][chainNameToId[currentType]] || '')}${ $t('tips.tips47') }` }}</span>
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
           <div>{{ $t('tips.tips48') }}</div>
           <div/>
           <div v-for="(item, index) in accountType" :key="index">
-            <div v-if="currentAccount['address'][item.chain] || currentAccount['address'][chainNameToId[item.chain]]" class="d-flex align-items-center" @click="selectReceiveNetwork(item)">
+            <div v-if="currentAccount['address'][item.chain] !== undefined || currentAccount['address'][chainNameToId[item.chain]] !== undefined" class="d-flex align-items-center" @click="selectReceiveNetwork(item)">
               <span class="chain-icon mr-3">
                 <img :src="getPicture(item.chain)" alt="" @error="pictureError">
               </span>
-              {{ superLong(currentAccount['address'][item.chain] || currentAccount['address'][chainNameToId[item.chain]]) }}
+              {{ superLong(currentAccount['address'][item.chain] || currentAccount['address'][chainNameToId[item.chain]] || `${item.chain}${$t('tips.tips46')}`) }}
             </div>
           </div>
         </div>
@@ -59,6 +59,18 @@
         <span class="font-500 size-36 m-w180 word-break">{{ withdrawCount || "0" }}</span>
       </div>
     </div>
+    <div v-if="fromNetwork !== 'TRON' && currentType && currentType === 'TRON'" class="input_address-cont">
+      <div class="input-item align-items-center d-flex flex-1">
+        <input
+          v-model="toAddress"
+          :placeholder="networkPlaceholder"
+          type="text"
+          class="flex-1"
+          @focus="addressFocus($event)"
+          @input="addressInput">
+      </div>
+    </div>
+    <div v-if="addressError" class="text-red mt-2 ml-2 size-28">{{ addressError }}</div>
     <div class="mt-5">
       <template v-if="true">
         <div
@@ -117,7 +129,14 @@
 
 <script>
 import { divisionDecimals, timesDecimals, Times, tofix, Division, Minus, debounce, Plus, TRON } from '@/api/util';
-import { crossFee as commonFee, ETransfer, getBatchERC20Balance, NTransfer } from '@/api/api';
+import {
+  crossFee as commonFee,
+  ETransfer,
+  getBatchERC20Balance,
+  NTransfer,
+  validateAddress,
+  validateNerveAddress
+} from '@/api/api';
 import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
 import Modal from './Modal/Modal';
 import Loading from '@/components/Loading/Loading';
@@ -176,7 +195,9 @@ export default {
       lpNerveAddress: '',
       NULSContractGas: '',
       NULSContractTxData: '',
-      contactFee: 0
+      contactFee: 0,
+      toAddress: '', // 接收地址
+      addressError: '' // 地址错误提示
     };
   },
   computed: {
@@ -188,12 +209,15 @@ export default {
       return this.liquidityInfo && this.liquidityInfo.lpCoinList || [];
     },
     canNext() {
-      return !this.withdrawCount || !Number(this.withdrawCount) || this.amountMsg || this.requestLoading || this.computedFeeLoading;
+      return !this.withdrawCount || !Number(this.withdrawCount) || this.amountMsg || this.requestLoading || this.computedFeeLoading || ((this.fromNetwork !== 'TRON' && this.currentType && this.currentType === 'TRON') && (!this.toAddress || this.addressError));
       // return true;
     },
     mainAssetSymbol() {
       const config = JSON.parse(sessionStorage.getItem('config'));
       return config[this.fromNetwork]['symbol'];
+    },
+    networkPlaceholder() {
+      return `${this.$t('tips.tips57')}${this.currentType || 'TRON'}${this.$t('tips.tips58')}`;
     }
   },
   watch: {
@@ -256,7 +280,6 @@ export default {
     const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
     this.accountType = liquidityInfo.swapAssets;
     !this.accountType.find(item => item.chain === 'NERVE') && this.accountType.push({ chain: 'NERVE' });
-    console.log(this.accountType, 'this.accountType');
     const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));
     this.getLiquidityInfo(tempData, false);
     this.infoTimer = setInterval(async() => {
@@ -278,6 +301,37 @@ export default {
     selectReceiveNetwork(item) {
       this.currentType = item.chain;
       this.showAccountList = false;
+      if (item.chain === TRON && this.currentAccount['address'][item.chain]) {
+        this.toAddress = this.currentAccount['address'][item.chain];
+      } else {
+        this.toAddress = '';
+      }
+    },
+    addressInput() {
+      console.log(this.currentType, this.toAddress, 'this.currentType')
+      if (this.currentType && this.toAddress) {
+        if (this.currentType === 'NULS' && !validateNerveAddress(this.toAddress, 'NULS')) {
+          this.addressError = this.$t('tips.tips59');
+        } else if (this.currentType === 'NERVE' && !validateNerveAddress(this.toAddress, 'NERVE')) {
+          this.addressError = this.$t('tips.tips59');
+        } else if (this.currentType === 'TRON') {
+          const tron = new TronLink();
+          if (!tron.validAddress(this.toAddress)) {
+            this.addressError = this.$t('tips.tips59');
+          } else {
+            this.addressError = '';
+          }
+        } else if (this.currentType !== 'NULS' && this.currentType !== 'NERVE' && this.currentType !== TRON && !validateAddress(this.toAddress)) {
+          this.addressError = this.$t('tips.tips59');
+        } else {
+          this.addressError = '';
+        }
+      } else {
+        this.addressError = '';
+      }
+    },
+    addressFocus(event) {
+      event.currentTarget.select();
     },
     async getLiquidityPoolList() {
       try {
@@ -355,7 +409,7 @@ export default {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       // const contractAddress = this.accountType.find(item => item.chain === this.fromNetwork).contractAddress;
-      if (!this.addedLiquidityInfo.heterogeneousList) return false;
+      if (!this.addedLiquidityInfo.heterogeneousList || !this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork)) return false;
       const contractAddress = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork).contractAddress;
       let needAuth;
       if (this.chainType === 2) {
@@ -463,7 +517,7 @@ export default {
           fromChain: this.fromNetwork,
           toChain: this.currentType,
           fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
-          toAddress: this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
+          toAddress: this.toAddress || this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
           chainId: heterAsset && heterAsset.heterogeneousChainId || this.addedLiquidityInfo.chainId,
           assetId: heterAsset && '0' || this.addedLiquidityInfo.assetId,
           contractAddress: heterAsset && heterAsset.contractAddress || '',
@@ -668,10 +722,15 @@ export default {
         const transfer = new ETransfer({
           chain: this.fromNetwork
         });
+        this.addedLiquidityInfo = {
+          ...this.liquidityInfo
+        };
         let addedLiquidityBalance = 0;
         if (this.liquidityInfo.heterogeneousList) {
           const currentAsset = this.liquidityInfo.heterogeneousList && this.liquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
-          if (currentAsset.contractAddress) {
+          if (!currentAsset) {
+            addedLiquidityBalance = 0;
+          } else if (currentAsset.contractAddress) {
             addedLiquidityBalance = await transfer.getERC20Balance(currentAsset.contractAddress, this.liquidityInfo.decimals, this.fromAddress);
           } else {
             addedLiquidityBalance = await transfer.getEthBalance(this.fromAddress);
@@ -687,6 +746,9 @@ export default {
         let addedLiquidityBalance = 0;
         if (this.liquidityInfo.heterogeneousList) {
           const currentAsset = this.liquidityInfo.heterogeneousList && this.liquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+          if (currentAsset) {
+            currentAsset.decimals = this.liquidityInfo.decimals;
+          }
           addedLiquidityBalance = currentAsset && await this.getTronAssetBalance(currentAsset) || 0;
         }
         this.userAvailable = addedLiquidityBalance;
@@ -698,7 +760,7 @@ export default {
       }
       this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
       this.availableLoading = false;
-      if (this.fromNetwork !== 'NERVE' || this.fromNetwork !== 'NULS') {
+      if (this.chainType !== 1) {
         this.checkAssetAuthStatus();
       }
     },
@@ -726,7 +788,7 @@ export default {
           fromChain: this.fromNetwork,
           toChain: this.currentType,
           fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
-          toAddress: this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
+          toAddress: this.toAddress || this.currentAccount['address'][this.currentType] || this.currentAccount['address'][this.chainNameToId[this.currentType]],
           chainId: heterAsset && heterAsset.heterogeneousChainId || this.addedLiquidityInfo.chainId,
           assetId: heterAsset && '0' || this.addedLiquidityInfo.assetId,
           contractAddress: heterAsset && heterAsset.contractAddress || this.addedLiquidityInfo.contractAddress,
@@ -743,8 +805,10 @@ export default {
           url: '/swap/lp/tx/save',
           data: orderParams
         });
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
         // TODO
-        if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
+        if (this.chainType === 1) {
           const nerveChannel = new NerveChannel({});
           const {
             currentAccount,
@@ -824,10 +888,8 @@ export default {
           // } else {
           //   throw this.$t('tips.tips53');
           // }
-        } else {
+        } else if (this.chainType === 2) {
           const transfer = new ETransfer();
-          const config = JSON.parse(sessionStorage.getItem('config'));
-          const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
           const heterAsset = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
           const params = {
             fromAddress: this.fromAddress,
@@ -841,6 +903,36 @@ export default {
           };
           if (orderRes.code === 1000) {
             const res = await transfer.crossInII(params);
+            if (res.hash) {
+              this.$message({
+                message: this.$t('tips.tips10'),
+                type: 'success',
+                duration: 2000,
+                offset: 30
+              });
+              this.withDrawLoading = false;
+              this.reset();
+              await this.recordHash(this.orderId, res.hash);
+            }
+          } else {
+            throw this.$t('tips.tips53');
+          }
+        } else if (this.chainType === 3) {
+          const nerveChannel = new NerveChannel({});
+          const heterAsset = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+          const params = {
+            fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
+            decimals: this.addedLiquidityInfo.decimals,
+            contractAddress: heterAsset && heterAsset.contractAddress || this.addedLiquidityInfo.contractAddress,
+            orderId: ethers.utils.toUtf8Bytes(this.orderId),
+            numbers: this.withdrawCount,
+            multySignAddress,
+            crossChainFee: this.crossFee.toString(),
+            nerveAddress: lpNerveAddress,
+            fromNetwork: this.fromNetwork
+          };
+          if (orderRes.code === 1000) {
+            const res = await nerveChannel.sendNerveBridgeTransaction(params);
             if (res.hash) {
               this.$message({
                 message: this.$t('tips.tips10'),
@@ -1124,6 +1216,27 @@ export default {
   }
   75%{
     box-shadow: 6px 0 0 #FFFFFF ,20px 0 0 #FFFFFF, 34px 0 0 #FFFFFF;
+  }
+}
+.input_address-cont {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 90px;
+  padding: 0 30px;
+  //background-color: #F0F3F3;
+  border: 1px solid #6EB6A9;
+  border-radius: 20px;
+  margin-top: 50px;
+  .input-item {
+    input {
+      border: none;
+      height: 60px;
+      //font-weight: bold;
+      font-size: 24px;
+      outline:none;
+      background-color: transparent;
+    }
   }
 }
 </style>

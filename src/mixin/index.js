@@ -43,6 +43,9 @@ export default {
     showSign() {
       return this.$store.state.showSign;
     },
+    showWalletList() {
+      return this.$store.state.showWalletList;
+    },
     isMobile() {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     },
@@ -183,22 +186,28 @@ export default {
       }
     },
     setTRONAddress(address, TRONAddress) {
-      console.log(TRONAddress, 'TRONAddress');
       const currentAccount = getCurrentAccount(address);
       const tempIndex = getCurrentAccountIndex(address);
       const accountList = JSON.parse(localStorage.getItem('accountList'));
-      currentAccount['address']['TRON'] = TRONAddress || '';
-      accountList[tempIndex] = currentAccount;
+      if (TRONAddress) {
+        currentAccount['address']['TRON'] = TRONAddress || '';
+        accountList[tempIndex] = currentAccount;
+      }
       localStorage.setItem('accountList', JSON.stringify(accountList));
     },
     async getTronAssetBalance(assetInfo) {
       const { contractAddress, decimals } = assetInfo;
+      console.log(decimals, 'decimals')
       const tron = new TronLink();
       if (contractAddress) {
-        return await tron.getTrc20Balance(this.currentAccount['address'][TRON], contractAddress, decimals);
+        return await tron.getTrc20Balance(this.currentAccount && this.currentAccount['address'][TRON] || this.fromAddress, contractAddress, decimals);
       } else {
-        return await tron.getTrxBalance(this.currentAccount['address'][TRON]);
+        return await tron.getTrxBalance(this.currentAccount && this.currentAccount['address'][TRON] || this.fromAddress);
       }
+    },
+    async getTronAssetBalances(multiCallAddress, userAddress, tokens) {
+      const tron = new TronLink();
+      return await tron.getBalances(multiCallAddress, userAddress, tokens);
     },
     // 获取NULS上面的余额信息
     async getNulsAssetBalance(assetInfo) {

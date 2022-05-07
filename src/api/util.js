@@ -1,7 +1,7 @@
 import nerve from 'nerve-sdk-js';
 import { BigNumber } from 'bignumber.js';
 import copy from 'copy-to-clipboard';
-import { MAIN_INFO, ETHNET } from '@/config.js';
+import {MAIN_INFO, ETHNET, TRON_MULTI_CALL_ADDRESS} from '@/config.js';
 import { post, request } from '../network/http';
 
 /**
@@ -671,6 +671,15 @@ export function setChainConfig(chainConfig) {
   if (chainConfig && chainConfig.length) {
     chainConfig.map(v => {
       const mainInfo = v.mainAsset;
+      let configs;
+      if (v.chainType === 3) {
+        configs = {
+          multiCallAddress: TRON_MULTI_CALL_ADDRESS,
+          crossAddress: v.configs.crossAddress
+        };
+      } else {
+        configs = v.configs;
+      }
       config[v.chain] = {
         chain: v.chain,
         chainId: mainInfo ? mainInfo.chainId : '',
@@ -679,8 +688,8 @@ export function setChainConfig(chainConfig) {
         symbol: mainInfo ? mainInfo.symbol : '',
         decimals: mainInfo ? mainInfo.decimals : '',
         assets: v.assets,
-        config: v.configs,
-        apiUrl: v.apiUrl,
+        config: configs,
+        apiUrl: v.chainType === 3 ? v.psUrl : v.apiUrl,
         chainType: v.chainType,
         nativeId: v.nativeId
       };

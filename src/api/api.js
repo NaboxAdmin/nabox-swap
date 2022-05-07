@@ -1,7 +1,7 @@
 import nuls from 'nuls-sdk-js';
 import nerve from 'nerve-sdk-js';
 import { ethers } from 'ethers';
-import { htmlEncode, Minus, Plus, timesDecimals } from './util';
+import { htmlEncode, isBeta, Minus, Plus, timesDecimals } from './util';
 import { post, request } from '@/network/http';
 import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import { getCurrentAccount } from '@/api/util';
@@ -155,23 +155,23 @@ async function decodeParams(types, output, ignoreMethodHash) {
 /**
  * 波场批量查询
  */
-const data = '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-
-export async function getBatchTRC20Balance() {
-  const result = await decodeParams(['uint256[]'], data, true);
-  console.log(result);
-  const params = [
-    { type: 'address', value: '4121decdab7af693437e77936e081c2f4d4391094a' },
-    { type: 'address[]', value: ['TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8', 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'] }
-  ];
-  const encodePrams = await encodeParams(params);
-  const tron = tronWeb.getTronWeb();
-  const transaction = await tron.transactionBuilder.triggerConstantContract(
-    '411a5a32bd07c33cd8d9f4bd158f235613480c7eef', 'getBalance(address,address[])', {}, params, '4121decdab7af693437e77936e081c2f4d4391094a'
-  );
-  console.log(encodePrams, transaction, 'encodePrams');
-}
-getBatchTRC20Balance();
+// const data = '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+//
+// export async function getBatchTRC20Balance() {
+//   const result = await decodeParams(['uint256[]'], data, true);
+//   console.log(result);
+//   const params = [
+//     { type: 'address', value: '4121decdab7af693437e77936e081c2f4d4391094a' },
+//     { type: 'address[]', value: ['TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8', 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'] }
+//   ];
+//   const encodePrams = await encodeParams(params);
+//   const tron = tronWeb.getTronWeb();
+//   const transaction = await tron.transactionBuilder.triggerConstantContract(
+//     '411a5a32bd07c33cd8d9f4bd158f235613480c7eef', 'getBalance(address,address[])', {}, params, '4121decdab7af693437e77936e081c2f4d4391094a'
+//   );
+//   console.log(encodePrams, transaction, 'encodePrams');
+// }
+// getBatchTRC20Balance();
 
 /**
  * 批量查询资产余额
@@ -270,6 +270,35 @@ export async function getBatchLockedFarmInfo(pairAddress, pid, userAddress, mult
   const [tokensRes] = await multicall.all([tokens]);
   console.log(tokensRes, '==tokensRes==');
   return tokensRes;
+}
+// 验证以太系地址
+export function validateAddress(address) {
+  try {
+    ethers.utils.getAddress(address);
+    return true;
+  } catch (error) {
+    console.info(error);
+  }
+  return false;
+}
+
+export function validateNerveAddress(address, network) {
+  try {
+    const addressValue = nerve.verifyAddress(address);
+    console.log(isBeta, addressValue, 'addressValue');
+    if (isBeta && network === 'NULS') {
+      return addressValue.chainId === 2;
+    } else if (isBeta && network === 'NERVE') {
+      return addressValue.chainId === 5;
+    } else if (!isBeta && network === 'NULS') {
+      return addressValue.chainId === 1;
+    } else if (!isBeta && network === 'NERVE') {
+      return addressValue.chainId === 9;
+    }
+  } catch (error) {
+    console.info(error);
+    return false;
+  }
 }
 
 // NULS NERVE跨链手续费

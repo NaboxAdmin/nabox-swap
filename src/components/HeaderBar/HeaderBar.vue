@@ -149,9 +149,8 @@
 import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
-import { copys, divisionDecimals, supportChainList, tofix } from '@/api/util';
+import {copys, divisionDecimals, supportChainList, tofix, TRON} from '@/api/util';
 import { MAIN_INFO } from '@/config';
-import {deepCopy} from "@/utils/util";
 
 // eslint-disable-next-line no-unused-vars
 const lang = localStorage.getItem('locale') || 'cn';
@@ -539,6 +538,14 @@ export default {
                 };
               }
               return tx;
+            } else if (tx.chain === TRON) {
+              const res = await this.$post(l1Url, `eth_getTransactionReceipt`, [tx.txHash]);
+              if (res && res.result) {
+                return {
+                  ...tx,
+                  status: res.result.status === '0x1' ? 1 : -1
+                };
+              }
             } else {
               const res = await this.$post(l1Url, 'eth_getTransactionReceipt', [tx.txHash]);
               if (res && res.result) {
@@ -651,7 +658,6 @@ export default {
       this.showPop = false;
     },
     async initAssetInfo() {
-      console.log(this.nativeId, 'initAssetInfo');
       try {
         const config = JSON.parse(sessionStorage.getItem('config'));
         this.currentChain = !config[this.currentChain] && Object.values(config).find(item => item.nativeId === this.nativeId).chain || this.currentChain;

@@ -55,7 +55,10 @@ const en = {
     tips53: 'The network connection is unstable, please resend the transaction',
     tips54: 'Please select the receiving network',
     tips55: 'No provider was found',
-    tips56: 'Please log in to the plugin first'
+    tips56: 'Please log in to the plugin first',
+    tips57: 'Please fill in the ',
+    tips58: ' network receiving address',
+    tips59: 'Receive address format error'
   },
   swap: {
     swap1: 'From',

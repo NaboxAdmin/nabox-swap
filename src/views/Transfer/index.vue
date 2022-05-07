@@ -146,7 +146,7 @@ import {
   tofix,
   TRON
 } from '@/api/util';
-import { MAIN_INFO, NULS_INFO } from '@/config';
+import { MAIN_INFO, NULS_INFO, TRON_TRX_ADDRESS } from '@/config';
 import { crossFee, ETransfer, getBatchERC20Balance, getSymbolUSD, NTransfer } from '@/api/api';
 import { getContractCallData } from '@/api/nulsContractValidate';
 import Modal from './Modal/Modal';
@@ -392,11 +392,27 @@ export default {
               });
             }
           } else if (this.chainType === 3) {
-            // TODO: 需要修改为批量查询（暂时使用循环查询）
+            const config = JSON.parse(sessionStorage.getItem('config'));
+            const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
+            // TODO
+            const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.chainNameToId[this.fromNetwork]];
+            const addresses = this.transferAssets.map(asset => {
+              if (asset.contractAddress) {
+                return asset.contractAddress;
+              }
+              return TRON_TRX_ADDRESS;
+            });
+            const balanceData = await this.getTronAssetBalances(batchQueryContract, fromAddress, addresses);
             for (let i = 0; i < this.transferAssets.length; i++) {
-              this.transferAssets[i]['balance'] = await this.getTronAssetBalance(this.transferAssets[i]);
-              this.transferAssets[i]['showBalanceLoading'] = false;
+              const asset = this.transferAssets[i];
+              this.transferAssets[i].balance = divisionDecimals(balanceData[i], asset.decimals);
+              this.transferAssets[i].showBalanceLoading = false;
             }
+            // TODO: 需要修改为批量查询（暂时使用循环查询）
+            // for (let i = 0; i < this.transferAssets.length; i++) {
+            //   this.transferAssets[i]['balance'] = await this.getTronAssetBalance(this.transferAssets[i]);
+            //   this.transferAssets[i]['showBalanceLoading'] = false;
+            // }
           }
           this.transferAssets = (this.transferAssets.length > 0 && this.transferAssets.sort((a, b) => a.symbol > b.symbol ? 1 : -1).sort((a, b) => b.balance - a.balance)) || [];
         } else {
@@ -605,6 +621,7 @@ export default {
           this.amountMsg = '';
         }
       } else {
+        console.log('123124124124124', crossFee);
         if (tempFromNetwork === 'NERVE' && this.fromNetwork === 'NULS') {
           const nulsBalance = await this.getNerveAssetBalance({
             assetId: NULS_INFO.assetId,
@@ -737,7 +754,6 @@ export default {
             this.currentFeeChain === TRON
           );
         } else {
-          console.log('123123');
           res = await transfer.calWithdrawalFeeForTRON(
             heterogeneousChainUSD,
             feeUSD,
@@ -1041,7 +1057,6 @@ export default {
           await this.broadcastHex();
         } else {
           if (res) {
-            console.log(res, '12123123123');
             if (res.hash && this.chainType === 2) {
               this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
               this.$message({
@@ -1098,7 +1113,7 @@ export default {
         });
         this.reset();
       } else {
-        throw this.$t('tips.tips15');
+        throw { message: res.error && res.error.message || this.$t('tips.tips15') };
       }
       this.transferLoading = false;
     },

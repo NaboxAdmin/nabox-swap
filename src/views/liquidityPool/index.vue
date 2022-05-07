@@ -66,6 +66,7 @@
 <script>
 import { Division, divisionDecimals, Times, tofix } from '@/api/util';
 import { ETransfer, getBatchERC20Balance } from '@/api/api';
+import { TRON_TRX_ADDRESS } from '@/config';
 
 export default {
   name: 'LiquidityPool',
@@ -217,22 +218,48 @@ export default {
                   if (currentAsset && currentAsset.contractAddress) {
                     return currentAsset.contractAddress;
                   }
-                  return '';
                 }
                 return this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]; // 占位
               });
-              console.log(addresses, 'addresses');
               assetBalanceList = await getBatchERC20Balance(addresses, fromAddress, batchQueryContract, RPCUrl);
             } catch (e) {
               console.log(e, 'error');
             }
           } else if (this.chainType === 3) {
-            // assetBalanceList = await Promise.all(tempFormatList.map(async item => {
-            //   return {
-            //     ...item,
-            //     balance: await this.getTronAssetBalance(item)
-            //   };
-            // }));
+            try {
+              const config = JSON.parse(sessionStorage.getItem('config'));
+              const batchQueryContract = config[this.fromNetwork]['config'].multiCallAddress || '';
+              const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId];
+              const addresses = tempFormatList.map(asset => {
+                if (asset.tokenLp.heterogeneousList && asset.tokenLp.heterogeneousList.find(item => item.chainName === this.fromNetwork)) {
+                  const currentAsset = asset.tokenLp.heterogeneousList && asset.tokenLp.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+                  if (currentAsset && currentAsset.contractAddress) {
+                    return currentAsset.contractAddress;
+                  }
+                  return TRON_TRX_ADDRESS;
+                }
+                return ''; // 占位
+              });
+              console.log(addresses, 'addresses');
+              const tempAddress = addresses.filter(item => item);
+              const addressIndex = addresses.map((item, index) => {
+                if (item) {
+                  return index;
+                }
+                return -1;
+              });
+              const tempAssetBalanceList = await this.getTronAssetBalances(batchQueryContract, fromAddress, tempAddress);
+              let currentIndex = -1;
+              assetBalanceList = addressIndex.map(item => {
+                if (item !== -1) {
+                  currentIndex += 1;
+                  return tempAssetBalanceList[currentIndex];
+                }
+                return '0';
+              });
+            } catch (e) {
+              console.log(e, 'error');
+            }
           }
           const tempPoolList = await Promise.all(tempFormatList.map(async(item, index) => ({
             ...item,
@@ -265,28 +292,15 @@ export default {
     async formatUserShare(i, balanceList, asset) {
       // TODO
       if (balanceList.length === 0) return 0;
-      if (this.fromNetwork === 'NERVE' || this.fromNetwork === 'NULS') {
+      if (this.chainType === 1) {
         return this.numberFormat(tofix(divisionDecimals(balanceList[i] && balanceList[i].balance || 0, asset.tokenLp.decimals), 2, -1), 2);
-      } else {
-        if (asset.tokenLp.heterogeneousList) {
+      } else if (this.chainType === 2) {
+        if (asset.tokenLp.heterogeneousList && asset.tokenLp.heterogeneousList.find(item => item.chainName === this.fromNetwork)) {
           return this.numberFormat(tofix(divisionDecimals(balanceList[i] && balanceList[i].balance || 0, balanceList[i].decimals), 2, -1), 2);
         }
         return 0;
-        // const transfer = new ETransfer({
-        //   chain: this.fromNetwork
-        // });
-        // if (asset.heterogeneousList) {
-        //   const currentAsset = asset.heterogeneousList && asset.heterogeneousList.find(item => item.chainName === this.fromNetwork);
-        //   if (currentAsset.contractAddress) {
-        //     const tempAvailable = await transfer.getERC20Balance(currentAsset.contractAddress, asset.decimals, this.fromAddress);
-        //     return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
-        //   } else {
-        //     const tempAvailable = await transfer.getEthBalance(this.fromAddress);
-        //     return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
-        //   }
-        // } else {
-        //   return 0;
-        // }
+      } else if (this.chainType === 3) {
+        return this.numberFormat(tofix(divisionDecimals(balanceList[i] || 0, asset.tokenLp.decimals), 2, -1), 2);
       }
     }
   }

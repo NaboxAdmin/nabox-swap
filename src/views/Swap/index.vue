@@ -92,6 +92,18 @@
               @focus="amountFocus($event)">
           </div>
         </div>
+        <div v-if="fromNetwork === 'TRON' && chooseToAsset && chooseToAsset.chain !== 'TRON' || fromNetwork !== 'TRON' && chooseToAsset && chooseToAsset.chain === 'TRON'" class="input_address-cont">
+          <div class="input-item align-items-center d-flex flex-1">
+            <input
+              v-model="toAddress"
+              :placeholder="networkPlaceholder"
+              type="text"
+              class="flex-1"
+              @focus="addressFocus($event)"
+              @input="addressInput">
+          </div>
+        </div>
+        <div v-if="addressError" class="text-red mt-2 ml-2 size-28">{{ addressError }}</div>
       </div>
       <div class="p-4">
         <div v-if="needAuth" class="btn size-30 cursor-pointer" @click="approveERC20">
@@ -248,9 +260,10 @@ import {
   supportChainList,
   Times,
   timesDecimals,
-  tofix, TRON
+  tofix,
+  TRON
 } from '@/api/util';
-import { crossFee, ETransfer } from '@/api/api';
+import { crossFee, ETransfer, validateAddress } from '@/api/api';
 import ISwap from './util/iSwap';
 import {
   contractBridgeConfig,
@@ -265,6 +278,7 @@ import NerveChannel, { feeRate } from './util/Nerve';
 import { swapAssetList } from './util/swapAssetList';
 import { getContractCallData } from '@/api/nulsContractValidate';
 import TronLink from '@/api/tronLink';
+import { validateNerveAddress } from '@/api/api';
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -338,7 +352,9 @@ export default {
       swapNerveAddress: '',
       swapNulsAddress: '',
       NULSContractGas: 0,
-      NULSContractTxData: null
+      NULSContractTxData: null,
+      toAddress: '', // 接收地址
+      addressError: '' // 地址错误提示
     };
   },
   computed: {
@@ -350,7 +366,8 @@ export default {
           !this.currentChannel ||
           this.btnErrorMsg ||
           this.showComputedLoading ||
-          this.amountMsg);
+          this.amountMsg || ((this.fromNetwork === 'TRON' && this.chooseToAsset && this.chooseToAsset.chain !== 'TRON' || this.fromNetwork !== 'TRON' && this.chooseToAsset && this.chooseToAsset.chain === 'TRON') && (!this.toAddress || this.addressError))
+      ); //  && !this.toAddress && this.addressError
     },
     currentChainId() {
       const supportChainList = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
@@ -360,6 +377,9 @@ export default {
     mainAssetSymbol() {
       const config = JSON.parse(sessionStorage.getItem('config'));
       return config[this.fromNetwork]['symbol'];
+    },
+    networkPlaceholder() {
+      return `${this.$t('tips.tips57')}${this.chooseToAsset && this.chooseToAsset.chain || 'TRON'}${this.$t('tips.tips58')}`;
     }
   },
   watch: {
@@ -486,6 +506,32 @@ export default {
       } else {
         this.swapPairTradeList = [];
       }
+    },
+    addressInput() {
+      if (this.chooseToAsset && this.toAddress) {
+        if (this.chooseToAsset.chain === 'NULS' && !validateNerveAddress(this.toAddress, 'NULS')) {
+          this.addressError = this.$t('tips.tips59');
+        } else if (this.chooseToAsset.chain === 'NERVE' && !validateNerveAddress(this.toAddress, 'NERVE')) {
+          console.log('2133', validateNerveAddress(this.toAddress, 'NERVE'));
+          this.addressError = this.$t('tips.tips59');
+        } else if (this.chooseToAsset.chain === 'TRON') {
+          const tron = new TronLink();
+          if (!tron.validAddress(this.toAddress)) {
+            this.addressError = this.$t('tips.tips59');
+          } else {
+            this.addressError = '';
+          }
+        } else if (this.chooseToAsset.chain !== 'NULS' && this.chooseToAsset.chain !== 'NERVE' && this.chooseToAsset.chain !== TRON && !validateAddress(this.toAddress)) {
+          this.addressError = this.$t('tips.tips59');
+        } else {
+          this.addressError = '';
+        }
+      } else {
+        this.addressError = '';
+      }
+    },
+    addressFocus(event) {
+      event.currentTarget.select();
     },
     // 滑点设置
     slippageInput() {
@@ -721,7 +767,7 @@ export default {
       const tempParams = {
         address: fromAddress,
         fromAsset: chooseFromAsset,
-        toAddress: this.currentAccount['address'][toChain] || this.currentAccount['address'][this.chainNameToId[toChain]] || '',
+        toAddress: this.toAddress || this.currentAccount['address'][toChain] || this.currentAccount['address'][this.chainNameToId[toChain]] || '',
         toAsset: chooseToAsset,
         fromNetwork,
         amountIn,
@@ -871,6 +917,10 @@ export default {
           } else if (this.chooseToAsset && this.inputType === 'amountOut' && this.amountOut) {
             this.amountIn = '';
             this.amountOutDebounce();
+          }
+          if (this.fromNetwork === 'TRON' && this.chooseToAsset && this.chooseToAsset.chain !== 'TRON' || this.fromNetwork !== 'TRON' && this.chooseToAsset && this.chooseToAsset.chain === 'TRON') {
+            this.toAddress = this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]] || '';
+            this.addressInput();
           }
           break;
         default:

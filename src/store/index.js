@@ -14,7 +14,8 @@ export default new Vuex.Store({
     isDapp: true,
     lang: 'en',
     isSwap: false,
-    nativeId: ''
+    nativeId: '',
+    showWalletList: false
   },
   mutations: {
     changeNativeId(state, data) {
@@ -45,6 +46,9 @@ export default new Vuex.Store({
     },
     changeSwap(state, data) {
       state.isSwap = data;
+    },
+    changeShowWalletList(state, data) {
+      state.showWalletList = data;
     }
   },
   getters: {
