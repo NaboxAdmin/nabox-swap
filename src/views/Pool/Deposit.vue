@@ -36,7 +36,7 @@
       <div class="account-info d-flex align-items-center size-28 text-90 cursor-pointer">
         <div @click.stop="showAccountList = !showAccountList">
           <span v-if="!currentType" class="text-primary">{{ $t('tips.tips54') }}</span>
-          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentAccount['address'][currentType] || currentAccount['address'][chainNameToId[currentType]])}${ $t('tips.tips47') }` }}</span>
+          <span v-else class="text-primary">{{ `${currentType}${ $t('tips.tips46') }${superLong(currentType==='TRON' && !addressError && toAddress || currentAccount['address'][currentType] || currentAccount['address'][chainNameToId[currentType]] || '')}${ $t('tips.tips47') }` }}</span>
         </div>
         <img class="drop_icon" src="../../assets/image/drop_grey.png" alt="">
         <div v-if="showAccountList" class="account-list bg-white">
@@ -360,7 +360,6 @@ export default {
           const tempLiquidityData = JSON.parse(sessionStorage.getItem('liquidityItem'));
           const tempRes = res.data.filter(item => item.pairAddress === tempLiquidityData.pairAddress);
           const tempData = this.fromNetwork === 'NERVE' ? tempRes : tempRes.filter(item => item.swapAssets.map(asset => asset.chain).indexOf(this.fromNetwork) > -1);
-          console.log(this.poolList.length === 0, 'this.poolList.length === 0');
           this.poolList = tempData.map(item => ({
             ...item,
             supportNetwork: item.swapAssets.map(asset => asset.chain),
@@ -699,7 +698,6 @@ export default {
         const params = [config[this.fromNetwork]['chainId'], this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId], tempParams];
         const res = await this.$post(url, 'getBalanceList', params);
         if (res.result && res.result.length !== 0) {
-          console.log(this.liquidityInfo.lpCoinList, 'this.liquidityInfo.lpCoinList');
           this.lpAssetsList = this.liquidityInfo.lpCoinList.map((item, index) => ({
             ...item,
             registerChain: item.chain,

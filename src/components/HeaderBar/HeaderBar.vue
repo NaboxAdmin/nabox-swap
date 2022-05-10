@@ -149,7 +149,7 @@
 import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
-import {copys, divisionDecimals, supportChainList, tofix, TRON} from '@/api/util';
+import { copys, divisionDecimals, supportChainList, tofix, TRON } from '@/api/util';
 import { MAIN_INFO } from '@/config';
 
 // eslint-disable-next-line no-unused-vars
@@ -363,7 +363,7 @@ export default {
             });
           }
         } else if (tempChain.chainType === 3) {
-          const TRONAddress = window.tronWeb.defaultAddress.base58;
+          const TRONAddress = window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58 || '';
           if (!window.tronWeb) {
             this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
             return;

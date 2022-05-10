@@ -582,6 +582,8 @@ export default {
               }
             }
             this.transferFee = crossInFee;
+          } else if (this.fromNetwork === 'NERVE') {
+            this.transferFee = '0NVT';
           } else { // 异构链跨链转入到NERVE
             this.transferFee = await this.getCrossInFee();
           }
@@ -589,6 +591,8 @@ export default {
           // NERVE跨链转出到NULS为默认手续费
           if (this.fromNetwork === 'NULS') {
             this.transferFee = nerveToNulsFee;
+          } else if (this.fromNetwork === 'NERVE') {
+            this.transferFee = '0NVT';
           } else { // NERVE跨链转出到异构链
             this.transferFee = await this.getCrossOutFee();
           }
@@ -779,6 +783,7 @@ export default {
     },
     // 异构链转入nerve手续费
     async getCrossInFee() {
+      console.log('31324135')
       const tempFromNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
       const assetHeterogeneousInfo = this.currentCoin && this.currentCoin.heterogeneousList.filter(
         (v) => v.chainName === tempFromNetwork

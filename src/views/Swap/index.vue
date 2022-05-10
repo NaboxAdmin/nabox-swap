@@ -489,8 +489,8 @@ export default {
     }, 0);
     this.getSwapAddress();
     this.getNerveLimitInfo();
-    this.getChanelConfig();
     this.initISwapConfig();
+    this.getChanelConfig();
   },
   beforeDestroy() {
     if (this.balanceTimer) clearInterval(this.balanceTimer);
@@ -1040,8 +1040,8 @@ export default {
       if (this.stableSwap) {
         if (this.currentChannel.channel === 'iSwap') {
           const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-          const currentLimitMax = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax) : limitAssetInfo.normalMax;
-          const currentLimitMin = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? limitAssetInfo && limitAssetInfo.normalMin : limitAssetInfo.normalMin;
+          const currentLimitMax = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax || limitAssetInfo.normalMax) : limitAssetInfo.normalMax;
+          const currentLimitMin = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.normalMin || limitAssetInfo.normalMin) : limitAssetInfo.normalMin;
           console.log(currentLimitMax, 'currentLimitMax', currentLimitMin, 'currentLimitMin');
           if (Minus(this.amountIn, currentLimitMin) < 0) {
             this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;

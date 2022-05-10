@@ -205,7 +205,7 @@ export function langNumber(nu, powerNu) {
  * @returns {*}
  */
 export function superLong(string, leng) {
-  if (string && string.length > 10) {
+  if (string && string.length > 18) {
     return string.substr(0, leng) + '....' + string.substr(string.length - leng, string.length);
   } else {
     return string;

@@ -241,7 +241,7 @@ export default {
                 if (this.fromNetwork !== 'NERVE') {
                   tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
                 } else {
-                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.nerveChainId !== this.fromAsset.nerveChainId && coin.assetId !== this.fromAsset.assetId));
+                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.assetId !== this.fromAsset.assetId));
                 }
               }
             } else {
@@ -293,11 +293,6 @@ export default {
               this.allList[i].balance = divisionDecimals(balanceData[i], asset.decimals);
               this.allList[i].showBalanceLoading = false;
             }
-            // TODO: 需要修改为批量查询（暂时使用循环查询）
-            // for (let i = 0; i < this.allList.length; i++) {
-            //   this.allList[i]['balance'] = await this.getTronAssetBalance(this.allList[i]);
-            //   this.allList[i]['showBalanceLoading'] = false;
-            // }
           } else {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';

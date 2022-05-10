@@ -239,7 +239,6 @@ export default {
     currentType: {
       handler(val) {
         if (val) {
-          console.log(this.originLpAssetList, 'this.originLpAssetList');
           if (val !== 'NERVE') {
             this.currentWithdrawAssetInfo = this.originLpAssetList.find(item => item.chain === val) || this.originLpAssetList[0];
             // this.lpAssetsList = this.originLpAssetList.filter(item => item.chain === val);
@@ -252,8 +251,7 @@ export default {
           this.countInputDebounce();
         }
       },
-      deep: true,
-      immediate: true
+      deep: true
     },
     currentWithdrawAssetInfo: {
       handler(val) {
@@ -308,7 +306,6 @@ export default {
       }
     },
     addressInput() {
-      console.log(this.currentType, this.toAddress, 'this.currentType')
       if (this.currentType && this.toAddress) {
         if (this.currentType === 'NULS' && !validateNerveAddress(this.toAddress, 'NULS')) {
           this.addressError = this.$t('tips.tips59');
@@ -358,7 +355,6 @@ export default {
             ...item,
             poolRate: tofix(Times(Division(item.myShare, item.totalLp), 100), 2, -1) || 0
           }));
-          console.log(this.poolList, 'this.poolList');
           const tempPoolItem = this.poolList.find(item => item.pairAddress === tempLiquidityData.pairAddress);
           sessionStorage.setItem('liquidityItem', JSON.stringify(tempPoolItem));
           await this.getLiquidityInfo(tempPoolItem, true);
@@ -659,6 +655,7 @@ export default {
         decimals: tempData.tokenLp.decimals,
         heterogeneousList: tempData.tokenLp.heterogeneousList
       };
+      this.originLpAssetList = this.liquidityInfo.lpCoinList || [];
       if (!this.currentWithdrawAssetInfo) {
         if (this.liquidityInfo.lpCoinList.length !== 0) {
           this.currentWithdrawAssetInfo = this.liquidityInfo.lpCoinList.length !== 0 && (this.liquidityInfo.lpCoinList.find(item => item.chain === currentNetwork) || this.liquidityInfo.lpCoinList[0]);
