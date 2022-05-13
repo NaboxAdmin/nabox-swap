@@ -378,6 +378,8 @@ export default {
             this.$store.commit('changeFromAddress', TRONAddress);
             this.$store.commit('changeNetwork', tempChain.chainName);
             window.location.reload();
+          } else {
+            window.location.reload();
           }
         }
       } catch (e) {

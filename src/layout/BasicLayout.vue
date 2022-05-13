@@ -266,6 +266,7 @@ export default {
             const currentChain = config.find(item => item.nativeId === this.nativeId);
             if (currentChain) {
               this.$store.commit('changeNetwork', currentChain.chain);
+              window.location.reload();
             } else {
               this.$store.commit('changeShowWalletList', true);
             }

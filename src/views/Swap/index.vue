@@ -1015,7 +1015,6 @@ export default {
     // 查看当前nerve通道流动性
     checkLpBalance() {
       if (this.chooseFromAsset && this.chooseToAsset) {
-        console.log('checkLpBalancecheckLpBalancecheckLpBalance');
         const pairAddress = this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'] && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '';
         const swapAssets = pairAddress && this.nerveLimitInfo.find(item => item.pairAddress === pairAddress).swapAssets || [];
         const swapMap = {};
@@ -1056,8 +1055,9 @@ export default {
         } else if (this.currentChannel.channel === 'NERVE' && this.nerveChainStableSwap) {
           await this.checkBalance();
         } else if (this.currentChannel.channel === 'NERVE') {
-          if (Minus(this.amountIn, 1) < 0) {
-            this.amountMsg = `${this.$t('tips.tips3')}${1}${this.chooseFromAsset.symbol}`;
+          if (Minus(this.amountIn, 0.001) < 0) {
+            this.amountMsg = `${this.$t('tips.tips3')}${0.001}${this.chooseFromAsset.symbol}`;
+            this.showComputedLoading = false;
           } else {
             await this.checkBalance();
           }
