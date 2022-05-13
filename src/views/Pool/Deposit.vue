@@ -63,17 +63,20 @@
       </div>
     </div>
     <!--fromNetwork === 'TRON' && currentType && currentType !== 'TRON' || -->
-    <div v-if="fromNetwork !== 'TRON' && currentType && currentType === 'TRON'" class="input_address-cont">
-      <div class="input-item align-items-center d-flex flex-1">
-        <input
-          v-model="toAddress"
-          :placeholder="networkPlaceholder"
-          type="text"
-          class="flex-1"
-          @focus="addressFocus($event)"
-          @input="addressInput">
+    <template v-if="fromNetwork !== 'TRON' && currentType && currentType === 'TRON'">
+      <div class="text-90 size-28 mt-5">{{ $t('tips.tips60') }}</div>
+      <div class="input_address-cont mt-1">
+        <div class="input-item align-items-center d-flex flex-1">
+          <input
+            v-model="toAddress"
+            :placeholder="networkPlaceholder"
+            type="text"
+            class="flex-1"
+            @focus="addressFocus($event)"
+            @input="addressInput">
+        </div>
       </div>
-    </div>
+    </template>
     <div v-if="addressError" class="text-red mt-2 ml-2 size-28">{{ addressError }}</div>
     <div class="mt-5">
       <template v-if="true">
@@ -781,7 +784,7 @@ export default {
         if (this.liquidityInfo.heterogeneousList) {
           const currentAsset = this.liquidityInfo.heterogeneousList && this.liquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
           if (currentAsset) {
-            currentAsset.decimals = this.liquidityInfo.decimals
+            currentAsset.decimals = this.liquidityInfo.decimals;
           }
           addedLiquidityBalance = currentAsset && await this.getTronAssetBalance(currentAsset) || 0;
         }
@@ -1209,7 +1212,6 @@ export default {
   //background-color: #F0F3F3;
   border: 1px solid #6EB6A9;
   border-radius: 20px;
-  margin-top: 50px;
   .input-item {
     input {
       border: none;
@@ -1220,6 +1222,9 @@ export default {
       background-color: transparent;
     }
   }
+}
+.mt-5 {
+  margin-top: 50px;
 }
 
 </style>

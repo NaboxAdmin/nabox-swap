@@ -92,18 +92,21 @@
               @focus="amountFocus($event)">
           </div>
         </div>
-        <div v-if="fromNetwork === 'TRON' && chooseToAsset && chooseToAsset.chain !== 'TRON' || fromNetwork !== 'TRON' && chooseToAsset && chooseToAsset.chain === 'TRON'" class="input_address-cont">
-          <div class="input-item align-items-center d-flex flex-1">
-            <input
-              v-model="toAddress"
-              :placeholder="networkPlaceholder"
-              type="text"
-              class="flex-1"
-              @focus="addressFocus($event)"
-              @input="addressInput">
+        <template v-if="fromNetwork === 'TRON' && chooseToAsset && chooseToAsset.chain !== 'TRON' || fromNetwork !== 'TRON' && chooseToAsset && chooseToAsset.chain === 'TRON'">
+          <div class="text-90 size-28 mt-5">{{ $t('tips.tips60') }}</div>
+          <div class="input_address-cont mt-2">
+            <div class="input-item align-items-center d-flex flex-1">
+              <input
+                v-model="toAddress"
+                :placeholder="networkPlaceholder"
+                type="text"
+                class="flex-1"
+                @focus="addressFocus($event)"
+                @input="addressInput">
+            </div>
           </div>
-        </div>
-        <div v-if="addressError" class="text-red mt-2 ml-2 size-28">{{ addressError }}</div>
+          <div v-if="addressError" class="text-red mt-2 ml-2 size-28">{{ addressError }}</div>
+        </template>
       </div>
       <div class="p-4">
         <div v-if="needAuth" class="btn size-30 cursor-pointer" @click="approveERC20">

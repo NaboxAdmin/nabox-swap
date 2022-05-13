@@ -58,7 +58,8 @@ const en = {
     tips56: 'Please log in to the plugin first',
     tips57: 'Please fill in the ',
     tips58: ' network receiving address',
-    tips59: 'Receive address format error'
+    tips59: 'Receive address format error',
+    tips60: 'The address to receive the asset'
   },
   swap: {
     swap1: 'From',

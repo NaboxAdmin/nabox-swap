@@ -35,7 +35,6 @@
   //background-color: #F0F3F3;
   border: 1px solid #6EB6A9;
   border-radius: 20px;
-  margin-top: 50px;
   .input-item {
     input {
       border: none;
@@ -102,6 +101,9 @@
     height: 100%;
     width: 100%;
   }
+}
+.mt-5 {
+  margin-top: 50px;
 }
 .swap-info {
   //margin-top: 82px;
