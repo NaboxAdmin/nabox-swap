@@ -1044,11 +1044,12 @@ export default {
           const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
           const currentLimitMax = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax || limitAssetInfo.normalMax) : limitAssetInfo.normalMax;
           const currentLimitMin = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.normalMin || limitAssetInfo.normalMin) : limitAssetInfo.normalMin;
-          console.log(currentLimitMax, 'currentLimitMax', currentLimitMin, 'currentLimitMin');
           if (Minus(this.amountIn, currentLimitMin) < 0) {
             this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
+            this.showComputedLoading = false;
           } else if (Minus(this.amountIn, currentLimitMax) > 0) {
             this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
+            this.showComputedLoading = false;
           } else {
             await this.checkBalance();
           }
