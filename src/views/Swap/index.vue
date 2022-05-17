@@ -1066,8 +1066,10 @@ export default {
       } else {
         if (Minus(this.currentChannel.usdtAmountIn, this.limitMin) < 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
           this.amountMsg = `${this.$t('tips.tips3')}$${this.limitMin}`;
+          this.showComputedLoading = false;
         } else if (Minus(this.currentChannel.usdtAmountIn, this.limitMax) > 0 && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
           this.amountMsg = `${this.$t('tips.tips4')}$${this.limitMax}`;
+          this.showComputedLoading = false;
         } else {
           await this.checkBalance();
         }
