@@ -91,7 +91,7 @@ export default {
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'],
+      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -120,7 +120,7 @@ export default {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKExChain', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'NULS', 'NERVE'];
             this.timer = setTimeout(() => {
               this.getSwapAssetList(this.picList[this.currentIndex]);
             }, 0);
