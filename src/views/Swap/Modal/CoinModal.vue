@@ -280,7 +280,7 @@ export default {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
             // TODO
-            const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]] || this.currentAccount['address'][this.chainNameToId[this.picList[this.currentIndex]]];
+            const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]] || this.currentAccount['address'][this.chainNameToId[this.picList[this.currentIndex]]] || 'TFtN2JUP5Zi1i487oZKLK25sPBTTSdYMWy';
             const addresses = this.allList.map(asset => {
               if (asset.contractAddress) {
                 return asset.contractAddress;

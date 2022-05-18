@@ -59,7 +59,8 @@ const en = {
     tips57: 'Please fill in the ',
     tips58: ' network receiving address',
     tips59: 'Receive address format error',
-    tips60: 'The address to receive the asset'
+    tips60: 'The address to receive the asset',
+    tips61: 'Please enter the receiving asset address'
   },
   swap: {
     swap1: 'From',

@@ -982,6 +982,9 @@ export default {
     },
     async amountInInput() {
       this.inputType = 'amountIn';
+      // if (this.chooseToAsset && this.chooseToAsset.chain === TRON && !this.toAddress) {
+      //   this.addressError = this.$t('tips.tips61');
+      // }
       if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && !this.availableLoading) {
         this.amountOut = '';
         this.btnErrorMsg = '';
@@ -1360,7 +1363,7 @@ export default {
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,
         fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.chainNameToId[this.fromNetwork]],
-        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]],
+        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]] || this.toAddress || 'TFtN2JUP5Zi1i487oZKLK25sPBTTSdYMWy',
         chainId: this.chooseFromAsset.chainId,
         assetId: this.chooseFromAsset.assetId,
         contractAddress: this.chooseFromAsset.contractAddress,
