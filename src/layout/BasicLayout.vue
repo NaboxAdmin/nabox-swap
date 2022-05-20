@@ -71,9 +71,9 @@ import { supportChainList, getCurrentAccount, TRON } from '@/api/util';
 import MetaMask from '@/assets/image/metamask.svg';
 import Nabox from '@/assets/image/nabox_wallet.svg';
 import TrustWallet from '@/assets/image/trustwallet.svg';
-import Tokenpocket from '@/assets/image/Tokenpocket.svg';
+import Tokenpocket from '@/assets/image/Tokenpocket.jpg';
 import Mathwallet from '@/assets/image/mathwallet.svg';
-import binancechain from '@/assets/image/trustwallet.svg';
+import binancechain from '@/assets/image/binancechain.svg';
 import OKEx from '@/assets/image/metax.jpg';
 import safepal from '@/assets/image/safepal.svg';
 import coin98 from '@/assets/image/coin98.svg';
@@ -168,7 +168,6 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return '';
-        // console.log(val, 'watch val');
         // !this.$store.state.isDapp && this.getOrderList(val);
         const currentAccount = getCurrentAccount(val);
         const config = JSON.parse(sessionStorage.getItem('config'));
