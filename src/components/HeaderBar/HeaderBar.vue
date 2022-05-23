@@ -6,7 +6,7 @@
         <img src="@/assets/image/SwapBox.svg" alt="">
       </div>
       <div class="address-cont d-flex align-items-center">
-        <div v-if="!showConnect && !showSign && address" class="address-detail pl-2 pr-2">
+        <div v-if="!showConnect && !showSign && address && walletType" class="address-detail pl-2 pr-2">
           <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
             <span class="chain-icon">
               <img v-lazy="currentChainInfo && currentChainInfo.icon || getPicture(fromNetwork)" v-if="!isL2Farm" alt="" @error="pictureError">
@@ -38,7 +38,7 @@
           </div>
         </div>
         <template>
-          <div v-if="!address" class="header-icon_position"/>
+          <div v-if="!address || !walletType" class="header-icon_position"/>
           <div v-else class="header-icon cursor-pointer" @click="showClick">
             <svg t="1626839125971" class="icon" viewBox="0 0 1170 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1764" width="16" height="16"><path d="M1097.142857 146.285714H73.142857a73.142857 73.142857 0 0 1 0-146.285714h1024a73.142857 73.142857 0 0 1 0 146.285714zM1097.142857 585.142857H73.142857a73.142857 73.142857 0 0 1 0-146.285714h1024a73.142857 73.142857 0 0 1 0 146.285714zM1097.142857 1024H73.142857a73.142857 73.142857 0 0 1 0-146.285714h1024a73.142857 73.142857 0 0 1 0 146.285714z" fill="#333333" p-id="1765"/></svg>
           </div>
@@ -142,6 +142,23 @@
           </div>
         </div>
       </pop-up>
+      <pop-up :prevent-boo="false" :show.sync="showTips">
+        <div class="address-detail_pop">
+          <div class="customer-p4">
+            <div class="icon-cont d-flex space-between">
+              <div class="font-500">{{ $t('tips.tips62') }}</div>
+              <span class="cursor-pointer" @click="showTips=false">
+                <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
+              </span>
+            </div>
+            <div class="mt-4">{{ $t('tips.tips63') }}</div>
+            <div class="pop-btn d-flex align-items-center space-between mt-4">
+              <div class="btn cursor-pointer" @click="showTips = false;">{{ $t("vaults.vaults7") }}</div>
+              <div class="btn btn_active cursor-pointer" @click="switchPlugin">{{ $t("tips.tips64") }}</div>
+            </div>
+          </div>
+        </div>
+      </pop-up>
     </div>
   </div>
 </template>
@@ -165,6 +182,10 @@ export default {
     headerColor: {
       type: String,
       default: '#ffffff'
+    },
+    walletType: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -191,7 +212,8 @@ export default {
       nerveChainSymbol: '',
       currentChainAvailable: 0,
       nerveChainAvailable: 0,
-      commonOrderList: [] // 普通交易
+      commonOrderList: [], // 普通交易
+      showTips: false
     };
   },
   computed: {
@@ -309,6 +331,12 @@ export default {
     }
   },
   methods: {
+    switchPlugin() {
+      localStorage.removeItem('walletType');
+      sessionStorage.removeItem('network');
+      this.showTips = false;
+      this.$emit('switchPlugin');
+    },
     toBrowser(network, address) {
       this.isMobile ? window.location.href = this.addressNetworkOrigin[network || this.fromNetwork] + address || this.address : window.open(this.addressNetworkOrigin[network || this.fromNetwork] + address || this.address);
     },
@@ -338,18 +366,25 @@ export default {
     },
     async chainClick(chain) {
       try {
-        console.log(chain);
         const walletType = localStorage.getItem('walletType') || 'ethereum';
         const tempChain = {
           ...chain
         };
         if (this.currentChain === tempChain.chainName) return;
         if (tempChain.chainName === 'NULS' || tempChain.chainName === 'NERVE' || tempChain.chainId === window[walletType].chainId) {
+          if (walletType === 'tronWeb') {
+            this.showTips = true;
+            return;
+          }
           this.currentChain = tempChain.chainName;
           this.$store.commit('changeNetwork', tempChain.chainName);
           this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
         } else if (tempChain.chainType === 2) {
+          if (walletType === 'tronWeb') {
+            this.showTips = true;
+            return;
+          }
           delete tempChain['icon'];
           delete tempChain['chainType'];
           if (tempChain.chainName !== 'Ethereum') {
@@ -364,24 +399,29 @@ export default {
             });
           }
         } else if (tempChain.chainType === 3) {
-          const TRONAddress = window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58 || '';
-          if (!window.tronWeb) {
-            this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
-            return;
-          } else if (!TRONAddress) {
-            this.$message({ message: this.$t('tips.tips56'), type: 'warning' });
+          if (walletType !== 'tronWeb') {
+            this.showTips = true;
             return;
           }
-          const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
-          if (res.code === 200) {
-            this.setTRONAddress(this.address, TRONAddress);
-            this.currentChain = tempChain.chainName;
-            this.$store.commit('changeFromAddress', TRONAddress);
-            this.$store.commit('changeNetwork', tempChain.chainName);
-            window.location.reload();
-          } else {
-            window.location.reload();
-          }
+          this.showTips = true;
+          // const TRONAddress = window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58 || '';
+          // if (!window.tronWeb) {
+          //   this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
+          //   return;
+          // } else if (!TRONAddress) {
+          //   this.$message({ message: this.$t('tips.tips56'), type: 'warning' });
+          //   return;
+          // }
+          // const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
+          // if (res.code === 200) {
+          //   this.setTRONAddress(this.address, TRONAddress);
+          //   this.currentChain = tempChain.chainName;
+          //   this.$store.commit('changeFromAddress', TRONAddress);
+          //   this.$store.commit('changeNetwork', tempChain.chainName);
+          //   window.location.reload();
+          // } else {
+          //   window.location.reload();
+          // }
         }
       } catch (e) {
         this.$message({

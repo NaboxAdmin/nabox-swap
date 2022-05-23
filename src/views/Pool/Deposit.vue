@@ -758,7 +758,7 @@ export default {
         const addedLiquidityBalance = this.fromNetwork === 'NERVE' ? await this.getNerveAssetBalance(params) : await this.getNulsAssetBalance(params);
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: addedLiquidityBalance
+          balance: this.numberFormat(tofix(addedLiquidityBalance, 2, -1), 2, -1)
         };
       } else if (this.chainType === 2) {
         const transfer = new ETransfer({
@@ -777,7 +777,7 @@ export default {
         }
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+          balance: this.numberFormat(tofix(addedLiquidityBalance, 2, -1), 2, -1)
         };
       } else if (this.chainType === 3) {
         let addedLiquidityBalance = 0;
@@ -790,7 +790,7 @@ export default {
         }
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+          balance: this.numberFormat(tofix(addedLiquidityBalance, 2, -1), 2, -1)
         };
       }
       this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;

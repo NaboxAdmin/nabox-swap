@@ -70,7 +70,7 @@ import { PopUp } from '@/components';
 import Progress from './Progress';
 import Over from './Over';
 import { currentNet, MAIN_INFO } from '@/config';
-import { divisionDecimals, Minus, timesDecimals, tofix, Times } from '@/api/util';
+import {divisionDecimals, Minus, timesDecimals, tofix, Times, TRON} from '@/api/util';
 import { ETransfer, NTransfer } from '@/api/api';
 
 const nerve = require('nerve-sdk-js');
@@ -160,6 +160,9 @@ export default {
     }
   },
   created() {
+    if (this.fromNetwork === TRON) {
+      this.$router.replace({ path: '/swap' });
+    }
     this.getFarmInfo(true);
     this.getTvlInfo();
     if (this.timer) {

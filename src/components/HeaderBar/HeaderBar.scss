@@ -235,3 +235,22 @@
     transform: rotate(359deg);
   }
 }
+.customer-p4 {
+  padding: 40px 40px 0 40px;
+}
+
+.btn {
+  width: 285px;
+  height: 88px;
+  line-height: 88px;
+  text-align: center;
+  font-size: 30px;
+  border: 1px solid #6EB6A9;
+  border-radius: 20px;
+  color: #6EB6A9;
+}
+.btn_active {
+  background: #6EB6A9;
+  border: none;
+  color: #FFFFFF;
+}

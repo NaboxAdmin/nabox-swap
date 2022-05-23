@@ -60,7 +60,10 @@ const en = {
     tips58: ' network receiving address',
     tips59: 'Receive address format error',
     tips60: 'The address to receive the asset',
-    tips61: 'Please enter the receiving asset address'
+    tips61: 'Please enter the receiving asset address',
+    tips62: 'Tips',
+    tips63: 'The current plugin does not support the selected chain, do you want to switch plugins?',
+    tips64: 'Confirm'
   },
   swap: {
     swap1: 'From',

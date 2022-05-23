@@ -197,7 +197,6 @@ export default {
     },
     async getTronAssetBalance(assetInfo) {
       const { contractAddress, decimals } = assetInfo;
-      console.log(decimals, 'decimals')
       const tron = new TronLink();
       if (contractAddress) {
         return await tron.getTrc20Balance(this.currentAccount && this.currentAccount['address'][TRON] || this.fromAddress, contractAddress, decimals);
@@ -270,7 +269,6 @@ export default {
       const l2Length = l2HashList.length;
       let tempArr = [...l1HashList];
       let tempL2Arr = [...l2HashList];
-      console.log(data, 'datatata');
       if (data.type === 'L1') {
         if (l1Length < 100) {
           tempArr.unshift(data);

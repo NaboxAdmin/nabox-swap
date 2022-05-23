@@ -6,8 +6,10 @@
       :current-account="currentAccount"
       :show-connect="showConnect"
       :header-color="typeBoolean && '#6EB6A9' || '#ffffff'"
+      :wallet-type="walletType"
       @changeChainId="changeChainId"
       @disConnect="disConnect"
+      @switchPlugin="walletType=''"
       @derivedAddress="derivedAddress"
       @swapClick="swapClick"
       @transferClick="transferClick"
@@ -16,8 +18,8 @@
       @airdropClick="airdropClick"
       @l1FarmClick="l1FarmClick"
       @l2FarmClick="l2FarmClick">
-      <div v-loading="loading" v-if="isDapp && (showSign || showConnect || !fromAddress)" class="connect-item">
-        <div v-if="showConnect" class="wallet-cont size-36 font-500">
+      <div v-loading="loading" v-if="isDapp && (showSign || !address || !walletType)" class="connect-item">
+        <div v-if="!walletType || !address" class="wallet-cont size-36 font-500">
           <div class="mb-3 font-bold">{{ $t("tips.tips12") }}</div>
           <div class="wallet-item d-flex align-items-center">
             <div v-for="(item, index) in providerList" :key="index" class="item-detail mb-3 cursor-pointer d-flex align-items-center" @click="connectProvider(item.provider)">
@@ -27,34 +29,8 @@
               <span class="ml-2 size-28 font-bold">{{ item.name }}</span>
             </div>
           </div>
-          <!--          <div class="follow-cont d-flex direction-column align-items-center">-->
-          <!--            <div class="follow-item" @click="toUrl('twitter')">-->
-          <!--              <span class="mr-3">-->
-          <!--                <img src="@/assets/image/twitter.png" alt="">-->
-          <!--              </span>-->
-          <!--              <div>Twitter</div>-->
-          <!--            </div>-->
-          <!--            <div class="follow-item" @click="toUrl('medium')">-->
-          <!--              <span class="mr-3">-->
-          <!--                <img src="@/assets/image/medium.png" alt="">-->
-          <!--              </span>-->
-          <!--              <div>Medium</div>-->
-          <!--            </div>-->
-          <!--            <div class="follow-item" @click="toUrl('telegram')">-->
-          <!--              <span class="mr-3">-->
-          <!--                <img src="@/assets/image/telegram.png" alt="">-->
-          <!--              </span>-->
-          <!--              <div>Telegram</div>-->
-          <!--            </div>-->
-          <!--            <div class="follow-item" @click="toUrl('Discord')">-->
-          <!--              <span class="mr-3">-->
-          <!--                <img src="@/assets/image/discord.png" alt="">-->
-          <!--              </span>-->
-          <!--              <div>Discord</div>-->
-          <!--            </div>-->
-          <!--          </div>-->
         </div>
-        <div v-else-if="!showConnect && showSign" class="sign-btn" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
+        <div v-else-if="showSign" class="sign-btn" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
       </div>
       <keep-alive v-else include="swap">
         <router-view />
@@ -80,6 +56,7 @@ import coin98 from '@/assets/image/coin98.svg';
 import bitkeep from '@/assets/image/bitkeep.jpg';
 import tronLinkWallet from '@/assets/image/tronLink.png';
 import ONTO from '@/assets/image/ONTO.jpg';
+import TronLinkApi, { generateTronAddress } from '@/api/tronLink';
 
 const ethers = require('ethers');
 
@@ -91,7 +68,7 @@ const NaboxProvider = 'NaboxWallet';
 const OKExProvider = 'okexchain';
 const BSCProvider = 'BinanceChain';
 const ONTOProvider = 'onto';
-// const TRONProvider = 'tronWeb';
+const TRONProvider = 'tronWeb';
 export default {
   name: 'BasicLayout',
   components: { HeaderBar },
@@ -99,7 +76,7 @@ export default {
     this.providerList = [
       { name: 'MetaMask', src: MetaMask, provider: MetaMaskProvider },
       { name: 'Nabox', src: Nabox, provider: NaboxProvider },
-      // { name: 'tronLink', src: tronLinkWallet, provider: TRONProvider },
+      { name: 'tronLink', src: tronLinkWallet, provider: TRONProvider },
       { name: 'Trust Wallet', src: TrustWallet, provider: MetaMaskProvider },
       { name: 'TokenPocket', src: Tokenpocket, provider: MetaMaskProvider },
       { name: 'MathWallet', src: Mathwallet, provider: MetaMaskProvider },
@@ -134,7 +111,7 @@ export default {
       address: '',
       provider: '',
       loading: false, // 加载
-      walletType: localStorage.getItem('walletType') || 'ethereum', // 钱包类型（metamask）
+      walletType: localStorage.getItem('walletType') || '', // 钱包类型（metamask）
       // isDapp: true,
       fromChainId: '',
       orderList: [], // 订单列表
@@ -173,7 +150,7 @@ export default {
         const config = JSON.parse(sessionStorage.getItem('config'));
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
-        // console.log(chainLength, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
+        // console.log(chainLength, currentAccount, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
         // this.showSign = !chainLength || chainLength !== addressListLength;
         this.$store.commit('changeFromAddress', val);
         this.$store.commit('changeShowConnect', false);
@@ -211,7 +188,7 @@ export default {
       }
       localStorage.setItem('accountList', JSON.stringify(accountList));
     }
-    this.initConnect();
+    this.initConnect(true, this.walletType);
     if (this.address && getCurrentAccount(this.address)) {
       this.refreshWallet();
       // this.getOrderList()
@@ -255,22 +232,12 @@ export default {
   },
   methods: {
     messageListener(e) {
-      // console.log(e.data.message, this.fromAddress, this.fromChainId, 'e.data.message');
-      // setAccount
-      // e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb'
-      if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb')) {
+      if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb' || e.data.message.action === 'disconnect' || e.data.message.action === 'connect')) {
         if (this.fromNetwork === TRON) {
-          if (!window.tronLink.ready) {
-            const config = Object.values(JSON.parse(sessionStorage.getItem('config')));
-            const currentChain = config.find(item => item.nativeId === this.nativeId);
-            if (currentChain) {
-              this.$store.commit('changeNetwork', currentChain.chain);
-              window.location.reload();
-            } else {
-              this.$store.commit('changeShowWalletList', true);
-            }
-          } else if (e.data.message.data.address || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb') {
-            this.setTRONAddress(this.address, e.data.message.data.address);
+          if (!window.tronLink.ready || e.data.message.action === 'disconnect') {
+            localStorage.removeItem('walletType');
+            window.location.reload();
+          } else if ((e.data.message.data && e.data.message.data.address) || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb' || e.data.message.action === 'connect') {
             window.location.reload();
           }
         }
@@ -321,16 +288,31 @@ export default {
       const orderId = id;
       this.$router.push({ path: '/orderDetail', query: { orderId }});
     },
-    initConnect() {
-      if (!this.walletType) {
+    initConnect(isInit, provider) {
+      if (!provider) {
         this.loading = false;
         return;
       }
-      this.initMetamask();
+      if (provider === 'tronWeb') {
+        if (!window.tronWeb.ready) {
+          !isInit && this.$message.warning(this.$t('tips.tips56'));
+          this.address = null;
+          return;
+        }
+        if (window[provider].defaultAddress.base58) {
+          this.address = window.tronWeb.defaultAddress.base58;
+          this.$store.commit('changeNetwork', TRON);
+          this.walletType = provider;
+          localStorage.setItem('walletType', 'tronWeb');
+        }
+      } else {
+        this.initMetamask(provider);
+      }
     },
     // 初始化metamask wallet provider address
-    async initMetamask() {
-      const walletType = localStorage.getItem('walletType') || this.walletType;
+    async initMetamask(provider) {
+      const walletType = localStorage.getItem('walletType') || provider;
+      this.walletType = provider;
       this.wallet = window[walletType];
       this.fromChainId = this.wallet.chainId;
       this.address = this.wallet.selectedAddress || this.wallet.address;
@@ -347,8 +329,7 @@ export default {
       }
       this.$store.commit('changeNativeId', chain && chain.nativeId || 1);
       this.provider = new ethers.providers.Web3Provider(window[walletType]);
-      // this.showConnect = false;
-      this.$store.commit('changeShowConnect', false);
+      // this.$store.commit('changeShowConnect', false);
       this.listenAccountChange();
       this.listenNetworkChange();
     },
@@ -372,18 +353,19 @@ export default {
           window.location.reload();
         } else {
           this.address = '';
-          this.$store.commit('changeShowConnect', true);
+          // this.$store.commit('changeShowConnect', true);
         }
       });
     },
     disConnect() {
       localStorage.removeItem('accountList');
-      sessionStorage.removeItem('walletType');
+      localStorage.removeItem('walletType');
       sessionStorage.removeItem('network');
       this.$store.commit('changeShowSign', true);
-      this.$store.commit('changeShowConnect', true);
+      // this.$store.commit('changeShowConnect', true);
       window.location.hash.indexOf('swap') === -1 && this.$router.push({ path: '/' });
       this.address = '';
+      this.walletType = '';
     },
     // 监听网络改变
     listenNetworkChange() {
@@ -398,13 +380,14 @@ export default {
       });
     },
     async connectProvider(provider) {
-      const tempProvider = this.isMobile ? 'ethereum' : provider;
+      const tempProvider = this.isMobile && provider !== 'tronWeb' ? 'ethereum' : provider;
       if (!window[tempProvider]) {
         this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
         return;
       }
+      // this.walletType = tempProvider;
       localStorage.setItem('walletType', tempProvider);
-      await this.initMetamask();
+      await this.initConnect(false, provider);
     },
     async syncAccount(pub, accounts, chainList) {
       const addressList = [];
@@ -426,19 +409,15 @@ export default {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const networkList = Object.values(config).filter(item => item.chainType === 2).map(item => item.nativeId);
       const chainList = Object.values(config).filter(item => item.chainType === 2).map(item => item.chain);
-      console.log(networkList, 'networkList');
       try {
-        if (!this.address) {
-          await this.requestAccounts();
-        }
+        // if (!this.address) {
+        //   await this.requestAccounts();
+        // }
         let account, pub;
-        if (!this.address.startsWith('0x')) {
-          if (!window.nabox) {
-            throw 'Nabox not found';
-          }
-          pub = await window.nabox.getPub({
-            address: this.address
-          });
+        if (this.walletType === 'tronWeb') {
+          const tron = new TronLinkApi();
+          const message = 'Generate L2 Address';
+          pub = await tron.getPubBySign(message);
           const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
           const addressMap = {};
           for (const item of networkList) {
@@ -448,10 +427,10 @@ export default {
             address: addressMap
           };
         } else {
-          const jsonRpcSigner = this.provider.getSigner();
-          const message = 'Generate L2 Address';
-          const signature = await jsonRpcSigner.signMessage(message);
-          if (localStorage.getItem('walletType') === 'NaboxWallet') {
+          if (!this.address.startsWith('0x')) {
+            if (!window.nabox) {
+              throw 'Nabox not found';
+            }
             pub = await window.nabox.getPub({
               address: this.address
             });
@@ -464,27 +443,44 @@ export default {
               address: addressMap
             };
           } else {
-            const msgHash = ethers.utils.hashMessage(message);
-            const msgHashBytes = ethers.utils.arrayify(msgHash);
-            const recoveredPubKey = ethers.utils.recoverPublicKey(
-              msgHashBytes,
-              signature
-            );
-            const addressMap = {};
-            for (const item of networkList) {
-              addressMap[item] = this.address;
-            }
-            account = {
-              address: addressMap
-            };
-            if (recoveredPubKey.startsWith('0x04')) {
-              const compressPub = ethers.utils.computePublicKey(
-                recoveredPubKey,
-                true
-              );
-              pub = compressPub.slice(2);
+            const jsonRpcSigner = this.provider.getSigner();
+            const message = 'Generate L2 Address';
+            const signature = await jsonRpcSigner.signMessage(message);
+            if (localStorage.getItem('walletType') === 'NaboxWallet') {
+              pub = await window.nabox.getPub({
+                address: this.address
+              });
+              const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
+              const addressMap = {};
+              for (const item of networkList) {
+                addressMap[item] = address;
+              }
+              account = {
+                address: addressMap
+              };
             } else {
-              throw 'sign error';
+              const msgHash = ethers.utils.hashMessage(message);
+              const msgHashBytes = ethers.utils.arrayify(msgHash);
+              const recoveredPubKey = ethers.utils.recoverPublicKey(
+                msgHashBytes,
+                signature
+              );
+              const addressMap = {};
+              for (const item of networkList) {
+                addressMap[item] = this.address;
+              }
+              account = {
+                address: addressMap
+              };
+              if (recoveredPubKey.startsWith('0x04')) {
+                const compressPub = ethers.utils.computePublicKey(
+                  recoveredPubKey,
+                  true
+                );
+                pub = compressPub.slice(2);
+              } else {
+                throw 'sign error';
+              }
             }
           }
         }
@@ -495,7 +491,6 @@ export default {
           assetId: NULSAssetId,
           prefix: NULSPrefix
         } = NULS_INFO;
-        // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
         // 根据公钥获取NERVE和NULS的地址
         if (Object.keys(config).indexOf('NERVE') !== -1) {
           chainList.push('NERVE');
@@ -515,10 +510,10 @@ export default {
             NULSPrefix
           );
         }
-        if (this.fromNetwork === TRON && window.tronWeb && window.tronWeb.defaultAddress.base58) {
-          account.address.TRON = window.tronWeb.defaultAddress.base58;
-        } else if (Object.keys(config).indexOf(TRON) !== -1) {
-          account.address.TRON = '';
+        if (this.walletType === 'tronWeb') {
+          account.address.TRON = this.address;
+        } else {
+          account.address.TRON = generateTronAddress(pub);
         }
         const accountList = getAccountList();
         const existIndex = accountList.findIndex(v => v.pub === account.pub);
@@ -541,7 +536,7 @@ export default {
           localStorage.setItem('accountList', JSON.stringify(accountList));
           // 重新计算fromAddress
           const address = this.address;
-          this.switchNetwork(address);
+          // this.switchNetwork(address);
           this.address = '';
           // this.showSign = true;
           this.$store.commit('changeShowSign', false);
@@ -557,9 +552,8 @@ export default {
         }
       } catch (e) {
         console.log(e, 'error');
-        this.address = '';
         this.$message({
-          message: e || this.$t('tips.tips22'),
+          message: e.message || e || this.$t('tips.tips22'),
           type: 'warning',
           offset: 30
         });

@@ -714,7 +714,7 @@ export default {
         const addedLiquidityBalance = this.fromNetwork === 'NERVE' ? await this.getNerveAssetBalance(params) : await this.getNulsAssetBalance(params);
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: addedLiquidityBalance // this.numberFormat(addedLiquidityBalance, 6, -1)
+          balance: this.numberFormat(tofix(addedLiquidityBalance, 6, -1), 6, -1) // this.numberFormat(addedLiquidityBalance, 6, -1)
         };
         this.userAvailable = addedLiquidityBalance;
         this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
@@ -740,7 +740,7 @@ export default {
         this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+          balance: this.numberFormat(tofix(addedLiquidityBalance, 6, -1), 6, -1)
         };
       } else if (this.chainType === 3) {
         let addedLiquidityBalance = 0;
@@ -755,7 +755,7 @@ export default {
         this.addedBalance = this.numberFormat(tofix(addedLiquidityBalance, 4, -1), 4);
         this.addedLiquidityInfo = {
           ...this.liquidityInfo,
-          balance: this.numberFormat(addedLiquidityBalance, 4, -1)
+          balance: this.numberFormat(tofix(addedLiquidityBalance, 6, -1), 6, -1)
         };
       }
       this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;

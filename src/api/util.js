@@ -585,7 +585,7 @@ export function genID() {
 export function getCurrentAccount(address) {
   const accountList = JSON.parse(localStorage.getItem('accountList')) || [];
   return accountList.find(account => {
-    return Object.keys(account.address).find(item => account.address[item] === address);
+    return Object.keys(account.address).find(item => account.address[item].toLocaleLowerCase() === address.toLocaleLowerCase());
   });
 }
 
@@ -717,7 +717,7 @@ export function setChainConfig(chainConfig) {
           label: item.chain,
           value: item.chain,
           chain: item.chain,
-          chainName: item.chainName,
+          chainName: item.chain,
           chainType: item.chainType,
           icon: item.icon,
           symbol: item.mainAsset && item.mainAsset.symbol || '',
@@ -739,7 +739,7 @@ export function setChainConfig(chainConfig) {
           label: item.chain,
           value: item.chain,
           chain: item.chain,
-          chainName: item.chainName,
+          chainName: item.chain,
           chainType: item.chainType,
           icon: item.icon,
           symbol: item.mainAsset && item.mainAsset.symbol || '',
@@ -752,8 +752,8 @@ export function setChainConfig(chainConfig) {
           nativeId: item.nativeId || '',
           // rpcUrl: networkRpc[item.chain],
           origin: item.scanUrl,
-          hashLink: `${item.scanUrl}/#/transaction/`,
-          addressLink: `${item.scanUrl}/#/address/`,
+          hashLink: `${item.scanUrl}/transaction/`,
+          addressLink: `${item.scanUrl}/address/`,
           sort: item.sort
         };
       }

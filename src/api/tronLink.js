@@ -159,6 +159,12 @@ class TronLinkApi {
     return tronWeb.address.toHex(address);
   }
 
+  fromHex(address) {
+    if (!address) return true;
+    const tronWeb = this.getTronWeb();
+    return tronWeb.address.fromHex(address);
+  }
+
   async getBalances(multiCallAddress, user, tokens) {
     const tronWeb = this.getTronWeb();
     const funABI = {
@@ -415,10 +421,27 @@ class TronLinkApi {
     return Math.ceil(nvtAmount);
   }
 
-  async getTxInfo(hash) {
+  async getPubBySign(message) {
     const tronWeb = this.getTronWeb();
-    const res = await tronWeb.trx.getTransaction(hash);
-    console.log(res, 666666666);
+    const messageHex = tronWeb.toHex(message);
+    const signature = await tronWeb.trx.sign(messageHex);
+    const TRX_MESSAGE_HEADER = '\x19TRON Signed Message:\n32';
+    const messageBytes = [
+      ...ethers.utils.toUtf8Bytes(TRX_MESSAGE_HEADER),
+      ...ethers.utils.arrayify(messageHex)
+    ];
+    const msgHash = ethers.utils.keccak256(messageBytes);
+    const msgHashBytes = ethers.utils.arrayify(msgHash);
+    const recoveredPubKey = ethers.utils.recoverPublicKey(
+      msgHashBytes,
+      signature
+    );
+    if (recoveredPubKey.startsWith('0x04')) {
+      const compressPub = ethers.utils.computePublicKey(recoveredPubKey, true);
+      return compressPub.slice(2);
+    } else {
+      throw 'Sign error';
+    }
   }
 }
 

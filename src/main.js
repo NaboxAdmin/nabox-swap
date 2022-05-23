@@ -83,7 +83,6 @@ async function getConfig(network, refresh) {
     const res = await request({ url: '/chain/configs', method: 'get' });
     if (res.code === 1000 && res.data) {
       const tempData = res.data.filter(item => item.swap == 1);
-      console.log(tempData, 'tempData');
       setChainConfig(tempData);
       network === 'beta' ? localStorage.setItem('localBetaChainConfig', JSON.stringify(tempData)) : localStorage.setItem('localChainConfig', JSON.stringify(tempData));
     } else {

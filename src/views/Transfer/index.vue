@@ -236,6 +236,9 @@ export default {
     }
   },
   created() {
+    if (this.fromNetwork === TRON) {
+      this.$router.replace({ path: '/swap' });
+    }
     !this.toNerve && this.getMainAssetInfo();
     this.getTransferAsset();
   },

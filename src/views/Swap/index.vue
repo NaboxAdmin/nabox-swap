@@ -482,7 +482,10 @@ export default {
       this.fromContractAddress = this.$route.query.fromContractAddress;
       this.toContractAddress = this.$route.query.toContractAddress;
     }
-    this.iSwap = new ISwap({ chain: this.fromNetwork });
+    if (this.fromNetwork !== TRON) {
+      this.iSwap = new ISwap({ chain: this.fromNetwork });
+      this.initISwapConfig();
+    }
     if (this.fromNetwork === 'NERVE') {
       this.getNerveSwapPairTrade();
     }
@@ -492,7 +495,6 @@ export default {
     }, 0);
     this.getSwapAddress();
     this.getNerveLimitInfo();
-    this.initISwapConfig();
     this.getChanelConfig();
   },
   beforeDestroy() {
@@ -1183,7 +1185,7 @@ export default {
             }
             return null;
             // TODO: 修改为tempDODO => DODO
-          } else if (item.channel === 'DODO') {
+          } else if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE') {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
               return {
@@ -1288,7 +1290,7 @@ export default {
           return null;
         }));
         this.getChannelBool = true;
-        console.log(tempChannelConfig, 'tempChannelConfig');
+        // console.log(tempChannelConfig, 'tempChannelConfig');
         // this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
@@ -1333,6 +1335,9 @@ export default {
     },
     // 获取iSwap Bridge费率信息
     async getBridgeEstimateFeeInfo() {
+      if (this.fromNetwork === TRON) {
+        return null;
+      }
       const config = JSON.parse(sessionStorage.getItem('config'));
       const toMainAssetSymbol = config[this.chooseToAsset.chain].symbol;
       const bridgeFeeInfoParams = {
@@ -1375,14 +1380,6 @@ export default {
         pairAddress: this.chooseFromAsset.channelInfo['NERVE'].pairAddress
       };
       return await NerveSwap.getNerveEstimateFeeInfo(params);
-    },
-    async _getNerveStableSwapFeeInfo() {
-      const NerveSwap = new NerveChannel({
-        chooseFromAsset: this.chooseFromAsset,
-        chooseToAsset: this.chooseToAsset,
-        swapPairTradeList: this.swapPairTradeList
-      });
-      return await NerveSwap.getNerveStableSwapFeeInfo();
     },
     /**
      * 根据chain获取当前最优的dex
