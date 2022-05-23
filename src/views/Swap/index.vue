@@ -558,6 +558,7 @@ export default {
     async checkAssetAuthStatus() {
       const contractAddress = this.chooseFromAsset.contractAddress;
       const authContractAddress = this.getAuthContractAddress();
+      console.log(authContractAddress, 'authContractAddress')
       if (this.chooseFromAsset.contractAddress && this.chainType === 2) {
         const transfer = new ETransfer();
         this.needAuth = await transfer.getERC20Allowance(
@@ -655,9 +656,9 @@ export default {
       let authContractAddress;
       const config = JSON.parse(sessionStorage.getItem('config'));
       if (this.currentChannel.channel === 'iSwap' && !this.stableSwap) {
-        authContractAddress = contractConfig[this.fromNetwork];
+        authContractAddress = contractConfig[this.nativeId];
       } else if (this.currentChannel.channel === 'iSwap' && this.stableSwap) {
-        authContractAddress = contractBridgeConfig[this.fromNetwork];
+        authContractAddress = contractBridgeConfig[this.nativeId];
       } else if (this.currentChannel.channel === 'NERVE') {
         authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       } else if (this.currentChannel.channel === 'DODO') {

@@ -358,7 +358,7 @@ export default {
       });
     },
     disConnect() {
-      localStorage.removeItem('accountList');
+      // localStorage.removeItem('accountList');
       localStorage.removeItem('walletType');
       sessionStorage.removeItem('network');
       this.$store.commit('changeShowSign', true);

@@ -583,6 +583,7 @@ export function genID() {
 }
 
 export function getCurrentAccount(address) {
+  if (!address) return null;
   const accountList = JSON.parse(localStorage.getItem('accountList')) || [];
   return accountList.find(account => {
     return Object.keys(account.address).find(item => account.address[item].toLocaleLowerCase() === address.toLocaleLowerCase());
