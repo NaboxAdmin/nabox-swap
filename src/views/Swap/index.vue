@@ -442,7 +442,7 @@ export default {
     },
     currentChannel: {
       async handler(newVal) {
-        console.log(newVal, 'newVal');
+        // console.log(newVal, 'newVal');
         if (newVal) {
           this.needAuth = false;
           this.approvingLoading = false;
@@ -633,7 +633,7 @@ export default {
         console.log(e, 'error');
         this.$message({
           type: 'warning',
-          message: e.message,
+          message: e.message || e,
           offset: 30
         });
         this.showApproveLoading = false;

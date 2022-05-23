@@ -1171,7 +1171,7 @@ export default {
         this.transferLoading = false;
       } catch (e) {
         console.log(e);
-        this.$message.warning({ message: e.message, offset: 30 });
+        this.$message.warning({ message: e.message || e, offset: 30 });
         this.transferLoading = false;
       }
     },

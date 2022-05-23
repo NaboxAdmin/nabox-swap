@@ -476,7 +476,7 @@ export default {
         this.withDrawLoading = false;
       } catch (e) {
         console.log(e, 'error');
-        this.$message.warning({ message: e.message, offset: 30 });
+        this.$message.warning({ message: e.message || e, offset: 30 });
         this.withDrawLoading = false;
       }
     },
