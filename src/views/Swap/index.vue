@@ -726,6 +726,15 @@ export default {
         } else {
           this.originChannelConfigList = localChannelList;
           this.channelConfigList = localChannelList;
+          const res = await this.$request({
+            url: '/swap/channel',
+            method: 'get'
+          });
+          if (res.code === 1000 && res.data) {
+            localStorage.setItem('channelConfig', JSON.stringify(res.data));
+            this.originChannelConfigList = res.data;
+            this.channelConfigList = res.data;
+          }
         }
       } catch (e) {
         this.originChannelConfigList = localChannelList;

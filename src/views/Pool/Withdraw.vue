@@ -960,14 +960,29 @@ export default {
     },
     // 记录一次交易hash
     async recordHash(orderId, hash) {
-      const params = {
-        orderId,
-        txHash: hash
-      };
-      await this.$request({
-        url: '/swap/lp/tx/hash/update',
-        data: params
-      });
+      try {
+        const params = {
+          orderId,
+          txHash: hash
+        };
+        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+        const res = await this.$request({
+          url: '/swap/lp/tx/hash/update',
+          data: params
+        });
+        if (res.code !== 1000) {
+          hashList.push(params);
+          localStorage.setItem('hashList', JSON.stringify(hashList));
+        }
+      } catch (e) {
+        const params = {
+          orderId,
+          txHash: hash
+        };
+        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+        hashList.push(params);
+        localStorage.setItem('hashList', JSON.stringify(hashList));
+      }
     },
     // 获取当前选择撤出的资产余额
     async getChainAssetBalance(chain, assetList) {

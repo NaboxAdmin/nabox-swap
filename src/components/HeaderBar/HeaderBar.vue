@@ -315,7 +315,9 @@ export default {
   created() {
     if (this.statusTimer) clearInterval(this.statusTimer);
     this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
+    this.fromAddress && this.currentAccount && this.updateOrderHash();
     this.statusTimer = setInterval(() => {
+      this.fromAddress && this.currentAccount && this.updateOrderHash();
       this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     }, 5000);
   },
@@ -549,6 +551,58 @@ export default {
         this.showLoading = tempList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
       } catch (e) {
         console.log(e);
+      }
+    },
+    async updateOrderHash() {
+      console.log('==updateOrderHash==');
+      const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+      await Promise.all(hashList.map(async order => {
+        const orderInfo = await this.getOrderDetail(order.orderId, 3);
+        if (orderInfo.swapType && orderInfo.status == 0 && !orderInfo.txHash) {
+          console.log('2135435')
+          await this.recordHash(order, 3);
+        } else if (orderInfo.lpType && orderInfo.status == 0 && !orderInfo.txHash) {
+          await this.recordHash(order, 2);
+        }
+      }));
+    },
+    async recordHash(data, type) {
+      try {
+        const url = type == 3 ? '/swap/tx/hash/update' : '/swap/lp/tx/hash/update';
+        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+        const res = await this.$request({
+          url,
+          data
+        });
+        if (res.code === 1000) {
+          const hashIndex = hashList.findIndex(item => item.orderId === data.orderId);
+          hashList.splice(hashIndex, 1);
+          localStorage.setItem('hashList', JSON.stringify(hashList));
+        }
+      } catch (e) {
+        console.log(e, 'error');
+      }
+    },
+    async getOrderDetail(orderId, type) {
+      const params = {
+        orderId
+      };
+      if (type == 3) {
+        const res = await this.$request({
+          url: '/swap/tx/orderId',
+          data: params
+        });
+        if (res.code === 1000) {
+          return res.data;
+        }
+      } else {
+        const res = await this.$request({
+          url: '/swap/lp/tx/orderId',
+          data: params
+        });
+        if (res.code === 1000) {
+          return res.data;
+        }
       }
     },
     async getTxStatus() {

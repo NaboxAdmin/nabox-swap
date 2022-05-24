@@ -210,7 +210,6 @@ export default {
       } else {
         tempData = window._naboxAccount;
       }
-      console.log(localStorage.getItem('walletType'), 'localStorage.getItem(\'walletType\')');
       if (!localStorage.getItem('walletType')) {
         sessionStorage.removeItem('network');
       } else {
@@ -305,7 +304,9 @@ export default {
       if (provider === 'tronWeb') {
         if (!window.tronWeb.ready) {
           !isInit && this.$message.warning(this.$t('tips.tips56'));
-          this.address = '';
+          setTimeout(() => {
+            this.address = window[provider].defaultAddress.base58 || '';
+          }, 100);
           return;
         }
         if (window[provider].defaultAddress.base58) {
