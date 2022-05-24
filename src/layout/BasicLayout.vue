@@ -111,7 +111,7 @@ export default {
       address: '',
       provider: '',
       loading: false, // 加载
-      walletType: localStorage.getItem('walletType') || '', // 钱包类型（metamask）
+      walletType: localStorage.getItem('walletType'), // 钱包类型（metamask）
       // isDapp: true,
       fromChainId: '',
       orderList: [], // 订单列表
@@ -159,35 +159,7 @@ export default {
     }
   },
   created() {
-    let tempData;
-    if (typeof window._naboxAccount === 'string') {
-      tempData = window._naboxAccount && JSON.parse(window._naboxAccount);
-    } else {
-      tempData = window._naboxAccount;
-    }
-    if (!tempData && !localStorage.getItem('hackBoolean')) {
-      localStorage.removeItem('accountList');
-      localStorage.setItem('hackBoolean', 'true');
-    }
-    console.log(tempData, '==_naboxAccount==');
-    const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
-    if (tempData && Object.keys(config).length === Object.keys(tempData.addressDict).length) {
-      const accountList = [
-        {
-          pub: tempData.publicKey,
-          address: tempData.addressDict
-        }
-      ];
-      if (this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'TRON') {
-        const tempChain = Object.keys(config).indexOf(tempData.chain) === -1 ? 'NERVE' : tempData.chain;
-        this.$store.commit('changeNetwork', tempChain);
-        this.address = tempData.addressDict[tempChain];
-      } else {
-        this.$store.commit('changeNetwork', this.fromNetwork);
-        this.address = tempData.addressDict[this.fromNetwork];
-      }
-      localStorage.setItem('accountList', JSON.stringify(accountList));
-    }
+    this.initData();
     this.initConnect(true, this.walletType);
     if (this.address && getCurrentAccount(this.address)) {
       this.refreshWallet();
@@ -231,6 +203,43 @@ export default {
     this.timer = null;
   },
   methods: {
+    initData() {
+      let tempData;
+      if (typeof window._naboxAccount === 'string') {
+        tempData = window._naboxAccount && JSON.parse(window._naboxAccount);
+      } else {
+        tempData = window._naboxAccount;
+      }
+      console.log(localStorage.getItem('walletType'), 'localStorage.getItem(\'walletType\')');
+      if (!localStorage.getItem('walletType')) {
+        sessionStorage.removeItem('network');
+      } else {
+        this.walletType = localStorage.getItem('walletType');
+      }
+      if (!tempData && !localStorage.getItem('hackBoolean')) {
+        localStorage.removeItem('accountList');
+        localStorage.setItem('hackBoolean', 'true');
+      }
+      console.log(tempData, '==_naboxAccount==');
+      const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
+      if (tempData && Object.keys(config).length === Object.keys(tempData.addressDict).length) {
+        const accountList = [
+          {
+            pub: tempData.publicKey,
+            address: tempData.addressDict
+          }
+        ];
+        if (this.fromNetwork !== 'NULS' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'TRON') {
+          const tempChain = Object.keys(config).indexOf(tempData.chain) === -1 ? 'NERVE' : tempData.chain;
+          this.$store.commit('changeNetwork', tempChain);
+          this.address = tempData.addressDict[tempChain];
+        } else {
+          this.$store.commit('changeNetwork', this.fromNetwork);
+          this.address = tempData.addressDict[this.fromNetwork];
+        }
+        localStorage.setItem('accountList', JSON.stringify(accountList));
+      }
+    },
     messageListener(e) {
       if (e.data.message && (e.data.message.action === 'accountsChanged' || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb' || e.data.message.action === 'disconnect' || e.data.message.action === 'connect')) {
         if (this.fromNetwork === TRON) {
@@ -296,7 +305,7 @@ export default {
       if (provider === 'tronWeb') {
         if (!window.tronWeb.ready) {
           !isInit && this.$message.warning(this.$t('tips.tips56'));
-          this.address = null;
+          this.address = '';
           return;
         }
         if (window[provider].defaultAddress.base58) {
