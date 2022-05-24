@@ -559,7 +559,6 @@ export default {
       await Promise.all(hashList.map(async order => {
         const orderInfo = await this.getOrderDetail(order.orderId, 3);
         if (orderInfo.swapType && orderInfo.status == 0 && !orderInfo.txHash) {
-          console.log('2135435')
           await this.recordHash(order, 3);
         } else if (orderInfo.lpType && orderInfo.status == 0 && !orderInfo.txHash) {
           await this.recordHash(order, 2);
