@@ -9,11 +9,13 @@ axios.defaults.timeout = 8000;
  * @param url
  * @param methodName
  * @param data
+ * @param isTron
  * @returns {Promise}
  */
-export function post(url, methodName, data = []) {
+export function post(url, methodName, data = [], isTron = false) {
   return new Promise((resolve, reject) => {
     const params = { 'jsonrpc': '2.0', 'method': methodName, 'params': data, 'id': Math.floor(Math.random() * 1000) };
+    if (isTron) axios.defaults.headers.post['tron-pro-api-key'] = '2b7aa75d-c12d-4520-b0f1-784aeb2ec0cf';
     axios.post(url, params)
       .then(response => {
         resolve(response.data);

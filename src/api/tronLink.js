@@ -6,26 +6,19 @@ import {
   timesDecimals,
   Minus,
   Times,
-  Division, Plus
+  Division, Plus, TRON
 } from '@/api/util';
 import { trxWithdrawFee } from '@/config';
 const ethers = require('ethers');
 
-const fullNode = isBeta
-  ? 'https://api.shasta.trongrid.io'
-  : 'https://api.trongrid.io';
-const solidityNode = isBeta
-  ? 'https://api.shasta.trongrid.io'
-  : 'https://api.trongrid.io';
-const eventServer = isBeta
-  ? 'https://api.shasta.trongrid.io'
-  : 'https://api.trongrid.io';
-const privateKey =
-    ''; // 138a22c03039e688daa2b7c785d1e8d6b9375d4413e6ea82471b1e7a61701a9d
+const localConfig = JSON.parse(localStorage.getItem('localChainConfig'));
+const tronChainConfig = localConfig && localConfig.find(item => item.chain === TRON) || null;
+const fullNode = tronChainConfig && tronChainConfig['psUrl'].split('/jsonrpc')[0] || (isBeta ? 'https://api.shasta.trongrid.io' : 'https://api.trongrid.io');
+const privateKey = ''; // 138a22c03039e688daa2b7c785d1e8d6b9375d4413e6ea82471b1e7a61701a9d
 const customTronWeb = new TronWeb(
   fullNode,
-  solidityNode,
-  eventServer,
+  fullNode,
+  fullNode,
   privateKey
 );
 // customTronWeb.setHeader({ 'TRON-PRO-API-KEY': '1355e44a-205d-4264-b4f6-76a3515aaec4' });
@@ -82,23 +75,21 @@ class TronLinkApi {
     if (pub) {
       this.selectedAddress = this.generateAddressByPub(pub);
     } else {
-      this.hasTronLink = !!window.tronLink;
       this.connected = this.isReady();
       this.selectedAddress = this.connected
-        ? window.tronLink.tronWeb.defaultAddress.base58
+        ? window.tronWeb.defaultAddress.base58
         : '';
-      // console.log(window.tronLink)
       this.getProvider();
     }
   }
 
   isReady() {
-    return window.tronLink && window.tronLink.ready;
+    return window.tronWeb && window.tronWeb.ready;
   }
 
   getProvider() {
     if (this.connected) {
-      this.provider = window.tronLink.tronWeb;
+      this.provider = window.tronWeb;
     }
   }
 
@@ -107,17 +98,15 @@ class TronLinkApi {
   }
 
   async requestAccount() {
-    // if (!window.tronLink) throw 'No provider was found';
-    // if (!window.tronLink.ready) throw 'Pls login first';
     if (this.connected) {
-      return window.tronLink.tronWeb.defaultAddress.base58;
+      return window.tronWeb.defaultAddress.base58;
     }
     let address;
-    const res = await window.tronLink.request({
+    const res = await window.tronWeb.request({
       method: 'tron_requestAccounts'
     });
     if (res.code === 200) {
-      address = window.tronLink.tronWeb.defaultAddress.base58;
+      address = window.tronWeb.defaultAddress.base58;
     }
     this.selectedAddress = address;
     return address;

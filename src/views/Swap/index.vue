@@ -1313,6 +1313,9 @@ export default {
     },
     // 获取iSwap费率信息
     async getEstimateFeeInfo() {
+      if (this.fromNetwork === TRON) {
+        return null;
+      }
       const feeInfoParams = {
         inToken: {
           amount: this.inputType === 'amountIn' ? this.amountIn : '',
@@ -1418,6 +1421,7 @@ export default {
     },
     // 获取DODO费率信息
     async getDodoSwapRoute() {
+      if (this.fromNetwork === TRON) return null;
       const supportChainList = JSON.parse(sessionStorage.getItem('supportChainList'));
       const rpc = supportChainList.find(item => item.chain === this.fromNetwork).apiUrl;
       const data = {

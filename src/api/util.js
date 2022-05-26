@@ -753,8 +753,8 @@ export function setChainConfig(chainConfig) {
           nativeId: item.nativeId || '',
           // rpcUrl: networkRpc[item.chain],
           origin: item.scanUrl,
-          hashLink: `${item.scanUrl}/transaction/`,
-          addressLink: `${item.scanUrl}/address/`,
+          hashLink: `${item.scanUrl}transaction/`,
+          addressLink: `${item.scanUrl}address/`,
           sort: item.sort
         };
       }

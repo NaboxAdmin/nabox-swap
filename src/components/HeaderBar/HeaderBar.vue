@@ -151,7 +151,7 @@
                 <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
               </span>
             </div>
-            <div style="line-height: 30px" class="mt-4">{{ $t('tips.tips63') }}</div>
+            <div style="line-height: 24px" class="mt-4">{{ $t('tips.tips63') }}</div>
             <div class="pop-btn d-flex align-items-center space-between mt-4">
               <div class="btn cursor-pointer" @click="showTips = false;">{{ $t("vaults.vaults7") }}</div>
               <div class="btn btn_active cursor-pointer" @click="switchPlugin">{{ $t("tips.tips64") }}</div>
@@ -635,11 +635,25 @@ export default {
               }
               return tx;
             } else if (tx.chain === TRON) {
-              const res = await this.$post(l1Url, `eth_getTransactionReceipt`, [tx.txHash]);
-              if (res && res.result) {
+              // const res = await this.$post(l1Url, `eth_getTransactionReceipt`, [tx.txHash]);
+              // if (res && res.result) {
+              //   return {
+              //     ...tx,
+              //     status: res.result.status === '0x1' ? 1 : -1
+              //   };
+              // }
+              const res = await this.$request({
+                url: '/wallet/gettransactionbyid',
+                data: {
+                  value: tx.txHash
+                },
+                customUrl: l1Url,
+                deleteLanguage: true
+              });
+              if (res && res.ret) {
                 return {
                   ...tx,
-                  status: res.result.status === '0x1' ? 1 : -1
+                  status: res.ret[0]['contractRet'] === 'SUCCESS' ? 1 : -1
                 };
               }
             } else {

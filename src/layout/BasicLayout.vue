@@ -151,7 +151,6 @@ export default {
         const chainLength = config && Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0;
         // console.log(chainLength, currentAccount, addressListLength, !chainLength || chainLength !== addressListLength, '!chainLength || chainLength !== addressListLength');
-        // this.showSign = !chainLength || chainLength !== addressListLength;
         this.$store.commit('changeFromAddress', val);
         this.$store.commit('changeShowConnect', false);
         this.$store.commit('changeShowSign', !chainLength || chainLength !== addressListLength);
