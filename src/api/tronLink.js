@@ -370,7 +370,6 @@ class TronLinkApi {
       .allowance(address, multySignAddress)
       .call();
     const baseAllowance = '39600000000000000000000000000';
-    // @ts-ignore
     return Minus(baseAllowance, allowance.toString()) >= 0;
   }
 

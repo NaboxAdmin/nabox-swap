@@ -218,6 +218,11 @@ export default {
         localStorage.removeItem('accountList');
         localStorage.setItem('hackBoolean', 'true');
       }
+      if (this.isMobile && localStorage.getItem('walletType') && localStorage.getItem('walletType') === 'NaboxWallet') {
+        localStorage.setItem('walletType', 'ethereum');
+        this.walletType = 'ethereum';
+      }
+      console.log(this.isMobile, 'isMobile');
       console.log(tempData, '==_naboxAccount==');
       const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
       if (tempData && Object.keys(config).length === Object.keys(tempData.addressDict).length) {
@@ -244,7 +249,7 @@ export default {
           if (!window.tronLink.ready || e.data.message.action === 'disconnect') {
             localStorage.removeItem('walletType');
             window.location.reload();
-          } else if ((e.data.message.data && e.data.message.data.address) || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb' || e.data.message.action === 'connect') {
+          } else if ((e.data.message.data && e.data.message.data.address) || e.data.message.action === 'setNode' || e.data.message.action === 'connectWeb' || e.data.message.action === 'disconnectWeb' || e.data.message.action === 'connect' || e.data.message.action === 'accountsChanged') {
             window.location.reload();
           }
         }
@@ -355,10 +360,9 @@ export default {
         console.log(accounts, '===accounts-changed===');
         if (accounts.length && this.walletType) {
           this.address = accounts[0];
-          if (this.address && !this.address.startsWith('0x')) {
-            this.switchNetwork(this.address);
-          }
-          window.location.reload();
+          // if (this.address && !this.address.startsWith('0x')) {
+          //   this.switchNetwork(this.address);
+          // }
           window.location.reload();
         } else {
           this.address = '';
@@ -455,41 +459,27 @@ export default {
             const jsonRpcSigner = this.provider.getSigner();
             const message = 'Generate L2 Address';
             const signature = await jsonRpcSigner.signMessage(message);
-            if (localStorage.getItem('walletType') === 'NaboxWallet') {
-              pub = await window.nabox.getPub({
-                address: this.address
-              });
-              const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
-              const addressMap = {};
-              for (const item of networkList) {
-                addressMap[item] = address;
-              }
-              account = {
-                address: addressMap
-              };
-            } else {
-              const msgHash = ethers.utils.hashMessage(message);
-              const msgHashBytes = ethers.utils.arrayify(msgHash);
-              const recoveredPubKey = ethers.utils.recoverPublicKey(
-                msgHashBytes,
-                signature
+            const msgHash = ethers.utils.hashMessage(message);
+            const msgHashBytes = ethers.utils.arrayify(msgHash);
+            const recoveredPubKey = ethers.utils.recoverPublicKey(
+              msgHashBytes,
+              signature
+            );
+            const addressMap = {};
+            for (const item of networkList) {
+              addressMap[item] = this.address;
+            }
+            account = {
+              address: addressMap
+            };
+            if (recoveredPubKey.startsWith('0x04')) {
+              const compressPub = ethers.utils.computePublicKey(
+                recoveredPubKey,
+                true
               );
-              const addressMap = {};
-              for (const item of networkList) {
-                addressMap[item] = this.address;
-              }
-              account = {
-                address: addressMap
-              };
-              if (recoveredPubKey.startsWith('0x04')) {
-                const compressPub = ethers.utils.computePublicKey(
-                  recoveredPubKey,
-                  true
-                );
-                pub = compressPub.slice(2);
-              } else {
-                throw 'sign error';
-              }
+              pub = compressPub.slice(2);
+            } else {
+              throw 'sign error';
             }
           }
         }
