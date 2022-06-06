@@ -240,6 +240,13 @@ export default {
           this.$store.commit('changeNetwork', this.fromNetwork);
           this.address = tempData.addressDict[this.fromNetwork];
         }
+        if (tempData.chain === 'TRON') {
+          localStorage.setItem('walletType', 'tronWeb');
+          this.walletType = 'tronWeb';
+        } else {
+          localStorage.setItem('walletType', 'ethereum');
+          this.walletType = 'ethereum';
+        }
         localStorage.setItem('accountList', JSON.stringify(accountList));
       }
     },

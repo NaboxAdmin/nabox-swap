@@ -220,6 +220,9 @@ export default {
     isMobile() {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     },
+    fromNetwork() {
+      return this.$store.state.network;
+    },
     l1ChainList() {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
       // const tempList = tempSupportChainList.filter(chain => chain.label !== 'NULS' && chain.label !== 'NERVE');
@@ -255,6 +258,7 @@ export default {
     },
     currentChainInfo() {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      console.log(this.fromNetwork, 'currentChainInfo 123');
       return tempSupportChainList.find(item => item.chain === this.fromNetwork);
     }
   },
@@ -801,7 +805,6 @@ export default {
           tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
           this.currentChainAvailable = this.numberFormat(tofix(tempCurrentAvailable, 6, -1), 6, false);
         } else if (this.chainType === 3) {
-          console.log('TRON');
           tempCurrentAvailable = await this.getTronAssetBalance(tempAsset);
           tempNerveAvailable = await this.getNerveAssetBalance(nerveAsset);
           this.currentChainAvailable = this.numberFormat(tofix(tempCurrentAvailable, 6, -1), 6, false);
