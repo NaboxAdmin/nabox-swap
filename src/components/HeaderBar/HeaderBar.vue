@@ -7,22 +7,25 @@
       </div>
       <div class="address-cont d-flex align-items-center">
         <div v-if="!showConnect && !showSign && address && walletType" class="address-detail pl-2 pr-2">
-          <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
-            <span class="chain-icon">
-              <img v-lazy="currentChainInfo && currentChainInfo.icon || getPicture(fromNetwork)" v-if="!isL2Farm" alt="" @error="pictureError">
-              <img v-lazy="getPicture('NERVE')" v-else alt="" @error="pictureError">
-            </span>
-            <div v-if="(!isL2Farm)" class="icon-drop ml-2">
-              <img src="../../assets/image/drop_down_active.png" alt="">
+<!--          <div v-if="wrongNetwork" style="width: 100%;" class="text-center text-red size-24 font-500" @click.stop="showDropClick">网络错误</div>-->
+          <template>
+            <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
+              <span class="chain-icon">
+                <img v-lazy="currentChainInfo && currentChainInfo.icon || getPicture(fromNetwork)" v-if="!isL2Farm" alt="" @error="pictureError">
+                <img v-lazy="getPicture('NERVE')" v-else alt="" @error="pictureError">
+              </span>
+              <div v-if="(!isL2Farm)" class="icon-drop ml-2">
+                <img src="../../assets/image/drop_down_active.png" alt="">
+              </div>
             </div>
-          </div>
-          <div class="space-cont"/>
-          <div class="d-flex" @click="addressClick">
-            <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isL2Farm && address || nerveAddress) }}</span>
-            <span v-if="showLoading" class="box_loading">
-              <img src="@/assets/image/loading.svg" alt="">
-            </span>
-          </div>
+            <div class="space-cont"/>
+            <div class="d-flex" @click="addressClick">
+              <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isL2Farm && address || nerveAddress) }}</span>
+              <span v-if="showLoading" class="box_loading">
+                <img src="@/assets/image/loading.svg" alt="">
+              </span>
+            </div>
+          </template>
           <div v-if="showDropList" class="network-list size-28 d-flex direction-column">
             <span
               v-for="(item, index) in l1ChainList"
@@ -318,6 +321,7 @@ export default {
   },
   created() {
     if (this.statusTimer) clearInterval(this.statusTimer);
+    this.getTRONApiKey();
     this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     this.fromAddress && this.currentAccount && this.updateOrderHash();
     this.statusTimer = setInterval(() => {
@@ -337,6 +341,21 @@ export default {
     }
   },
   methods: {
+    async getTRONApiKey() {
+      try {
+        const res = await this.$request({
+          method: 'get',
+          url: '/api/tron/apiKey'
+        });
+        if (res.code === 1000 && res.data.length !== 0) {
+          localStorage.setItem('TRONApiKey', JSON.stringify(res.data));
+        }
+      } catch (e) {
+        setTimeout(async() => {
+          await this.getTRONApiKey();
+        }, 3000);
+      }
+    },
     switchPlugin() {
       localStorage.removeItem('walletType');
       sessionStorage.removeItem('network');
@@ -646,13 +665,17 @@ export default {
               //     status: res.result.status === '0x1' ? 1 : -1
               //   };
               // }
+              const tronApiKey = localStorage.getItem('TRONApiKey') && JSON.parse(localStorage.getItem('TRONApiKey')) || [];
+              const randomNumber = Math.floor(Math.random() * tronApiKey.length);
               const res = await this.$request({
                 url: '/wallet/gettransactionbyid',
                 data: {
                   value: tx.txHash
                 },
                 customUrl: l1Url,
-                deleteLanguage: true
+                deleteLanguage: true,
+                isTRON: true,
+                apiKey: tronApiKey[randomNumber] || ''
               });
               if (res && res.ret) {
                 return {

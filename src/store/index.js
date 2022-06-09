@@ -15,7 +15,8 @@ export default new Vuex.Store({
     lang: 'en',
     isSwap: false,
     nativeId: '',
-    showWalletList: false
+    showWalletList: false,
+    wrongNetwork: false
   },
   mutations: {
     changeNativeId(state, data) {
@@ -49,6 +50,9 @@ export default new Vuex.Store({
     },
     changeShowWalletList(state, data) {
       state.showWalletList = data;
+    },
+    changeWrongNetwork(state, data) {
+      state.wrongNetwork = data;
     }
   },
   getters: {

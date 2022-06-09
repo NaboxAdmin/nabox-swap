@@ -222,7 +222,6 @@ export default {
         localStorage.setItem('walletType', 'ethereum');
         this.walletType = 'ethereum';
       }
-      console.log(this.isMobile, 'isMobile');
       console.log(tempData, '==_naboxAccount==');
       const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
       if (tempData && Object.keys(config).length === Object.keys(tempData.addressDict).length) {
@@ -313,7 +312,7 @@ export default {
         return;
       }
       if (provider === 'tronWeb') {
-        if (!window.tronWeb.ready) {
+        if (!window[provider].ready) {
           !isInit && this.$message.warning(this.$t('tips.tips56'));
           setTimeout(() => {
             this.address = window[provider].defaultAddress.base58 || '';
@@ -321,7 +320,7 @@ export default {
           return;
         }
         if (window[provider].defaultAddress.base58) {
-          this.address = window.tronWeb.defaultAddress.base58;
+          this.address = window[provider].defaultAddress.base58;
           this.$store.commit('changeNetwork', TRON);
           this.walletType = provider;
           localStorage.setItem('walletType', 'tronWeb');
@@ -350,7 +349,6 @@ export default {
       }
       this.$store.commit('changeNativeId', chain && chain.nativeId || 1);
       this.provider = new ethers.providers.Web3Provider(window[walletType]);
-      // this.$store.commit('changeShowConnect', false);
       this.listenAccountChange();
       this.listenNetworkChange();
     },

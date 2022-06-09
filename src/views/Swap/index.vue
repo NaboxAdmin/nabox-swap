@@ -558,7 +558,6 @@ export default {
     async checkAssetAuthStatus() {
       const contractAddress = this.chooseFromAsset.contractAddress;
       const authContractAddress = this.getAuthContractAddress();
-      console.log(authContractAddress, 'authContractAddress')
       if (this.chooseFromAsset.contractAddress && this.chainType === 2) {
         const transfer = new ETransfer();
         this.needAuth = await transfer.getERC20Allowance(
@@ -1529,7 +1528,7 @@ export default {
     getBestPlatform(platformList) {
       if (platformList.length === 0) return false;
       if (this.inputType === 'amountIn') {
-        const tempList = platformList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
+        const tempList = platformList.reduce((p, v) => Minus(p.minReceive || 0, v.minReceive || 0) < 0 ? v : p);
         this.channelConfigList = platformList.map(item => {
           if (item.channel === tempList.channel) {
             return {
@@ -1545,9 +1544,9 @@ export default {
           };
         });
         console.log(this.channelConfigList, '==channelConfigList==');
-        return this.channelConfigList.reduce((p, v) => p.minReceive < v.minReceive ? v : p);
+        return this.channelConfigList.reduce((p, v) => Minus(p.minReceive || 0, v.minReceive || 0) < 0 ? v : p);
       } else {
-        const tempList = platformList.reduce((p, v) => p.amount > v.amount ? v : p);
+        const tempList = platformList.reduce((p, v) => Minus(p.amount || 0, v.amount || 0) > 0 ? v : p);
         this.channelConfigList = platformList.map(item => {
           if (item.channel === tempList.channel) {
             return {
@@ -1563,7 +1562,7 @@ export default {
           };
         });
         console.log(this.channelConfigList, '==channelConfigList==');
-        return this.channelConfigList.reduce((p, v) => p.amount > v.amount ? v : p);
+        return this.channelConfigList.reduce((p, v) => Minus(p.amount || 0, v.amount || 0) > 0 ? v : p);
       }
     },
     // 选择最优路径

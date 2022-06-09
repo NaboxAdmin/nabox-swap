@@ -71,6 +71,9 @@ export default {
         tempMap[item.chain] = item.nativeId;
       });
       return tempMap;
+    },
+    wrongNetwork() {
+      return this.$store.state.wrongNetwork;
     }
   },
   filters: {
