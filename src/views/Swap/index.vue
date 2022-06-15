@@ -834,15 +834,18 @@ export default {
             await this.setSwapAssetList(res.data || []);
           }
         } else {
-          const localSwapAssetList = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'))[this.fromNetwork];
-          const tempList = localSwapAssetList && localSwapAssetList.length > 0 && localSwapAssetList || swapAssetList[this.fromNetwork];
-          await this.setSwapAssetList(tempList || []);
+          // const localSwapAssetList = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'))[this.fromNetwork];
+          // const tempList = localSwapAssetList && localSwapAssetList.length > 0 && localSwapAssetList || swapAssetList[this.fromNetwork];
+          // await this.setSwapAssetList(tempList || []);
           const res = await this.$request({
             url: '/swap/assets',
             data
           });
           if (res.code === 1000 && res.data.length > 0) {
-            await this.updateSwapAssetList(res.data);
+            // await this.updateSwapAssetList(res.data);
+            await this.setSwapAssetList(res.data);
+          } else {
+            await this.updateSwapAssetList([]);
           }
         }
       } catch (e) {

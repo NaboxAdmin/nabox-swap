@@ -782,21 +782,24 @@ export function setChainConfig(chainConfig) {
       localStorage.setItem('tradeHashMap', JSON.stringify(tradeHashMap));
     }
   }
-  if (!localStorage.getItem('localSwapAssetMap')) {
-    localStorage.setItem('localSwapAssetMap', JSON.stringify(tradeHashMap));
-  } else {
-    const localSwapAssetMap = JSON.parse(localStorage.getItem('localSwapAssetMap'));
-    const hashKeys = Object.keys(localSwapAssetMap);
-    const diffKeys = hashKeys.filter(key => {
-      return chains.indexOf(key) === -1;
-    });
-    if (diffKeys.length !== 0) {
-      for (const item of diffKeys) {
-        delete localSwapAssetMap[item];
-      }
-      localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
-    }
+  if (localStorage.getItem('localSwapAssetMap')) {
+    localStorage.removeItem('localSwapAssetMap');
   }
+  // if (!localStorage.getItem('localSwapAssetMap')) {
+  //   localStorage.setItem('localSwapAssetMap', JSON.stringify(tradeHashMap));
+  // } else {
+  //   const localSwapAssetMap = JSON.parse(localStorage.getItem('localSwapAssetMap'));
+  //   const hashKeys = Object.keys(localSwapAssetMap);
+  //   const diffKeys = hashKeys.filter(key => {
+  //     return chains.indexOf(key) === -1;
+  //   });
+  //   if (diffKeys.length !== 0) {
+  //     for (const item of diffKeys) {
+  //       delete localSwapAssetMap[item];
+  //     }
+  //     localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
+  //   }
+  // }
   !localStorage.getItem('l2HashList') && localStorage.setItem('l2HashList', JSON.stringify([]));
   sessionStorage.setItem('config', JSON.stringify(config));
 }
