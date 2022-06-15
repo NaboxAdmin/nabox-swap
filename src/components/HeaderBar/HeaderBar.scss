@@ -58,8 +58,26 @@
       left: 20px;
       z-index: 999;
       box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+      height: 520px;
+      overflow: auto;
       .active_chain {
         color: #54b9aa;
+      }
+      &::-webkit-scrollbar {
+        background-color: rgba(27,27,27,.4);
+        border-radius: 20px;
+        width: 4px; // y轴滚动条宽度
+        height: 4px; // x轴滚动条高度
+      }
+
+      &::-webkit-scrollbar-thumb {
+        border-radius: 20px; // 滚动条的圆角
+        background: #6EB6A9; // 滚动条的背景颜色
+      }
+
+      &::-webkit-scrollbar-track {
+        border-radius: 20px; // 滚动条的背景区域的圆角
+        background: #fff; // 滚动条的背景颜色
       }
     }
   }
