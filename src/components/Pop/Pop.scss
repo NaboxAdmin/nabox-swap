@@ -82,3 +82,22 @@
     width: 100%;
   }
 }
+.fee-cont {
+  position: absolute;
+  height: 60px;
+  background-color: #F0F7F7;
+  bottom: 287px;
+  width: 100%;
+  padding: 20px 40px;
+  .fee-title {
+    color: #A4A9B9;
+    font-size: 24px;
+    font-weight: 400;
+  }
+  .fee-info {
+    color: #656A7D;
+    margin-top: 10px;
+    font-size: 30px;
+    font-weight: 500;
+  }
+}

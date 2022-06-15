@@ -51,6 +51,14 @@
       <!--        </span>-->
       <!--        <span>{{ 'ParaBox' }}</span>-->
       <!--      </div>-->
+      <!--      <div class="fee-cont">-->
+      <!--        <div class="fee-title">-->
+      <!--          {{ $t('tips.tips65') }}-->
+      <!--        </div>-->
+      <!--        <div class="fee-info">-->
+      <!--          ${{ (100.11 || 0) | numFormat }}-->
+      <!--        </div>-->
+      <!--      </div>-->
       <div class="bottom-cont">
         <div class="info-cont">
           <span class="icon mr-3 cursor-pointer" @click.stop="toUrl('twitter')">
@@ -178,7 +186,7 @@ export default {
       this.$emit('l1FarmClick');
     },
     l2FarmClick() {
-      if (this.fromNetwork === 'TRON')  return false;
+      if (this.fromNetwork === 'TRON') return false;
       this.showPop = false;
       if (window.location.hash.split('/')[1] === 'l2farm') return false;
       this.$emit('l2FarmClick');

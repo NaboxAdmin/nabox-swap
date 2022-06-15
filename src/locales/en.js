@@ -63,7 +63,8 @@ const en = {
     tips61: 'Please enter the receiving asset address',
     tips62: 'Tips',
     tips63: 'The current plugin does not support the selected chain, do you want to switch plugins?',
-    tips64: 'Confirm'
+    tips64: 'Confirm',
+    tips65: 'Total fee income'
   },
   swap: {
     swap1: 'From',
