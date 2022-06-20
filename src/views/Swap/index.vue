@@ -842,7 +842,6 @@ export default {
             data
           });
           if (res.code === 1000 && res.data.length > 0) {
-            // await this.updateSwapAssetList(res.data);
             await this.setSwapAssetList(res.data);
           } else {
             await this.setSwapAssetList([]);
