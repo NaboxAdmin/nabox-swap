@@ -760,7 +760,6 @@ export class ETransfer {
 
   async crossInII(params) {
     const { multySignAddress, numbers, fromAddress, contractAddress, decimals, crossChainFee, orderId, nerveAddress } = params;
-    console.log(nerveAddress, multySignAddress, 'nerveAddress', params);
     let transactionParameters;
     if (contractAddress) {
       // token 转入
@@ -768,19 +767,12 @@ export class ETransfer {
       const mainAssetValue = ethers.utils.parseEther(crossChainFee);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
       const data = iface.functions.crossOutII.encode([nerveAddress, numberOfTokens, contractAddress, orderId]);
-      // transactionParameters = {
-      //   to: multySignAddress,
-      //   from: fromAddress, // 验证合约调用需要from,必传
-      //   value: mainAssetValue,
-      //   data: data
-      // };
       transactionParameters = await this.setGasLimit({
         from: fromAddress,
         to: multySignAddress,
         value: mainAssetValue,
         data
       }, false);
-      console.log(transactionParameters, 'transactionParameters');
     } else {
       const allNumber = Plus(crossChainFee, numbers);
       const amount = ethers.utils.parseEther(allNumber);
@@ -805,9 +797,11 @@ export class ETransfer {
 
   async setGasLimit(tx, flag = true) {
     const gasLimit = await this.getGasLimit(tx);
+    const gasPrice = await this.getWithdrawGas();
     const tempTx = {
       ...tx,
-      gasLimit
+      gasLimit,
+      gasPrice
     };
     flag && delete tempTx['from'];
     return tempTx;
@@ -911,14 +905,26 @@ export class ETransfer {
   }
 
   async approveERC20(contractAddress, multySignAddress, address) {
+    console.log(contractAddress, multySignAddress, address, 'contractAddress, multySignAddress, address');
     const iface = new ethers.utils.Interface(ERC20_ABI);
     const data = iface.functions.approve.encode([multySignAddress, new ethers.utils.BigNumber('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')]);
-    const transactionParameters = {
+    console.log(data, 'transactionParameters');
+    const gasLimit = await this.getGasLimit({
       to: contractAddress,
       from: address,
       value: '0x00',
       data: data
+    });
+    const gasPrice = await this.getWithdrawGas();
+    const transactionParameters = {
+      to: contractAddress,
+      from: address,
+      value: '0x00',
+      data: data,
+      gasLimit,
+      gasPrice
     };
+    console.log(transactionParameters, 'transactionParameters 1111');
     const failed = await this.validate(transactionParameters);
     if (failed) {
       console.error('failed approveERC20' + failed);

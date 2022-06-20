@@ -845,7 +845,7 @@ export default {
             // await this.updateSwapAssetList(res.data);
             await this.setSwapAssetList(res.data);
           } else {
-            await this.updateSwapAssetList([]);
+            await this.setSwapAssetList([]);
           }
         }
       } catch (e) {
