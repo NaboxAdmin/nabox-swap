@@ -905,10 +905,8 @@ export class ETransfer {
   }
 
   async approveERC20(contractAddress, multySignAddress, address) {
-    console.log(contractAddress, multySignAddress, address, 'contractAddress, multySignAddress, address');
     const iface = new ethers.utils.Interface(ERC20_ABI);
     const data = iface.functions.approve.encode([multySignAddress, new ethers.utils.BigNumber('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')]);
-    console.log(data, 'transactionParameters');
     const gasLimit = await this.getGasLimit({
       to: contractAddress,
       from: address,
@@ -924,7 +922,6 @@ export class ETransfer {
       gasLimit,
       gasPrice
     };
-    console.log(transactionParameters, 'transactionParameters 1111');
     const failed = await this.validate(transactionParameters);
     if (failed) {
       console.error('failed approveERC20' + failed);
