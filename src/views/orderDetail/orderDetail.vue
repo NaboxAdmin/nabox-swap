@@ -154,7 +154,6 @@ export default {
       }
     },
     iSwapOrderStatus(val) {
-      console.log('123123');
       switch (val) {
         case 0:
           return this.$t('swap.swap37');

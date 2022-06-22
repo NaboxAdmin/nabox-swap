@@ -889,36 +889,6 @@ export default {
           } else {
             throw this.$t('tips.tips53');
           }
-          // const transfer = new NTransfer({
-          //   chain: 'NERVE',
-          //   type: 2
-          // });
-          // const { chainId, assetId } = this.currentAsset;
-          // const transferInfo = {
-          //   from: this.currentAccount && this.currentAccount.address['NERVE'] || '',
-          //   to: lpNerveAddress,
-          //   amount: timesDecimals(this.joinCount, this.currentAsset.decimals),
-          //   fee: timesDecimals(this.crossFee, MAIN_INFO['decimal']),
-          //   assetsChainId: chainId,
-          //   assetsId: assetId
-          // };
-          // const { inputs, outputs } = await transfer.transferTransaction(transferInfo);
-          // if (orderRes.code === 1000) {
-          //   const txHex = await transfer.getTxHex({
-          //     inputs,
-          //     outputs,
-          //     txData: {},
-          //     pub: this.currentAccount.pub,
-          //     signAddress: this.currentAccount.address.Ethereum,
-          //     remarks: this.orderId || ''
-          //   });
-          //   if (txHex) {
-          //     console.log(txHex, '==txHex==');
-          //     await this.broadcastHex(txHex);
-          //   }
-          // } else {
-          //   throw this.$t('tips.tips53');
-          // }
         } else if (this.chainType === 2) {
           const transfer = new ETransfer();
           const params = {

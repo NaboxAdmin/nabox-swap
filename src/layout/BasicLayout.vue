@@ -388,7 +388,6 @@ export default {
     // 监听网络改变
     listenNetworkChange() {
       this.wallet.on('chainChanged', (chainId) => {
-        console.log(chainId, 'chainId');
         if (chainId && this.walletType) {
           const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
           const chain = tempSupportChainList.find(v => v[ETHNET] === chainId);

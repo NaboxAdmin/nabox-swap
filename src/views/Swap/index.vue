@@ -862,8 +862,8 @@ export default {
         this.chooseToAsset = tempToCoin;
         await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
       } else {
-        this.chooseFromAsset = tempList.find(item => item.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT' || 'USD18')) || tempList[0];
-        this.crossFeeAsset = tempList.find(item => item.symbol === (ISWAP_USDT_CONFIG[this.currentChainId] || 'USDT' || 'USD18')) || null;
+        this.chooseFromAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[0];
+        this.crossFeeAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || null;
       }
       this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
       this.refreshBalance();
@@ -876,7 +876,6 @@ export default {
     },
     // 当前选择的币
     async selectCoin({ coin, type, network }) {
-      console.log(coin, 'coin');
       this.currentNetwork = network;
       this.showModal = false;
       switch (type) {

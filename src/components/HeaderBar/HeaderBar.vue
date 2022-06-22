@@ -261,7 +261,6 @@ export default {
     },
     currentChainInfo() {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-      console.log(this.fromNetwork, 'currentChainInfo 123');
       return tempSupportChainList.find(item => item.chain === this.fromNetwork);
     }
   },
