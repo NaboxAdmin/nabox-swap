@@ -774,16 +774,16 @@ export class ETransfer {
         data
       }, false);
     } else {
-      const allNumber = Plus(crossChainFee, numbers);
+      const allNumber = Plus(crossChainFee, numbers).toString();
       const amount = ethers.utils.parseEther(allNumber);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      const data = iface.functions.crossOutII.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000', orderId]);
+      const data = iface.functions.crossOutII.encode([nerveAddress, '0', '0x0000000000000000000000000000000000000000', orderId]);
       transactionParameters = await this.setGasLimit({
         from: fromAddress,
         to: multySignAddress,
         value: amount,
         data
-      });
+      }, false);
     }
     const failed = await this.validate(transactionParameters);
     if (failed) {

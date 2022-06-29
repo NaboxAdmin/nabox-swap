@@ -901,6 +901,7 @@ export default {
             crossChainFee: this.crossFee.toString(),
             nerveAddress: lpNerveAddress
           };
+          console.log(params, 'params');
           if (orderRes.code === 1000) {
             const res = await transfer.crossInII(params);
             if (res.hash) {

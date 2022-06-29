@@ -242,7 +242,7 @@ export default {
                 tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.fromAsset.contractAddress);
               } else {
                 if (this.fromNetwork !== 'NERVE') {
-                  tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+                  tempCoins = tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
                 } else {
                   tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.assetId !== this.fromAsset.assetId));
                 }
