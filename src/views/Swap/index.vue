@@ -1334,7 +1334,6 @@ export default {
             return null;
           } else if (item.channel === 'MetaPath' && this.fromNetwork !== 'NERVE' && this.chooseToAsset && this.chooseToAsset.chain !== 'NERVE') {
             const currentConfig = await this.getMetaPathEstimateFeeInfo();
-            console.log(currentConfig, 'currentConfig');
             if (currentConfig) {
               return {
                 icon: currentConfig.logoUrl || item.icon,
