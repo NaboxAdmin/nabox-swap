@@ -108,7 +108,7 @@
             </div>
           </div>
         </div>
-        <div class="mt-3 size-28 text-right text-6e d-flex justify-content-end" @click="toSwap(item)">
+        <div class="mt-3 size-28 text-right text-6e d-flex justify-content-end cursor-pointer" @click="toSwap(item)">
           <span>{{ $t("vaults.over5") }}{{ item.stakeToken && item.stakeToken.symbol }}</span>
           <span class="arrow-icon ml-1">
             <img src="@/assets/image/link_to.png" alt="">
