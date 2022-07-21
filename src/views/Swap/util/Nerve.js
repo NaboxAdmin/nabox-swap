@@ -1,8 +1,8 @@
 import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
-import {divisionAndFix, Minus, Plus, Times, timesDecimals, tofix, TRON} from '@/api/util';
+import { divisionAndFix, Minus, Plus, Times, timesDecimals, tofix, TRON } from '@/api/util';
 import { crossFee, ETransfer, NTransfer } from '@/api/api';
 import { post, request } from '@/network/http';
-import TronLink from "@/api/tronLink";
+import TronLink from '@/api/tronLink';
 
 export const feeRate = 0.0002; // nerve链上兑换稳定币手续费万二
 
@@ -384,7 +384,7 @@ export default class NerveChannel {
       signAddress,
       remarks: orderId || ''
     });
-    console.log(fromNetwork, '123fromNetwork')
+    console.log(fromNetwork, '123fromNetwork');
     return await this.broadcastHex(txHex, fromNetwork);
   }
   // 将手续费转到nerve中转地址

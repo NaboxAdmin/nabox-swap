@@ -48,6 +48,8 @@
             <span v-if="orderInfo && orderInfo.fromAsset.chain==='NERVE' && orderInfo.toAsset.chain==='NULS'">
               {{ `${crossFee}NVT+${crossFee}NULS` }}
             </span>
+            <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'Bridgers'">{{ orderInfo && orderInfo.currentChannel.crossChainFee | numberFormat }}{{ orderInfo && orderInfo.toAsset.symbol }}</span>
+            <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'SWFT'">{{ orderInfo && orderInfo.currentChannel.crossChainFee | numberFormat }}{{ orderInfo && orderInfo.toAsset.symbol }}</span>
             <span v-else class="ml-4 text-3a">
               <span>{{ (orderInfo.currentChannel.crossChainFee || '0') | numberFormat }}</span>
               <span>{{ (orderInfo.stableSwap && orderInfo.currentChannel.channel === 'NERVE' && orderInfo.mainAssetSymbol) || (orderInfo.stableSwap && orderInfo.fromAsset.symbol || 'USDT') }}</span>
@@ -58,7 +60,9 @@
         <div v-if="orderInfo && orderInfo.currentChannel.swapFee" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
-            <span class="ml-4 text-3a">
+            <span v-if="orderInfo && orderInfo.currentChannel.dex === 'SWFT'" class="text-3a">{{ orderInfo && orderInfo.currentChannel.swapFee | numberFormat }}{{ orderInfo && orderInfo.fromAsset.symbol || orderInfo && orderInfo.currentChannel.feeSymbol || 'USDT' }}</span>
+            <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'Bridgers'" class="text-3a">{{ orderInfo && orderInfo.currentChannel.swapFee }}{{ orderInfo && orderInfo.fromAsset.symbol }}</span>
+            <span v-else class="ml-4 text-3a">
               <span>{{ (orderInfo.currentChannel.swapFee || '0') | numberFormat }}</span>
               <span>{{ orderInfo && orderInfo.fromAsset.symbol || 'USDT' }}</span>
             </span>
@@ -81,6 +85,7 @@ import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
 import NerveChannel from '../Swap/util/Nerve';
 import { NTransfer, crossFee } from '@/api/api';
+import { getEquipmentNo, metaPathRecordHash, sendMetaPathTransaction } from '@/views/Swap/util/MetaPath';
 // import '../../views/Swap/util/stableTransfer-min'
 
 const ethers = require('ethers');
@@ -114,7 +119,7 @@ export default {
       try {
         this.confirmLoading = true;
         const { currentChannel, stableSwap, nerveChainStableSwap } = this.orderInfo;
-        switch (currentChannel.channel) {
+        switch (currentChannel.originalChannel) {
           case 'iSwap':
             await this.sendISwapTransaction();
             break;
@@ -133,12 +138,109 @@ export default {
           case 'iSwap Bridge':
             await this.sendISwapCrossTransaction();
             break;
+          case 'MetaPath':
+            await this._sendMetaPathCrossTransaction();
+            break;
           default:
             return false;
         }
       } catch (e) {
         this.confirmLoading = false;
         console.log(e, 'error');
+      }
+    },
+    async _sendMetaPathTransaction() {
+      try {
+        const transactionRes = await sendMetaPathTransaction(this.orderInfo);
+        if (transactionRes.hash) {
+          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+          this.$message({
+            type: 'success',
+            message: this.$t('tips.tips24'),
+            offset: 30,
+            duration: 1500
+          });
+          this.confirmLoading = false;
+          this.$emit('confirm');
+        }
+      } catch (e) {
+        console.error(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: e.message,
+          offset: 30
+        });
+      }
+    },
+    async _sendMetaPathCrossTransaction() {
+      try {
+        const { address, fromAsset, toAsset, toAddress, currentChannel, slippage } = this.orderInfo;
+        const recordParams = {
+          equipmentNo: getEquipmentNo(this.fromAddress),
+          fromTokenAddress: fromAsset.contractAddress || '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+          toTokenAddress: toAsset.contractAddress || '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+          fromAddress: address,
+          toAddress,
+          fromTokenAmount: timesDecimals(currentChannel.amount || 0, fromAsset.decimals || 18),
+          slippage,
+          fromChain: fromAsset['channelInfo']['MetaPath']['chain'],
+          toChain: toAsset['channelInfo']['MetaPath']['chain'],
+          toTokenAmount: currentChannel.amountOut,
+          dexName: currentChannel.dex,
+          orderId: currentChannel.txData && currentChannel.txData.orderId || '',
+          orderType: currentChannel.txData && currentChannel.txData.orderType || '',
+          transferData: currentChannel.txData && currentChannel.txData.transferData || '',
+          source: 'swapbox'
+        };
+        if (fromAsset.chain !== toAsset.chain) {
+          const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, 1);
+          if (swapRes.code === 1000) {
+            const transactionRes = await sendMetaPathTransaction(this.orderInfo);
+            if (transactionRes.hash) {
+              fromAsset.chain === toAsset.chain && this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+              recordParams['hash'] = transactionRes.hash;
+              const res = await metaPathRecordHash(recordParams);
+              if (res.resCode == '100') {
+                this.$message({
+                  type: 'success',
+                  message: this.$t('tips.tips24'),
+                  offset: 30,
+                  duration: 1500
+                });
+                this.confirmLoading = false;
+                this.$emit('confirm');
+                await this.recordHash(currentChannel.orderId, transactionRes.hash);
+              }
+            }
+          }
+        } else {
+          const transactionRes = await sendMetaPathTransaction(this.orderInfo);
+          if (transactionRes.hash) {
+            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+            recordParams['hash'] = transactionRes.hash;
+            const res = await metaPathRecordHash(recordParams);
+            if (res.resCode == '100') {
+              this.$message({
+                type: 'success',
+                message: this.$t('tips.tips24'),
+                offset: 30,
+                duration: 1500
+              });
+              this.confirmLoading = false;
+              this.$emit('confirm');
+              // await this.recordHash(currentChannel.orderId, transactionRes.hash);
+            }
+          }
+        }
+      } catch (e) {
+        console.log(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: e.data && e.data.message || e.message || e,
+          offset: 30
+        });
       }
     },
     // 调用合约发送iSwap交易
@@ -356,7 +458,7 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.message,
+          message: e.data && e.data.message || e.message,
           offset: 30
         });
       }
@@ -396,7 +498,7 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.message || this.$t('tips.tips51'),
+          message: e.data && e.data.message || e.message || this.$t('tips.tips51'),
           offset: 30
         });
       }
@@ -443,7 +545,7 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.message || this.$t('tips.tips51'),
+          message: e.data && e.data.message || e.message || this.$t('tips.tips51'),
           offset: 30
         });
       }
@@ -569,7 +671,7 @@ export default {
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
       const naboxParams = {
         orderId: res.orderId,
-        channel: currentChannel.channel,
+        channel: currentChannel.originalChannel || currentChannel.channel,
         platform: 'NABOX',
         fromChain: fromAsset.chain,
         toChain: toAsset.chain,
@@ -582,8 +684,8 @@ export default {
         swapAssetId: toAsset.assetId,
         swapContractAddress: toAsset.contractAddress || '',
         amount: amountIn,
-        crossFee: this.fromNetwork === 'NULS' ? currentChannel.originCrossChainFee : currentChannel.crossChainFee,
-        swapFee: currentChannel.swapFee,
+        crossFee: this.fromNetwork === 'NULS' ? currentChannel.originCrossChainFee : (currentChannel.dex === 'SWFT' || currentChannel.dex === 'Bridgers') && `${currentChannel.crossChainFee}${toAsset.symbol}` || currentChannel.crossChainFee,
+        swapFee: (currentChannel.dex === 'SWFT' || currentChannel.dex === 'Bridgers') && `${currentChannel.swapFee}${fromAsset.symbol}` || currentChannel.swapFee,
         slippage: currentChannel.channel === 'NERVE' && stableSwap ? '0' : slippage,
         pairAddress: fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress || '',
         // swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18),

@@ -243,13 +243,7 @@ class TronLinkApi {
     return await tronWeb.trx.sendRawTransaction(signedTx);
   }
 
-  async sendTrc20(
-    to,
-    amount,
-    contractAddress,
-    decimals,
-    pri
-  ) {
+  async sendTrc20(to, amount, contractAddress, decimals, pri) {
     if (!this.validAddress(to)) {
       throw 'invalid address';
     }
@@ -394,8 +388,12 @@ class TronLinkApi {
     });
   }
 
-  async getBatchTRC20Balance() {
-
+  async triggerSmartContract(params) {
+    const tronWeb = this.getTronWeb();
+    const { to, functionName, options, parameter, fromAddress } = params;
+    const transaction = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(to), functionName, options, parameter, fromAddress);
+    const signedTx = await tronWeb.trx.sign(transaction.transaction);
+    return await tronWeb.trx.sendRawTransaction(signedTx);
   }
 
   calWithdrawalNVT(nvtUSD, heterogeneousChainUSD) {

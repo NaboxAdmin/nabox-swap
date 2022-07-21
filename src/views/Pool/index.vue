@@ -22,13 +22,14 @@
       <!--      </div>-->
     </div>
     <div class="pool-cont mr-4">
-      <div class="d-flex size-32 font-400">
+      <div class="tab d-flex align-items-center">
         <span
           v-for="(item, index) in poolList"
           :key="item"
-          :class="{'active_color': index===currentIndex, 'ml-3': index===1}"
-          class="size-36 text-90 pool-item cursor-pointer"
+          :class="{'active': index===currentIndex, 'ml-3': index===1}"
+          class="size-36 text-90 cursor-pointer"
           @click="switchPool(index)">{{ item }}</span>
+        <div class="flex-1"/>
       </div>
     </div>
     <template>

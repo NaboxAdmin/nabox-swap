@@ -316,9 +316,7 @@ export default class ISwap {
    * @returns {Promise<*&{gasLimit: *}>}
    */
   async setGasLimit(tx) {
-    console.log(tx, 'tx');
     const gasLimit = await this.transfer.getGasLimit(tx);
-    console.log(gasLimit, 'gasLimit');
     const tempTx = {
       ...tx,
       gasLimit

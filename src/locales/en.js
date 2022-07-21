@@ -72,7 +72,7 @@ const en = {
     swap3: 'Max',
     swap4: 'Available',
     swap5: 'Rate',
-    swap6: 'Fees',
+    swap6: 'Fee',
     swap7: 'Channel',
     swap8: 'Next',
     swap9: 'Order History',
@@ -113,7 +113,9 @@ const en = {
     swap44: 'Transaction successful',
     swap45: 'Transaction failed',
     swap46: 'Processing transaction',
-    swap47: 'The maximum exchange amount is '
+    swap47: 'The maximum exchange amount is ',
+    swap48: 'Fee = Swap Fee + Token Transfer Fee',
+    swap49: 'Swap Fee'
   },
   transfer: {
     transfer1: 'From',

@@ -58,9 +58,12 @@
         <div class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap34') }}</span>
           <div class="d-flex align-items-center justify-content-end">
-            <span class="ml-4 text-ec">
+            <span class="ml-4 text-0">
               <span v-if="detailInfo && detailInfo.fromChain === 'NERVE' && detailInfo.toChain === 'NULS'" class="text-0">
                 {{ `${crossFee}NVT+${crossFee}NULS` }}
+              </span>
+              <span v-else-if="detailInfo && detailInfo.channel === 'MetaPath'">
+                {{ detailInfo && detailInfo.crossFee }}
               </span>
               <span v-else class="text-0">
                 {{ detailInfo && detailInfo.crossFee | numberFormat }}{{ detailInfo && (detailInfo.channel === 'NERVE' || orderType == 2) && mainAssetSymbol || 'USDT' }}
@@ -71,8 +74,11 @@
         <div v-if="orderType != 2" class="d-flex align-items-center space-between mt-4">
           <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
-            <span class="ml-4 text-ec">
-              <span class="text-0">
+            <span class="ml-4">
+              <span v-if="detailInfo && detailInfo.channel === 'MetaPath'" class="text-0">
+                {{ detailInfo && detailInfo.swapFee }}
+              </span>
+              <span v-else class="text-0">
                 {{ detailInfo && detailInfo.swapFee | numberFormat }}{{ detailInfo && detailInfo.symbol || 'USDT' }}
               </span>
             </span>

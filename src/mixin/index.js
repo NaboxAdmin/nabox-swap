@@ -107,7 +107,7 @@ export default {
       return moment(times).format('MM/DD HH:mm');
     },
     numberFormat(val) {
-      if (!Number(val)) return 0;
+      if (!Number(val)) return val;
       const numberVal = Number(val);
       const n = 6;
       if (n <= 0) return Math.round(numberVal);
@@ -125,6 +125,11 @@ export default {
       } else {
         return '0';
       }
+    },
+    toPercent(point) {
+      let str = Number(point * 100).toFixed(1);
+      str += '%';
+      return str;
     }
   },
   methods: {
