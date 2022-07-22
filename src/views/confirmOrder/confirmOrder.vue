@@ -48,7 +48,7 @@
             <span v-if="orderInfo && orderInfo.fromAsset.chain==='NERVE' && orderInfo.toAsset.chain==='NULS'">
               {{ `${crossFee}NVT+${crossFee}NULS` }}
             </span>
-            <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'Bridgers'">{{ orderInfo && orderInfo.currentChannel.crossChainFee | numberFormat }}{{ orderInfo && orderInfo.toAsset.symbol }}</span>
+            <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'Bridgers' || orderInfo.currentChannel.dex === 'Aggregator'">{{ orderInfo && orderInfo.currentChannel.crossChainFee | numberFormat }}{{ orderInfo && orderInfo.toAsset.symbol }}</span>
             <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'SWFT'">{{ orderInfo && orderInfo.currentChannel.crossChainFee | numberFormat }}{{ orderInfo && orderInfo.toAsset.symbol }}</span>
             <span v-else class="ml-4 text-3a">
               <span>{{ (orderInfo.currentChannel.crossChainFee || '0') | numberFormat }}</span>
@@ -61,7 +61,7 @@
           <span class="text-aa">{{ $t('swap.swap43') }}</span>
           <div class="d-flex align-items-center justify-content-end">
             <span v-if="orderInfo && orderInfo.currentChannel.dex === 'SWFT'" class="text-3a">{{ orderInfo && orderInfo.currentChannel.swapFee | numberFormat }}{{ orderInfo && orderInfo.fromAsset.symbol || orderInfo && orderInfo.currentChannel.feeSymbol || 'USDT' }}</span>
-            <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'Bridgers'" class="text-3a">{{ orderInfo && orderInfo.currentChannel.swapFee }}{{ orderInfo && orderInfo.fromAsset.symbol }}</span>
+            <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'Bridgers' || orderInfo.currentChannel.dex === 'Aggregator'" class="text-3a">{{ orderInfo && orderInfo.currentChannel.swapFee }}{{ orderInfo && orderInfo.fromAsset.symbol }}</span>
             <span v-else class="ml-4 text-3a">
               <span>{{ (orderInfo.currentChannel.swapFee || '0') | numberFormat }}</span>
               <span>{{ orderInfo && orderInfo.fromAsset.symbol || 'USDT' }}</span>
@@ -684,8 +684,8 @@ export default {
         swapAssetId: toAsset.assetId,
         swapContractAddress: toAsset.contractAddress || '',
         amount: amountIn,
-        crossFee: this.fromNetwork === 'NULS' ? currentChannel.originCrossChainFee : (currentChannel.dex === 'SWFT' || currentChannel.dex === 'Bridgers') && `${currentChannel.crossChainFee}${toAsset.symbol}` || currentChannel.crossChainFee,
-        swapFee: (currentChannel.dex === 'SWFT' || currentChannel.dex === 'Bridgers') && `${currentChannel.swapFee}${fromAsset.symbol}` || currentChannel.swapFee,
+        crossFee: this.fromNetwork === 'NULS' ? currentChannel.originCrossChainFee : (currentChannel.dex === 'SWFT' || currentChannel.dex === 'Bridgers' || currentChannel.dex === 'Aggregator') && `${currentChannel.crossChainFee}${toAsset.symbol}` || currentChannel.crossChainFee,
+        swapFee: (currentChannel.dex === 'SWFT' || currentChannel.dex === 'Bridgers' || currentChannel.dex === 'Aggregator') && `${currentChannel.swapFee}${fromAsset.symbol}` || currentChannel.swapFee,
         slippage: currentChannel.channel === 'NERVE' && stableSwap ? '0' : slippage,
         pairAddress: fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress || '',
         // swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18),

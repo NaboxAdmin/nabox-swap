@@ -150,7 +150,7 @@
           <span class="text-90">{{ chooseFromAsset.chain === chooseToAsset.chain ? $t("swap.swap49") : $t("swap.swap34") }}</span>
           <template>
             <span v-if="fromNetwork === 'NERVE' && chooseToAsset.chain === 'NULS'">{{ `${currentChannel.crossChainFee}NVT+${currentChannel.crossChainFee}NULS` }}</span>
-            <span v-else-if="currentChannel.dex === 'Bridgers'">{{ currentChannel.crossChainFee | numberFormat }}{{ chooseToAsset.symbol }}</span>
+            <span v-else-if="currentChannel.dex === 'Bridgers' || currentChannel.dex === 'Aggregator'">{{ currentChannel.crossChainFee | numberFormat }}{{ chooseToAsset.symbol }}</span>
             <span v-else-if="currentChannel.dex === 'SWFT'">{{ currentChannel.crossChainFee | numberFormat }}{{ chooseToAsset.symbol }}</span>
             <span v-else class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ stableSwap && (currentChannel.channel === 'NERVE' && mainAssetSymbol || chooseFromAsset.symbol) || 'USDT' }}</span>
           </template>
@@ -166,7 +166,7 @@
             <!--            </el-tooltip>-->
           </span>
           <span v-if="currentChannel.dex === 'SWFT'" class="text-3a">{{ currentChannel.swapFee | numberFormat }}{{ chooseFromAsset.symbol || currentChannel.feeSymbol || 'USDT' }}</span>
-          <span v-else-if="currentChannel.dex === 'Bridgers'" class="text-3a">{{ currentChannel.swapFee }}{{ chooseFromAsset.symbol }}</span>
+          <span v-else-if="currentChannel.dex === 'Bridgers' || currentChannel.dex === 'Aggregator'" class="text-3a">{{ currentChannel.swapFee }}{{ chooseFromAsset.symbol }}</span>
           <span v-else class="text-3a">{{ currentChannel.swapFee | numberFormat }}{{ (stableSwap && chooseFromAsset.symbol || (currentChannel.feeSymbol || 'USDT')) }}</span>
         </div>
         <div v-if="currentChannel.channel" class="d-flex space-between size-28 mt-3">
@@ -1383,7 +1383,7 @@ export default {
         } else {
           return feeList[1] && feeList[1].trim() || '';
         }
-      } else if (currentConfig.dex === 'Bridgers') {
+      } else if (currentConfig.dex === 'Bridgers' || currentConfig.dex === 'Aggregator') {
         if (!isCrossFee) {
           return Times(this.amountIn, currentConfig.fee);
         } else {
