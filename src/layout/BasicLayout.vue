@@ -365,9 +365,6 @@ export default {
         console.log(accounts, '===accounts-changed===');
         if (accounts.length && this.walletType) {
           this.address = accounts[0];
-          // if (this.address && !this.address.startsWith('0x')) {
-          //   this.switchNetwork(this.address);
-          // }
           window.location.reload();
         } else {
           this.address = '';

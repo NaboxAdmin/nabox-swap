@@ -216,7 +216,8 @@ export default {
       currentChainAvailable: 0,
       nerveChainAvailable: 0,
       commonOrderList: [], // 普通交易
-      showTips: false
+      showTips: false,
+      orderTimer: null
     };
   },
   computed: {
@@ -324,9 +325,11 @@ export default {
     this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     this.fromAddress && this.currentAccount && this.updateOrderHash();
     this.statusTimer = setInterval(() => {
-      this.fromAddress && this.currentAccount && this.updateOrderHash();
       this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
     }, 5000);
+    this.orderTimer = setInterval(() => {
+      this.fromAddress && this.currentAccount && this.updateOrderHash();
+    }, 20000);
   },
   mounted() {
     window.addEventListener('click', () => {
@@ -337,6 +340,10 @@ export default {
     if (this.statusTimer) {
       clearInterval(this.statusTimer);
       this.statusTimer = null;
+    }
+    if (this.orderTimer) {
+      clearInterval(this.orderTimer);
+      this.orderTimer = null;
     }
   },
   methods: {
@@ -578,28 +585,29 @@ export default {
     async updateOrderHash() {
       console.log('==updateOrderHash==');
       const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-      await Promise.all(hashList.map(async order => {
-        const orderInfo = await this.getOrderDetail(order.orderId, 3);
-        if (orderInfo.swapType && orderInfo.status == 0 && !orderInfo.txHash) {
-          await this.recordHash(order, 3);
-        } else if (orderInfo.lpType && orderInfo.status == 0 && !orderInfo.txHash) {
-          await this.recordHash(order, 2);
+      const resHashList = await Promise.all(hashList.map(async(order, index) => {
+        const orderInfo = await order.type === 'swap' ? await this.recordHash(order, 3) : await this.recordHash(order, 2);
+        if (orderInfo.code == 5001) {
+          return {
+            ...order,
+            isExit: true
+          };
         }
+        return {
+          ...order
+        };
       }));
+      const tempList = resHashList.filter(item => !item.isExit);
+      localStorage.setItem('hashList', JSON.stringify(tempList));
     },
     async recordHash(data, type) {
       try {
-        const url = type == 3 ? '/swap/tx/hash/update' : '/swap/lp/tx/hash/update';
-        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-        const res = await this.$request({
+        if (data['type']) delete data['type'];
+        const url = type === 3 ? '/swap/tx/hash/update' : '/swap/lp/tx/hash/update';
+        return await this.$request({
           url,
           data
         });
-        if (res.code === 1000) {
-          const hashIndex = hashList.findIndex(item => item.orderId === data.orderId);
-          hashList.splice(hashIndex, 1);
-          localStorage.setItem('hashList', JSON.stringify(hashList));
-        }
       } catch (e) {
         console.log(e, 'error');
       }

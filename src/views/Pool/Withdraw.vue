@@ -117,9 +117,9 @@
           {{ $t("swap.swap35") }}<span class="point_cont"/>
         </span>
       </div>
-      <div v-else :class="{opacity_btn: canNext}" class="btn size-30" @click="submit">{{ $t("pool.join4") }}</div>
+      <div v-else :class="{opacity_btn: canNext}" class="btn size-30 cursor-pointer" @click="submit">{{ $t("pool.join4") }}</div>
     </div>
-    <div v-else class="btn m-88 size-30 d-flex align-items-center justify-content-center" @click="approveERC20">
+    <div v-else class="btn m-88 size-30 d-flex align-items-center justify-content-center cursor-pointer" @click="approveERC20">
       <span class="mr-2">{{ $t("transfer.transfer8") }}</span>
       <Loading v-if="approvingLoading" :is-active="false"/>
     </div>
@@ -843,6 +843,14 @@ export default {
           if (orderRes.code === 1000) {
             const res = await nerveChannel.sendNerveCommonTransaction(params);
             if (res && res.hash) {
+              const params = {
+                orderId: this.orderId,
+                txHash: res.hash,
+                type: 'lp'
+              };
+              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              hashList.push(params);
+              localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 type: 'success',
                 message: this.$t('tips.tips24'),
@@ -904,6 +912,14 @@ export default {
           if (orderRes.code === 1000) {
             const res = await transfer.crossInII(params);
             if (res.hash) {
+              const params = {
+                orderId: this.orderId,
+                txHash: res.hash,
+                type: 'lp'
+              };
+              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              hashList.push(params);
+              localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -934,6 +950,14 @@ export default {
           if (orderRes.code === 1000) {
             const res = await nerveChannel.sendNerveBridgeTransaction(params);
             if (res.hash) {
+              const params = {
+                orderId: this.orderId,
+                txHash: res.hash,
+                type: 'lp'
+              };
+              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              hashList.push(params);
+              localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -965,23 +989,24 @@ export default {
           orderId,
           txHash: hash
         };
-        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-        const res = await this.$request({
+        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+        await this.$request({
           url: '/swap/lp/tx/hash/update',
           data: params
         });
-        if (res.code !== 1000) {
-          hashList.push(params);
-          localStorage.setItem('hashList', JSON.stringify(hashList));
-        }
+        // if (res.code !== 1000) {
+        //   hashList.push(params);
+        //   localStorage.setItem('hashList', JSON.stringify(hashList));
+        // }
       } catch (e) {
-        const params = {
-          orderId,
-          txHash: hash
-        };
-        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-        hashList.push(params);
-        localStorage.setItem('hashList', JSON.stringify(hashList));
+        console.log(e, 'error');
+        // const params = {
+        //   orderId,
+        //   txHash: hash
+        // };
+        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+        // hashList.push(params);
+        // localStorage.setItem('hashList', JSON.stringify(hashList));
       }
     },
     // 获取当前选择撤出的资产余额

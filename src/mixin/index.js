@@ -165,6 +165,7 @@ export default {
     },
     // 获取NERVE上面的资产信息
     async getNerveAssetBalance(assetInfo) {
+      if (!this.currentAccount) return;
       const { chainId, assetId, contractAddress, decimals } = assetInfo;
       const tempParams = [{
         chainId,

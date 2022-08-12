@@ -613,6 +613,14 @@ export default {
             res = await nerveChannel.sendNerveBridgeTransaction(params);
           }
           if (res && res.hash) {
+            const params = {
+              orderId: currentChannel.orderId,
+              txHash: res.hash,
+              type: 'swap'
+            };
+            const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+            hashList.push(params);
+            localStorage.setItem('hashList', JSON.stringify(hashList));
             this.$message({
               type: 'success',
               message: this.$t('tips.tips24'),
@@ -647,23 +655,24 @@ export default {
           orderId,
           txHash: hash
         };
-        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-        const res = await this.$request({
+        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+        await this.$request({
           url: '/swap/tx/hash/update',
           data: params
         });
-        if (res.code !== 1000) {
-          hashList.push(params);
-          localStorage.setItem('hashList', JSON.stringify(hashList));
-        }
+        // if (res.code !== 1000) {
+        //   hashList.push(params);
+        //   localStorage.setItem('hashList', JSON.stringify(hashList));
+        // }
       } catch (e) {
-        const params = {
-          orderId,
-          txHash: hash
-        };
-        const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-        hashList.push(params);
-        localStorage.setItem('hashList', JSON.stringify(hashList));
+        console.log(e, 'error');
+        // const params = {
+        //   orderId,
+        //   txHash: hash
+        // };
+        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+        // hashList.push(params);
+        // localStorage.setItem('hashList', JSON.stringify(hashList));
       }
     },
     // 记录到nabox后台
