@@ -467,7 +467,7 @@ export default {
             await this.checkAssetAuthStatus();
           } else if (newVal.originalChannel === 'MetaPath' && this.fromNetwork !== 'NERVE') {
             this.limitMin = newVal.limitMin || 0.001;
-            this.limitMax = newVal.limitMax  || 1000000;
+            this.limitMax = newVal.limitMax || 1000000;
             await this.checkAssetAuthStatus();
           }
           if (newVal.impact > 20) {
@@ -570,34 +570,39 @@ export default {
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
-      const contractAddress = this.chooseFromAsset.contractAddress;
-      const authContractAddress = this.getAuthContractAddress();
-      if (authContractAddress && this.chooseFromAsset.contractAddress && this.chainType === 2) {
-        const transfer = new ETransfer();
-        this.needAuth = await transfer.getERC20Allowance(
-          contractAddress,
-          authContractAddress,
-          this.fromAddress
-        );
-      } else if (authContractAddress && this.chooseFromAsset.contractAddress && this.chainType === 3) {
-        const transfer = new TronLink();
-        this.needAuth = await transfer.getTrc20Allowance(
-          this.currentAccount['address'][this.fromNetwork],
-          authContractAddress,
-          contractAddress
-        );
-      } else if (this.chainType === 1) {
+      try {
+        const contractAddress = this.chooseFromAsset.contractAddress;
+        const authContractAddress = this.getAuthContractAddress();
+        if (authContractAddress && this.chooseFromAsset.contractAddress && this.chainType === 2) {
+          const transfer = new ETransfer();
+          this.needAuth = await transfer.getERC20Allowance(
+            contractAddress,
+            authContractAddress,
+            this.fromAddress
+          );
+        } else if (authContractAddress && this.chooseFromAsset.contractAddress && this.chainType === 3) {
+          const transfer = new TronLink();
+          this.needAuth = await transfer.getTrc20Allowance(
+            this.currentAccount['address'][this.fromNetwork],
+            authContractAddress,
+            contractAddress
+          );
+        } else if (this.chainType === 1) {
+          this.needAuth = false;
+        }
+        // this.showComputedLoading = false;
+        await this.checkChannelLimitInfo();
+        if (this.inputType === 'amountIn') {
+          this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, 6, -1), 6);
+        } else {
+          this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, 6, -1), 6);
+        }
+        if (!this.needAuth && this.getAllowanceTimer) {
+          this.clearGetAllowanceTimer();
+        }
+      } catch (e) {
         this.needAuth = false;
-      }
-      // this.showComputedLoading = false;
-      await this.checkChannelLimitInfo();
-      if (this.inputType === 'amountIn') {
-        this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, 6, -1), 6);
-      } else {
-        this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, 6, -1), 6);
-      }
-      if (!this.needAuth && this.getAllowanceTimer) {
-        this.clearGetAllowanceTimer();
+        console.log(e, 'error');
       }
     },
     // 异构链token资产转入nerve授权
