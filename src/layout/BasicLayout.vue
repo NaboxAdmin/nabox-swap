@@ -554,7 +554,7 @@ export default {
       } catch (e) {
         console.log(e, 'error');
         this.$message({
-          message: e.message || e || this.$t('tips.tips22'),
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           type: 'warning',
           offset: 30
         });

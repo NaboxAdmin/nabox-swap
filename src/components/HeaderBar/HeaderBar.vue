@@ -587,7 +587,7 @@ export default {
       const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
       const resHashList = await Promise.all(hashList.map(async(order, index) => {
         const orderInfo = await order.type === 'swap' ? await this.recordHash(order, 3) : await this.recordHash(order, 2);
-        if (orderInfo.code == 5001) {
+        if (orderInfo.code == 1005 || orderInfo.code == 1000) {
           return {
             ...order,
             isExit: true

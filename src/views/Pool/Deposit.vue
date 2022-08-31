@@ -495,7 +495,7 @@ export default {
         this.confirmLoading = false;
       } catch (e) {
         console.log(e, 'error');
-        this.$message.warning({ message: e.message || e, offset: 30 });
+        this.$message.warning({ message: e.reason || e.message || e, offset: 30 });
         this.confirmLoading = false;
       }
     },
@@ -569,11 +569,7 @@ export default {
           this.orderId = res.data.orderId;
           this.requestLoading = false;
         } else {
-          this.$message({
-            type: 'warning',
-            message: res.msg || this.$t('tips.tips51'),
-            offset: 30
-          });
+          throw res.data;
         }
         this.computedFeeLoading = false;
       } catch (e) {
@@ -581,7 +577,7 @@ export default {
         this.computedFeeLoading = false;
         this.$message({
           type: 'warning',
-          message: e.message
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e)
         });
       }
     },
@@ -895,7 +891,7 @@ export default {
               throw res.msg;
             }
           } else {
-            throw this.$t('tips.tips53');
+            throw orderRes.msg;
           }
         } else if (this.chainType === 2) {
           const transfer = new ETransfer();
@@ -909,7 +905,6 @@ export default {
             crossChainFee: this.crossFee.toString(),
             nerveAddress: lpNerveAddress
           };
-          console.log(params, 'params');
           if (orderRes.code === 1000) {
             const res = await transfer.crossInII(params);
             if (res.hash) {
@@ -932,7 +927,7 @@ export default {
               await this.recordHash(this.orderId, res.hash);
             }
           } else {
-            throw this.$t('tips.tips53');
+            throw orderRes.msg;
           }
         } else if (this.chainType === 3) {
           const nerveChannel = new NerveChannel({});
@@ -969,14 +964,14 @@ export default {
               await this.recordHash(this.orderId, res.hash);
             }
           } else {
-            throw this.$t('tips.tips53');
+            throw orderRes.msg;
           }
         }
       } catch (e) {
         this.confirmLoading = false;
-        console.log(e);
+        console.error(e);
         this.$message({
-          message: this.$t(e.message || e),
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           type: 'warning',
           duration: 2000,
           offset: 30
@@ -996,34 +991,6 @@ export default {
         });
       } catch (e) {
         console.log(e, 'error');
-      }
-    },
-    // 广播nerve nuls跨链转账交易
-    async broadcastHex(txHex) {
-      const config = JSON.parse(sessionStorage.getItem('config'));
-      const url = config['NERVE'].apiUrl;
-      const chainId = config['NERVE'].chainId;
-      const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-      if (res.result && res.result.hash) {
-        // this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
-        this.$message({
-          message: this.$t('tips.tips10'),
-          type: 'success',
-          duration: 2000,
-          offset: 30
-        });
-        this.reset();
-        this.confirmLoading = false;
-        await this.recordHash(this.orderId, res.result.hash);
-      } else {
-        this.$message({
-          message: res.error && res.error.message || this.$t('tips.tips15'),
-          type: 'warning',
-          duration: 2000,
-          offset: 30
-        });
-        this.confirmLoading = false;
-        return null;
       }
     },
     reset() {

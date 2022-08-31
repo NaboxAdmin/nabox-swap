@@ -149,30 +149,6 @@ export default {
         console.log(e, 'error');
       }
     },
-    async _sendMetaPathTransaction() {
-      try {
-        const transactionRes = await sendMetaPathTransaction(this.orderInfo);
-        if (transactionRes.hash) {
-          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
-          this.$message({
-            type: 'success',
-            message: this.$t('tips.tips24'),
-            offset: 30,
-            duration: 1500
-          });
-          this.confirmLoading = false;
-          this.$emit('confirm');
-        }
-      } catch (e) {
-        console.error(e, 'error');
-        this.confirmLoading = false;
-        this.$message({
-          type: 'warning',
-          message: e.message,
-          offset: 30
-        });
-      }
-    },
     async _sendMetaPathCrossTransaction() {
       try {
         const { address, fromAsset, toAsset, toAddress, currentChannel, slippage } = this.orderInfo;
@@ -213,6 +189,8 @@ export default {
                 await this.recordHash(currentChannel.orderId, transactionRes.hash);
               }
             }
+          } else {
+            throw swapRes.data;
           }
         } else {
           const transactionRes = await sendMetaPathTransaction(this.orderInfo);
@@ -234,11 +212,11 @@ export default {
           }
         }
       } catch (e) {
-        console.log(e, 'error');
+        console.error(e, 'error');
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.data && e.data.message || e.message || e,
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
         });
       }
@@ -458,7 +436,7 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.data && e.data.message || e.message,
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
         });
       }
@@ -492,13 +470,15 @@ export default {
           });
           this.confirmLoading = false;
           this.$emit('confirm');
+        } else {
+          throw res.msg;
         }
       } catch (e) {
         console.error(e, 'error');
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.data && e.data.message || e.message || this.$t('tips.tips51'),
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
         });
       }
@@ -545,7 +525,7 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.data && e.data.message || e.message || this.$t('tips.tips51'),
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
         });
       }
@@ -634,15 +614,14 @@ export default {
             throw res.msg;
           }
         } else {
-          // throw swapRes.msg;
-          throw this.$t('tips.tips53');
+          throw swapRes.msg;
         }
       } catch (e) {
-        console.log(e, 'error');
+        console.error(e, 'error');
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: e.message || e,
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
         });
       }
@@ -655,24 +634,12 @@ export default {
           orderId,
           txHash: hash
         };
-        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
         await this.$request({
           url: '/swap/tx/hash/update',
           data: params
         });
-        // if (res.code !== 1000) {
-        //   hashList.push(params);
-        //   localStorage.setItem('hashList', JSON.stringify(hashList));
-        // }
       } catch (e) {
         console.log(e, 'error');
-        // const params = {
-        //   orderId,
-        //   txHash: hash
-        // };
-        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-        // hashList.push(params);
-        // localStorage.setItem('hashList', JSON.stringify(hashList));
       }
     },
     // 记录到nabox后台

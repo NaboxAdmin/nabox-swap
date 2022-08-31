@@ -447,7 +447,7 @@ export default {
         this.showLoading = false;
         this.showPop = false;
         this.$message({
-          message: e.message || e,
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30,
           type: 'warning'
         });
@@ -513,7 +513,7 @@ export default {
       } catch (e) {
         console.log(e, 'stake error');
         this.$message({
-          message: e.message,
+          message: e.reason || e.message || e,
           type: 'warning',
           offset: 30,
           duration: 2000

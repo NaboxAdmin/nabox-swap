@@ -273,7 +273,7 @@ export default {
         console.log(e);
         this.$message({
           type: 'warning',
-          message: e.message || e,
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30,
           customClass: 'messageClass'
         });
@@ -548,7 +548,7 @@ export default {
         } else {
           console.error(res.error);
           this.$message({
-            message: this.$t('tips.tips15'),
+            message: res.error && `${res.error.code}:${res.error.data}` || res.error && res.error.message || this.$t('tips.tips15'),
             offset: 30,
             type: 'warning'
           });

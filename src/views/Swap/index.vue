@@ -651,7 +651,7 @@ export default {
         console.log(e, 'error');
         this.$message({
           type: 'warning',
-          message: e.message || e,
+          message: e.reason || e.message || e,
           offset: 30
         });
         this.showApproveLoading = false;
@@ -1349,7 +1349,7 @@ export default {
                 amount: this.amountIn,
                 amountOut: currentConfig.receiveTokenAmount || currentConfig.toTokenAmount,
                 approveAddress: currentConfig.approveAddress || '',
-                minReceive: currentConfig.receiveTokenAmount || currentConfig.toTokenAmount,
+                minReceive: tofix(Times(currentConfig.receiveTokenAmount || currentConfig.toTokenAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
                 impact: currentConfig.impact || 0,
                 swapRate: this.computedSwapRate(isCross, this.amountIn, currentConfig.receiveTokenAmount || currentConfig.toTokenAmount),
                 feeSymbol: currentConfig.feeToken,

@@ -48,7 +48,7 @@ const en = {
     tips46: ' address ',
     tips47: ' will receive',
     tips48: 'Select receiving network',
-    tips49: 'Enter asset name to search',
+    tips49: 'Search by token name',
     tips50: 'Pls switch to the corresponding Network',
     tips51: 'Network timed out, please try again later...',
     tips52: 'The current chain is not currently supported',
@@ -64,7 +64,8 @@ const en = {
     tips62: 'Tips',
     tips63: 'The current plugin does not support the selected chain, do you want to switch plugins?',
     tips64: 'Confirm',
-    tips65: 'Total fee income'
+    tips65: 'Total fee income',
+    tips66: 'Insufficient asset balance, pls check the asset balance'
   },
   swap: {
     swap1: 'From',
@@ -119,9 +120,9 @@ const en = {
   },
   transfer: {
     transfer1: 'From',
-    transfer2: 'to',
-    transfer3: 'assets',
-    transfer4: 'amount',
+    transfer2: 'To',
+    transfer3: 'Assets',
+    transfer4: 'Amount',
     transfer5: 'available',
     transfer6: 'Max',
     transfer7: 'Fees',
@@ -146,7 +147,7 @@ const en = {
   vaults: {
     vaults1: 'Total ',
     vaults2: 'Live',
-    vaults3: 'Ended',
+    vaults3: 'End',
     vaults4: 'Staked ',
     vaults5: 'Available',
     vaults6: 'Max',
@@ -170,7 +171,7 @@ const en = {
   },
   modal: {
     modal1: 'Select',
-    modal2: 'Enter a name or address to search',
+    modal2: 'Search by name or contract address',
     modal3: 'No data'
   },
   popUp: {

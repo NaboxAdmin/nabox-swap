@@ -864,38 +864,8 @@ export default {
               throw res.msg;
             }
           } else {
-            throw this.$t('tips.tips53');
+            throw orderRes.msg;
           }
-          // const transfer = new NTransfer({
-          //   chain: 'NERVE',
-          //   type: 2
-          // });
-          // const { chainId, assetId } = this.addedLiquidityInfo;
-          // const transferInfo = {
-          //   from: this.currentAccount && this.currentAccount.address['NERVE'] || '',
-          //   to: lpNerveAddress,
-          //   amount: timesDecimals(this.withdrawCount, this.addedLiquidityInfo.decimals || 18),
-          //   fee: timesDecimals(this.crossFee, MAIN_INFO['decimal']),
-          //   assetsChainId: chainId,
-          //   assetsId: assetId
-          // };
-          // const { inputs, outputs } = await transfer.transferTransaction(transferInfo);
-          // if (orderRes.code === 1000) {
-          //   const txHex = await transfer.getTxHex({
-          //     inputs,
-          //     outputs,
-          //     txData: {},
-          //     pub: this.currentAccount.pub,
-          //     signAddress: this.currentAccount.address.Ethereum,
-          //     remarks: this.orderId || ''
-          //   });
-          //   if (txHex) {
-          //     console.log(txHex, '==txHex==');
-          //     await this.broadcastHex(txHex);
-          //   }
-          // } else {
-          //   throw this.$t('tips.tips53');
-          // }
         } else if (this.chainType === 2) {
           const transfer = new ETransfer();
           const heterAsset = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
@@ -931,7 +901,7 @@ export default {
               await this.recordHash(this.orderId, res.hash);
             }
           } else {
-            throw this.$t('tips.tips53');
+            throw orderRes.msg;
           }
         } else if (this.chainType === 3) {
           const nerveChannel = new NerveChannel({});
@@ -969,12 +939,12 @@ export default {
               await this.recordHash(this.orderId, res.hash);
             }
           } else {
-            throw this.$t('tips.tips53');
+            throw orderRes.msg;
           }
         }
       } catch (e) {
         this.$message({
-          message: e.message || e,
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           type: 'warning',
           offset: 30
         });
@@ -989,24 +959,12 @@ export default {
           orderId,
           txHash: hash
         };
-        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
         await this.$request({
           url: '/swap/lp/tx/hash/update',
           data: params
         });
-        // if (res.code !== 1000) {
-        //   hashList.push(params);
-        //   localStorage.setItem('hashList', JSON.stringify(hashList));
-        // }
       } catch (e) {
         console.log(e, 'error');
-        // const params = {
-        //   orderId,
-        //   txHash: hash
-        // };
-        // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-        // hashList.push(params);
-        // localStorage.setItem('hashList', JSON.stringify(hashList));
       }
     },
     // 获取当前选择撤出的资产余额
@@ -1023,7 +981,6 @@ export default {
           }));
           const params = [config['NERVE']['chainId'], this.currentAccount['address']['NERVE'], tempParams];
           const res = await this.$post(RPCUrl, 'getBalanceList', params);
-          console.log(res, params, 'ressssssss');
           if (res.result && res.result.length !== 0) {
             this.lpAssetsList = assetList.map((item, index) => ({
               ...item,
@@ -1055,35 +1012,6 @@ export default {
         }
       } catch (e) {
         console.log(e, 'error');
-      }
-    },
-    // 广播nerve nuls跨链转账交易
-    async broadcastHex(txHex) {
-      const config = JSON.parse(sessionStorage.getItem('config'));
-      const url = config['NERVE'].apiUrl;
-      const chainId = config['NERVE'].chainId;
-      const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-      // TODO:前端保存交易记录
-      if (res.result && res.result.hash) {
-        // this.formatArrayLength('NERVE', { type: 'L2', isPure: true, userAddress: this.fromAddress, chain: 'NERVE', txHash: res.result.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
-        this.$message({
-          message: this.$t('tips.tips10'),
-          type: 'success',
-          duration: 2000,
-          offset: 30
-        });
-        this.withDrawLoading = false;
-        this.reset();
-        await this.recordHash(this.orderId, res.result.hash);
-        // await this.getLiquidityInfo();
-      } else {
-        this.withDrawLoading = false;
-        this.$message({
-          message: res.error && res.error.message || this.$t('tips.tips15'),
-          type: 'warning',
-          duration: 2000,
-          offset: 30
-        });
       }
     },
     reset() {

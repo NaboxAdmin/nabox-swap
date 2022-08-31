@@ -628,7 +628,6 @@ export default {
           this.amountMsg = '';
         }
       } else {
-        console.log('123124124124124', crossFee);
         if (tempFromNetwork === 'NERVE' && this.fromNetwork === 'NULS') {
           const nulsBalance = await this.getNerveAssetBalance({
             assetId: NULS_INFO.assetId,
@@ -786,7 +785,6 @@ export default {
     },
     // 异构链转入nerve手续费
     async getCrossInFee() {
-      console.log('31324135')
       const tempFromNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
       const assetHeterogeneousInfo = this.currentCoin && this.currentCoin.heterogeneousList.filter(
         (v) => v.chainName === tempFromNetwork
@@ -1094,7 +1092,7 @@ export default {
         console.error('error: ' + e);
         this.transferLoading = false;
         this.$message({
-          message: e.message || this.$t('tips.tips15'),
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           type: 'warning',
           duration: 2000,
           offset: 30
@@ -1121,7 +1119,7 @@ export default {
         });
         this.reset();
       } else {
-        throw { message: res.error && res.error.message || this.$t('tips.tips15') };
+        throw { message: res.error && `${res.error.code}:${res.error.data}` || res.error && res.error.message || this.$t('tips.tips15') };
       }
       this.transferLoading = false;
     },

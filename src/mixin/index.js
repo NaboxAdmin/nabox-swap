@@ -304,6 +304,23 @@ export default {
       const tempL2Length = tempL2HashList.length;
       tempL2Length === l2Length && localStorage.setItem('l2HashList', JSON.stringify(tempL2Arr));
       tempL1Length === l1Length && localStorage.setItem('tradeHashMap', JSON.stringify(tempTradeHashList));
+    },
+    errorHandling(msg) {
+      const JSONMsg = JSON.stringify(msg);
+      const errorMsg = ['insufficient funds', 'Network Error', 'Network error', 'timeout of', 'fail code', '50'];
+      const errorMap = {
+        'Network Error': this.$t('tips.tips51'),
+        'Network error': this.$t('tips.tips51'),
+        'timeout of': this.$t('tips.tips51'),
+        '50': this.$t('tips.tips51'),
+        'fail code': this.$t('tips.tips51'),
+        'insufficient funds': this.$t('tips.tips66')
+      };
+      const errorIndex = errorMsg.findIndex(item => JSONMsg.indexOf(item) !== -1);
+      if (errorIndex === -1) {
+        return JSONMsg.replace(/\"/g, "");
+      }
+      return errorMap[errorMsg[errorIndex]].toString().replace(/\"/g, "");
     }
   }
 };
