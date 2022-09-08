@@ -1,7 +1,7 @@
 import nerve from 'nerve-sdk-js';
 import { BigNumber } from 'bignumber.js';
 import copy from 'copy-to-clipboard';
-import {MAIN_INFO, ETHNET, TRON_MULTI_CALL_ADDRESS} from '@/config.js';
+import { MAIN_INFO, ETHNET, TRON_MULTI_CALL_ADDRESS } from '@/config.js';
 import { post, request } from '../network/http';
 
 /**

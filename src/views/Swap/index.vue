@@ -294,6 +294,7 @@ import { getContractCallData } from '@/api/nulsContractValidate';
 import TronLink from '@/api/tronLink';
 import { validateNerveAddress } from '@/api/api';
 import { getEquipmentNo, getMultiQuote } from '@/views/Swap/util/MetaPath';
+import Inch from './util/1inch';
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -369,7 +370,8 @@ export default {
       NULSContractGas: 0,
       NULSContractTxData: null,
       toAddress: '', // 接收地址
-      addressError: '' // 地址错误提示
+      addressError: '', // 地址错误提示
+      inch: null
     };
   },
   computed: {
@@ -469,6 +471,8 @@ export default {
             this.limitMin = newVal.limitMin || 0.001;
             this.limitMax = newVal.limitMax || 1000000;
             await this.checkAssetAuthStatus();
+          } else if (newVal.channel === '1inch') {
+            await this.checkInchAssetAuthStatus();
           }
           if (newVal.impact > 20) {
             this.btnErrorMsg = this.$t('tips.tips35');
@@ -497,12 +501,11 @@ export default {
       this.fromContractAddress = this.$route.query.fromContractAddress;
       this.toContractAddress = this.$route.query.toContractAddress;
     }
-    // if (this.fromNetwork !== TRON) {
-    // this.iSwap = new ISwap({ chain: this.fromNetwork });
-    // this.initISwapConfig();
-    // }
     if (this.fromNetwork === 'NERVE') {
       this.getNerveSwapPairTrade();
+    }
+    if (this.chainType == 2) {
+      this.inch = new Inch({ nativeId: this.nativeId });
     }
     // setTimeout 0 不然获取不到地址
     setTimeout(() => {
@@ -605,28 +608,56 @@ export default {
         console.log(e, 'error');
       }
     },
+    // 获取Inch资产授权
+    async checkInchAssetAuthStatus() {
+      const params = {
+        tokenAddress: this.chooseFromAsset.contractAddress,
+        walletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
+      };
+      this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params) || false;
+      await this.checkChannelLimitInfo();
+      if (this.inputType === 'amountIn') {
+        this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, 6, -1), 6);
+      } else {
+        this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, 6, -1), 6);
+      }
+      if (!this.needAuth && this.getAllowanceTimer) {
+        this.clearGetAllowanceTimer();
+      }
+    },
     // 异构链token资产转入nerve授权
     async approveERC20() {
       if (this.approvingLoading) return false;
       this.showApproveLoading = true;
       try {
-        const authContractAddress = this.getAuthContractAddress();
-        const contractAddress = this.chooseFromAsset.contractAddress;
         let transfer, res;
-        if (this.fromNetwork === TRON) {
-          transfer = new TronLink();
-          res = await transfer.approveTrc20(
-            this.currentAccount['address'][this.fromNetwork],
-            authContractAddress,
-            contractAddress
-          );
-        } else {
+        if (this.currentChannel.channel === '1inch') {
           transfer = new ETransfer();
-          res = await transfer.approveERC20(
-            contractAddress,
-            authContractAddress,
-            this.fromAddress
-          );
+          const params = {
+            tokenAddress: this.chooseFromAsset.contractAddress
+          };
+          const transactionData = await this.inch.get1inchApproveTransactionData(params);
+          res = await transfer.sendTransaction({
+            ...transactionData
+          });
+        } else {
+          const authContractAddress = this.getAuthContractAddress();
+          const contractAddress = this.chooseFromAsset.contractAddress;
+          if (this.fromNetwork === TRON) {
+            transfer = new TronLink();
+            res = await transfer.approveTrc20(
+              this.currentAccount['address'][this.fromNetwork],
+              authContractAddress,
+              contractAddress
+            );
+          } else {
+            transfer = new ETransfer();
+            res = await transfer.approveERC20(
+              contractAddress,
+              authContractAddress,
+              this.fromAddress
+            );
+          }
         }
         if (res.hash && this.fromNetwork !== TRON || res && this.fromNetwork === TRON) {
           this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: this.fromNetwork === TRON && res || res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
@@ -651,7 +682,7 @@ export default {
         console.log(e, 'error');
         this.$message({
           type: 'warning',
-          message: e.reason || e.message || e,
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
         });
         this.showApproveLoading = false;
@@ -665,9 +696,15 @@ export default {
     },
 
     setGetAllowanceTimer() {
-      this.getAllowanceTimer = setInterval(() => {
-        this.checkAssetAuthStatus();
-      }, 3000);
+      if (this.currentChannel.channel === '1inch') {
+        this.getAllowanceTimer = setInterval(() => {
+          this.checkInchAssetAuthStatus();
+        }, 3000);
+      } else {
+        this.getAllowanceTimer = setInterval(() => {
+          this.checkAssetAuthStatus();
+        }, 3000);
+      }
     },
 
     getAuthContractAddress() {
@@ -1251,6 +1288,24 @@ export default {
               };
             }
             return null;
+          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE') {
+            currentConfig = await this.get1inchSwapRoute();
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                amount: this.amountIn,
+                channel: item.channel,
+                originalChannel: item.channel,
+                amountOut: currentConfig.toAmount,
+                minReceive: tofix(Times(currentConfig.toAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+                isBest: false,
+                isCurrent: false,
+                swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.toAmount),
+                swapFee: Times(this.amountIn, 0.001),
+                feeSymbol: this.chooseFromAsset.symbol
+              };
+            }
+            return null;
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap) {
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
@@ -1551,6 +1606,16 @@ export default {
       };
       const dodo = new Dodo();
       return await dodo.getDodoRoute(data);
+    },
+    async get1inchSwapRoute() {
+      if (this.fromNetwork === TRON) return null;
+      const params = {
+        fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        amount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals || 0),
+        fee: '0.1'
+      };
+      return this.inch.get1inchRouteQuote(params);
     },
     // 获取nerve通道上面
     async getNerveSwapRoute() {

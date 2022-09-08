@@ -334,7 +334,9 @@ export default {
         const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
         const fromAddress = this.currentAccount['address'][item.chain] || this.currentAccount['address'][this.chainNameToId[item.chain] || 'BSC'] || this.currentAccount['address'][this.nativeId];
         const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
+        console.log(fromAddress, '0xdeff0ee83ba00be152bcff88795f1577bf5be806');
         const tokenBalance = await getBatchERC20Balance([item.stakeToken && item.stakeToken.contractAddress || batchQueryContract, item.syrupToken && item.syrupToken.contractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
+        console.log(tokenBalance, 'tokenBalance');
         const stakedAsset = {
           ...tokenBalance[0],
           chainId: item.stakeToken && item.stakeToken.chainId,
@@ -476,7 +478,7 @@ export default {
       return await transfer.getERC20Allowance(
         syrupAsset.contractAddress,
         farmHash,
-        this.currentAccount.address[1] || this.currentAccount['address'][3]
+        this.currentAccount.address[this.fromNetwork] || this.currentAccount.address[1] || this.currentAccount['address'][3]
       );
     },
     // 质押资产授权
@@ -488,7 +490,7 @@ export default {
         const res = await transfer.approveERC20(
           contractAddress,
           farmHash,
-          this.currentAccount.address[1] || this.currentAccount['address'][3]
+          this.currentAccount.address[this.fromNetwork] || this.currentAccount.address[1] || this.currentAccount['address'][3]
         );
         if (res.hash) {
           this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });

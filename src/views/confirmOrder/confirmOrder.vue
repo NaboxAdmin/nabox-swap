@@ -86,6 +86,7 @@ import Dodo from '../Swap/util/Dodo';
 import NerveChannel from '../Swap/util/Nerve';
 import { NTransfer, crossFee } from '@/api/api';
 import { getEquipmentNo, metaPathRecordHash, sendMetaPathTransaction } from '@/views/Swap/util/MetaPath';
+import Inch from '@/views/Swap/util/1inch';
 // import '../../views/Swap/util/stableTransfer-min'
 
 const ethers = require('ethers');
@@ -102,7 +103,8 @@ export default {
       crossInAuth: false,
       swapOrderTimer: null,
       orderTimes: 300000,
-      crossFee
+      crossFee,
+      currentOrderId: ''
     };
   },
   computed: {
@@ -140,6 +142,9 @@ export default {
             break;
           case 'MetaPath':
             await this._sendMetaPathCrossTransaction();
+            break;
+          case '1inch':
+            await this._send1inchTransaction();
             break;
           default:
             return false;
@@ -441,6 +446,47 @@ export default {
         });
       }
     },
+    async _send1inchTransaction() {
+      try {
+        const res = await this.recordSameChainOrder();
+        if (res && res.code == 1000) {
+          this.currentOrderId = res.data && res.data.orderId || '';
+          const inch = await new Inch({ nativeId: this.nativeId });
+          const { fromAsset, toAsset, amountIn, address, slippage } = this.orderInfo;
+          const params = {
+            fromTokenAddress: fromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+            toTokenAddress: toAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+            amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+            fromAddress: address,
+            slippage,
+            referrerAddress: '0xDDE4259700E27872e6A631B5361243139f5dB7b8',
+            fee: 0.1
+          };
+          const txRes = await inch.send1inchTransaction(params, address);
+          if (txRes && txRes.hash) {
+            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: txRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+            this.$message({
+              type: 'success',
+              message: this.$t('tips.tips24'),
+              offset: 30,
+              duration: 1500
+            });
+            this.confirmLoading = false;
+            this.$emit('confirm');
+            await this.recordSameChainHash(this.currentOrderId, txRes.hash);
+          } else {
+            throw txRes.msg;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: this.errorHandling(e.message || e)
+        });
+      }
+    },
     // 发送nerveSwap交易
     async sendNerveSwapTransaction() {
       try {
@@ -456,7 +502,7 @@ export default {
         const txHex = await transfer.getTxHex({
           tAssemble,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3]
+          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][3]
         });
         console.log(txHex, '===txHex===');
         const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
@@ -498,7 +544,7 @@ export default {
         const txHex = await transfer.getTxHex({
           tAssemble,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3]
+          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][3]
         });
         console.log(txHex, '===txHex===');
         const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
@@ -574,7 +620,7 @@ export default {
               amountIn: timesDecimals(amountIn, fromAsset.decimals),
               type: 2,
               pub: this.currentAccount.pub,
-              signAddress: this.currentAccount.address[1] || this.currentAccount['address'][3],
+              signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][3],
               swapNerveAddress: swapNerveAddress,
               swapNulsAddress: swapNulsAddress,
               currentAccount: this.currentAccount,
@@ -642,6 +688,21 @@ export default {
         console.log(e, 'error');
       }
     },
+    // 记录一次交易hash
+    async recordSameChainHash(orderId, hash) {
+      try {
+        const params = {
+          orderId,
+          txHash: hash
+        };
+        await this.$request({
+          url: '/swap/hash/update',
+          data: params
+        });
+      } catch (e) {
+        console.log(e, 'error');
+      }
+    },
     // 记录到nabox后台
     async recordSwapOrder(res, type) {
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
@@ -671,6 +732,33 @@ export default {
       return await this.$request({
         url: '/swap/cross/tx/save',
         data: naboxParams
+      });
+    },
+    // 存储本链交易
+    async recordSameChainOrder() {
+      const { fromAsset, toAsset, amountIn, currentChannel, address, slippage } = this.orderInfo;
+      const params = {
+        orderId: '',
+        channel: currentChannel.channel,
+        swapType: '1',
+        chain: this.fromNetwork,
+        address,
+        chainId: fromAsset.chainId,
+        assetId: fromAsset.assetId,
+        contractAddress: fromAsset.contractAddress || '',
+        swapChainId: toAsset.chainId,
+        swapAssetId: toAsset.assetId,
+        swapContractAddress: toAsset.contractAddress,
+        amount: amountIn,
+        swapSuccAmount: currentChannel.amountOut,
+        swapFee: currentChannel.swapFee,
+        slippage,
+        pairAddress: ''
+      };
+      console.log(params, 'params');
+      return await this.$request({
+        url: '/swap/tx/save',
+        data: params
       });
     },
     // byte32格式化

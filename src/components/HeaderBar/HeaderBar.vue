@@ -556,7 +556,7 @@ export default {
     },
     async getOrderStatus(val) {
       try {
-        console.log('==getOrderStatus==');
+        // console.log('==getOrderStatus==');
         const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
         const tempList = commonTxList.filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
         let swapTxList; // 获取当前订单的状态
@@ -583,7 +583,7 @@ export default {
       }
     },
     async updateOrderHash() {
-      console.log('==updateOrderHash==');
+      // console.log('==updateOrderHash==');
       const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
       const resHashList = await Promise.all(hashList.map(async(order, index) => {
         const orderInfo = await order.type === 'swap' ? await this.recordHash(order, 3) : await this.recordHash(order, 2);

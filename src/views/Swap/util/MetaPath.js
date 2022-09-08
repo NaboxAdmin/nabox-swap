@@ -27,7 +27,7 @@ export async function getMultiQuote(params, amountIn) {
           return {
             ...resData,
             fee: resData.fee.toString(),
-            approveAddress: orderRes.data.txData.to,
+            approveAddress: resData.dex !== 'SWFT' && orderRes.data.txData.to || '',
             txData: orderRes.data.txData,
             platformAddress: orderRes.data.txData.platformAddr || '', // SWFT直接转到这个地址
             orderId: res.orderId
@@ -46,7 +46,7 @@ export async function getMultiQuote(params, amountIn) {
               return {
                 ...tempData,
                 fee: tempData.fee.toString(),
-                approveAddress: orderRes.data.txData.to,
+                approveAddress: tempData.dex !== 'SWFT' && orderRes.data.txData.to || '',
                 txData: orderRes.data.txData,
                 platformAddress: orderRes.data.txData.platformAddr || '', // SWFT直接转到这个地址
                 orderId: res.orderId

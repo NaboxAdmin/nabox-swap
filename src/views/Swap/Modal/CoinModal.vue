@@ -26,7 +26,7 @@
             <van-loading v-if="showLoading" size="40px" color="#49a3ff" />
           </div>
           <div v-if="showCoinList.length > 0" ref="coinLisCont" :class="modalType==='receive' && 'pl-4'" class="coin-list">
-            <div v-for="item in showCoinList" :key="item.coinId" class="list-item cursor-pointer">
+            <div v-for="(item, index) in showCoinList" :key="`${index}_${item.symbol}`" class="list-item cursor-pointer">
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
                 <div class="coin-item">
                   <span class="coin-icon">
@@ -101,7 +101,7 @@ export default {
     };
   },
   watch: {
-    searchVal(val) {
+    async searchVal(val) {
       if (val) {
         this.showCoinList = this.allList.filter(v => {
           const search = val.toUpperCase();
@@ -109,6 +109,9 @@ export default {
           const contractAddress = v.contractAddress.toUpperCase();
           return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1;
         });
+        // if (this.showCoinList.length === 0 && val.length > 35) {
+        //   this.showCoinList = await this.searchAsset(val);
+        // }
       } else {
         this.showCoinList = this.allList;
       }
@@ -154,9 +157,6 @@ export default {
     maskClick() {
       this.$emit('update:showModal', false);
     },
-    setUrl(index) {
-      return this.currentIndex === index ? `../../assets/image/${this.picList[index]}_active.png` : `../../assets/image/${this.picList[index]}.png`;
-    },
     back() {
       this.searchVal = '';
       this.$emit('update:showModal', false);
@@ -175,6 +175,31 @@ export default {
       });
       this.searchVal = '';
       this.$emit('select', { coin, type: this.modalType, network: this.picList[this.currentIndex] });
+    },
+    async searchAsset(val) {
+      try {
+        this.showLoading = true;
+        const data = {
+          chain: this.fromNetwork,
+          searchKey: val
+        };
+        const res = await this.$request({
+          url: '/swap/asset/query',
+          data
+        });
+        this.showLoading = false;
+        if (res && res.data && res.code === 1000) {
+          const balance = await this.getHeterogeneousAssetBalance({
+            contractAddress: res.data.contractAddress,
+            decimals: res.data.decimals
+          });
+          return res.data && [{ ...res.data, balance, isCustom: true }] || [];
+        }
+        return [];
+      } catch (e) {
+        this.showLoading = false;
+        return [];
+      }
     },
     // 点击nav
     async navClick(chain, i) {
@@ -206,9 +231,6 @@ export default {
           }
           this.showLoading = false;
         } else {
-          // const localSwapAssetList = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'))[chain || this.fromNetwork];
-          // const tempList = localSwapAssetList && localSwapAssetList.length > 0 && localSwapAssetList || swapAssetList[chain || this.fromNetwork];
-          // await this.setSwapAssetList(tempList || []);
           const res = await this.$request({
             url: '/swap/assets',
             data

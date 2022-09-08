@@ -872,6 +872,7 @@ export class ETransfer {
   }
 
   async sendTransaction(tx) {
+    console.log(tx, 'tx');
     const wallet = this.provider.getSigner();
     return await wallet.sendTransaction(tx);
   }
