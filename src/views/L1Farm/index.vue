@@ -69,8 +69,8 @@
         </div>
         <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
         <div class="pop-btn d-flex align-items-center space-between mt-4">
-          <div class="btn" @click="showPop = false; lpCount=''; amountMsg=''">{{ $t("vaults.vaults7") }}</div>
-          <div class="btn btn_active" @click="confirm">{{ $t("vaults.vaults8") }}</div>
+          <div class="btn cursor-pointer" @click="showPop = false; lpCount=''; amountMsg=''">{{ $t("vaults.vaults7") }}</div>
+          <div class="btn btn_active cursor-pointer" @click="confirm">{{ $t("vaults.vaults8") }}</div>
         </div>
       </div>
     </PopUp>

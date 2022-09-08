@@ -107,10 +107,10 @@
                   <template v-if="!item.needStakeAuth">
                     <div
                       :class="{ disabled_btn: !item.amount || item.amount == 0 }"
-                      class="btn-item"
+                      class="btn-item cursor-pointer"
                       @click="showClick('decrease', item.farmKey, item)">-</div>
                     <div
-                      class="btn-item ml-3"
+                      class="btn-item cursor-pointer ml-3"
                       @click="showClick('increase', item.farmKey, item)">+</div>
                   </template>
                   <div
