@@ -7,7 +7,7 @@ const en = {
     tips5: 'Failed to create order',
     tips6: 'Successful transaction',
     tips7: 'Transaction failed',
-    tips8: 'Insufficient balance or fee',
+    tips8: 'Insufficient gas fee, pls check the asset balance',
     tips9: ' Insufficient balance',
     tips10: 'Broadcast transaction is successful, please wait for confirmation',
     tips11: 'Generate L2 address',

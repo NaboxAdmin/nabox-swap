@@ -307,14 +307,15 @@ export default {
     },
     errorHandling(msg) {
       const JSONMsg = JSON.stringify(msg);
-      const errorMsg = ['insufficient funds', 'Network Error', 'Network error', 'timeout of', 'fail code', '50'];
+      const errorMsg = ['insufficient funds', 'gas required exceeds', 'Network Error', 'Network error', 'timeout of', 'fail code', '50'];
       const errorMap = {
         'Network Error': this.$t('tips.tips51'),
         'Network error': this.$t('tips.tips51'),
         'timeout of': this.$t('tips.tips51'),
         '50': this.$t('tips.tips51'),
         'fail code': this.$t('tips.tips51'),
-        'insufficient funds': this.$t('tips.tips66')
+        'insufficient funds': this.$t('tips.tips66'),
+        'gas required exceeds': this.$t('tips.tips8')
       };
       const errorIndex = errorMsg.findIndex(item => JSONMsg.indexOf(item) !== -1);
       if (errorIndex === -1) {

@@ -54,7 +54,6 @@
 <script>
 import { divisionDecimals, isBeta, tofix, TRON } from '@/api/util';
 import { getBatchERC20Balance } from '@/api/api';
-import { swapAssetList } from '@/views/Swap/util/swapAssetList';
 import { TRON_TRX_ADDRESS } from '@/config';
 
 export default {
@@ -68,10 +67,6 @@ export default {
       type: Boolean,
       default: false
     },
-    supportAdvanced: {
-      type: Boolean,
-      default: false
-    },
     fromAsset: {
       type: Object,
       default: () => {}
@@ -80,13 +75,9 @@ export default {
       type: Object,
       default: () => {}
     },
-    usdtInfo: {
-      type: Object,
-      default: () => null
-    },
-    usdtnInfo: {
-      type: Object,
-      default: () => null
+    assetList: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -109,9 +100,9 @@ export default {
           const contractAddress = v.contractAddress.toUpperCase();
           return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1;
         });
-        // if (this.showCoinList.length === 0 && val.length > 35) {
-        //   this.showCoinList = await this.searchAsset(val);
-        // }
+        if (this.showCoinList.length === 0 && val.length > 35) {
+          this.showCoinList = await this.searchAsset(val);
+        }
       } else {
         this.showCoinList = this.allList;
       }
@@ -124,9 +115,11 @@ export default {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
             this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'smartBCH', 'NULS', 'NERVE'];
-            this.timer = setTimeout(() => {
+            if (this.assetList.length > 0 && this.fromNetwork === this.picList[this.currentIndex]) {
+              this.setSwapAssetList(this.assetList);
+            } else {
               this.getSwapAssetList(this.picList[this.currentIndex]);
-            }, 0);
+            }
           } else {
             if (this.picList.findIndex(item => item === this.fromNetwork) === -1) {
               this.currentIndex = chainConfig.findIndex(item => item === this.fromNetwork);
@@ -134,19 +127,17 @@ export default {
             } else {
               this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
             }
-            this.timer = setTimeout(() => {
+            if (this.assetList.length > 0) {
+              this.setSwapAssetList(this.assetList);
+            } else {
               this.getSwapAssetList(this.fromNetwork);
-            }, 0);
+            }
           }
         }
       },
       immediate: true,
       deep: true
     }
-  },
-  created() {
-    // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-    // this.picList = tempConfig.map(item => item.chain);
   },
   mounted() {
     this.$nextTick(() => {
@@ -187,14 +178,15 @@ export default {
           url: '/swap/asset/query',
           data
         });
-        this.showLoading = false;
         if (res && res.data && res.code === 1000) {
           const balance = await this.getHeterogeneousAssetBalance({
             contractAddress: res.data.contractAddress,
             decimals: res.data.decimals
           });
+          this.showLoading = false;
           return res.data && [{ ...res.data, balance, isCustom: true }] || [];
         }
+        this.showLoading = false;
         return [];
       } catch (e) {
         this.showLoading = false;

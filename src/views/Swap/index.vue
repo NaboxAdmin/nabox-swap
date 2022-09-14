@@ -187,14 +187,8 @@
         v-if="showModal"
         :show-modal.sync="showModal"
         :modal-type="modalType"
-        :from-chain="chooseFromAsset && chooseFromAsset.symbol || ''"
         :from-asset="chooseFromAsset"
         :to-asset="chooseToAsset"
-        :from-address="fromAddress"
-        :from-network="fromNetwork"
-        :support-advanced="chooseFromAsset && chooseFromAsset.isSupportAdvanced === 'Y' || false"
-        :usdt-info="USDT_info"
-        :usdtn-info="USDTN_info"
         @select="selectCoin"/>
       <pop-modal :prevent-boo="false" :show.sync="showPop" :custom-class="true">
         <div class="route-cont">
@@ -309,8 +303,8 @@ export default {
     Loading
   },
   data() {
-    this.amountInDebounce = debounce(this.amountInInput, 500);
-    this.amountOutDebounce = debounce(this.amountOutInput, 500);
+    this.amountInDebounce = debounce(this.amountInInput, 800);
+    this.amountOutDebounce = debounce(this.amountOutInput, 800);
     return {
       slippageList: ['0.5', '1', '2'],
       showModal: false,
@@ -371,7 +365,8 @@ export default {
       NULSContractTxData: null,
       toAddress: '', // 接收地址
       addressError: '', // 地址错误提示
-      inch: null
+      inch: null,
+      assetList: []
     };
   },
   computed: {
@@ -892,9 +887,6 @@ export default {
             await this.setSwapAssetList(res.data || []);
           }
         } else {
-          // const localSwapAssetList = localStorage.getItem('localSwapAssetMap') && JSON.parse(localStorage.getItem('localSwapAssetMap'))[this.fromNetwork];
-          // const tempList = localSwapAssetList && localSwapAssetList.length > 0 && localSwapAssetList || swapAssetList[this.fromNetwork];
-          // await this.setSwapAssetList(tempList || []);
           const res = await this.$request({
             url: '/swap/assets',
             data
@@ -912,6 +904,7 @@ export default {
     // 获取当前的swap资产
     async setSwapAssetList(assetList) {
       const tempList = assetList.length > 0 && assetList.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
+      this.assetList = tempList;
       const tempFromCoin = tempList.find(item => item.contractAddress === this.fromContractAddress);
       const tempToCoin = tempList.find(item => item.contractAddress === this.toContractAddress);
       if (this.fromContractAddress && this.toContractAddress && tempFromCoin && tempToCoin) {
@@ -1075,7 +1068,7 @@ export default {
       }
     },
     getOptionalChannel() {
-      this.channelConfigList = this.originChannelConfigList.filter(channel => {
+      this.channelConfigList = (this.originChannelConfigList || []).filter(channel => {
         if (this.crossTransaction && !this.stableSwap) {
           return channel.crossSwap === true && channel.status === 1;
         } else if (this.crossTransaction && this.stableSwap) {

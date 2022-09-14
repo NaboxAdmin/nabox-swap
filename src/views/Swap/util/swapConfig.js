@@ -419,22 +419,14 @@ export const ISWAP_USDT_CONFIG = {
 
 export const localChannelList = [
   {
-    'id': 1,
-    'channel': 'iSwap',
-    'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/dapp/iSwap-swap.svg',
-    'swap': true,
-    'crossSwap': true,
-    'bridge': true,
-    'status': 1
-  },
-  {
     'id': 2,
     'channel': 'NERVE',
     'icon': 'https://nuls-cf.oss-us-west-1.aliyuncs.com/dapp/Nerve_swap.png',
     'swap': true,
     'crossSwap': false,
     'bridge': true,
-    'status': 1 },
+    'status': 1
+  },
   {
     'id': 3,
     'channel': 'DODO',
@@ -442,6 +434,15 @@ export const localChannelList = [
     'swap': true,
     'crossSwap': false,
     'bridge': false,
-    'status': 0
+    'status': 1
+  },
+  {
+    'id': 4,
+    'channel': '1inch',
+    'icon': 'https://files.nabox.io/icon/swap-1inch.png',
+    'swap': true,
+    'crossSwap': false,
+    'bridge': false,
+    'status': 1
   }
 ];

@@ -43,7 +43,7 @@
         <span class="icon_cont">
           <img src="@/assets/image/Safety.svg" alt="">
         </span>
-        <span>{{ 'CERTIK' }}</span>
+        <span>{{ 'Certik' }}</span>
       </div>
       <!--      <div class="nav-bar cursor-pointer" @click="toUrl('paraBox')">-->
       <!--        <span class="icon-cont">-->
@@ -51,14 +51,14 @@
       <!--        </span>-->
       <!--        <span>{{ 'ParaBox' }}</span>-->
       <!--      </div>-->
-      <div class="fee-cont">
-        <div class="fee-title">
-          {{ $t('tips.tips65') }}
-        </div>
-        <div class="fee-info">
-          ${{ (totalFee || 0) | numFormat }}
-        </div>
-      </div>
+      <!--      <div class="fee-cont">-->
+      <!--        <div class="fee-title">-->
+      <!--          {{ $t('tips.tips65') }}-->
+      <!--        </div>-->
+      <!--        <div class="fee-info">-->
+      <!--          ${{ (totalFee || 0) | numFormat }}-->
+      <!--        </div>-->
+      <!--      </div>-->
       <div class="bottom-cont">
         <div class="info-cont">
           <span class="icon mr-3 cursor-pointer" @click.stop="toUrl('twitter')">
@@ -123,26 +123,26 @@ export default {
     }
   },
   created() {
-    this.getTotalSwapFee();
-    if (this.feeTimer) clearInterval(this.feeTimer);
-    this.feeTimer = setInterval(() => {
-      this.getTotalSwapFee();
-    }, 20000);
+    // this.getTotalSwapFee();
+    // if (this.feeTimer) clearInterval(this.feeTimer);
+    // this.feeTimer = setInterval(() => {
+    //   this.getTotalSwapFee();
+    // }, 20000);
   },
   beforeDestroy() {
     if (this.feeTimer) clearInterval(this.feeTimer);
     this.feeTimer = null;
   },
   methods: {
-    async getTotalSwapFee() {
-      const res = await this.$request({
-        method: 'get',
-        url: '/swap/fee/total'
-      });
-      if (res.code === 1000) {
-        this.totalFee = tofix(res.data, 0, -1);
-      }
-    },
+    // async getTotalSwapFee() {
+    //   const res = await this.$request({
+    //     method: 'get',
+    //     url: '/swap/fee/total'
+    //   });
+    //   if (res.code === 1000) {
+    //     this.totalFee = tofix(res.data, 0, -1);
+    //   }
+    // },
     toUrl(type) {
       switch (type) {
         case 'twitter':
@@ -161,7 +161,7 @@ export default {
           this.isMobile ? window.location.href = 'https://parabox.nabox.io/' : window.open('https://parabox.nabox.io/');
           break;
         case 'CERTIK':
-          this.isMobile ? window.location.href = 'https://drive.google.com/file/d/16p4CZoegq4PsXLfjuw7d9ASpZcaU7sZI/view?usp=sharing' : window.open('https://drive.google.com/file/d/16p4CZoegq4PsXLfjuw7d9ASpZcaU7sZI/view?usp=sharing');
+          this.isMobile ? window.location.href = 'https://www.certik.com/projects/nabox' : window.open('https://www.certik.com/projects/nabox');
           break;
       }
     },
