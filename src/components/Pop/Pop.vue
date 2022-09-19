@@ -43,7 +43,7 @@
         <span class="icon_cont">
           <img src="@/assets/image/Safety.svg" alt="">
         </span>
-        <span>{{ 'Certik' }}</span>
+        <span>{{ 'CertiK' }}</span>
       </div>
       <!--      <div class="nav-bar cursor-pointer" @click="toUrl('paraBox')">-->
       <!--        <span class="icon-cont">-->

@@ -423,18 +423,23 @@ export default {
     // 调用合约发送DODO交易
     async sendDodoTransaction() {
       try {
-        const dodo = new Dodo();
-        const transactionRes = await dodo.sendDodoTransaction(this.orderInfo);
-        if (transactionRes.hash) {
-          this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
-          this.$message({
-            type: 'success',
-            message: this.$t('tips.tips24'),
-            offset: 30,
-            duration: 1500
-          });
-          this.confirmLoading = false;
-          this.$emit('confirm');
+        const res = await this.recordSameChainOrder();
+        if (res && res.code == 1000) {
+          this.currentOrderId = res.data && res.data.orderId || '';
+          const dodo = new Dodo();
+          const transactionRes = await dodo.sendDodoTransaction(this.orderInfo);
+          if (transactionRes.hash) {
+            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+            this.$message({
+              type: 'success',
+              message: this.$t('tips.tips24'),
+              offset: 30,
+              duration: 1500
+            });
+            this.confirmLoading = false;
+            this.$emit('confirm');
+            await this.recordSameChainHash(this.currentOrderId, transactionRes.hash);
+          }
         }
       } catch (e) {
         console.error(e, 'error');
@@ -483,7 +488,7 @@ export default {
         this.confirmLoading = false;
         this.$message({
           type: 'warning',
-          message: this.errorHandling(e.message || e)
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e)
         });
       }
     },
@@ -751,7 +756,7 @@ export default {
         swapContractAddress: toAsset.contractAddress,
         amount: amountIn,
         swapSuccAmount: currentChannel.amountOut,
-        swapFee: currentChannel.swapFee,
+        swapFee: currentChannel.swapFee || 0,
         slippage,
         pairAddress: ''
       };
