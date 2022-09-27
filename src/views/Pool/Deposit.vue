@@ -399,12 +399,14 @@ export default {
         });
         if (asset.heterogeneousList) {
           const currentAsset = asset.heterogeneousList && asset.heterogeneousList.find(item => item.chainName === this.fromNetwork);
-          if (currentAsset.contractAddress) {
+          if (currentAsset && currentAsset.contractAddress) {
             const tempAvailable = await transfer.getERC20Balance(currentAsset.contractAddress, asset.decimals, this.fromAddress);
             return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
-          } else {
+          } else if (currentAsset) {
             const tempAvailable = await transfer.getEthBalance(this.fromAddress);
             return this.numberFormat(tofix(tempAvailable, 2, -1), 2);
+          } else {
+            return 0;
           }
         } else {
           return 0;

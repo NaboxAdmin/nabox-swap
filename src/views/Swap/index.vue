@@ -366,7 +366,9 @@ export default {
       toAddress: '', // 接收地址
       addressError: '', // 地址错误提示
       inch: null,
-      assetList: []
+      assetList: [],
+      isFromLpAsset: false,
+      isToLpAsset: false
     };
   },
   computed: {
@@ -797,8 +799,22 @@ export default {
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
       this.nerveChainStableSwap = fromAsset.chain === 'NERVE' && toAsset.chain === 'NERVE';
+      let isStableLpInfo;
+      if (fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress) {
+        const currentPairIno = this.swapPairTradeList.find(item => item.address === fromAsset.channelInfo['NERVE'].pairAddress);
+        const assetKey = `${toAsset.nerveChainId}-${toAsset.nerveAssetId}`;
+        isStableLpInfo = currentPairIno.lpToken === assetKey || currentPairIno.groupCoin['assetKey'] == 1;
+        this.isToLpAsset = isStableLpInfo;
+        this.isFromLpAsset = false;
+      } else if (toAsset.channelInfo && toAsset.channelInfo['NERVE'] && toAsset.channelInfo['NERVE'].pairAddress) {
+        const currentPairIno = this.swapPairTradeList.find(item => item.address === toAsset.channelInfo['NERVE'].pairAddress);
+        const assetKey = `${fromAsset.nerveChainId}-${fromAsset.nerveAssetId}`;
+        isStableLpInfo = currentPairIno.lpToken === assetKey || currentPairIno.groupCoin['assetKey'] == 1;
+        this.isToLpAsset = false;
+        this.isFromLpAsset = isStableLpInfo;
+      }
       return fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['iSwap'] && toAsset.channelInfo['iSwap'] && fromAsset.channelInfo['iSwap'].token && toAsset.channelInfo['iSwap'].token && (fromAsset.channelInfo['iSwap'].token === toAsset.channelInfo['iSwap'].token) ||
-             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && toAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) ||
+             fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && toAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) || isStableLpInfo ||
              false;
     },
     // 下一步
@@ -824,11 +840,17 @@ export default {
         bridgeLimitInfo,
         nerveChainStableSwap,
         NULSContractGas,
-        NULSContractTxData
+        NULSContractTxData,
+        isToLpAsset,
+        isFromLpAsset
       } = this;
       const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
       const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
       const tokenOutIndex = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId).coinIndex || 0;
+      const tempTokenIndexList = stableSwapAsset && stableSwapAsset.swapAssets.map(item => item.coinIndex) || [];
+      tempTokenIndexList.unshift(tokenOutIndex);
+      const tokenIndexList = tempTokenIndexList && [...new Set(tempTokenIndexList)] || [];
+      console.log(tokenIndexList, 'tokenIndexList');
       const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId];
       const toChain = this.chooseToAsset.chain;
       const tempParams = {
@@ -853,7 +875,10 @@ export default {
         nerveChainStableSwap,
         tokenOutIndex,
         NULSContractGas,
-        NULSContractTxData
+        NULSContractTxData,
+        isToLpAsset,
+        isFromLpAsset,
+        tokenIndexList
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -1317,10 +1342,20 @@ export default {
             }
             return null;
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && this.stableSwap && this.nerveChainStableSwap) {
-            // currentConfig = await this._getNerveStableSwapFeeInfo();
-            const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
-            const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
-            const currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
+            console.log(this.nerveLimitInfo, 'nerveLimitInfo');
+            let currentAsset;
+            if (this.isFromLpAsset) {
+              const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === this.chooseToAsset.channelInfo['NERVE'].pairAddress);
+              currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
+            } else if (this.isToLpAsset) {
+              const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === this.chooseFromAsset.channelInfo['NERVE'].pairAddress);
+              currentAsset = stableSwapAsset && stableSwapAsset.tokenLp || null;
+            } else {
+              const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
+              const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
+              currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
+            }
+            console.log(currentAsset, '123123123123');
             const limitMax = divisionDecimals(currentAsset && currentAsset.amount || 0, currentAsset && currentAsset.decimals || 18);
             if (Minus(this.amountIn, limitMax) > 0) {
               // this.amountMsg = `${this.$t('tips.tips4')}${limitMax}${this.chooseFromAsset.symbol}`;
@@ -1764,6 +1799,8 @@ export default {
       const tempToAsset = { ...this.chooseToAsset };
       this.chooseToAsset = { ...tempFromAsset };
       this.chooseFromAsset = { ...tempToAsset };
+      this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
+      this.getChannelBool = false;
       this.currentChannel = null;
       this.inputType === 'amountIn' ? this.amountOut = '' : this.amountIn = '';
       await this.getBalance(this.chooseFromAsset, true);

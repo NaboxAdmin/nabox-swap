@@ -537,14 +537,14 @@ export default {
     // 发送nerve链上稳定币交易
     async sendNerveStableSwapTransaction() {
       try {
-        const { toAsset, fromAsset, currentChannel, swapPairInfo, swapPairTradeList, tokenOutIndex } = this.orderInfo;
+        const { toAsset, fromAsset, currentChannel, swapPairInfo, swapPairTradeList, tokenOutIndex, tokenIndexList = [], isFromLpAsset = false, isToLpAsset = false } = this.orderInfo;
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset,
           swapPairInfo,
           swapPairTradeList
         });
-        const tAssemble = await nerveChannel.sendNerveStableSwapTransaction(currentChannel.amount, this.currentAccount['address']['NERVE'], tokenOutIndex);
+        const tAssemble = await nerveChannel.sendNerveStableSwapTransaction(currentChannel.amount, this.currentAccount['address']['NERVE'], tokenOutIndex, isFromLpAsset, isToLpAsset, tokenIndexList);
         const transfer = new NTransfer({ chain: 'NERVE' });
         const txHex = await transfer.getTxHex({
           tAssemble,

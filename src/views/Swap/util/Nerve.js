@@ -235,25 +235,47 @@ export default class NerveChannel {
     }
   }
   // 发送NERVE稳定币swap交易
-  async sendNerveStableSwapTransaction(amount, fromAddress, tokenOutIndex) {
-    const stablePairAddress = this.originalFromAsset.channelInfo['NERVE'].pairAddress;
-    console.log(this.originalFromAsset, 'this.originalFromAsset');
+  async sendNerveStableSwapTransaction(amount, fromAddress, tokenOutIndex, isFromLpAsset, isToLpAsset, tokenIndexList) {
+    console.log(isFromLpAsset, isToLpAsset, 'isFromLpAsset, isToLpAsset');
+    const stablePairAddress = this.originalFromAsset.channelInfo && this.originalFromAsset.channelInfo['NERVE'] && this.originalFromAsset.channelInfo['NERVE'].pairAddress || this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'] && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || this.chooseToAsset.channelInfo && this.chooseToAsset.channelInfo['NERVE'] && this.chooseToAsset.channelInfo['NERVE'].pairAddress;
     const amountIn = timesDecimals(amount || 0, this.originalFromAsset.decimals);
     const amountIns = [nerve.swap.tokenAmount(this.originalFromAsset.chainId, this.originalFromAsset.assetId, amountIn)];
     const feeTo = null;
     const deadline = nerve.swap.currentTime() + 300;
     const toAddress = fromAddress;
     const remark = 'stable swap trade remark...';
-    const tx = await nerve.swap.stableSwapTrade(
-      fromAddress,
-      stablePairAddress,
-      amountIns,
-      tokenOutIndex,
-      feeTo,
-      deadline,
-      toAddress,
-      remark
-    );
+    let tx;
+    if (isFromLpAsset) {
+      tx = await nerve.swap.stableSwapRemoveLiquidity(
+        fromAddress,
+        stablePairAddress,
+        amountIns[0],
+        tokenIndexList,
+        deadline,
+        toAddress,
+        remark
+      );
+    } else if (isToLpAsset) {
+      tx = await nerve.swap.stableSwapAddLiquidity(
+        fromAddress,
+        stablePairAddress,
+        amountIns,
+        deadline,
+        toAddress,
+        remark
+      );
+    } else {
+      tx = await nerve.swap.stableSwapTrade(
+        fromAddress,
+        stablePairAddress,
+        amountIns,
+        tokenOutIndex,
+        feeTo,
+        deadline,
+        toAddress,
+        remark
+      );
+    }
     return nerve.deserializationTx(tx.hex);
   }
   // 获取资产的key
