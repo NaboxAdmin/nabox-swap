@@ -803,13 +803,13 @@ export default {
       if (fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress) {
         const currentPairIno = this.swapPairTradeList.find(item => item.address === fromAsset.channelInfo['NERVE'].pairAddress);
         const assetKey = `${toAsset.nerveChainId}-${toAsset.nerveAssetId}`;
-        isStableLpInfo = currentPairIno.lpToken === assetKey || currentPairIno.groupCoin['assetKey'] == 1;
+        isStableLpInfo = currentPairIno && (currentPairIno.lpToken === assetKey || currentPairIno.groupCoin['assetKey'] == 1);
         this.isToLpAsset = isStableLpInfo;
         this.isFromLpAsset = false;
       } else if (toAsset.channelInfo && toAsset.channelInfo['NERVE'] && toAsset.channelInfo['NERVE'].pairAddress) {
         const currentPairIno = this.swapPairTradeList.find(item => item.address === toAsset.channelInfo['NERVE'].pairAddress);
         const assetKey = `${fromAsset.nerveChainId}-${fromAsset.nerveAssetId}`;
-        isStableLpInfo = currentPairIno.lpToken === assetKey || currentPairIno.groupCoin['assetKey'] == 1;
+        isStableLpInfo = currentPairIno && (currentPairIno.lpToken === assetKey || currentPairIno.groupCoin['assetKey'] == 1);
         this.isToLpAsset = false;
         this.isFromLpAsset = isStableLpInfo;
       }
@@ -1183,7 +1183,13 @@ export default {
     },
     // 检查当前余额是否足够
     async checkBalance() {
-      const { amountIn, available, chooseFromAsset } = this;
+      const { available, chooseFromAsset } = this;
+      let amountIn;
+      if (this.inputType === 'amountIn') {
+        amountIn = this.amountIn;
+      } else {
+        amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, 6, -1), 6);
+      }
       if (this.fromNetwork === 'NULS') {
         const nulsBalance = await this.getNulsAssetBalance({
           assetId: NULS_INFO.assetId,
