@@ -299,6 +299,7 @@ export default class NerveChannel {
   }
   // 发送nerve通道异构链稳定币兑换交易
   async sendNerveBridgeTransaction(params) {
+    console.log(params, 'params');
     const { fromNetwork } = params;
     if (fromNetwork === TRON) {
       const tron = new TronLink();

@@ -600,6 +600,7 @@ export default {
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
         });
+        console.log(ethers.utils.toUtf8Bytes('15dfbd2a-7271-40f4-b894-ebe67f7202d7'), 'ethers.utils.toUtf8Bytes()')
         const params = {
           fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
           decimals: fromAsset.decimals,

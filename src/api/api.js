@@ -763,6 +763,7 @@ export class ETransfer {
       const numberOfTokens = ethers.utils.parseUnits(numbers, decimals);
       const mainAssetValue = ethers.utils.parseEther(crossChainFee);
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
+      console.log(iface, 'iface')
       const data = iface.functions.crossOutII.encode([nerveAddress, numberOfTokens, contractAddress, orderId]);
       transactionParameters = await this.setGasLimit({
         from: fromAddress,
