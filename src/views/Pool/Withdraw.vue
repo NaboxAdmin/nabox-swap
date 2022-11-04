@@ -643,6 +643,7 @@ export default {
     },
     // 获取pool流动性信息
     async getLiquidityInfo(tempData, refresh = false) {
+      console.log(tempData, '1231231');
       if (!refresh) {
         this.availableLoading = true;
       }
@@ -723,9 +724,10 @@ export default {
           chain: this.fromNetwork
         });
         this.addedLiquidityInfo = {
-          ...this.liquidityInfo
+          ...this.liquidityInfo,
+          balance: this.userAvailable || 0
         };
-        let addedLiquidityBalance = 0;
+        let addedLiquidityBalance = this.userAvailable || 0;
         if (this.liquidityInfo.heterogeneousList) {
           const currentAsset = this.liquidityInfo.heterogeneousList && this.liquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
           if (!currentAsset) {
@@ -831,7 +833,7 @@ export default {
             toNetwork: currentType,
             chainId: this.addedLiquidityInfo.chainId,
             assetId: this.addedLiquidityInfo.assetId,
-            signAddress: this.currentAccount['address'][1] || this.currentAccount['address'][3],
+            signAddress: this.currentAccount['address']['Ethereum'] || this.currentAccount['address'][1] || this.currentAccount['address'][97],
             amountIn: timesDecimals(this.withdrawCount, this.addedLiquidityInfo.decimals),
             fee: this.crossFee || 0,
             orderId,

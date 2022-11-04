@@ -52,7 +52,7 @@
             <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'SWFT'">{{ orderInfo && orderInfo.currentChannel.crossChainFee | numberFormat }}{{ orderInfo && orderInfo.toAsset.symbol }}</span>
             <span v-else class="ml-4 text-3a">
               <span>{{ (orderInfo.currentChannel.crossChainFee || '0') | numberFormat }}</span>
-              <span>{{ (orderInfo.stableSwap && orderInfo.currentChannel.channel === 'NERVE' && orderInfo.mainAssetSymbol) || (orderInfo.stableSwap && orderInfo.fromAsset.symbol || 'USDT') }}</span>
+              <span>{{ (orderInfo.stableSwap && orderInfo.currentChannel.channel === 'NERVE' && orderInfo.mainAssetSymbol) || (orderInfo.stableSwap && orderInfo.fromAsset.symbol || orderInfo.mainAssetSymbol) }}</span>
             </span>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default {
     async confirmOrder() {
       try {
         this.confirmLoading = true;
-        const { currentChannel, stableSwap, nerveChainStableSwap } = this.orderInfo;
+        const { currentChannel, stableSwap, nerveChainStableSwap, nerveCrossSwap, toAsset } = this.orderInfo;
         switch (currentChannel.originalChannel) {
           case 'iSwap':
             await this.sendISwapTransaction();
@@ -133,6 +133,8 @@ export default {
               await this.sendNerveStableSwapTransaction();
             } else if (stableSwap) {
               await this.sendNerveBridgeTransaction();
+            } else if (!this.stableSwap && nerveCrossSwap && this.fromNetwork !== 'NERVE' || this.fromNetwork === 'NERVE' && !this.stableSwap && toAsset.chain !== 'NERVE') {
+              await this.sendNerveBridgeTransaction(1); // 非稳定币跨链传1
             } else {
               await this.sendNerveSwapTransaction();
             }
@@ -507,7 +509,7 @@ export default {
         const txHex = await transfer.getTxHex({
           tAssemble,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][3]
+          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][97]
         });
         console.log(txHex, '===txHex===');
         const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
@@ -549,7 +551,7 @@ export default {
         const txHex = await transfer.getTxHex({
           tAssemble,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][3]
+          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][97]
         });
         console.log(txHex, '===txHex===');
         const res = await nerveChannel.broadcastHex(txHex, this.fromNetwork);
@@ -582,7 +584,7 @@ export default {
       }
     },
     // 发送nerve稳定币兑换交易
-    async sendNerveBridgeTransaction() {
+    async sendNerveBridgeTransaction(type) {
       try {
         const configRes = await this.$request({
           method: 'get',
@@ -600,7 +602,6 @@ export default {
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
         });
-        console.log(ethers.utils.toUtf8Bytes('15dfbd2a-7271-40f4-b894-ebe67f7202d7'), 'ethers.utils.toUtf8Bytes()')
         const params = {
           fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
           decimals: fromAsset.decimals,
@@ -612,7 +613,7 @@ export default {
           nerveAddress: swapNerveAddress,
           fromNetwork: this.fromNetwork
         };
-        const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, 2);
+        const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, type || 2);
         if (swapRes.code === 1000) {
           let res;
           if (this.chainType === 2) { // 异构链转到中间账户
@@ -626,7 +627,7 @@ export default {
               amountIn: timesDecimals(amountIn, fromAsset.decimals),
               type: 2,
               pub: this.currentAccount.pub,
-              signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][3],
+              signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][97],
               swapNerveAddress: swapNerveAddress,
               swapNulsAddress: swapNulsAddress,
               currentAccount: this.currentAccount,
@@ -640,6 +641,7 @@ export default {
               currentChannel,
               nativeId: this.chainNameToId[this.fromNetwork]
             };
+            console.log(crossOutPrams, 'crossOutPrams');
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
           } else if (this.chainType === 3) {
             res = await nerveChannel.sendNerveBridgeTransaction(params);
@@ -712,6 +714,7 @@ export default {
     // 记录到nabox后台
     async recordSwapOrder(res, type) {
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
+      console.log(currentChannel, 'currentChannel');
       const naboxParams = {
         orderId: res.orderId,
         channel: currentChannel.originalChannel || currentChannel.channel,
@@ -732,7 +735,7 @@ export default {
         slippage: currentChannel.channel === 'NERVE' && stableSwap ? '0' : slippage,
         pairAddress: fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress || '',
         // swapSuccAmount: timesDecimals(currentChannel.amountOut, toAsset.decimals || 18),
-        swapSuccAmount: currentChannel.amountOut,
+        swapSuccAmount: currentChannel.channel === 'NERVE' && type == 1 ? currentChannel.minReceive : currentChannel.amountOut,
         swapType: type
       };
       return await this.$request({

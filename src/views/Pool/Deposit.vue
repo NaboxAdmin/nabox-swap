@@ -291,6 +291,9 @@ export default {
   async created() {
     const liquidityInfo = JSON.parse(sessionStorage.getItem('liquidityItem'));
     this.accountType = liquidityInfo.tokenLp.heterogeneousList || [];
+    if (liquidityInfo && liquidityInfo.tokenLp && liquidityInfo.tokenLp.nulsCross) {
+      this.accountType.push({ chainName: 'NULS' });
+    }
     this.accountType.push({ chainName: 'NERVE' });
     this.currentToChain = this.accountType.find(item => item.chainName === 'NERVE') || this.accountType[0];
     const tempData = JSON.parse(sessionStorage.getItem('liquidityItem'));
@@ -543,7 +546,7 @@ export default {
           lpType: 1,
           swapChainId: (this.currentType === 'NERVE' || this.currentType === 'NULS') ? this.liquidityInfo.chainId : this.currentToChain.heterogeneousChainId,
           swapAssetId: (this.currentType === 'NERVE' || this.currentType === 'NULS') ? this.liquidityInfo.assetId : '0',
-          swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress
+          swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress || ''
         };
         if (Minus(this.joinCount, this.userAvailable) > 0) {
           this.amountMsg = this.$t('tips.tips17');
@@ -823,9 +826,9 @@ export default {
           pairAddress: this.liquidityInfo.address,
           lpType: 1,
           crossFee: this.fromNetwork === 'NULS' ? Minus(this.crossFee, this.contactFee) : this.crossFee,
-          swapChainId: (this.currentType === 'NERVE' || this.fromNetwork === 'NULS') ? this.liquidityInfo.chainId : this.currentToChain.heterogeneousChainId,
-          swapAssetId: (this.currentType === 'NERVE' || this.fromNetwork === 'NULS') ? this.liquidityInfo.assetId : '0',
-          swapContractAddress: this.currentType === 'NERVE' ? '' : this.currentToChain.contractAddress,
+          swapChainId: (this.currentType === 'NERVE' || this.currentType === 'NULS' || this.fromNetwork === 'NULS') ? this.liquidityInfo.chainId : this.currentToChain.heterogeneousChainId,
+          swapAssetId: (this.currentType === 'NERVE' || this.currentType === 'NULS' || this.fromNetwork === 'NULS') ? this.liquidityInfo.assetId : '0',
+          swapContractAddress: this.currentType === 'NERVE' || this.currentType === 'NULS' ? '' : this.currentToChain.contractAddress,
           succAmount: this.joinCount
         };
         const orderRes = await this.$request({
@@ -860,7 +863,7 @@ export default {
             toNetwork: currentType,
             chainId: currentAsset.nerveChainId,
             assetId: currentAsset.nerveAssetId,
-            signAddress: this.currentAccount['address'][1] || this.currentAccount['address'][3],
+            signAddress: this.currentAccount['address']['Ethereum'] || this.currentAccount['address'][1] || this.currentAccount['address'][97],
             amountIn: timesDecimals(joinCount, this.currentAsset.decimals),
             fee: this.crossFee || 0,
             orderId,

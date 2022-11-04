@@ -262,7 +262,9 @@ export default {
                 }
               }
             } else {
-              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.nerveChainId !== this.fromAsset.nerveChainId && coin.assetId !== this.fromAsset.assetId));
+              console.log(tempCoins, this.fromAsset, 'tempCoins');
+              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+              console.log(tempCoins, this.fromAsset.registerChain, 'tempCoins');
             }
           } else if (this.toAsset && this.modalType === 'send') {
             if (this.toAsset.chain === this.fromNetwork) {

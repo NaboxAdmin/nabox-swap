@@ -202,7 +202,7 @@ export default {
     this.timer = null;
   },
   methods: {
-    initData() {
+    async initData() {
       let tempData;
       if (typeof window._naboxAccount === 'string') {
         tempData = window._naboxAccount && JSON.parse(window._naboxAccount);

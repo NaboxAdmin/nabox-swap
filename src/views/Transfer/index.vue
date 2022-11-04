@@ -854,7 +854,7 @@ export default {
         amount: this.transferCount,
         symbol: asset.symbol,
         pub: currentAccount.pub,
-        signAddress: currentAccount.address[1] || currentAccount.address[3],
+        signAddress: currentAccount.address['Ethereum'] || currentAccount.address[1] || currentAccount.address[97],
         isTransferMainAsset: mainAssetInfo.symbol === asset.symbol,
         asset
       };

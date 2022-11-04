@@ -152,7 +152,7 @@
             <span v-if="fromNetwork === 'NERVE' && chooseToAsset.chain === 'NULS'">{{ `${currentChannel.crossChainFee}NVT+${currentChannel.crossChainFee}NULS` }}</span>
             <span v-else-if="currentChannel.dex === 'Bridgers' || currentChannel.dex === 'Aggregator'">{{ currentChannel.crossChainFee | numberFormat }}{{ chooseToAsset.symbol }}</span>
             <span v-else-if="currentChannel.dex === 'SWFT'">{{ currentChannel.crossChainFee | numberFormat }}{{ chooseToAsset.symbol }}</span>
-            <span v-else class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ stableSwap && (currentChannel.channel === 'NERVE' && mainAssetSymbol || chooseFromAsset.symbol) || 'USDT' }}</span>
+            <span v-else class="text-3a">{{ currentChannel.crossChainFee | numberFormat }}{{ stableSwap && (currentChannel.channel === 'NERVE' && mainAssetSymbol || chooseFromAsset.symbol) || mainAssetSymbol }}</span>
           </template>
         </div>
         <div v-if="currentChannel.swapFee" class="d-flex space-between size-28 mt-3">
@@ -368,7 +368,8 @@ export default {
       inch: null,
       assetList: [],
       isFromLpAsset: false,
-      isToLpAsset: false
+      isToLpAsset: false,
+      nerveCrossSwap: false
     };
   },
   computed: {
@@ -799,6 +800,7 @@ export default {
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
       this.nerveChainStableSwap = fromAsset.chain === 'NERVE' && toAsset.chain === 'NERVE';
+      this.nerveCrossSwap = !!(fromAsset.nerveChainId && fromAsset.nerveAssetId && fromAsset.nerveChainId && toAsset.nerveAssetId);
       let isStableLpInfo;
       if (fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress) {
         const currentPairIno = this.swapPairTradeList.find(item => item.address === fromAsset.channelInfo['NERVE'].pairAddress);
@@ -819,7 +821,7 @@ export default {
     },
     // 下一步
     nextStep() {
-      if (!this.canNext) return false;
+      // if (!this.canNext) return false;
       const {
         currentChannel,
         chooseFromAsset,
@@ -842,7 +844,8 @@ export default {
         NULSContractGas,
         NULSContractTxData,
         isToLpAsset,
-        isFromLpAsset
+        isFromLpAsset,
+        nerveCrossSwap
       } = this;
       const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
       const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
@@ -878,7 +881,8 @@ export default {
         NULSContractTxData,
         isToLpAsset,
         isFromLpAsset,
-        tokenIndexList
+        tokenIndexList,
+        nerveCrossSwap
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -1264,7 +1268,9 @@ export default {
         this.showComputedLoading = true;
         this.amountMsg = '';
         console.log(this.channelConfigList, '==channelConfigList==');
+        // debugger;
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
+          console.log(item, item.channel === 'NERVE' && this.stableSwap && this.nerveCrossSwap, this.stableSwap, this.nerveCrossSwap, '123item');
           let currentConfig = {};
           if (item.channel === 'iSwap' && !this.stableSwap) {
             currentConfig = await this.getEstimateFeeInfo();
@@ -1330,7 +1336,7 @@ export default {
               };
             }
             return null;
-          } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap) {
+          } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap && this.chooseToAsset.chain === 'NERVE') {
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
               return {
@@ -1425,6 +1431,39 @@ export default {
                 orderId: currentConfig.orderId
               };
             }
+            return null;
+          } else if(item.channel === 'NERVE' && !this.stableSwap && this.nerveCrossSwap) {
+            currentConfig = await this._getNerveEstimateFeeInfo(1);
+            let contractFee;
+            if (this.fromNetwork === 'NERVE') {
+              if (this.chooseToAsset.chain === 'NULS') {
+                contractFee = crossFee;
+              }
+            } else if (this.fromNetwork === 'NULS') {
+              contractFee = Plus(crossFee, 0.001);
+              if (this.chooseFromAsset.contractAddress) {
+                contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
+              }
+            }
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                channel: item.channel,
+                originalChannel: item.channel,
+                amount: this.inputType === 'amountIn' ? this.amountIn : currentConfig.swapSuccAmount,
+                amountOut: this.inputType === 'amountOut' ? this.amountOut : currentConfig.swapSuccAmount,
+                minReceive: tofix(Times(currentConfig.swapSuccAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+                swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
+                crossChainFee: tofix(this.numberFormat(contractFee ? Plus(currentConfig.crossChainFee, contractFee) : currentConfig.crossChainFee, 6), 6, -1),
+                contractFee: contractFee || 0, // 调用合约消耗的gasFee
+                originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+                isBest: false,
+                isCurrent: false,
+                orderId: currentConfig.orderId,
+                feeSymbol: this.chooseFromAsset.symbol
+              };
+            }
+            console.log(currentConfig, 'item.channel && this.stableSwap');
             return null;
           } else if (item.channel === 'MetaPath' && this.fromNetwork !== 'NERVE' && this.chooseToAsset && this.chooseToAsset.chain !== 'NERVE') {
             const currentConfig = await this.getMetaPathEstimateFeeInfo();
@@ -1570,30 +1609,33 @@ export default {
       return await this.iSwap.getBridgeEstimateFeeInfo(bridgeFeeInfoParams);
     },
     // 获取nerve稳定币兑换信息
-    async _getNerveEstimateFeeInfo() {
+    async _getNerveEstimateFeeInfo(type) {
+      console.log(type, '213type');
       const NerveSwap = new NerveChannel({
         chooseFromAsset: this.chooseFromAsset,
         chooseToAsset: this.chooseToAsset,
         swapPairTradeList: this.swapPairTradeList
       });
+      console.log(this.inputType, '1232inputType');
       const params = {
         channel: 'NERVE',
         // platform: 'SWFT',
         platform: 'NABOX',
-        swapType: 2,
+        swapType: type || 2,
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,
         fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.chainNameToId[this.fromNetwork]],
         toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]] || this.toAddress || 'TFtN2JUP5Zi1i487oZKLK25sPBTTSdYMWy',
-        chainId: this.chooseFromAsset.chainId,
-        assetId: this.chooseFromAsset.assetId,
-        contractAddress: this.chooseFromAsset.contractAddress,
-        swapChainId: this.chooseToAsset.chainId,
-        swapAssetId: this.chooseToAsset.assetId,
-        swapContractAddress: this.chooseToAsset.contractAddress,
+        chainId: type === 1 && this.inputType === 'amountOut' && this.chooseToAsset.chainId || this.chooseFromAsset.chainId,
+        assetId: type === 1 && this.inputType === 'amountOut' && this.chooseToAsset.assetId || this.chooseFromAsset.assetId,
+        contractAddress: type === 1 && this.inputType === 'amountOut' && this.chooseToAsset.contractAddress || this.chooseFromAsset.contractAddress,
+        swapChainId: type === 1 && this.inputType === 'amountOut' && this.chooseFromAsset.chainId || this.chooseToAsset.chainId,
+        swapAssetId: type === 1 && this.inputType === 'amountOut' && this.chooseFromAsset.assetId || this.chooseToAsset.assetId,
+        swapContractAddress: type === 1 && this.inputType === 'amountOut' && this.chooseFromAsset.contractAddress || this.chooseToAsset.contractAddress,
         amount: this.inputType === 'amountIn' && this.amountIn || this.amountOut,
         // amount: this.inputType === 'amountIn' && timesDecimals(this.amountIn, this.chooseFromAsset.decimals) || timesDecimals(this.amountOut, this.chooseToAsset.decimals),
-        pairAddress: this.chooseFromAsset.channelInfo['NERVE'].pairAddress
+        pairAddress: this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '',
+        slippage: type == 1 && this.slippage || 0
       };
       return await NerveSwap.getNerveEstimateFeeInfo(params);
     },

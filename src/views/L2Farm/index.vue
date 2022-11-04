@@ -261,7 +261,7 @@ export default {
           outputs: outputs,
           txData: {},
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][3]
+          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount['address'][97]
         };
         const txHex = await transfer.getTxHex(data);
         if (txHex) {
@@ -450,7 +450,7 @@ export default {
           inputs,
           outputs,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount.address[3]
+          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount.address[97]
         };
         const txHex = await transfer.getTxHex(txData);
         if (txHex) {
@@ -492,7 +492,7 @@ export default {
           inputs,
           outputs,
           pub: this.currentAccount.pub,
-          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount.address[3]
+          signAddress: this.currentAccount.address['Ethereum'] || this.currentAccount.address[1] || this.currentAccount.address[97]
         };
         const txHex = await transfer.getTxHex(txData);
         if (txHex) {
