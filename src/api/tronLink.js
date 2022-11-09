@@ -183,6 +183,7 @@ class TronLinkApi {
     }
     const output = '0x' + constantResult[0];
     const result = tronWeb.utils.abi.decodeParamsV2ByABI(funABI, output);
+    console.log(result, 'result');
     if (!result || result.length == 0) {
       return;
     }

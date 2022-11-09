@@ -4,6 +4,8 @@ import copy from 'copy-to-clipboard';
 import { MAIN_INFO, ETHNET, TRON_MULTI_CALL_ADDRESS } from '@/config.js';
 import { post, request } from '../network/http';
 
+export const REFERRER = '0xDDE4259700E27872e6A631B5361243139f5dB7b8';
+
 /**
  * 10的N 次方
  * @param arg

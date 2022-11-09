@@ -2,7 +2,7 @@ import { sendRequest } from '@/network/cancelRequest';
 import { ETransfer } from '@/api/api';
 import { ethers } from 'ethers';
 
-const dodoBaseUrl = 'https://route-api.dodoex.io/dodoapi';
+const dodoBaseUrl = 'https://test-route-api.dodoex.io/dodoapi'; // https://route-api.dodoex.io/dodoapi(主网)
 
 export default class Dodo {
   constructor() {

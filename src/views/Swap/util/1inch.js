@@ -1,7 +1,7 @@
 import { sendRequest } from '@/network/cancelRequest';
 import { divisionDecimals, Minus } from '@/api/util';
 import { ethers } from 'ethers';
-import {ETransfer} from "@/api/api";
+import { ETransfer } from '@/api/api';
 
 const inchBaseUrl = 'https://api.1inch.io/v4.0/';
 
@@ -99,7 +99,7 @@ export default class Inch {
         customUrl: `${inchBaseUrl}${this.nativeId}`
       });
       if (res.tx) {
-        console.log(divisionDecimals(res.tx.value, res.fromToken.decimals).toString(), 'divisionDecimals(res.tx.value, res.fromToken.decimals).toString()')
+        console.log(divisionDecimals(res.tx.value, res.fromToken.decimals).toString(), 'divisionDecimals(res.tx.value, res.fromToken.decimals).toString()');
         const txData = await this.setGasLimit({
           from: address,
           to: res.tx.to,

@@ -265,7 +265,7 @@ import {
   divisionDecimals,
   isBeta,
   Minus,
-  Plus,
+  Plus, REFERRER,
   supportChainList,
   Times,
   timesDecimals,
@@ -1678,6 +1678,8 @@ export default {
         slippage: this.slippage,
         userAddr: this.fromAddress,
         chainId: this.chooseFromAsset.nativeId || '',
+        rebateTo: REFERRER,
+        fee: '1000000000000000',
         rpc // 当前的rpc地址
       };
       const dodo = new Dodo();
