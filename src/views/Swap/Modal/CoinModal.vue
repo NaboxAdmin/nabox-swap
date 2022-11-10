@@ -280,7 +280,7 @@ export default {
                 }
               }
             } else {
-              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && (coin.nerveAssetId !== this.toAsset.nerveAssetId && coin.nerveChainId !== this.toAsset.nerveChainId && coin.assetId !== this.toAsset.assetId));
+              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
             }
           }
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];

@@ -1103,7 +1103,7 @@ export default {
         } else if (this.crossTransaction && this.stableSwap) {
           return this.checkLpBalance() && channel.channel === 'NERVE' && channel.bridge === true && channel.status === 1 || channel.channel !== 'NERVE' && channel.bridge === true && channel.status === 1;
         }
-        return channel.swap === true && channel.status === 1;
+        return channel.swap === true && channel.status === 1; //  && channel.channel === 'DODO'
       });
     },
     // 查看当前nerve通道流动性
@@ -1238,7 +1238,21 @@ export default {
       this.showComputedLoading = false;
     },
     computedSwapRate(isCross, amountIn, amountOut) {
-      return `1${this.chooseFromAsset.symbol}≈${this.numberFormat(tofix((Division(amountOut, amountIn) < 0.000001 && '0' || Division(amountOut, amountIn)), 4, -1), 4)}${this.chooseToAsset.symbol}`;
+      return `1${this.chooseFromAsset.symbol}≈${this.numberFormat(tofix((Division(amountOut, amountIn) < 0.000001 && '0' || Division(amountOut, amountIn)), this.formatLength(Division(amountOut, amountIn)), -1), this.formatLength(Division(amountOut, amountIn)))}${this.chooseToAsset.symbol}`;
+    },
+    formatLength(amount) {
+      console.log(amount.toString());
+      if (amount.toString().indexOf('.') !== -1) {
+        const intLength = amount.toString().split('.')[0].length;
+        if (amount.toString().split('.')[0] == 0) {
+          return 6;
+        } else if (intLength < 6) {
+          return 6 - intLength;
+        } else {
+          return 0;
+        }
+      }
+      return 6;
     },
     async amountOutInput() {
       this.inputType = 'amountOut';
@@ -1432,14 +1446,17 @@ export default {
               };
             }
             return null;
-          } else if(item.channel === 'NERVE' && !this.stableSwap && this.nerveCrossSwap) {
+          } else if (item.channel === 'NERVE' && !this.stableSwap && this.nerveCrossSwap) {
+            if (this.inputType !== 'amountIn') {
+              return null;
+            }
             currentConfig = await this._getNerveEstimateFeeInfo(1);
             let contractFee;
             if (this.fromNetwork === 'NERVE') {
               if (this.chooseToAsset.chain === 'NULS') {
                 contractFee = crossFee;
               }
-            } else if (this.fromNetwork === 'NULS') {
+            } else if (this.fromNetwork === 'NULS' && currentConfig) {
               contractFee = Plus(crossFee, 0.001);
               if (this.chooseFromAsset.contractAddress) {
                 contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
@@ -1634,7 +1651,7 @@ export default {
         swapContractAddress: type === 1 && this.inputType === 'amountOut' && this.chooseFromAsset.contractAddress || this.chooseToAsset.contractAddress,
         amount: this.inputType === 'amountIn' && this.amountIn || this.amountOut,
         // amount: this.inputType === 'amountIn' && timesDecimals(this.amountIn, this.chooseFromAsset.decimals) || timesDecimals(this.amountOut, this.chooseToAsset.decimals),
-        pairAddress: this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '',
+        pairAddress: this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'] && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '',
         slippage: type == 1 && this.slippage || 0
       };
       return await NerveSwap.getNerveEstimateFeeInfo(params);
