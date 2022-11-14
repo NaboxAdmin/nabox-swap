@@ -158,10 +158,12 @@ export default {
         }
         return '0';
       }
-      const numberVal = Number(val);
+      const numberVal = val.toString();
       const n = float || 6;
-      if (n <= 0) return Math.round(numberVal);
-      return (Math.round(numberVal * Math.pow(10, n)) / Math.pow(10, n)).toString();
+      // if (n <= 0) return Math.round(numberVal);
+      if (n <= 0) return numberVal;
+      // return (Math.round(numberVal * Math.pow(10, n)) / Math.pow(10, n)).toString();
+      return numberVal.replace(/(\.\d+?)0*$/, '$1');
     },
     // 获取NERVE上面的资产信息
     async getNerveAssetBalance(assetInfo) {

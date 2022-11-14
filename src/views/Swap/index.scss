@@ -220,6 +220,9 @@
         background-color: #6EB6A9;
         color: #FFFFFF;
       }
+      &.active_slippage_input {
+        border: 1px solid #6EB6A9;
+      }
       &:last-child {
         width: 188px;
       }

@@ -229,11 +229,11 @@
           </div>
         </div>
       </pop-modal>
-      <pop-modal :prevent-boo="false" :show.sync="showSlippage" :custom-class="false">
+      <pop-modal :prevent-boo="!!slippageMsg" :show.sync="showSlippage" :custom-class="false">
         <div class="slippage-modal">
           <div class="header-cont size-36 font-500 mt-2">
             {{ $t('swap.swap36') }}
-            <div class="back-icon cursor-pointer" @click="showSlippage=false">
+            <div class="back-icon cursor-pointer" @click="closeModal">
               <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"/></svg>
             </div>
           </div>
@@ -242,9 +242,9 @@
               v-for="(item, index) in slippageList"
               :key="item"
               :class="{ active_slippage: index===currentIndex }"
-              class="font-500"
+              class="font-500 cursor-pointer"
               @click="slippageClick(item, index)">{{ item }}%</span>
-            <span><input v-model="slippage" type="number" @input="slippageInput">%</span>
+            <span :class="{ active_slippage_input: currentIndex===-1 && !slippageMsg }"><input v-model="slippage" type="number" @input="slippageInput">%</span>
           </div>
           <div v-if="slippageMsg" class="text-red pl-1 mt-1">{{ slippageMsg }}</div>
         </div>
@@ -341,7 +341,7 @@ export default {
       getAllowanceTimer: null,
       showApproveLoading: false,
       approvingLoading: false,
-      slippage: 2, // 滑点
+      slippage: localStorage.getItem('slippage') || 2, // 滑点
       fromAssetDex: null,
       toAssetDex: null,
       limitMin: '', // 最小限制
@@ -405,7 +405,7 @@ export default {
             this.amountIn = '';
             return;
           }
-          const decimals = 6;
+          const decimals = this.chooseFromAsset.decimals || 6;
           const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
           if (patrn.exec(newVal) || newVal === '') {
             this.amountIn = newVal;
@@ -441,9 +441,9 @@ export default {
             this.amountOut = '';
             return;
           }
-          const decimals = 6;
+          const decimals = this.chooseToAsset.decimals || 6;
           const patrn = new RegExp('^([1-9][\\d]{0,20}|0)(\\.[\\d]{0,' + decimals + '})?$');
-          if (patrn.exec(newVal) || newVal === '') {
+          if (patrn.exec(newVal.toString()) || newVal === '') {
             this.amountOut = newVal;
           } else {
             this.amountOut = oldVal;
@@ -495,6 +495,7 @@ export default {
     }
   },
   created() {
+    this.currentIndex = this.slippageList.findIndex(item => item.toString() === this.slippage.toString());
     if (Object.keys(this.$route.query).length > 0) {
       this.fromContractAddress = this.$route.query.fromContractAddress;
       this.toContractAddress = this.$route.query.toContractAddress;
@@ -518,6 +519,10 @@ export default {
     this.balanceTimer = null;
   },
   methods: {
+    async closeModal() {
+      if (this.slippageMsg) return;
+      this.showSlippage = false;
+    },
     async getNerveSwapPairTrade() {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const url = config && config['NERVE']['apiUrl'];
@@ -558,6 +563,7 @@ export default {
       if (this.slippage && this.slippage > 0 && Minus(this.slippage, 100) < 0) {
         this.slippageMsg = '';
         this.currentIndex = this.slippageList.indexOf(this.slippage);
+        localStorage.setItem('slippage', this.slippage);
       } else {
         this.slippageMsg = this.$t('tips.tips31');
       }
@@ -568,6 +574,7 @@ export default {
     slippageClick(item, index) {
       this.currentIndex = index;
       this.slippage = item;
+      localStorage.setItem('slippage', this.slippage);
     },
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
@@ -594,9 +601,9 @@ export default {
         // this.showComputedLoading = false;
         await this.checkChannelLimitInfo();
         if (this.inputType === 'amountIn') {
-          this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, 6, -1), 6);
+          this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, this.chooseToAsset.decimals || 6, -1), this.chooseToAsset.decimals || 6);
         } else {
-          this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, 6, -1), 6);
+          this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, this.chooseFromAsset.decimals || 6, -1), this.chooseFromAsset.decimals || 6);
         }
         if (!this.needAuth && this.getAllowanceTimer) {
           this.clearGetAllowanceTimer();
@@ -615,9 +622,9 @@ export default {
       this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params) || false;
       await this.checkChannelLimitInfo();
       if (this.inputType === 'amountIn') {
-        this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, 6, -1), 6);
+        this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, this.chooseToAsset.decimals || 6, -1), this.chooseToAsset.decimals || 6);
       } else {
-        this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, 6, -1), 6);
+        this.amountIn = this.currentChannel.amount < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amount || 0, this.chooseFromAsset.decimals || 6, -1), this.chooseFromAsset.decimals || 6);
       }
       if (!this.needAuth && this.getAllowanceTimer) {
         this.clearGetAllowanceTimer();
@@ -1030,6 +1037,7 @@ export default {
       }
       if (this.chainType === 1) {
         this.available = this.$store.state.network === 'NULS' ? await this.getNulsAssetBalance(asset) : await this.getNerveAssetBalance(asset);
+        this.userAvailable = this.available;
       } else if (this.chainType === 2) {
         try {
           const transfer = new ETransfer({
@@ -1187,7 +1195,7 @@ export default {
     },
     // 检查当前余额是否足够
     async checkBalance() {
-      const { available, chooseFromAsset } = this;
+      const { userAvailable, chooseFromAsset } = this;
       let amountIn;
       if (this.inputType === 'amountIn') {
         amountIn = this.amountIn;
@@ -1201,7 +1209,7 @@ export default {
           contractAddress: '',
           decimals: NULS_INFO.decimal
         });
-        if (Minus(amountIn, available) > 0) {
+        if (Minus(amountIn, userAvailable) > 0) {
           this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
         } else if (Minus(this.currentChannel.crossChainFee || 0, nulsBalance) > 0) {
           this.amountMsg = `NULS ${this.$t('tips.tips9')}`;
@@ -1229,7 +1237,7 @@ export default {
           } else {
             this.amountMsg = '';
           }
-        } else if (Minus(amountIn, available) > 0) {
+        } else if (Minus(amountIn, userAvailable) > 0) {
           this.amountMsg = `${chooseFromAsset.symbol} ${this.$t('tips.tips9')}`;
         } else {
           this.amountMsg = '';
@@ -1422,7 +1430,7 @@ export default {
               if (this.chooseToAsset.chain === 'NULS') {
                 contractFee = crossFee;
               }
-            } else if (this.fromNetwork === 'NULS') {
+            } else if (this.fromNetwork === 'NULS' && currentConfig) {
               contractFee = Plus(crossFee, 0.001);
               if (this.chooseFromAsset.contractAddress) {
                 contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
@@ -1480,7 +1488,6 @@ export default {
                 feeSymbol: this.chooseFromAsset.symbol
               };
             }
-            console.log(currentConfig, 'item.channel && this.stableSwap');
             return null;
           } else if (item.channel === 'MetaPath' && this.fromNetwork !== 'NERVE' && this.chooseToAsset && this.chooseToAsset.chain !== 'NERVE') {
             const currentConfig = await this.getMetaPathEstimateFeeInfo();
@@ -1513,7 +1520,7 @@ export default {
           return null;
         }));
         this.getChannelBool = true;
-        // console.log(tempChannelConfig, 'tempChannelConfig');
+        console.log(tempChannelConfig, 'tempChannelConfig');
         // this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
@@ -1796,7 +1803,9 @@ export default {
     async maxAmount() {
       if (!this.available || this.available == 0) return false;
       this.inputType = 'amountIn';
-      this.amountIn = this.numberFormat(tofix(this.available, 6, -1), 6);
+      // this.amountIn = this.numberFormat(tofix(this.available, 6, -1), 6);
+      console.log(this.userAvailable, 'this.userAvailable')
+      this.amountIn = this.userAvailable;
       await this.amountInInput();
     },
     // 切换当前选择的平台
@@ -1851,9 +1860,9 @@ export default {
         item.isChoose = item.channel === platform.channel;
       }
       if (this.inputType === 'amountIn') {
-        this.amountOut = this.numberFormat(tofix(this.currentChannel.amountOut, 6, -1), 6);
+        this.amountOut = this.numberFormat(tofix(this.currentChannel.amountOut, this.chooseToAsset.decimals || 6, -1), this.chooseToAsset.decimals || 6);
       } else {
-        this.amountIn = this.numberFormat(tofix(this.currentChannel.amount, 6, -1), 6);
+        this.amountIn = this.numberFormat(tofix(this.currentChannel.amount, this.chooseFromAsset.decimals || 6, -1), this.chooseFromAsset.decimals || 6);
       }
       this.showPop = false;
     },

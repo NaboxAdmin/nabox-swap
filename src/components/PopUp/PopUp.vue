@@ -23,7 +23,7 @@ export default {
       default: false
     },
     preventBoo: {
-      type: Boolean,
+      type: [Boolean, String],
       default: true
     }
   },
@@ -32,6 +32,7 @@ export default {
       this.preventBoo && e.preventDefault();
     },
     maskClick() {
+      if (this.preventBoo) return;
       this.$emit('update:show', false);
     }
   }
