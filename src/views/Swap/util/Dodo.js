@@ -2,7 +2,8 @@ import { sendRequest } from '@/network/cancelRequest';
 import { ETransfer } from '@/api/api';
 import { ethers } from 'ethers';
 
-const dodoBaseUrl = 'https://test-route-api.dodoex.io/dodoapi'; // https://route-api.dodoex.io/dodoapi(主网)
+const dodoBaseUrl = 'https://route-api.dodoex.io/dodoapi'; // https://route-api.dodoex.io/dodoapi(主网)
+const dodoTestBaseUrl = 'https://test-route-api.dodoex.io/dodoapi';
 
 export default class Dodo {
   constructor() {
@@ -14,7 +15,7 @@ export default class Dodo {
         method: 'get',
         url: '/getdodoroute',
         data: params,
-        customUrl: dodoBaseUrl
+        customUrl: (params.chainId == 1 || params.chainId == 56 || params.chainId == 137) && dodoTestBaseUrl || dodoBaseUrl
       });
       if (res.status === 200) {
         return res.data;

@@ -326,7 +326,7 @@ export default {
     this.fromAddress && this.currentAccount && this.updateOrderHash();
     this.statusTimer = setInterval(() => {
       this.fromAddress && this.currentAccount && this.getOrderStatus(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
-    }, 5000);
+    }, 10000);
     this.orderTimer = setInterval(() => {
       this.fromAddress && this.currentAccount && this.updateOrderHash();
     }, 20000);
