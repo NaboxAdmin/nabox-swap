@@ -81,7 +81,7 @@ export default {
       { name: 'TokenPocket', src: Tokenpocket, provider: MetaMaskProvider },
       { name: 'MathWallet', src: Mathwallet, provider: MetaMaskProvider },
       { name: 'Binance Wallet', src: binancechain, provider: BSCProvider },
-      { name: 'MetaX', src: OKEx, provider: OKExProvider },
+      { name: 'OKX Wallet', src: OKEx, provider: OKExProvider },
       { name: 'SafePal', src: safepal, provider: MetaMaskProvider },
       { name: 'Coin98', src: coin98, provider: MetaMaskProvider },
       { name: 'BitKeep', src: bitkeep, provider: MetaMaskProvider },
