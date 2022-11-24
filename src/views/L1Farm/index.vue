@@ -277,9 +277,12 @@ export default {
       }
     },
     lpInput() {
+      console.log(this.currentFarm, 'Minus(this.assetsItem.balance, this.lpCount) < 0');
       if (this.vaultsType === 'increase') {
         if (Minus(this.assetsItem.balance, this.lpCount) < 0) {
           this.amountMsg = this.$t('tips.tips16');
+        } else if (this.currentFarm && this.currentFarm.minStakeValue && Minus(this.lpCount, this.currentFarm.minStakeValue) < 0) {
+          this.amountMsg = `${this.$t('tips.tips67')}${this.currentFarm.minStakeValue}${this.currentFarm.stakeToken.symbol}`;
         } else if (Minus(this.lpCount, 0) == '0') {
           this.amountMsg = this.$t('tips.tips18');
         } else {

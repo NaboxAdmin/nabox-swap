@@ -65,7 +65,8 @@ const en = {
     tips63: 'The current plugin does not support the selected chain, do you want to switch plugins?',
     tips64: 'Confirm',
     tips65: 'Total fee income',
-    tips66: 'Insufficient asset balance, pls check the asset balance'
+    tips66: 'Insufficient asset balance, pls check the asset balance',
+    tips67: 'The minimum stake amount is '
   },
   swap: {
     swap1: 'From',
