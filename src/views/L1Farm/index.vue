@@ -277,7 +277,6 @@ export default {
       }
     },
     lpInput() {
-      console.log(this.currentFarm, 'Minus(this.assetsItem.balance, this.lpCount) < 0');
       if (this.vaultsType === 'increase') {
         if (Minus(this.assetsItem.balance, this.lpCount) < 0) {
           this.amountMsg = this.$t('tips.tips16');
