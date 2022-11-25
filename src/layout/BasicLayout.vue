@@ -76,7 +76,7 @@ export default {
     this.providerList = [
       { name: 'MetaMask', src: MetaMask, provider: MetaMaskProvider },
       { name: 'Nabox', src: Nabox, provider: NaboxProvider },
-      { name: 'tronLink', src: tronLinkWallet, provider: TRONProvider },
+      { name: 'TronLink', src: tronLinkWallet, provider: TRONProvider },
       { name: 'Trust Wallet', src: TrustWallet, provider: MetaMaskProvider },
       { name: 'TokenPocket', src: Tokenpocket, provider: MetaMaskProvider },
       { name: 'MathWallet', src: Mathwallet, provider: MetaMaskProvider },
