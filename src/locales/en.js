@@ -66,7 +66,9 @@ const en = {
     tips64: 'Confirm',
     tips65: 'Total fee income',
     tips66: 'Insufficient asset balance, pls check the asset balance',
-    tips67: 'The minimum stake amount is '
+    tips67: 'The minimum stake amount is ',
+    tips68: 'Anyone can create a contract token with any name coins, including creating fake versions of existing tokens and it is called the token of a certain project.',
+    tips69: 'If you buy fake or wrong tokens, you may Unable to sell it.'
   },
   swap: {
     swap1: 'From',

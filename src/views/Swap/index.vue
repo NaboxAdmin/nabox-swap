@@ -251,11 +251,13 @@
       </pop-modal>
     </div>
     <ConfirmOrder v-if="showOrderDetail" @back="changeShowDetail" @confirm="confirmChange"/>
+    <ImportModal v-if="showImportModal" :show-modal.sync="showImportModal"/>
   </div>
 </template>
 
 <script>
 import CoinModal from './Modal/CoinModal';
+import ImportModal from '@/views/Swap/Modal/ImportModal';
 import PopUp from '@/components/PopUp/PopUp';
 import ConfirmOrder from '@/views/confirmOrder/confirmOrder';
 import Loading from '@/components/Loading/Loading';
@@ -273,7 +275,6 @@ import {
   TRON
 } from '@/api/util';
 import { crossFee, ETransfer, validateAddress } from '@/api/api';
-// import ISwap from './util/iSwap';
 import {
   contractBridgeConfig,
   contractConfig,
@@ -300,7 +301,8 @@ export default {
     CoinModal,
     'pop-modal': PopUp,
     ConfirmOrder,
-    Loading
+    Loading,
+    ImportModal
   },
   data() {
     this.amountInDebounce = debounce(this.amountInInput, 800);
@@ -369,7 +371,8 @@ export default {
       assetList: [],
       isFromLpAsset: false,
       isToLpAsset: false,
-      nerveCrossSwap: false
+      nerveCrossSwap: false,
+      showImportModal: true
     };
   },
   computed: {
