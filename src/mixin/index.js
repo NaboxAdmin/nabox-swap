@@ -246,7 +246,6 @@ export default {
       }));
       const chainConfig = JSON.parse(sessionStorage.getItem('config'));
       const currentConfig = chainConfig[network];
-      console.log(currentConfig, network, 'networknetwork');
       const params = [currentConfig.chainId, this.currentAccount['address'][network], tempParams];
       const url = currentConfig.apiUrl;
       const res = await this.$post(url, 'getBalanceList', params);

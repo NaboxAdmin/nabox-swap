@@ -11,9 +11,17 @@
         <span class="search-icon">
           <img src="@/assets/image/search.png" alt="">
         </span>
-        <input v-model="searchVal" :placeholder="$t('modal.modal2')" type="text" >
+        <input v-model="searchVal" :placeholder="$t('modal.modal2')" type="text" @focus="searchInput" >
       </div>
-      <div class="search-result">
+      <div v-if="pinAsset.length" class="recommend-assets d-flex flex-wrap mr-4 cursor-pointer">
+        <div v-for="(item, index) in pinAsset" :key="index" :class="{'disabled_asset': item.isDisabled}" class="asset-item mt-2" @click.stop="selectCoin(item)">
+          <span class="asset-item-icon">
+            <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" alt="">
+          </span>
+          <span>{{ item.symbol }}</span>
+        </div>
+      </div>
+      <div class="search-result mt-2">
         <div v-if="modalType==='receive'" class="select-cont">
           <div
             v-for="(item, index) in picList"
@@ -26,21 +34,27 @@
             <van-loading v-if="showLoading" size="40px" color="#49a3ff" />
           </div>
           <div v-if="showCoinList.length > 0" ref="coinLisCont" :class="modalType==='receive' && 'pl-4'" class="coin-list">
-            <div v-for="(item, index) in showCoinList" :key="`${index}_${item.symbol}`" class="list-item cursor-pointer">
-              <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectCoin(item)">
+            <div v-for="(item, index) in showCoinList" :key="`${index}_${item.symbol}`" :class="{'disabled_asset': item.isDisabled}" class="list-item cursor-pointer">
+              <div class="d-flex align-items-center space-between pr-4 flex-1" @click.stop="selectCoin(item)">
                 <div class="coin-item">
                   <span class="coin-icon">
-                    <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" alt="" @error="pictureError">
+                    <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" alt="">
                   </span>
                   <span :class="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && 'space-between' || 'justify-content-center'" class="d-flex direction-column h-40">
                     <span class="text-3a font-500 text-truncate w-150">{{ item.symbol }}</span>
                     <span v-if="item.registerChain && (modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE')" class="sign size-16">{{ item.registerChain }}</span>
+                    <span v-else class="text-90 size-24">{{ superLong(item.contractAddress) }} <span v-if="!userQuery && item.isCustom">{{ `(${$t('tips.tips74')})` }}</span></span>
                   </span>
                 </div>
-                <span v-if="item.showBalanceLoading" class="box_loading">
-                  <img src="@/assets/image/loading.svg" alt="">
-                </span>
-                <span v-else class="text-3a font-500 size-30">{{ (item.balance || 0) | numFormatFixSix }}</span>
+                <template v-if="!userQuery">
+                  <span v-if="item.showBalanceLoading" class="box_loading">
+                    <img src="@/assets/image/loading.svg" alt="">
+                  </span>
+                  <span v-else class="text-3a font-500 size-30">{{ (item.balance || 0) | numFormatFixSix }}</span>
+                </template>
+                <template v-else>
+                  <span class="import-btn mr-0" @click.stop.prevent="importAsset(item)">{{ $t('tips.tips71') }}</span>
+                </template>
               </div>
             </div>
           </div>
@@ -88,7 +102,9 @@ export default {
       searchVal: '',
       allList: [],
       showLoading: false,
-      timer: null
+      timer: null,
+      userQuery: false,
+      pinAsset: []
     };
   },
   watch: {
@@ -102,9 +118,13 @@ export default {
         });
         if (this.showCoinList.length === 0 && val.length > 35) {
           this.showCoinList = await this.searchAsset(val);
+          this.userQuery = true;
+        } else {
+          this.userQuery = false;
         }
       } else {
         this.showCoinList = this.allList;
+        this.userQuery = false;
       }
     },
     showModal: {
@@ -145,6 +165,9 @@ export default {
     });
   },
   methods: {
+    searchInput(event) {
+      event.currentTarget.select();
+    },
     maskClick() {
       this.$emit('update:showModal', false);
     },
@@ -161,11 +184,15 @@ export default {
     },
     // 选择发送资产
     selectCoin(coin) {
+      if (this.userQuery || coin.isDisabled) return;
       this.$nextTick(() => {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0);
       });
       this.searchVal = '';
       this.$emit('select', { coin, type: this.modalType, network: this.picList[this.currentIndex] });
+    },
+    importAsset(coin) {
+      this.$emit('importAsset', { coin, type: this.modalType, network: this.picList[this.currentIndex] });
     },
     async searchAsset(val) {
       try {
@@ -208,6 +235,8 @@ export default {
     async getSwapAssetList(chain) {
       try {
         this.showLoading = true;
+        const localAssetList = localStorage.getItem('userAssetList') && JSON.parse(localStorage.getItem('userAssetList')) || [];
+        const chainAsset = localAssetList.filter(item => item.chain === chain);
         const data = {
           chain: chain || this.fromNetwork || ''
         };
@@ -217,7 +246,8 @@ export default {
             data
           });
           if (res.code === 1000 && res.data) {
-            await this.setSwapAssetList(res.data);
+            const swapAssets = [...res.data, ...chainAsset];
+            await this.setSwapAssetList(swapAssets);
           } else {
             await this.setSwapAssetList([]);
           }
@@ -228,8 +258,8 @@ export default {
             data
           });
           if (res.code === 1000 && res.data.length > 0) {
-            // await this.updateSwapAssetList(chain, res.data);
-            await this.setSwapAssetList(res.data);
+            const swapAssets = [...res.data, ...chainAsset];
+            await this.setSwapAssetList(swapAssets);
           } else {
             await this.setSwapAssetList([]);
           }
@@ -253,36 +283,106 @@ export default {
             if (this.picList[this.currentIndex] === this.fromNetwork) {
               // tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
               if (this.fromAsset.contractAddress) {
-                tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.fromAsset.contractAddress);
+                tempCoins = tempCoins.map(coin => {
+                  if (coin.contractAddress !== this.fromAsset.contractAddress) {
+                    return coin;
+                  }
+                  return {
+                    ...coin,
+                    isDisabled: true
+                  };
+                });
               } else {
                 if (this.fromNetwork !== 'NERVE') {
-                  tempCoins = tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+                  // tempCoins = tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
+                  tempCoins = tempCoins.map(coin => {
+                    if (coin.assetId !== this.fromAsset.assetId) {
+                      return coin;
+                    }
+                    return {
+                      ...coin,
+                      isDisabled: true
+                    };
+                  });
                 } else {
-                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.assetId !== this.fromAsset.assetId));
+                  // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.assetId !== this.fromAsset.assetId));
+                  tempCoins = tempCoins.map(coin => {
+                    if (coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && (coin.nerveAssetId !== this.fromAsset.nerveAssetId && coin.assetId !== this.fromAsset.assetId)) {
+                      return coin;
+                    }
+                    return {
+                      ...coin,
+                      isDisabled: true
+                    };
+                  });
                 }
               }
             } else {
-              console.log(tempCoins, this.fromAsset, 'tempCoins');
-              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
-              console.log(tempCoins, this.fromAsset.registerChain, 'tempCoins');
+              // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+              tempCoins = tempCoins.map(coin => {
+                if (coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId) {
+                  return coin;
+                }
+                return {
+                  ...coin,
+                  isDisabled: true
+                };
+              });
             }
           } else if (this.toAsset && this.modalType === 'send') {
             if (this.toAsset.chain === this.fromNetwork) {
               // tempCoins = tempCoins.filter(coin => coin.symbol !== this.toAsset.symbol);
               if (this.toAsset.contractAddress) {
-                tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.toAsset.contractAddress);
+                // tempCoins = tempCoins.filter(coin => coin.contractAddress !== this.toAsset.contractAddress);
+                tempCoins = tempCoins.map(coin => {
+                  if (coin.contractAddress !== this.toAsset.contractAddress) {
+                    return coin;
+                  }
+                  return {
+                    ...coin,
+                    isDisabled: true
+                  };
+                });
               } else {
                 if (this.fromNetwork !== 'NERVE') {
-                  tempCoins = tempCoins.filter(coin => coin.assetId !== this.toAsset.assetId);
+                  // tempCoins = tempCoins.filter(coin => coin.assetId !== this.toAsset.assetId);
+                  tempCoins = tempCoins.map(coin => {
+                    if (coin.assetId !== this.toAsset.assetId) {
+                      return coin;
+                    }
+                    return {
+                      ...coin,
+                      isDisabled: true
+                    };
+                  });
                 } else {
-                  tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
+                  // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
                   // tempCoins = tempCoins.filter(coin => coin.chainId !== this.toAsset.chainId && coin.assetId !== this.toAsset.assetId);
+                  tempCoins = tempCoins.map(coin => {
+                    if (coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId) {
+                      return coin;
+                    }
+                    return {
+                      ...coin,
+                      isDisabled: true
+                    };
+                  });
                 }
               }
             } else {
-              tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
+              // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
+              tempCoins = tempCoins.map(coin => {
+                if (coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId) {
+                  return coin;
+                }
+                return {
+                  ...coin,
+                  isDisabled: true
+                };
+              });
             }
           }
+          this.pinAsset = tempCoins.filter(item => item.recommend);
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
           const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
           this.showCoinList = [...tempList];
@@ -365,4 +465,35 @@ export default {
 
 <style scoped lang="scss">
 @import "Modal";
+.asset-item {
+  border: 1px solid #E9EBF3;
+  border-radius: 20px;
+  padding: 12px 15px;
+  font-weight: 500;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  margin-right: 16px;
+  //&:nth-child(4n + 4) {
+  //  margin-right: 0;
+  //}
+  .asset-item-icon {
+    width: 46px;
+    height: 46px;
+    overflow: hidden;
+    border-radius: 50%;
+    margin-right: 15px;
+    img {
+      height: 100%;
+      width: 100%;
+    }
+  }
+}
+.mr-0 {
+  margin-right: 0 !important;
+}
+.disabled_asset {
+  opacity: .7;
+  cursor: not-allowed;
+}
 </style>

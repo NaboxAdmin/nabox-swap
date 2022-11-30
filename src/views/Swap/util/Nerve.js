@@ -286,7 +286,7 @@ export default class NerveChannel {
       url: '/swap/nerve/channel/fee',
       data: params
     });
-    if (res.code === 1000 && res.data.swapSuccAmount) {
+    if (res.code === 1000 && res.data.swapSuccAmount != 0) {
       return {
         crossChainFee: res.data.crossFee,
         swapFee: res.data.swapFee,

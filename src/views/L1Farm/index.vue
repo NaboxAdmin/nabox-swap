@@ -81,7 +81,7 @@
 import { PopUp, FarmLoading } from '@/components';
 import Progress from './Progress';
 import Over from './Over';
-import { currentNet, MAIN_INFO } from '@/config';
+import { currentNet } from '@/config';
 import { divisionDecimals, Minus, timesDecimals, tofix, Times } from '@/api/util';
 import { ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
 import { ethers } from 'ethers';

@@ -30,7 +30,7 @@
             </div>
           </div>
         </div>
-        <div v-else-if="showSign" class="sign-btn" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
+        <div v-else-if="showSign" class="sign-btn cursor-pointer" @click="derivedAddress">{{ $t("tips.tips11") }}</div>
       </div>
       <keep-alive v-else include="swap">
         <router-view />

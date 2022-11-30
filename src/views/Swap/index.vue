@@ -189,7 +189,8 @@
         :modal-type="modalType"
         :from-asset="chooseFromAsset"
         :to-asset="chooseToAsset"
-        @select="selectCoin"/>
+        @select="selectCoin"
+        @importAsset="importAsset"/>
       <pop-modal :prevent-boo="false" :show.sync="showPop" :custom-class="true">
         <div class="route-cont">
           <div class="header-cont size-36 font-500 mt-2">
@@ -250,8 +251,16 @@
         </div>
       </pop-modal>
     </div>
-    <ConfirmOrder v-if="showOrderDetail" @back="changeShowDetail" @confirm="confirmChange"/>
-    <ImportModal v-if="showImportModal" :show-modal.sync="showImportModal"/>
+    <ConfirmOrder
+      v-if="showOrderDetail"
+      @back="changeShowDetail"
+      @confirm="confirmChange"/>
+    <ImportModal
+      v-if="showImportModal"
+      :modal-type="modalType"
+      :asset-info="importAssetInfo"
+      :show-modal.sync="showImportModal"
+      @select="selectCoin"/>
   </div>
 </template>
 
@@ -328,7 +337,6 @@ export default {
       switchAsset: false, // 同链切换
       USDTN_info: {}, // 当前支持的USDTN资产
       USDT_info: {}, // 当前的USDT资产
-      currentNetwork: '', // 当前兑换资产选择的网络
       showOrderDetail: false,
       fromContractAddress: '',
       toContractAddress: '',
@@ -372,7 +380,8 @@ export default {
       isFromLpAsset: false,
       isToLpAsset: false,
       nerveCrossSwap: false,
-      showImportModal: true
+      showImportModal: false,
+      importAssetInfo: {}
     };
   },
   computed: {
@@ -863,7 +872,6 @@ export default {
       const tempTokenIndexList = stableSwapAsset && stableSwapAsset.swapAssets.map(item => item.coinIndex) || [];
       tempTokenIndexList.unshift(tokenOutIndex);
       const tokenIndexList = tempTokenIndexList && [...new Set(tempTokenIndexList)] || [];
-      console.log(tokenIndexList, 'tokenIndexList');
       const fromAddress = this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId];
       const toChain = this.chooseToAsset.chain;
       const tempParams = {
@@ -952,7 +960,15 @@ export default {
         this.chooseToAsset = tempToCoin;
         await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
       } else {
-        this.chooseFromAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[0];
+        if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
+          this.chooseFromAsset = tempList.find(item => this.fromNetwork == 'NERVE' && item.assetId == 1 && item.chainId == 9 || this.fromNetwork == 'NULS' && item.assetId == 1 && item.chainId == 1) || tempList[1] || null;
+        } else {
+          this.chooseFromAsset = tempList.find(item => item.assetId == 1) || tempList[1] || null;
+        }
+        this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[0];
+        if (this.chooseFromAsset && this.chooseToAsset) {
+          this.switchAsset = true;
+        }
         this.crossFeeAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || null;
       }
       this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
@@ -965,9 +981,9 @@ export default {
       localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
     },
     // 当前选择的币
-    async selectCoin({ coin, type, network }) {
-      this.currentNetwork = network;
+    async selectCoin({ coin, type }) {
       this.showModal = false;
+      this.showImportModal = false;
       switch (type) {
         case 'send':
           this.resetData();
@@ -991,10 +1007,12 @@ export default {
             this.switchAsset = false;
           }
           if (this.chooseToAsset && this.inputType === 'amountIn' && this.amountIn) {
+            this.amountIn = '';
             this.amountOut = '';
             this.amountInDebounce();
           } else if (this.chooseToAsset && this.inputType === 'amountOut' && this.amountOut) {
             this.amountIn = '';
+            this.amountOut = '';
             this.amountOutDebounce();
           }
           break;
@@ -1017,10 +1035,12 @@ export default {
             this.switchAsset = false;
           }
           if (this.chooseFromAsset && this.inputType === 'amountIn' && this.amountIn) {
+            this.amountIn = '';
             this.amountOut = '';
             this.amountInDebounce();
           } else if (this.chooseToAsset && this.inputType === 'amountOut' && this.amountOut) {
             this.amountIn = '';
+            this.amountOut = '';
             this.amountOutDebounce();
           }
           if (this.fromNetwork === 'TRON' && this.chooseToAsset && this.chooseToAsset.chain !== 'TRON' || this.fromNetwork !== 'TRON' && this.chooseToAsset && this.chooseToAsset.chain === 'TRON') {
@@ -1031,6 +1051,11 @@ export default {
         default:
           return false;
       }
+    },
+    importAsset({ coin }) {
+      this.showModal = false;
+      this.showImportModal = true;
+      this.importAssetInfo = coin;
     },
     // 获取钱包余额
     async getBalance(asset, clickBoo = false) {
@@ -1252,7 +1277,6 @@ export default {
       return `1${this.chooseFromAsset.symbol}≈${this.numberFormat(tofix((Division(amountOut, amountIn) < 0.000001 && '0' || Division(amountOut, amountIn)), this.formatLength(Division(amountOut, amountIn)), -1), this.formatLength(Division(amountOut, amountIn)))}${this.chooseToAsset.symbol}`;
     },
     formatLength(amount) {
-      console.log(amount.toString());
       if (amount.toString().indexOf('.') !== -1) {
         const intLength = amount.toString().split('.')[0].length;
         if (amount.toString().split('.')[0] == 0) {
@@ -1295,7 +1319,6 @@ export default {
         console.log(this.channelConfigList, '==channelConfigList==');
         // debugger;
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
-          console.log(item, item.channel === 'NERVE' && this.stableSwap && this.nerveCrossSwap, this.stableSwap, this.nerveCrossSwap, '123item');
           let currentConfig = {};
           if (item.channel === 'iSwap' && !this.stableSwap) {
             currentConfig = await this.getEstimateFeeInfo();
@@ -1807,7 +1830,7 @@ export default {
       if (!this.available || this.available == 0) return false;
       this.inputType = 'amountIn';
       // this.amountIn = this.numberFormat(tofix(this.available, 6, -1), 6);
-      console.log(this.userAvailable, 'this.userAvailable')
+      console.log(this.userAvailable, 'this.userAvailable');
       this.amountIn = this.userAvailable;
       await this.amountInInput();
     },
@@ -1881,14 +1904,16 @@ export default {
       this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
       this.getChannelBool = false;
       this.currentChannel = null;
-      this.inputType === 'amountIn' ? this.amountOut = '' : this.amountIn = '';
+      // this.inputType === 'amountIn' ? this.amountOut = '' : this.amountIn = '';
+      this.amountOut = '';
+      this.amountIn = '';
       await this.getBalance(this.chooseFromAsset, true);
       this.refreshBalance();
-      if (this.inputType === 'amountIn') {
-        await this.amountInInput();
-      } else {
-        await this.amountOutInput();
-      }
+      // if (this.inputType === 'amountIn') {
+      //   await this.amountInInput();
+      // } else {
+      //   await this.amountOutInput();
+      // }
     },
     // 订单详情
     toOrderDetail(item) {
