@@ -1415,7 +1415,6 @@ export default {
               const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
               currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
             }
-            console.log(currentAsset, '123123123123');
             const limitMax = divisionDecimals(currentAsset && currentAsset.amount || 0, currentAsset && currentAsset.decimals || 18);
             if (Minus(this.amountIn, limitMax) > 0) {
               // this.amountMsg = `${this.$t('tips.tips4')}${limitMax}${this.chooseFromAsset.symbol}`;
