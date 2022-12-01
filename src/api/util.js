@@ -805,3 +805,13 @@ export function setChainConfig(chainConfig) {
   !localStorage.getItem('l2HashList') && localStorage.setItem('l2HashList', JSON.stringify([]));
   sessionStorage.setItem('config', JSON.stringify(config));
 }
+
+export function replaceBrowserHistory(key, value = null) {
+  const url = new URL(window.location.href);
+  if (!value) {
+    url.searchParams.delete(key);
+  } else {
+    url.searchParams.set(key, String(value));
+  }
+  window.history.replaceState({}, null, url);
+}

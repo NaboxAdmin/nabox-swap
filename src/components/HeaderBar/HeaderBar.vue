@@ -287,10 +287,10 @@ export default {
     },
     '$route.fullPath': {
       handler(val) {
-        this.isSwap = window.location.hash.indexOf('swap') > -1;
-        this.isVaults = window.location.hash.indexOf('farm') > -1;
-        this.isL2Farm = window.location.hash.indexOf('l2farm') > -1;
-        this.isLiquidity = window.location.hash.indexOf('liquidityPool') > -1;
+        this.isSwap = window.location.href.indexOf('swap') > -1;
+        this.isVaults = window.location.href.indexOf('farm') > -1;
+        this.isL2Farm = window.location.href.indexOf('l2farm') > -1;
+        this.isLiquidity = window.location.href.indexOf('liquidityPool') > -1;
         this.$store.commit('changeSwap', this.isSwap);
       },
       immediate: true,

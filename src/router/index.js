@@ -107,7 +107,7 @@ const mainRoutes = [{
 }];
 
 const router = new VueRouter({
-  mode: 'hash',
+  mode: 'history',
   scrollBehavior: () => ({ y: 0 }),
   base: process.env.BASE_URL,
   routes: [...mainRoutes]

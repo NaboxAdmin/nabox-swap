@@ -276,7 +276,7 @@ import {
   divisionDecimals,
   isBeta,
   Minus,
-  Plus, REFERRER,
+  Plus, REFERRER, replaceBrowserHistory,
   supportChainList,
   Times,
   timesDecimals,
@@ -961,18 +961,36 @@ export default {
         await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
       } else {
         if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
-          this.chooseFromAsset = tempList.find(item => this.fromNetwork == 'NERVE' && item.assetId == 1 && item.chainId == 9 || this.fromNetwork == 'NULS' && item.assetId == 1 && item.chainId == 1) || tempList[1] || null;
+          this.chooseFromAsset = tempList.find(item => this.fromNetwork == 'NERVE' && item.assetId == 1 && item.chainId == 9 || this.fromNetwork == 'NULS' && item.assetId == 1 && item.chainId == 1) || tempList[0] || null;
         } else {
           this.chooseFromAsset = tempList.find(item => item.assetId == 1) || tempList[0] || null;
         }
         this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[1];
-        if (this.chooseFromAsset && this.chooseToAsset) {
+        console.log(this.$route);
+        this._replaceBrowserHistory(this.chooseFromAsset, this.chooseToAsset);
+        if (this.chooseFromAsset.chain && this.chooseToAsset.chain) {
           this.switchAsset = true;
         }
         this.crossFeeAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || null;
       }
       this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
       this.refreshBalance();
+    },
+    _replaceBrowserHistory(fromAsset, toAsset) {
+      const fromChain = fromAsset && fromAsset.chain;
+      const toChain = toAsset && toAsset.chain;
+      const from = fromAsset && this.formatNulsNerveChainId(fromAsset) || '';
+      const to = toAsset && this.formatNulsNerveChainId(toAsset) || '';
+      fromChain && replaceBrowserHistory('fromChain', fromChain);
+      toChain && replaceBrowserHistory('toChain', toChain);
+      from && replaceBrowserHistory('from', from);
+      to && replaceBrowserHistory('to', to);
+    },
+    formatNulsNerveChainId(asset) {
+      if (asset.chain === 'NULS' || asset.chain === 'NERVE') {
+        return `${asset.chainId}-${asset.assetId}`;
+      }
+      return asset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
     },
     // 更新当前的swap资产列表
     updateSwapAssetList(assetList) {
@@ -989,6 +1007,7 @@ export default {
           this.resetData();
           this.currentChannel = null;
           this.chooseFromAsset = coin;
+          this._replaceBrowserHistory(this.chooseFromAsset, '');
           await this.getBalance(this.chooseFromAsset, true);
           this.refreshBalance();
           if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === 'NERVE' && this.chooseToAsset.chain === 'NERVE') {
@@ -1018,6 +1037,7 @@ export default {
           break;
         case 'receive': // 选择接受资产
           this.chooseToAsset = coin;
+          this._replaceBrowserHistory('', this.chooseToAsset);
           this.resetData();
           if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain !== this.chooseToAsset.chain) {
             this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
@@ -1346,7 +1366,7 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE') {
+          } else if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
               return {
@@ -1366,7 +1386,7 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE') {
+          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
             currentConfig = await this.get1inchSwapRoute();
             if (currentConfig) {
               return {
