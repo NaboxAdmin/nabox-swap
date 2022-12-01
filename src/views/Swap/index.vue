@@ -963,9 +963,9 @@ export default {
         if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
           this.chooseFromAsset = tempList.find(item => this.fromNetwork == 'NERVE' && item.assetId == 1 && item.chainId == 9 || this.fromNetwork == 'NULS' && item.assetId == 1 && item.chainId == 1) || tempList[1] || null;
         } else {
-          this.chooseFromAsset = tempList.find(item => item.assetId == 1) || tempList[1] || null;
+          this.chooseFromAsset = tempList.find(item => item.assetId == 1) || tempList[0] || null;
         }
-        this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[0];
+        this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[1];
         if (this.chooseFromAsset && this.chooseToAsset) {
           this.switchAsset = true;
         }
