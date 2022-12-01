@@ -293,7 +293,7 @@ export default {
                   };
                 });
               } else {
-                if (this.fromNetwork !== 'NERVE') {
+                if (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
                   // tempCoins = tempCoins.filter(coin => coin.assetId !== this.fromAsset.assetId);
                   tempCoins = tempCoins.map(coin => {
                     if (coin.assetId !== this.fromAsset.assetId) {
@@ -344,7 +344,7 @@ export default {
                   };
                 });
               } else {
-                if (this.fromNetwork !== 'NERVE') {
+                if (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
                   // tempCoins = tempCoins.filter(coin => coin.assetId !== this.toAsset.assetId);
                   tempCoins = tempCoins.map(coin => {
                     if (coin.assetId !== this.toAsset.assetId) {
