@@ -1402,7 +1402,6 @@ export default {
             }
             return null;
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && this.stableSwap && this.nerveChainStableSwap) {
-            console.log(this.nerveLimitInfo, 'nerveLimitInfo');
             let currentAsset;
             if (this.isFromLpAsset) {
               const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === this.chooseToAsset.channelInfo['NERVE'].pairAddress);
