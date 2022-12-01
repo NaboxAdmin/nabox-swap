@@ -961,7 +961,7 @@ export default {
         await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
       } else {
         if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
-          this.chooseFromAsset = tempList.find(item => this.fromNetwork == 'NERVE' && item.assetId == 1 && item.chainId == 9 || this.fromNetwork == 'NULS' && item.assetId == 1 && item.chainId == 1) || tempList[1] || null;
+          this.chooseFromAsset = tempList.find(item => this.fromNetwork == 'NERVE' && item.assetId == 1 && item.chainId == 9 || this.fromNetwork == 'NULS' && item.assetId == 1 && item.chainId == 1) || tempList[0] || null;
         } else {
           this.chooseFromAsset = tempList.find(item => item.assetId == 1) || tempList[0] || null;
         }
@@ -1346,7 +1346,7 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE') {
+          } else if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
               return {
@@ -1366,7 +1366,7 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE') {
+          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
             currentConfig = await this.get1inchSwapRoute();
             if (currentConfig) {
               return {
