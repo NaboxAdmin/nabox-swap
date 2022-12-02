@@ -459,8 +459,11 @@ export default {
             };
           } else {
             const jsonRpcSigner = this.provider.getSigner();
-            const message = 'Generate L2 Address';
+            const message = '0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947';
+            // const message = ethers.utils.arrayify('0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947');
+            console.log(message, 'message');
             const signature = await jsonRpcSigner.signMessage(message);
+            console.log(signature, 'signature');
             const msgHash = ethers.utils.hashMessage(message);
             const msgHashBytes = ethers.utils.arrayify(msgHash);
             const recoveredPubKey = ethers.utils.recoverPublicKey(

@@ -6,6 +6,8 @@ import { post, request } from '../network/http';
 
 export const REFERRER = '0xDDE4259700E27872e6A631B5361243139f5dB7b8';
 
+export const MAIN_EVM_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+
 /**
  * 10的N 次方
  * @param arg

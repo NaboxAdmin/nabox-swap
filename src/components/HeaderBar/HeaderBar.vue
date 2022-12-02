@@ -34,7 +34,7 @@
               class="mt-2 cursor-pointer d-flex align-items-center"
               @click="chainClick(item)">
               <span class="chain-icon mr-2">
-                <img v-lazy="item.icon" alt="" @error="pictureError">
+                <img :src="item.icon" alt="" @error="pictureError">
               </span>
               {{ item.chainName }}
             </span>
@@ -435,24 +435,6 @@ export default {
             return;
           }
           this.showTips = true;
-          // const TRONAddress = window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58 || '';
-          // if (!window.tronWeb) {
-          //   this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
-          //   return;
-          // } else if (!TRONAddress) {
-          //   this.$message({ message: this.$t('tips.tips56'), type: 'warning' });
-          //   return;
-          // }
-          // const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
-          // if (res.code === 200) {
-          //   this.setTRONAddress(this.address, TRONAddress);
-          //   this.currentChain = tempChain.chainName;
-          //   this.$store.commit('changeFromAddress', TRONAddress);
-          //   this.$store.commit('changeNetwork', tempChain.chainName);
-          //   window.location.reload();
-          // } else {
-          //   window.location.reload();
-          // }
         }
       } catch (e) {
         this.$message({

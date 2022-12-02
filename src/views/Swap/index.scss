@@ -404,3 +404,85 @@
     width: 100%;
   }
 }
+
+.address-detail_pop {
+  //padding: 40px 40px 60px 40px;
+  z-index: 120;
+  padding-bottom: 40px;
+  background-color: #FFFFFF;
+  width: 670px;
+  font-size: 32px;
+  border-radius: 20px;
+  overflow: scroll;
+  .icon_pop-cont {
+    span {
+      height: 28px;
+      width: 28px;
+    }
+  }
+  .account-cont {
+    padding: 40px 30px;
+    //height: 119px;
+    border: 1px solid #AAB2C9;
+    border-radius: 20px;
+    .account-info_pop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      .coin-icon {
+        height: 52px;
+        width: 52px;
+        border-radius: 50%;
+        margin-right: 24px;
+        img {
+          height: 100%;
+          width: 100%;
+        }
+      }
+      .icon_pop {
+        height: 32px;
+        width: 32px;
+        &:last-child {
+          //margin-left: 66px;
+        }
+      }
+    }
+  }
+  .order-list {
+    max-height: 15vh;
+    overflow-y: auto;
+    .fix-cont {
+      .order-icon {
+        height: 34px;
+        width: 34px;
+      }
+    }
+  }
+  .order-list::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+  }
+}
+.address-detail_pop::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+}
+.customer-p4 {
+  padding: 40px 40px 0 40px;
+}
+.btn-pop {
+  width: 285px;
+  height: 88px;
+  line-height: 88px;
+  text-align: center;
+  font-size: 30px;
+  border: 1px solid #6EB6A9;
+  border-radius: 20px;
+  color: #6EB6A9;
+  background-color: #FFFFFF;
+}
+.btn_pop_active {
+  background: #6EB6A9;
+  border: none;
+  color: #FFFFFF;
+}

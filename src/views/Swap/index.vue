@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div @click="testClick">test</div>
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'" class="p-4">
@@ -261,6 +262,23 @@
       :asset-info="importAssetInfo"
       :show-modal.sync="showImportModal"
       @select="selectCoin"/>
+    <pop-modal :prevent-boo="false" :show.sync="showTips">
+      <div class="address-detail_pop">
+        <div class="customer-p4">
+          <div class="icon_pop-cont d-flex space-between">
+            <div class="font-500">{{ $t('tips.tips62') }}</div>
+            <span class="cursor-pointer" @click="showTips=false">
+              <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
+            </span>
+          </div>
+          <div style="line-height: 24px" class="mt-4">{{ $t('tips.tips63') }}</div>
+          <div class="pop-btn d-flex align-items-center space-between mt-4">
+            <div class="btn-pop cursor-pointer" @click="showTips = false;">{{ $t("vaults.vaults7") }}</div>
+            <div class="btn-pop btn_pop_active cursor-pointer" @click="">{{ $t("tips.tips64") }}</div>
+          </div>
+        </div>
+      </div>
+    </pop-modal>
   </div>
 </template>
 
@@ -281,7 +299,8 @@ import {
   Times,
   timesDecimals,
   tofix,
-  TRON
+  TRON,
+  MAIN_EVM_ADDRESS
 } from '@/api/util';
 import { crossFee, ETransfer, validateAddress } from '@/api/api';
 import {
@@ -292,14 +311,14 @@ import {
   ISWAP_VERSION, localChannelList
 } from './util/swapConfig';
 import Dodo from './util/Dodo';
-import { currentNet, MAIN_INFO, NULS_INFO } from '@/config';
+import { currentNet, ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import NerveChannel, { feeRate } from './util/Nerve';
 import { getContractCallData } from '@/api/nulsContractValidate';
 import TronLink from '@/api/tronLink';
 import { validateNerveAddress } from '@/api/api';
 import { getEquipmentNo, getMultiQuote } from '@/views/Swap/util/MetaPath';
 import Inch from './util/1inch';
-
+const ethers = require('ethers');
 const nerve = require('nerve-sdk-js');
 // 测试环境
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -381,7 +400,8 @@ export default {
       isToLpAsset: false,
       nerveCrossSwap: false,
       showImportModal: false,
-      importAssetInfo: {}
+      importAssetInfo: {},
+      showTips: true
     };
   },
   computed: {
@@ -407,6 +427,22 @@ export default {
     },
     networkPlaceholder() {
       return `${this.$t('tips.tips57')}${this.chooseToAsset && this.chooseToAsset.chain || 'TRON'}${this.$t('tips.tips58')}`;
+    },
+    l1ChainList() {
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      return tempSupportChainList.map(chain => ({
+        chainId: chain[ETHNET],
+        rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
+        icon: chain.icon,
+        chainName: chain.value,
+        nativeCurrency: {
+          name: chain.value,
+          symbol: chain.symbol,
+          decimals: chain.decimals
+        },
+        blockExplorerUrls: [chain.origin],
+        chainType: chain.chainType
+      }));
     }
   },
   watch: {
@@ -508,20 +544,15 @@ export default {
   },
   created() {
     this.currentIndex = this.slippageList.findIndex(item => item.toString() === this.slippage.toString());
-    if (Object.keys(this.$route.query).length > 0) {
-      this.fromContractAddress = this.$route.query.fromContractAddress;
-      this.toContractAddress = this.$route.query.toContractAddress;
-    }
     if (this.fromNetwork === 'NERVE') {
       this.getNerveSwapPairTrade();
     }
     if (this.chainType == 2) {
       this.inch = new Inch({ nativeId: this.nativeId });
     }
+    console.log('123');
     // setTimeout 0 不然获取不到地址
-    setTimeout(() => {
-      this.getSwapAssetList();
-    }, 0);
+    this.setSwapAssetList();
     this.getSwapAddress();
     this.getNerveLimitInfo();
     this.getChanelConfig();
@@ -531,6 +562,22 @@ export default {
     this.balanceTimer = null;
   },
   methods: {
+    async testClick() {
+      console.log('23test');
+      // const exampleMessage = '0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947';
+      const message = ethers.utils.arrayify('0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947');
+      try {
+        const from = '0x20A495b1f92b135373Cd080a60bD58f7dd073D33';
+        // const msg = `0x${Buffer.from(exampleMessage, 'utf8').toString('hex')}`;
+        const sign = await window.ethereum.request({
+          method: 'personal_sign',
+          params: [message, from, 'Example password']
+        });
+        console.log(sign, 'sign');
+      } catch (err) {
+        console.error(err);
+      }
+    },
     async closeModal() {
       if (this.slippageMsg) return;
       this.showSlippage = false;
@@ -920,41 +967,52 @@ export default {
       }
     },
     // 获取当前支持的兑换的列表
-    async getSwapAssetList() {
+    async getSwapAssetList(chain) {
       try {
         const data = {
-          chain: this.fromNetwork
+          chain: chain || this.fromNetwork
         };
-        if (isBeta) {
-          const res = await this.$request({
-            url: '/swap/assets',
-            data
-          });
-          if (res.code === 1000 && res.data.length > 0) {
-            await this.setSwapAssetList(res.data || []);
-          }
+        const res = await this.$request({
+          url: '/swap/assets',
+          data
+        });
+        if (res.code === 1000 && res.data.length > 0) {
+          return res.data;
         } else {
-          const res = await this.$request({
-            url: '/swap/assets',
-            data
-          });
-          if (res.code === 1000 && res.data.length > 0) {
-            await this.setSwapAssetList(res.data);
-          } else {
-            await this.setSwapAssetList([]);
-          }
+          return [];
         }
       } catch (e) {
         console.log(e, 'error');
       }
     },
     // 获取当前的swap资产
-    async setSwapAssetList(assetList) {
+    async setSwapAssetList() {
+      let fromContractAddress, toContractAddress, fromChain, toChain, tempFromCoin, tempToCoin;
+      if (Object.keys(this.$route.query).length > 0) {
+        fromContractAddress = this.$route.query.from;
+        toContractAddress = this.$route.query.to;
+        fromChain = this.$route.query.fromChain;
+        toChain = this.$route.query.toChain;
+      }
+      console.log(toContractAddress, toContractAddress !== MAIN_EVM_ADDRESS);
+      if (this.fromNetwork !== fromChain && this.fromNetwork === toChain) {
+        const currentChain = this.l1ChainList.find(item => item.chainName === fromChain);
+        if (currentChain) {
+          await this.chainClick(currentChain);
+        }
+      }
+      const assetList = await this.getSwapAssetList();
       const tempList = assetList.length > 0 && assetList.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
       this.assetList = tempList;
-      const tempFromCoin = tempList.find(item => item.contractAddress === this.fromContractAddress);
-      const tempToCoin = tempList.find(item => item.contractAddress === this.toContractAddress);
-      if (this.fromContractAddress && this.toContractAddress && tempFromCoin && tempToCoin) {
+      if (this.fromNetwork === fromChain && this.fromNetwork === toChain) {
+        tempFromCoin = this.formatNulsNerveAsset(fromChain, tempList, fromContractAddress);
+        tempToCoin = this.formatNulsNerveAsset(toChain, tempList, toContractAddress);
+      } else if (this.fromNetwork === fromChain && this.fromNetwork !== toChain) {
+        tempFromCoin = this.formatNulsNerveAsset(fromChain, tempList, fromContractAddress);
+        const toTempAssetList = await this.getSwapAssetList(toChain);
+        tempToCoin = this.formatNulsNerveAsset(toChain, toTempAssetList, toContractAddress);
+      }
+      if (fromContractAddress && toContractAddress && tempFromCoin && tempToCoin) {
         this.chooseFromAsset = tempFromCoin;
         await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
         this.chooseToAsset = tempToCoin;
@@ -966,7 +1024,6 @@ export default {
           this.chooseFromAsset = tempList.find(item => item.assetId == 1) || tempList[0] || null;
         }
         this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[1];
-        console.log(this.$route);
         this._replaceBrowserHistory(this.chooseFromAsset, this.chooseToAsset);
         if (this.chooseFromAsset.chain && this.chooseToAsset.chain) {
           this.switchAsset = true;
@@ -986,11 +1043,68 @@ export default {
       from && replaceBrowserHistory('from', from);
       to && replaceBrowserHistory('to', to);
     },
+    formatNulsNerveAsset(chain, assetList, contractAddress) {
+      if (chain === 'NULS' || chain === 'NERVE') {
+        const chainId = contractAddress.split('-')[0] || '';
+        const assetId = contractAddress.split('-')[1] || '';
+        return assetList.find(item => item.chainId == chainId && item.assetId == assetId);
+      }
+      return assetList.find(item => contractAddress === MAIN_EVM_ADDRESS && !item.contractAddress || item.contractAddress === contractAddress);
+    },
     formatNulsNerveChainId(asset) {
       if (asset.chain === 'NULS' || asset.chain === 'NERVE') {
         return `${asset.chainId}-${asset.assetId}`;
       }
       return asset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+    },
+    async chainClick(chain) {
+      try {
+        const walletType = localStorage.getItem('walletType') || 'ethereum';
+        const tempChain = {
+          ...chain
+        };
+        if (this.currentChain === tempChain.chainName) return;
+        if (tempChain.chainName === 'NULS' || tempChain.chainName === 'NERVE' || tempChain.chainId === window[walletType].chainId) {
+          if (walletType === 'tronWeb') {
+            this.showTips = true;
+            return;
+          }
+          this.$store.commit('changeNetwork', tempChain.chainName);
+          this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
+          window.location.reload();
+        } else if (tempChain.chainType === 2) {
+          if (walletType === 'tronWeb') {
+            this.showTips = true;
+            return;
+          }
+          delete tempChain['icon'];
+          delete tempChain['chainType'];
+          if (tempChain.chainName !== 'Ethereum') {
+            window[walletType] && await window[walletType].request({
+              method: 'wallet_addEthereumChain',
+              params: [tempChain]
+            });
+          } else {
+            window[walletType] && await window[walletType].request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: tempChain.chainId }]
+            });
+          }
+        } else if (tempChain.chainType === 3) {
+          if (walletType !== 'tronWeb') {
+            this.showTips = true;
+            return;
+          }
+          this.showTips = true;
+        }
+      } catch (e) {
+        this.$message({
+          message: e.message || e,
+          offset: 30,
+          type: 'warning'
+        });
+        return;
+      }
     },
     // 更新当前的swap资产列表
     updateSwapAssetList(assetList) {
