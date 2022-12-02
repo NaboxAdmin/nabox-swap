@@ -184,6 +184,7 @@
         </div>
       </div>
       <CoinModal
+        v-show="!showImportModal"
         v-if="showModal"
         :show-modal.sync="showModal"
         :modal-type="modalType"
@@ -1053,7 +1054,7 @@ export default {
       }
     },
     importAsset({ coin }) {
-      this.showModal = false;
+      // this.showModal = false;
       this.showImportModal = true;
       this.importAssetInfo = coin;
     },

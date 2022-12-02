@@ -40,7 +40,7 @@
           </template>
           <span class="text-3a size-16">{{ $t('tips.tips73') }}</span>
         </div>
-        <div class="import-btn" @click="submitImport">{{ $t('tips.tips71') }}</div>
+        <div :class="{'disabled_btn': !isChoose }" class="import-btn" @click="submitImport">{{ $t('tips.tips71') }}</div>
       </div>
     </div>
   </div>
@@ -91,7 +91,6 @@ export default {
       const userAssetList = localStorage.getItem('userAssetList') && JSON.parse(localStorage.getItem('userAssetList')) || [];
       userAssetList.push(this.assetInfo);
       localStorage.setItem('userAssetList', JSON.stringify(userAssetList));
-      console.log('123submitImport')
       this.$emit('select', { coin: this.assetInfo, type: this.modalType });
     }
   }
