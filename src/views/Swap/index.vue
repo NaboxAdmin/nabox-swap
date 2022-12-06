@@ -1,6 +1,5 @@
 <template>
   <div>
-    <div @click="testClick">test</div>
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'" class="p-4">
@@ -27,7 +26,7 @@
               @click.stop="openModal('send')">{{ $t('swap.swap12') }}</div>
             <div v-else class="coin-cont cursor-pointer d-flex align-items-center text-90" @click.stop="openModal('send')">
               <div class="image-cont">
-                <img v-lazy="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol)" alt="" @error="pictureError">
+                <img :src="chooseFromAsset.icon || getPicture(chooseFromAsset.symbol)" alt="" @error="pictureError">
               </div>
               <div class="d-flex direction-column align-items-center">
                 <div class="w-90 direction-column size-30 text-center text-truncate text-3a">
@@ -69,7 +68,7 @@
               @click.stop="openModal('receive')">{{ $t('swap.swap12') }}</div>
             <div v-else class="coin-cont cursor-pointer d-flex align-items-center" @click.stop="openModal('receive')">
               <div class="image-cont">
-                <img v-lazy="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
+                <img :src="chooseToAsset.icon || getPicture(chooseToAsset.symbol) || pictureError" @error="pictureError">
               </div>
               <div class="d-flex direction-column align-items-center">
                 <div class="w-90 text-truncate direction-column text-center size-30 text-3a">
@@ -119,6 +118,7 @@
             {{ $t("swap.swap35") }}<span class="point_cont"/>
           </span>
         </div>
+        <div v-else-if="chooseFromAsset && (chooseFromAsset.chain !== fromNetwork)" class="btn size-30 cursor-pointer" @click="chainChange(chooseFromAsset.chain)">{{ `${$t('tips.tips75')}${chooseFromAsset.chain}${$t('tips.tips76')}` }}</div>
         <div v-else :class="!canNext && 'opacity_btn'" class="btn size-30 cursor-pointer" @click="nextStep">{{ (!currentChannel && getChannelBool && $t('tips.tips39')) || btnErrorMsg || $t("swap.swap8") }}</div>
       </div>
       <div v-if="currentChannel && !showComputedLoading" class="swap-info d-flex direction-column p-4">
@@ -159,12 +159,6 @@
         <div v-if="currentChannel.swapFee" class="d-flex space-between size-28 mt-3">
           <span class="text-90 d-flex align-items-center">
             <span>{{ $t("swap.swap43") }}</span>
-            <!--            <span>{{ currentChannel.dex === 'SWFT1' ? $t("swap.swap6") : $t("swap.swap43") }}</span>-->
-            <!--            <el-tooltip v-if="currentChannel.dex === 'SWFT'" :content="$t('swap.swap48')" :manual="false" class="tooltip-item ml-1" effect="dark" placement="top">-->
-            <!--              <span class="info-icon">-->
-            <!--                <img src="@/assets/image/question.png">-->
-            <!--              </span>-->
-            <!--            </el-tooltip>-->
           </span>
           <span v-if="currentChannel.dex === 'SWFT'" class="text-3a">{{ currentChannel.swapFee | numberFormat }}{{ chooseFromAsset.symbol || currentChannel.feeSymbol || 'USDT' }}</span>
           <span v-else-if="currentChannel.dex === 'Bridgers' || currentChannel.dex === 'Aggregator'" class="text-3a">{{ currentChannel.swapFee }}{{ chooseFromAsset.symbol }}</span>
@@ -274,8 +268,8 @@
           </div>
           <div style="line-height: 24px" class="mt-4">{{ $t('tips.tips63') }}</div>
           <div class="pop-btn d-flex align-items-center space-between mt-4">
-            <div class="btn-pop cursor-pointer" @click="showTips = false;">{{ $t("vaults.vaults7") }}</div>
-            <div class="btn-pop btn_pop_active cursor-pointer" @click="">{{ $t("tips.tips64") }}</div>
+            <div class="btn-pop cursor-pointer" @click="cancelClick">{{ $t("vaults.vaults7") }}</div>
+            <div class="btn-pop btn_pop_active cursor-pointer" @click="switchPlugin">{{ $t("tips.tips64") }}</div>
           </div>
         </div>
       </div>
@@ -293,7 +287,6 @@ import {
   debounce,
   Division,
   divisionDecimals,
-  isBeta,
   Minus,
   Plus, REFERRER, replaceBrowserHistory,
   supportChainList,
@@ -319,6 +312,7 @@ import TronLink from '@/api/tronLink';
 import { validateNerveAddress } from '@/api/api';
 import { getEquipmentNo, getMultiQuote } from '@/views/Swap/util/MetaPath';
 import Inch from './util/1inch';
+
 const ethers = require('ethers');
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -402,7 +396,8 @@ export default {
       nerveCrossSwap: false,
       showImportModal: false,
       importAssetInfo: {},
-      showTips: true
+      showTips: false,
+      switchFlag: false
     };
   },
   computed: {
@@ -551,7 +546,6 @@ export default {
     if (this.chainType == 2) {
       this.inch = new Inch({ nativeId: this.nativeId });
     }
-    console.log('123');
     // setTimeout 0 不然获取不到地址
     this.setSwapAssetList();
     this.getSwapAddress();
@@ -563,21 +557,15 @@ export default {
     this.balanceTimer = null;
   },
   methods: {
-    async testClick() {
-      console.log('23test');
-      // const exampleMessage = '0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947';
-      const message = ethers.utils.arrayify('0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947');
-      try {
-        const from = '0x20A495b1f92b135373Cd080a60bD58f7dd073D33';
-        // const msg = `0x${Buffer.from(exampleMessage, 'utf8').toString('hex')}`;
-        const sign = await window.ethereum.request({
-          method: 'personal_sign',
-          params: [message, from, 'Example password']
-        });
-        console.log(sign, 'sign');
-      } catch (err) {
-        console.error(err);
-      }
+    switchPlugin() {
+      localStorage.removeItem('walletType');
+      this.showTips = false;
+      window.location.reload();
+    },
+    cancelClick() {
+      this.showTips = false;
+      this.switchFlag = true;
+      this.setSwapAssetList();
     },
     async closeModal() {
       if (this.slippageMsg) return;
@@ -988,37 +976,40 @@ export default {
     },
     // 获取当前的swap资产
     async setSwapAssetList() {
-      let fromContractAddress, toContractAddress, fromChain, toChain, tempFromCoin, tempToCoin;
+      let fromContractAddress, toContractAddress, fromChain, toChain, tempFromCoin, tempToCoin, assetList, tempList;
       if (Object.keys(this.$route.query).length > 0) {
         fromContractAddress = this.$route.query.from;
         toContractAddress = this.$route.query.to;
         fromChain = this.$route.query.fromChain;
         toChain = this.$route.query.toChain;
       }
-      console.log(toContractAddress, toContractAddress !== MAIN_EVM_ADDRESS);
-      if (this.fromNetwork !== fromChain && this.fromNetwork === toChain) {
-        const currentChain = this.l1ChainList.find(item => item.chainName === fromChain);
-        if (currentChain) {
-          await this.chainClick(currentChain);
+      // console.log(fromContractAddress, toContractAddress, fromChain, toChain);
+      const currentChain = this.l1ChainList.find(item => item.chainName === fromChain);
+      if (this.fromNetwork !== fromChain && currentChain) {
+        const tempFromAssetList = await this.getSwapAssetList(fromChain);
+        const tempToAssetList = await this.getSwapAssetList(toChain);
+        tempFromCoin = this.formatNulsNerveAsset(fromChain, tempFromAssetList, fromContractAddress);
+        tempToCoin = this.formatNulsNerveAsset(toChain, tempToAssetList, toContractAddress);
+      } else {
+        assetList = await this.getSwapAssetList();
+        tempList = assetList && assetList.length > 0 && assetList.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
+        if (this.fromNetwork === fromChain && this.fromNetwork === toChain) {
+          tempFromCoin = this.formatNulsNerveAsset(fromChain, tempList, fromContractAddress);
+          tempToCoin = this.formatNulsNerveAsset(toChain, tempList, toContractAddress);
+        } else if (this.fromNetwork === fromChain && this.fromNetwork !== toChain) {
+          tempFromCoin = this.formatNulsNerveAsset(fromChain, tempList, fromContractAddress);
+          const toTempAssetList = await this.getSwapAssetList(toChain);
+          tempToCoin = this.formatNulsNerveAsset(toChain, toTempAssetList, toContractAddress);
         }
       }
-      const assetList = await this.getSwapAssetList();
-      const tempList = assetList.length > 0 && assetList.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
-      this.assetList = tempList;
-      if (this.fromNetwork === fromChain && this.fromNetwork === toChain) {
-        tempFromCoin = this.formatNulsNerveAsset(fromChain, tempList, fromContractAddress);
-        tempToCoin = this.formatNulsNerveAsset(toChain, tempList, toContractAddress);
-      } else if (this.fromNetwork === fromChain && this.fromNetwork !== toChain) {
-        tempFromCoin = this.formatNulsNerveAsset(fromChain, tempList, fromContractAddress);
-        const toTempAssetList = await this.getSwapAssetList(toChain);
-        tempToCoin = this.formatNulsNerveAsset(toChain, toTempAssetList, toContractAddress);
-      }
+      // console.log(fromContractAddress, toContractAddress, tempFromCoin, tempToCoin)
       if (fromContractAddress && toContractAddress && tempFromCoin && tempToCoin) {
         this.chooseFromAsset = tempFromCoin;
         await this.selectCoin({ coin: this.chooseFromAsset, type: 'send', network: this.fromNetwork });
         this.chooseToAsset = tempToCoin;
         await this.selectCoin({ coin: this.chooseToAsset, type: 'receive', network: this.fromNetwork });
       } else {
+        if (!tempList) tempList = await this.getSwapAssetList(this.fromNetwork);
         if (this.fromNetwork === 'NULS' || this.fromNetwork === 'NERVE') {
           this.chooseFromAsset = tempList.find(item => this.fromNetwork == 'NERVE' && item.assetId == 1 && item.chainId == 9 || this.fromNetwork == 'NULS' && item.assetId == 1 && item.chainId == 1) || tempList[0] || null;
         } else {
@@ -1031,8 +1022,8 @@ export default {
         }
         this.crossFeeAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || null;
       }
-      this.chooseFromAsset && await this.getBalance(this.chooseFromAsset);
-      this.refreshBalance();
+      this.chooseFromAsset && this.chooseFromAsset.chain === this.fromNetwork && await this.getBalance(this.chooseFromAsset);
+      this.chooseFromAsset.chain === this.fromNetwork && this.refreshBalance();
     },
     _replaceBrowserHistory(fromAsset, toAsset) {
       const fromChain = fromAsset && fromAsset.chain;
@@ -1058,11 +1049,12 @@ export default {
       }
       return asset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
     },
-    async chainClick(chain) {
+    async chainChange(chain) {
       try {
+        const currentChain = this.l1ChainList.find(item => item.chainName === chain);
         const walletType = localStorage.getItem('walletType') || 'ethereum';
         const tempChain = {
-          ...chain
+          ...currentChain
         };
         if (this.currentChain === tempChain.chainName) return;
         if (tempChain.chainName === 'NULS' || tempChain.chainName === 'NERVE' || tempChain.chainId === window[walletType].chainId) {
@@ -1099,12 +1091,13 @@ export default {
           this.showTips = true;
         }
       } catch (e) {
+        console.log(e, 'error');
         this.$message({
           message: e.message || e,
           offset: 30,
           type: 'warning'
         });
-        return;
+        return true;
       }
     },
     // 更新当前的swap资产列表
@@ -1123,8 +1116,9 @@ export default {
           this.currentChannel = null;
           this.chooseFromAsset = coin;
           this._replaceBrowserHistory(this.chooseFromAsset, '');
-          await this.getBalance(this.chooseFromAsset, true);
-          this.refreshBalance();
+          // console.log(this.chooseFromAsset.chain === this.fromNetwork, 'this.chooseFromAsset.chain === this.fromNetwork &&');
+          this.chooseFromAsset.chain === this.fromNetwork && await this.getBalance(this.chooseFromAsset, true);
+          this.chooseFromAsset.chain === this.fromNetwork && this.refreshBalance();
           if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === 'NERVE' && this.chooseToAsset.chain === 'NERVE') {
             this.stableSwap = this.isStableSwap(this.chooseFromAsset, this.chooseToAsset);
             this.crossTransaction = false;
@@ -1448,6 +1442,7 @@ export default {
     // 获取当前支持的config
     async getChannelList() {
       try {
+        if (this.chooseFromAsset.chain !== this.fromNetwork) return;
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
         this.amountMsg = '';

@@ -334,12 +334,12 @@ export default {
       const walletType = localStorage.getItem('walletType') || provider;
       this.walletType = provider;
       this.wallet = window[walletType];
-      this.fromChainId = this.wallet.chainId.toString().startWith('0x') ? this.wallet.chainId : `0x${Number(this.wallet.chainId).toString(16)}`;
+      this.fromChainId = this.wallet.chainId && (this.wallet.chainId.toString().startWith('0x') ? this.wallet.chainId : `0x${Number(this.wallet.chainId).toString(16)}`);
       this.address = this.wallet.selectedAddress || this.wallet.address;
       if (!this.address) {
         await this.requestAccounts();
       }
-      this.fromChainId = this.wallet.chainId.toString().startWith('0x') ? this.wallet.chainId : `0x${Number(this.wallet.chainId).toString(16)}`;
+      this.fromChainId = this.wallet.chainId && (this.wallet.chainId.toString().startWith('0x') ? this.wallet.chainId : `0x${Number(this.wallet.chainId).toString(16)}`);
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
       const chain = tempSupportChainList.find(v => v[ETHNET] === this.fromChainId);
       if (!sessionStorage.getItem('network')) {
@@ -385,6 +385,7 @@ export default {
     // 监听网络改变
     listenNetworkChange() {
       this.wallet.on('chainChanged', (chainId) => {
+        console.log(chainId, '==chainId==');
         if (chainId && this.walletType) {
           const tempChainId = chainId.toString().startWith('0x') ? chainId : `0x${Number(chainId).toString(16)}`;
           const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
@@ -459,11 +460,8 @@ export default {
             };
           } else {
             const jsonRpcSigner = this.provider.getSigner();
-            const message = '0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947';
-            // const message = ethers.utils.arrayify('0x405004f905654214d16f097affb67a659be323dd7ba0ee26b9bbaffb35b0b947');
-            console.log(message, 'message');
+            const message = 'Generate L2 Address';
             const signature = await jsonRpcSigner.signMessage(message);
-            console.log(signature, 'signature');
             const msgHash = ethers.utils.hashMessage(message);
             const msgHashBytes = ethers.utils.arrayify(msgHash);
             const recoveredPubKey = ethers.utils.recoverPublicKey(

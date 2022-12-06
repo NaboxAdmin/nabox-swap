@@ -170,7 +170,7 @@
 import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
-import { copys, divisionDecimals, supportChainList, tofix, TRON } from '@/api/util';
+import {copys, divisionDecimals, replaceBrowserHistory, supportChainList, tofix, TRON} from '@/api/util';
 import { MAIN_INFO } from '@/config';
 
 // eslint-disable-next-line no-unused-vars
@@ -408,6 +408,7 @@ export default {
             return;
           }
           this.currentChain = tempChain.chainName;
+          replaceBrowserHistory('fromChain', tempChain.chainName);
           this.$store.commit('changeNetwork', tempChain.chainName);
           this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
@@ -436,6 +437,7 @@ export default {
           }
           this.showTips = true;
         }
+        replaceBrowserHistory('fromChain', tempChain.chainName);
       } catch (e) {
         this.$message({
           message: e.message || e,

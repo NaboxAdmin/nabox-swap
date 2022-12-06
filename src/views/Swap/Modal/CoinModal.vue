@@ -13,14 +13,6 @@
         </span>
         <input v-model="searchVal" :placeholder="$t('modal.modal2')" type="text" @focus="searchInput" >
       </div>
-      <div v-if="pinAsset.length" class="recommend-assets d-flex flex-wrap mr-4 cursor-pointer">
-        <div v-for="(item, index) in pinAsset" :key="index" :class="{'disabled_asset': item.isDisabled}" class="asset-item mt-2" @click.stop="selectCoin(item)">
-          <span class="asset-item-icon">
-            <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" alt="">
-          </span>
-          <span>{{ item.symbol }}</span>
-        </div>
-      </div>
       <div class="search-result mt-2">
         <div v-if="modalType==='receive'" class="select-cont">
           <div
@@ -33,6 +25,14 @@
           <div v-if="showLoading" class="text-center loading-contain">
             <van-loading v-if="showLoading" size="40px" color="#49a3ff" />
           </div>
+          <div v-if="pinAsset.length" :class="{ 'recommend-assets': modalType==='receive' }" class="d-flex flex-wrap mr-4 cursor-pointer">
+            <div v-for="(item, index) in pinAsset" :key="index" :class="{'disabled_asset': item.isDisabled}" class="asset-item mt-1" @click.stop="selectCoin(item)">
+              <span class="asset-item-icon">
+                <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="">
+              </span>
+              <span>{{ item.symbol }}</span>
+            </div>
+          </div>
           <div v-if="showCoinList.length > 0" ref="coinLisCont" :class="modalType==='receive' && 'pl-4'" class="coin-list">
             <div v-for="(item, index) in showCoinList" :key="`${index}_${item.symbol}`" :class="{'disabled_asset': item.isDisabled}" class="list-item cursor-pointer">
               <div class="d-flex align-items-center space-between pr-4 flex-1" @click.stop="selectCoin(item)">
@@ -42,7 +42,7 @@
                   </span>
                   <span :class="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && 'space-between' || 'justify-content-center'" class="d-flex direction-column h-40">
                     <span class="text-3a font-500 text-truncate w-150">{{ item.symbol }}</span>
-                    <span v-if="item.registerChain && (modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE')" class="sign size-16">{{ item.registerChain }}</span>
+                    <span v-if="!item.contractAddress && (fromNetwork === 'NERVE' || fromNetwork === 'NULS')" class="text-90 size-24">{{ `${item.chainId}-${item.assetId}` }}</span>
                     <span v-else class="text-90 size-24">{{ superLong(item.contractAddress) }} <span v-if="!userQuery && item.isCustom">{{ `(${$t('tips.tips74')})` }}</span></span>
                   </span>
                 </div>
@@ -237,6 +237,7 @@ export default {
         this.showLoading = true;
         const localAssetList = localStorage.getItem('userAssetList') && JSON.parse(localStorage.getItem('userAssetList')) || [];
         const chainAsset = localAssetList.filter(item => item.chain === chain);
+        this.pinAsset = [];
         const data = {
           chain: chain || this.fromNetwork || ''
         };
@@ -495,5 +496,8 @@ export default {
 .disabled_asset {
   opacity: .7;
   cursor: not-allowed;
+}
+.recommend-assets {
+  margin-left: 50px;
 }
 </style>
