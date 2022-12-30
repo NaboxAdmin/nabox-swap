@@ -25,7 +25,7 @@
           <div v-if="showLoading" class="text-center loading-contain">
             <van-loading v-if="showLoading" size="40px" color="#49a3ff" />
           </div>
-          <div v-if="pinAsset.length" :class="{ 'recommend-assets': modalType==='receive' }" class="d-flex flex-wrap mr-4 cursor-pointer">
+          <div v-if="pinAsset.length" :class="{ 'recommend-assets': modalType==='receive' }" class="d-flex flex-wrap mr-3 cursor-pointer">
             <div v-for="(item, index) in pinAsset" :key="index" :class="{'disabled_asset': item.isDisabled}" class="asset-item mt-1" @click.stop="selectCoin(item)">
               <span class="asset-item-icon">
                 <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="">
@@ -96,7 +96,7 @@ export default {
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'Kava', 'ETHW', 'NULS', 'NERVE'],
+      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'KavaEVM', 'ETHW', 'NULS', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -134,7 +134,7 @@ export default {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'Kava', 'ETHW', 'NULS', 'NERVE'];
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'KavaEVM', 'ETHW', 'NULS', 'NERVE'];
             if (this.assetList.length > 0 && this.fromNetwork === this.picList[this.currentIndex]) {
               this.setSwapAssetList(this.assetList);
             } else {
@@ -474,7 +474,7 @@ export default {
   font-size: 28px;
   display: flex;
   align-items: center;
-  margin-right: 16px;
+  margin-right: 10px;
   //&:nth-child(4n + 4) {
   //  margin-right: 0;
   //}
@@ -498,6 +498,6 @@ export default {
   cursor: not-allowed;
 }
 .recommend-assets {
-  margin-left: 50px;
+  margin-left: 40px;
 }
 </style>

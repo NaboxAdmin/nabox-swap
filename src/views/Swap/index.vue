@@ -212,7 +212,7 @@
                   <span class="text-90 mr-3">{{ $t('swap.swap18') }}</span>
                   <div class="d-flex align-items-center">
                     <div class="route-icon">
-                      <img :src="item.icon" alt="">
+                      <img v-lazy="item.icon" alt="">
                     </div>
                     <span class="size-26">{{ item.channel }}</span>
                     <span v-if="item.isBest" class="sign size-22">{{ $t('swap.swap19') }}</span>
@@ -593,18 +593,31 @@ export default {
             this.addressError = this.$t('tips.tips59');
           } else {
             this.addressError = '';
+            this.changeAmount();
           }
         } else if (this.chooseToAsset.chain !== 'NULS' && this.chooseToAsset.chain !== 'NERVE' && this.chooseToAsset.chain !== TRON && !validateAddress(this.toAddress)) {
           this.addressError = this.$t('tips.tips59');
         } else {
           this.addressError = '';
+          this.changeAmount();
         }
+      } else if (!this.toAddress) {
+        this.addressError = this.$t('tips.tips61');
+        this.changeAmount();
       } else {
         this.addressError = '';
+        this.changeAmount();
       }
     },
     addressFocus(event) {
       event.currentTarget.select();
+    },
+    changeAmount() {
+      if (this.inputType === 'amountIn' && this.amountIn) {
+        this.amountInDebounce();
+      } else if (this.inputType === 'amountOut' && this.amountOut) {
+        this.amountOutDebounce();
+      }
     },
     // 滑点设置
     slippageInput() {
@@ -1242,7 +1255,7 @@ export default {
       // if (this.chooseToAsset && this.chooseToAsset.chain === TRON && !this.toAddress) {
       //   this.addressError = this.$t('tips.tips61');
       // }
-      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && !this.availableLoading) {
+      if (this.chooseFromAsset && this.chooseToAsset && this.amountIn && Number(this.amountIn) !== 0 && !this.availableLoading && !this.addressError) {
         this.amountOut = '';
         this.btnErrorMsg = '';
         this.needAuth = false;
@@ -1258,7 +1271,7 @@ export default {
       } else {
         if (!this.amountIn) { this.amountMsg = ''; this.btnErrorMsg = ''; this.getChannelBool = false; }
         this.amountOut = '';
-        this.currentChannel = null;
+        if (!this.addressError) this.currentChannel = null;
       }
     },
     getOptionalChannel() {
@@ -1803,7 +1816,7 @@ export default {
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,
         fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.chainNameToId[this.fromNetwork]],
-        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.currentAccount['address']['NERVE'] : this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]] || this.toAddress || 'TFtN2JUP5Zi1i487oZKLK25sPBTTSdYMWy',
+        toAddress: this.chooseToAsset.chain === 'NERVE' ? this.toAddress || this.currentAccount['address']['NERVE'] : this.toAddress || this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]] || 'TFtN2JUP5Zi1i487oZKLK25sPBTTSdYMWy',
         chainId: type === 1 && this.inputType === 'amountOut' && this.chooseToAsset.chainId || this.chooseFromAsset.chainId,
         assetId: type === 1 && this.inputType === 'amountOut' && this.chooseToAsset.assetId || this.chooseFromAsset.assetId,
         contractAddress: type === 1 && this.inputType === 'amountOut' && this.chooseToAsset.contractAddress || this.chooseFromAsset.contractAddress,
