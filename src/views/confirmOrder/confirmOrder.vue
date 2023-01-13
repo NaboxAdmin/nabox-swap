@@ -121,6 +121,7 @@ export default {
       try {
         this.confirmLoading = true;
         const { currentChannel, stableSwap, nerveChainStableSwap, nerveCrossSwap, toAsset } = this.orderInfo;
+        console.log(stableSwap, 'stableSwap')
         switch (currentChannel.originalChannel) {
           case 'iSwap':
             await this.sendISwapTransaction();
@@ -597,7 +598,7 @@ export default {
         }
         const config = JSON.parse(sessionStorage.getItem('config'));
         const multySignAddress = config[this.fromNetwork]['config']['crossAddress'] || '';
-        const { toAsset, fromAsset, currentChannel, amountIn, NULSContractGas, NULSContractTxData } = this.orderInfo;
+        const { toAsset, fromAsset, currentChannel, amountIn, NULSContractGas, NULSContractTxData, isBridge } = this.orderInfo;
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset
@@ -606,14 +607,14 @@ export default {
           fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
           decimals: fromAsset.decimals,
           contractAddress: fromAsset.contractAddress,
-          orderId: ethers.utils.toUtf8Bytes(currentChannel.orderId),
+          orderId: ethers.utils.toUtf8Bytes(`${currentChannel.orderId}---SWFT`),
           numbers: amountIn,
           multySignAddress,
           crossChainFee: currentChannel.crossChainFee,
           nerveAddress: swapNerveAddress,
           fromNetwork: this.fromNetwork
         };
-        const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, type || 2);
+        const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, type || isBridge && 3 || 2);
         if (swapRes.code === 1000) {
           let res;
           if (this.chainType === 2) { // 异构链转到中间账户
@@ -641,20 +642,19 @@ export default {
               currentChannel,
               nativeId: this.chainNameToId[this.fromNetwork]
             };
-            console.log(crossOutPrams, 'crossOutPrams');
             res = await nerveChannel.sendNerveCommonTransaction(crossOutPrams);
           } else if (this.chainType === 3) {
             res = await nerveChannel.sendNerveBridgeTransaction(params);
           }
           if (res && res.hash) {
-            const params = {
-              orderId: currentChannel.orderId,
-              txHash: res.hash,
-              type: 'swap'
-            };
-            const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-            hashList.push(params);
-            localStorage.setItem('hashList', JSON.stringify(hashList));
+            // const params = {
+            //   orderId: currentChannel.orderId,
+            //   txHash: res.hash,
+            //   type: 'swap'
+            // };
+            // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+            // hashList.push(params);
+            // localStorage.setItem('hashList', JSON.stringify(hashList));
             this.$message({
               type: 'success',
               message: this.$t('tips.tips24'),
@@ -663,7 +663,7 @@ export default {
             });
             this.confirmLoading = false;
             this.$emit('confirm');
-            await this.recordHash(currentChannel.orderId, res.hash);
+            // await this.recordHash(currentChannel.orderId, res.hash);
           } else {
             throw res.msg;
           }
@@ -713,12 +713,14 @@ export default {
     },
     // 记录到nabox后台
     async recordSwapOrder(res, type) {
+      console.log(type, 'type');
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
       console.log(currentChannel, 'currentChannel');
       const naboxParams = {
         orderId: res.orderId,
         channel: currentChannel.originalChannel || currentChannel.channel,
-        platform: 'NABOX',
+        platform: '',
+        // platform: 'NABOX',
         fromChain: fromAsset.chain,
         toChain: toAsset.chain,
         fromAddress: address,

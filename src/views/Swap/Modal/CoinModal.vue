@@ -42,8 +42,8 @@
                   </span>
                   <span :class="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && 'space-between' || 'justify-content-center'" class="d-flex direction-column h-40">
                     <span class="text-3a font-500 text-truncate w-150">{{ item.symbol }}</span>
-                    <span v-if="!item.contractAddress && (fromNetwork === 'NERVE' || fromNetwork === 'NULS')" class="text-90 size-24">{{ `${item.chainId}-${item.assetId}` }}</span>
-                    <span v-else class="text-90 size-24">{{ superLong(item.contractAddress) }} <span v-if="!userQuery && item.isCustom">{{ `(${$t('tips.tips74')})` }}</span></span>
+                    <span v-if="!item.contractAddress && (fromNetwork === 'NERVE' || fromNetwork === 'NULS' || picList[currentIndex] === 'NERVE' || picList[currentIndex] === 'NULS')" class="text-90 size-24">{{ `${item.chainId}-${item.assetId}` }}</span>
+                    <span v-else class="text-90 size-24">{{ superLong(item.contractAddress) }} <span v-if="!userQuery && item.isCustom">{{ `(${$t('tips.tips74')})` }}1</span></span>
                   </span>
                 </div>
                 <template v-if="!userQuery">
@@ -96,7 +96,7 @@ export default {
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'KavaEVM', 'ETHW', 'NULS', 'NERVE'],
+      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'KavaEVM', 'ETHW', 'ENULS', 'NULS', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -134,7 +134,7 @@ export default {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'KavaEVM', 'ETHW', 'NULS', 'NERVE'];
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'ETC', 'Fantom', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'KavaEVM', 'ETHW', 'ENULS', 'NULS', 'NERVE'];
             if (this.assetList.length > 0 && this.fromNetwork === this.picList[this.currentIndex]) {
               this.setSwapAssetList(this.assetList);
             } else {
@@ -318,18 +318,20 @@ export default {
                   });
                 }
               }
-            } else {
-              // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
-              tempCoins = tempCoins.map(coin => {
-                if (coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId) {
-                  return coin;
-                }
-                return {
-                  ...coin,
-                  isDisabled: true
-                };
-              });
             }
+            // else {
+            //   console.log('123node');
+            //   // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId);
+            //   tempCoins = tempCoins.map(coin => {
+            //     if (coin.registerChain !== this.fromAsset.registerChain || coin.registerChain === this.fromAsset.registerChain && coin.assetId !== this.fromAsset.assetId) {
+            //       return coin;
+            //     }
+            //     return {
+            //       ...coin,
+            //       isDisabled: true
+            //     };
+            //   });
+            // }
           } else if (this.toAsset && this.modalType === 'send') {
             if (this.toAsset.chain === this.fromNetwork) {
               // tempCoins = tempCoins.filter(coin => coin.symbol !== this.toAsset.symbol);
@@ -370,20 +372,21 @@ export default {
                   });
                 }
               }
-            } else {
-              // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
-              tempCoins = tempCoins.map(coin => {
-                if (coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId) {
-                  return coin;
-                }
-                return {
-                  ...coin,
-                  isDisabled: true
-                };
-              });
             }
+            // else {
+            //   // tempCoins = tempCoins.filter(coin => coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId);
+            //   tempCoins = tempCoins.map(coin => {
+            //     if (coin.registerChain !== this.toAsset.registerChain || coin.registerChain === this.toAsset.registerChain && coin.assetId !== this.toAsset.assetId) {
+            //       return coin;
+            //     }
+            //     return {
+            //       ...coin,
+            //       isDisabled: true
+            //     };
+            //   });
+            // }
           }
-          this.pinAsset = tempCoins.filter(item => item.recommend);
+          this.pinAsset = tempCoins.length && tempCoins.filter(item => item.recommend) || [];
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
           const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
           this.showCoinList = [...tempList];

@@ -115,7 +115,7 @@
                   class="d-flex align-items-center mb-3 cursor-pointer space-between"
                   @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">
                   <template>
-                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ $t("navBar.navBar5") }}</span>
+                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ item.swapType == 3 ? $t("tips.tips33") : $t("navBar.navBar5") }}</span>
                     <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">
                       <span class="mr-1 m-width">{{ orderType!==2 && superLong(item.txHash) || superLong(item.orderId) }}</span>
                       <span v-if="orderType === 1" class="sign">{{ item.type }}</span>
