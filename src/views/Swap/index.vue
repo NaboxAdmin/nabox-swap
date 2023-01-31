@@ -1814,8 +1814,8 @@ export default {
       console.log(this.inputType, '1232inputType');
       const params = {
         channel: 'NERVE',
-        platform: '',
-        // platform: 'NABOX',
+        // platform: '',
+        platform: 'NABOX',
         swapType: type || 2,
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,

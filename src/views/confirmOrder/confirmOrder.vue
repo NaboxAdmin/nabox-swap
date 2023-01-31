@@ -607,7 +607,7 @@ export default {
           fromAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
           decimals: fromAsset.decimals,
           contractAddress: fromAsset.contractAddress,
-          orderId: ethers.utils.toUtf8Bytes(`${currentChannel.orderId}---SWFT`),
+          orderId: ethers.utils.toUtf8Bytes(`${currentChannel.orderId}---NABOX`),
           numbers: amountIn,
           multySignAddress,
           crossChainFee: currentChannel.crossChainFee,
@@ -647,14 +647,14 @@ export default {
             res = await nerveChannel.sendNerveBridgeTransaction(params);
           }
           if (res && res.hash) {
-            // const params = {
-            //   orderId: currentChannel.orderId,
-            //   txHash: res.hash,
-            //   type: 'swap'
-            // };
-            // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-            // hashList.push(params);
-            // localStorage.setItem('hashList', JSON.stringify(hashList));
+            const params = {
+              orderId: currentChannel.orderId,
+              txHash: res.hash,
+              type: 'swap'
+            };
+            const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+            hashList.push(params);
+            localStorage.setItem('hashList', JSON.stringify(hashList));
             this.$message({
               type: 'success',
               message: this.$t('tips.tips24'),
@@ -663,7 +663,7 @@ export default {
             });
             this.confirmLoading = false;
             this.$emit('confirm');
-            // await this.recordHash(currentChannel.orderId, res.hash);
+            await this.recordHash(currentChannel.orderId, res.hash);
           } else {
             throw res.msg;
           }
@@ -719,8 +719,8 @@ export default {
       const naboxParams = {
         orderId: res.orderId,
         channel: currentChannel.originalChannel || currentChannel.channel,
-        platform: '',
-        // platform: 'NABOX',
+        // platform: '',
+        platform: 'NABOX',
         fromChain: fromAsset.chain,
         toChain: toAsset.chain,
         fromAddress: address,
