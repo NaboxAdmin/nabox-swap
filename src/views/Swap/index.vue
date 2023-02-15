@@ -737,7 +737,7 @@ export default {
           this.setGetAllowanceTimer();
         } else {
           this.$message({
-            message: res.msg,
+            message: this.errorHandling(res.msg),
             type: 'warning',
             duration: 2000,
             offset: 30
