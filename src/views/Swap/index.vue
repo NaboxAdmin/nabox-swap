@@ -1032,7 +1032,7 @@ export default {
         } else {
           this.chooseFromAsset = tempList.find(item => item.assetId == 1) || tempList[0] || null;
         }
-        this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[1];
+        this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[2] || null;
         this._replaceBrowserHistory(this.chooseFromAsset, this.chooseToAsset);
         if (this.chooseFromAsset.chain && this.chooseToAsset.chain) {
           this.switchAsset = true;
