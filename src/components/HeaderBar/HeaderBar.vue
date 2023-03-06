@@ -7,7 +7,7 @@
       </div>
       <div class="address-cont d-flex align-items-center">
         <div v-if="!showConnect && !showSign && address && walletType" class="address-detail pl-2 pr-2">
-<!--          <div v-if="wrongNetwork" style="width: 100%;" class="text-center text-red size-24 font-500" @click.stop="showDropClick">网络错误</div>-->
+          <!--          <div v-if="wrongNetwork" style="width: 100%;" class="text-center text-red size-24 font-500" @click.stop="showDropClick">网络错误</div>-->
           <template>
             <div class="d-flex align-items-center cursor-pointer" @click.stop="showDropClick">
               <span class="chain-icon">
@@ -170,7 +170,7 @@
 import Pop from '../Pop/Pop';
 import PopUp from '../PopUp/PopUp';
 import { ETHNET } from '@/config';
-import {copys, divisionDecimals, replaceBrowserHistory, supportChainList, tofix, TRON} from '@/api/util';
+import { copys, divisionDecimals, replaceBrowserHistory, supportChainList, tofix, TRON } from '@/api/util';
 import { MAIN_INFO } from '@/config';
 
 // eslint-disable-next-line no-unused-vars

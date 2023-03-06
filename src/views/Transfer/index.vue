@@ -255,17 +255,15 @@ export default {
       const mainAsset = config[this.currentFeeChain];
       const accountInfo = await this.$request({ // 获取主资产信息
         url: '/asset/nerve/chain/main',
-        data: {
-          address: this.nerveAddress
-        }
+        method: 'get'
       });
       this.allTransferFeeAssets = accountInfo.data.map(item => ({
         ...item,
         balance: this.numberFormat(tofix(divisionDecimals(item.balance, item.decimals), 6, -1) || 0, 6)
       }));
       const tempParams = this.allTransferFeeAssets.map(item => ({
-        chainId: item.chainId,
-        assetId: item.assetId,
+        chainId: item.nerveChainId,
+        assetId: item.nerveAssetId,
         contractAddress: item.contractAddress
       }));
       const tempData = await this.getNerveBatchData(tempParams);
@@ -1010,8 +1008,8 @@ export default {
         transferInfo = {
           ...transferInfo,
           feeAsset: {
-            chainId: this.currentFeeAsset.chainId,
-            assetId: this.currentFeeAsset.assetId
+            chainId: this.currentFeeAsset.nerveChainId,
+            assetId: this.currentFeeAsset.nerveAssetId
           }
         };
         const inputOutput = await transfer.inputsOrOutputs(transferInfo);

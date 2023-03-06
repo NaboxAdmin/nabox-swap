@@ -83,7 +83,7 @@ import { ISWAP_VERSION, ISWAP_BRIDGE_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
-import NerveChannel from '../Swap/util/Nerve';
+import NerveChannel, {senENULSTransaction} from '../Swap/util/Nerve';
 import { NTransfer, crossFee } from '@/api/api';
 import { getEquipmentNo, metaPathRecordHash, sendMetaPathTransaction } from '@/views/Swap/util/MetaPath';
 import Inch from '@/views/Swap/util/1inch';
@@ -121,7 +121,7 @@ export default {
       try {
         this.confirmLoading = true;
         const { currentChannel, stableSwap, nerveChainStableSwap, nerveCrossSwap, toAsset } = this.orderInfo;
-        console.log(stableSwap, 'stableSwap')
+        // console.log(currentChannel, 'stableSwap')
         switch (currentChannel.originalChannel) {
           case 'iSwap':
             await this.sendISwapTransaction();
@@ -136,6 +136,8 @@ export default {
               await this.sendNerveBridgeTransaction();
             } else if (!this.stableSwap && nerveCrossSwap && this.fromNetwork !== 'NERVE' || this.fromNetwork === 'NERVE' && !this.stableSwap && toAsset.chain !== 'NERVE') {
               await this.sendNerveBridgeTransaction(1); // 非稳定币跨链传1
+            } else if (currentChannel.packSwap) {
+              await this.sendENULSSwapTransaction();
             } else {
               await this.sendNerveSwapTransaction();
             }
@@ -495,15 +497,51 @@ export default {
         });
       }
     },
+    async sendENULSSwapTransaction() {
+      try {
+        const res = await this.recordSameChainOrder();
+        if (res && res.code === 1000) {
+          const { currentChannel, fromAsset } = this.orderInfo;
+          this.currentOrderId = res.data && res.data.orderId || '';
+          const txRes = await senENULSTransaction({
+            value: currentChannel.amount,
+            token0: currentChannel.token0,
+            token1: currentChannel.token1,
+            fromAsset
+          });
+          if (txRes.hash) {
+            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: txRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+            this.$message({
+              type: 'success',
+              message: this.$t('tips.tips24'),
+              offset: 30,
+              duration: 1500
+            });
+            this.confirmLoading = false;
+            this.$emit('confirm');
+            await this.recordSameChainHash(this.currentOrderId, txRes.hash);
+          }
+        }
+      } catch (e) {
+        console.error(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
+          offset: 30
+        });
+      }
+    },
     // 发送nerveSwap交易
     async sendNerveSwapTransaction() {
       try {
-        const { toAsset, fromAsset, currentChannel, swapPairInfo, swapPairTradeList } = this.orderInfo;
+        const { toAsset, fromAsset, currentChannel, swapPairInfo, swapPairTradeList, tokenPath } = this.orderInfo;
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset,
           swapPairInfo,
-          swapPairTradeList
+          swapPairTradeList,
+          tokenPath
         });
         const tAssemble = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId], swapPairTradeList);
         const transfer = new NTransfer({ chain: 'NERVE' });
