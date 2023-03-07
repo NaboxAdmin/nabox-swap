@@ -1460,7 +1460,7 @@ export default {
     },
     // 获取当前支持的config
     async getChannelList() {
-      // try {
+      try {
         if (this.chooseFromAsset.chain !== this.fromNetwork) return;
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
@@ -1670,9 +1670,9 @@ export default {
         console.log(tempChannelConfig, 'tempChannelConfig');
         // this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
-      // } catch (e) {
-      //   console.log(e.message, 'error');
-      // }
+      } catch (e) {
+        console.log(e.message, 'error');
+      }
     },
     formatFee(currentConfig, isCrossFee) {
       if (currentConfig.dex === 'SWFT') {
