@@ -21,8 +21,8 @@ export default class NerveChannel {
     this.originalFromAsset = chooseFromAsset || {};
     this.originalToAsset = chooseToAsset || {};
     let tempFromAsset, tempToAsset;
-    this.checkFromAsset = nerve.swap.checkStableToken(nerve.swap.token(chooseFromAsset.chainId, chooseFromAsset.assetId), swapPairTradeList);
-    this.checkToAsset = nerve.swap.checkStableToken(nerve.swap.token(chooseToAsset.chainId, chooseToAsset.assetId), swapPairTradeList);
+    this.checkFromAsset = nerve.swap.checkStableToken(nerve.swap.token(chooseFromAsset.chainId, chooseFromAsset.assetId), swapPairTradeList || []);
+    this.checkToAsset = nerve.swap.checkStableToken(nerve.swap.token(chooseToAsset.chainId, chooseToAsset.assetId), swapPairTradeList || []);
     if (this.checkFromAsset.success) {
       this.isFromAssetStable = true; // usdt->nvt
       tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === `${this.checkFromAsset.lpToken.chainId}-${this.checkFromAsset.lpToken.assetId}`);
@@ -126,7 +126,8 @@ export default class NerveChannel {
     console.log(this.storeSwapPairInfo, '12312321');
   }
   // 获取nerve链上兑换的配置
-  getNerveChannelConfig(type, amount, swapPairTradeList) {
+  getNerveChannelConfig(type, amount, swapPairTradeList, isToAsset) {
+    if (isToAsset) return null; // @fixme 临时修改
     const [swapAmount, priceImpact, routeSymbolList, tokenPath] = this.getSwapAmount(type, amount, swapPairTradeList);
     if (swapAmount != 0) {
       return {
