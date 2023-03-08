@@ -870,7 +870,7 @@ export default {
     // 获取当前是否为稳定币资产兑换
     isStableSwap(fromAsset, toAsset) {
       this.nerveChainStableSwap = fromAsset.chain === 'NERVE' && toAsset.chain === 'NERVE';
-      this.nerveCrossSwap = !!(fromAsset.nerveChainId && fromAsset.nerveAssetId && toAsset.nerveChainId && toAsset.nerveAssetId);
+      this.nerveCrossSwap = !!(fromAsset.nerveChainId && fromAsset.nerveAssetId && toAsset.nerveChainId && toAsset.nerveAssetId) && fromAsset.chain !== toAsset.chain;
       let isStableLpInfo;
       if (fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress) {
         const currentPairIno = this.swapPairTradeList.find(item => item.address === fromAsset.channelInfo['NERVE'].pairAddress);
@@ -1147,6 +1147,7 @@ export default {
             this.crossTransaction = true;
             this.switchAsset = false;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.nerveCrossSwap = false;
             this.crossTransaction = false;
             this.switchAsset = true;
           } else {
@@ -1176,6 +1177,7 @@ export default {
             this.crossTransaction = false;
             this.switchAsset = true;
           } else if (this.chooseFromAsset && this.chooseToAsset && this.chooseFromAsset.chain === this.chooseToAsset.chain) {
+            this.nerveCrossSwap = false;
             this.crossTransaction = false;
             this.switchAsset = true;
           } else {
@@ -1465,6 +1467,7 @@ export default {
         const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
         this.showComputedLoading = true;
         this.amountMsg = '';
+        // console.log(this.nativeId, this.nerveCrossSwap, 'this.nativeId')
         // debugger;
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
           let currentConfig = {};
