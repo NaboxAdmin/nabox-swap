@@ -21,8 +21,8 @@ export default class NerveChannel {
     this.originalFromAsset = chooseFromAsset || {};
     this.originalToAsset = chooseToAsset || {};
     let tempFromAsset, tempToAsset;
-    this.checkFromAsset = nerve.swap.checkStableToken(nerve.swap.token(chooseFromAsset.chainId, chooseFromAsset.assetId), swapPairTradeList || []);
-    this.checkToAsset = nerve.swap.checkStableToken(nerve.swap.token(chooseToAsset.chainId, chooseToAsset.assetId), swapPairTradeList || []);
+    this.checkFromAsset = chooseFromAsset && nerve.swap.checkStableToken(nerve.swap.token(chooseFromAsset.chainId, chooseFromAsset.assetId), swapPairTradeList || []) || {};
+    this.checkToAsset = chooseToAsset && nerve.swap.checkStableToken(nerve.swap.token(chooseToAsset.chainId, chooseToAsset.assetId), swapPairTradeList || []) || {};
     if (this.checkFromAsset.success) {
       this.isFromAssetStable = true; // usdt->nvt
       tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === `${this.checkFromAsset.lpToken.chainId}-${this.checkFromAsset.lpToken.assetId}`);
