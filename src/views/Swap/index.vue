@@ -1834,10 +1834,10 @@ export default {
         swapPairInfo: this.swapPairInfo || [],
         swapPairTradeList: this.swapPairTradeList
       });
-      if (this.inputType === 'amountIn') { // @fixme checkToAsset.success临时修改
-        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn, this.swapPairTradeList, checkToAsset.success);
+      if (this.inputType === 'amountIn') {
+        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn, this.swapPairTradeList);
       } else {
-        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut, this.swapPairTradeList, checkToAsset.success);
+        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut, this.swapPairTradeList);
       }
     },
     // 计算nuls合约资产需要的手续费

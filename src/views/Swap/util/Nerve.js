@@ -126,8 +126,7 @@ export default class NerveChannel {
     console.log(this.storeSwapPairInfo, '12312321');
   }
   // 获取nerve链上兑换的配置
-  getNerveChannelConfig(type, amount, swapPairTradeList, isToAsset) {
-    if (isToAsset) return null; // @fixme 临时修改
+  getNerveChannelConfig(type, amount, swapPairTradeList) {
     const [swapAmount, priceImpact, routeSymbolList, tokenPath] = this.getSwapAmount(type, amount, swapPairTradeList);
     if (swapAmount != 0) {
       return {
