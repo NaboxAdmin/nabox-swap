@@ -1306,7 +1306,7 @@ export default {
             return {
               ...channel,
               limitMin: 1,
-              limitMax: swapMap[this.chooseToAsset.chain]
+              limitMax: swapMap[this.chooseToAsset.registerChain]
             };
           }
           return {
@@ -1469,6 +1469,7 @@ export default {
         this.amountMsg = '';
         // console.log(this.nativeId, this.nerveCrossSwap, 'this.nativeId')
         // debugger;
+        console.log(this.channelConfigList, '==channelConfigList==');
         const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
           let currentConfig = {};
           if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
@@ -1741,10 +1742,11 @@ export default {
         chooseToAsset: this.chooseToAsset,
         swapPairTradeList: this.swapPairTradeList
       });
+      const { platform } = this.$route.query;
       const params = {
         channel: 'NERVE',
         // platform: '',
-        platform: 'NABOX',
+        platform: platform || 'NABOX',
         swapType: type || 2,
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,

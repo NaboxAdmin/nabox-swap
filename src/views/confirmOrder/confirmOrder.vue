@@ -753,12 +753,12 @@ export default {
     async recordSwapOrder(res, type) {
       console.log(type, 'type');
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
-      console.log(currentChannel, 'currentChannel');
+      const { platform } = this.$route.query;
       const naboxParams = {
         orderId: res.orderId,
         channel: currentChannel.originalChannel || currentChannel.channel,
         // platform: '',
-        platform: 'NABOX',
+        platform: platform || 'NABOX',
         fromChain: fromAsset.chain,
         toChain: toAsset.chain,
         fromAddress: address,
