@@ -244,6 +244,11 @@ export class NTransfer {
     // 组装交易
     const tAssemble = temptAssemble || this.sdk.transactionAssemble(inputs, outputs, htmlEncode(remarks), this.type, txData);
     const walletType = localStorage.getItem('walletType');
+    if (walletType === 'NaboxWallet' && window[walletType].isNULSLedger) {
+      console.log(tAssemble, '==tAssemble==')
+      const { type, coinData, txSerialize } = tAssemble;
+      return await window['nabox'].signNULSTransaction({ tAssemble: { type, coinData, txSerialize }});
+    }
     // 调用metamask签名hash，然后拼接公钥完成交易签名
     const hash = '0x' + tAssemble.getHash().toString('hex');
     let flat = await window[walletType || 'ethereum'].request({

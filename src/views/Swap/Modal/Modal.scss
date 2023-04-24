@@ -115,6 +115,7 @@
           align-items: center;
           font-size: 30px;
           .coin-icon {
+            flex-shrink: 0;
             height: 52px;
             width: 52px;
             border-radius: 50%;
@@ -234,12 +235,21 @@
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
+  background-image: url("../../../assets/image/zkSync_grey.png");
+  &.active_image {
+    background-image: url("../../../assets/image/zkSync.png");
+  }
+}
+.nav-cont_12 {
+  width: 52px;
+  height: 52px;
+  background-size: 52px 52px;
   background-image: url("../../../assets/image/ETC_grey.png");
   &.active_image {
     background-image: url("../../../assets/image/ETC.png");
   }
 }
-.nav-cont_12 {
+.nav-cont_13 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -248,7 +258,7 @@
     background-image: url("../../../assets/image/Fantom.png");
   }
 }
-.nav-cont_13 {
+.nav-cont_14 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -257,7 +267,7 @@
     background-image: url("../../../assets/image/Optimism.png");
   }
 }
-.nav-cont_14 {
+.nav-cont_15 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -266,7 +276,7 @@
     background-image: url("../../../assets/image/loTeX.jpg");
   }
 }
-.nav-cont_15 {
+.nav-cont_16 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -275,7 +285,7 @@
     background-image: url("../../../assets/image/Metis.png");
   }
 }
-.nav-cont_16 {
+.nav-cont_17 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -284,7 +294,7 @@
     background-image: url("../../../assets/image/Klaytn.png");
   }
 }
-.nav-cont_17 {
+.nav-cont_18 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -293,7 +303,7 @@
     background-image: url("../../../assets/image/Aurora.png");
   }
 }
-.nav-cont_18 {
+.nav-cont_19 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -302,7 +312,7 @@
     background-image: url("../../../assets/image/Gnosis.png");
   }
 }
-.nav-cont_19 {
+.nav-cont_20 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -311,7 +321,16 @@
     background-image: url("../../../assets/image/smartBCH.jpg");
   }
 }
-.nav-cont_20 {
+.nav-cont_21 {
+  width: 52px;
+  height: 52px;
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/REI_grey.png");
+  &.active_image {
+    background-image: url("../../../assets/image/REI.png");
+  }
+}
+.nav-cont_22 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -320,7 +339,7 @@
     background-image: url("../../../assets/image/KAVA.png");
   }
 }
-.nav-cont_21 {
+.nav-cont_23 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -329,7 +348,7 @@
     background-image: url("../../../assets/image/ETHW.png");
   }
 }
-.nav-cont_22 {
+.nav-cont_24 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -338,7 +357,7 @@
     background-image: url("../../../assets/image/NULS_active.png");
   }
 }
-.nav-cont_23 {
+.nav-cont_25 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -347,7 +366,7 @@
     background-image: url("../../../assets/image/ENULS.png");
   }
 }
-.nav-cont_24 {
+.nav-cont_26 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -417,7 +436,7 @@
   height: 70px;
 }
 .w-150 {
-  width: 180px;
+  width: 250px;
 }
 .import-btn {
   padding: 15px 25px;

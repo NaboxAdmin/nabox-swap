@@ -365,7 +365,7 @@ export default {
         console.log(accounts, '===accounts-changed===');
         if (accounts.length && this.walletType) {
           this.address = accounts[0];
-          window.location.reload();
+          // window.location.reload();
         } else {
           this.address = '';
           // this.$store.commit('changeShowConnect', true);

@@ -1036,7 +1036,7 @@ export default {
         }
         this.chooseToAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || tempList[2] || null;
         this._replaceBrowserHistory(this.chooseFromAsset, this.chooseToAsset);
-        if (this.chooseFromAsset.chain && this.chooseToAsset.chain) {
+        if (this.chooseToAsset && this.chooseFromAsset && this.chooseFromAsset.chain && this.chooseToAsset.chain) {
           this.switchAsset = true;
         }
         this.crossFeeAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || null;

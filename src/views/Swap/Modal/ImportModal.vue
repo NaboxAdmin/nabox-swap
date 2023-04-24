@@ -123,7 +123,6 @@ export default {
       height: 52px;
       width: 52px;
       margin-right: 18px;
-      background-color: red;
       border-radius: 50%;
       img {
         height: 100%;

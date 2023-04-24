@@ -73,7 +73,7 @@ const en = {
     tips71: 'Import',
     tips72: 'View in browser',
     tips73: 'I understand the risks',
-    tips74: 'Add by user',
+    tips74: 'Added by user',
     tips75: 'Switch to ',
     tips76: ' for trade'
   },

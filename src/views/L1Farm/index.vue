@@ -361,6 +361,7 @@ export default {
         }
         const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
         const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
+        console.log(tokens, '==tokens==');
         return {
           ...item,
           stakedAsset,
