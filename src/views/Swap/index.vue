@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="{ mobile_class: !isMobile }">
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'" class="p-4">
@@ -92,7 +92,7 @@
               @focus="amountFocus($event)">
           </div>
         </div>
-        <template v-if="fromNetwork === 'TRON' && chooseToAsset && chooseToAsset.chain !== 'TRON' || fromNetwork !== 'TRON' && chooseToAsset && chooseToAsset.chain === 'TRON'">
+        <template v-if="chooseFromAsset && chooseToAsset && chooseToAsset.chain !== chooseFromAsset.chain">
           <div class="text-90 size-28 mt-5">{{ $t('tips.tips60') }}</div>
           <div class="input_address-cont mt-2">
             <div class="input-item align-items-center d-flex flex-1">
@@ -306,7 +306,7 @@ import {
 } from './util/swapConfig';
 import Dodo from './util/Dodo';
 import { currentNet, ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
-import NerveChannel, {feeRate, getENULSFeeInfo} from './util/Nerve';
+import NerveChannel, { feeRate, getENULSFeeInfo } from './util/Nerve';
 import { getContractCallData } from '@/api/nulsContractValidate';
 import TronLink from '@/api/tronLink';
 import { validateNerveAddress } from '@/api/api';
@@ -576,7 +576,7 @@ export default {
     async getNerveSwapPairTrade() {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const url = config && config['NERVE']['apiUrl'];
-      const res = await this.$post(url, 'getStablePairListForSwapTrade', [MAIN_INFO.chainId]);
+      const res = await this.$post(url, 'getAvailableStablePairList', [MAIN_INFO.chainId]);
       if (res.result) {
         this.swapPairTradeList = res.result;
       } else {
@@ -1041,6 +1041,9 @@ export default {
         }
         this.crossFeeAsset = tempList.find(item => item.symbol === ISWAP_USDT_CONFIG[this.currentChainId] || item.symbol === 'USDT' || item.symbol === 'USD18') || null;
       }
+      if (this.fromNetwork === 'NERVE' && tempList) {
+        sessionStorage.setItem('nerveSwapAssetList', JSON.stringify(tempList));
+      }
       this.chooseFromAsset && this.chooseFromAsset.chain === this.fromNetwork && await this.getBalance(this.chooseFromAsset);
       this.chooseFromAsset.chain === this.fromNetwork && this.refreshBalance();
     },
@@ -1193,7 +1196,11 @@ export default {
             this.amountOut = '';
             this.amountOutDebounce();
           }
-          if (this.fromNetwork === 'TRON' && this.chooseToAsset && this.chooseToAsset.chain !== 'TRON' || this.fromNetwork !== 'TRON' && this.chooseToAsset && this.chooseToAsset.chain === 'TRON') {
+          // if (this.fromNetwork === 'TRON' && this.chooseToAsset && this.chooseToAsset.chain !== 'TRON' || this.fromNetwork !== 'TRON' && this.chooseToAsset && this.chooseToAsset.chain === 'TRON') {
+          //   this.toAddress = this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]] || '';
+          //   this.addressInput();
+          // }
+          if (this.chooseFromAsset && this.chooseToAsset && this.chooseToAsset.chain !== this.chooseFromAsset.chain) {
             this.toAddress = this.currentAccount['address'][this.chooseToAsset.chain] || this.currentAccount['address'][this.chainNameToId[this.chooseToAsset.chain]] || '';
             this.addressInput();
           }
@@ -1524,7 +1531,8 @@ export default {
                 impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
                 isBest: false,
                 isCurrent: false,
-                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
+                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut),
+                // swapFee: 1
               };
             }
             return null;
@@ -1675,7 +1683,7 @@ export default {
         // this.showComputedLoading = false;
         return this.getBestPlatform(tempChannelConfig.filter(item => item));
       } catch (e) {
-        console.log(e.message, 'error');
+        console.error(e.message, 'error');
       }
     },
     formatFee(currentConfig, isCrossFee) {

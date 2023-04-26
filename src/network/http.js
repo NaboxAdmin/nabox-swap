@@ -3,7 +3,7 @@ import * as config from '@/config.js';
 import { isBeta } from '@/api/util';
 
 axios.defaults.headers.post['Content-Type'] = 'application/json';
-axios.defaults.timeout = 8000;
+axios.defaults.timeout = 15000;
 /**
  * 封装post请求
  * Encapsulation post method

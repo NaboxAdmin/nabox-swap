@@ -2,7 +2,7 @@
   <div>
     <!-- :style="{'background-color': headerColor}"-->
     <div class="header-cont">
-      <div class="logo-cont">
+      <div class="logo-cont cursor-pointer" @click="logoClick">
         <img src="@/assets/image/SwapBox.svg" alt="">
       </div>
       <div class="address-cont d-flex align-items-center">
@@ -347,6 +347,11 @@ export default {
     }
   },
   methods: {
+    logoClick() {
+      if (this.$route.path !== '/swap') {
+        this.$router.push('/');
+      }
+    },
     async getTRONApiKey() {
       try {
         const res = await this.$request({
