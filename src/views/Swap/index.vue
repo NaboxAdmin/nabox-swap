@@ -411,7 +411,7 @@ export default {
           !this.currentChannel ||
           this.btnErrorMsg ||
           this.showComputedLoading ||
-          this.amountMsg || ((this.fromNetwork === 'TRON' && this.chooseToAsset && this.chooseToAsset.chain !== 'TRON' || this.fromNetwork !== 'TRON' && this.chooseToAsset && this.chooseToAsset.chain === 'TRON') && (!this.toAddress || this.addressError))
+          this.amountMsg || ((this.chooseToAsset.chain !== this.chooseFromAsset.chain) && (!this.toAddress || this.addressError))
       ); //  && !this.toAddress && this.addressError
     },
     currentChainId() {
