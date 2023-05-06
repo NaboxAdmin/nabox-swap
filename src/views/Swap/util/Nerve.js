@@ -347,7 +347,6 @@ export default class NerveChannel {
   }
   // 发送nerve通道nerve => 异构链稳定币兑换交易
   async sendNerveCommonTransaction(params) {
-    console.log('==sendNerveCommonTransaction==');
     const {
       currentChannel,
       currentAccount,
@@ -409,9 +408,7 @@ export default class NerveChannel {
       chain: fromNetwork,
       type
     });
-    console.log(transferInfo, '==transferInfo==')
     let inputsOutputs = await transfer.inputsOrOutputs(transferInfo);
-    console.log(inputsOutputs, 'inputsOutputs===')
     if (fromNetwork === 'NERVE') {
       const data = {
         inputOutputs: inputsOutputs,
@@ -449,7 +446,6 @@ export default class NerveChannel {
   }
   // 将手续费转到nerve中转地址
   async handleNerveCross(data) {
-    console.log(data, '==data==');
     const { inputOutputs, from, to, originCrossChainFee, fromAsset, toNetwork, currentAccount } = data;
     const { inputs, outputs } = inputOutputs;
     const { nerveChainId: assetsChainId, nerveAssetId: assetsId } = fromAsset;

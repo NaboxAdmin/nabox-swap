@@ -341,7 +341,7 @@ export class NTransfer {
     let inputs = [], outputs = [];
     // 转账资产nonce
     const nonce = await this.getNonce(transferInfo);
-    console.log(nonce, transferInfo, 'noncenoncenonce');
+    // console.log(nonce, 'noncenoncenonce');
     if (!nonce) throw localStorage.getItem('locale') === 'en' ? 'Failed to get the nonce value' : '获取nonce值失败';
     const config = JSON.parse(sessionStorage.getItem('config'));
     const mainAsset = config[this.chain];
@@ -349,7 +349,6 @@ export class NTransfer {
     if (mainAsset.chainId === transferInfo.assetsChainId && mainAsset.assetId === transferInfo.assetsId) {
       // 转账资产为本链主资产, 将手续费和转账金额合成一个input
       const newAmount = Plus(transferInfo.amount, transferInfo.fee).toFixed();
-      console.log(newAmount, 'newAmount')
       inputs.push({
         address: transferInfo.from,
         assetsChainId: transferInfo.assetsChainId,
@@ -393,7 +392,6 @@ export class NTransfer {
         });
       }
     }
-    console.log(inputs, '==inputs==')
     outputs.push({
       address: transferInfo.to,
       assetsChainId: transferInfo.assetsChainId,
