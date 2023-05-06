@@ -922,7 +922,7 @@ export default {
       } = this;
       const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
       const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
-      const tokenOutIndex = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId).coinIndex || 0;
+      const tokenOutIndex = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId).coinIndex || 0;
       const tempTokenIndexList = stableSwapAsset && stableSwapAsset.swapAssets.map(item => item.coinIndex) || [];
       tempTokenIndexList.unshift(tokenOutIndex);
       const tokenIndexList = tempTokenIndexList && [...new Set(tempTokenIndexList)] || [];
