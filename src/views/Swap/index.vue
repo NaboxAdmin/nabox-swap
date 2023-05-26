@@ -304,7 +304,7 @@ import {
   ISWAP_USDT_CONFIG,
   ISWAP_VERSION, localChannelList
 } from './util/swapConfig';
-import Dodo from './util/Dodo';
+import Dodo, { apiKey } from './util/Dodo';
 import { currentNet, ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import NerveChannel, { feeRate, getENULSFeeInfo } from './util/Nerve';
 import { getContractCallData } from '@/api/nulsContractValidate';
@@ -371,7 +371,7 @@ export default {
       limitMin: '', // 最小限制
       limitMax: '', // 最大限制
       showSlippage: false,
-      currentIndex: 2,
+      currentIndex: 0,
       slippageMsg: '',
       btnErrorMsg: '',
       crossTransaction: false,
@@ -1531,7 +1531,7 @@ export default {
                 impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
                 isBest: false,
                 isCurrent: false,
-                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut),
+                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
                 // swapFee: 1
               };
             }
@@ -1777,18 +1777,21 @@ export default {
     async getDodoSwapRoute() {
       if (this.fromNetwork === TRON) return null;
       const supportChainList = JSON.parse(sessionStorage.getItem('supportChainList'));
-      const rpc = supportChainList.find(item => item.chain === this.fromNetwork).apiUrl;
+      const rpc = supportChainList.find(item => item.chain === this.fromNetwork).rpcUrl;
       const data = {
+        chainId: this.chooseFromAsset.nativeId || '',
+        apikey: apiKey,
+        deadLine: Math.ceil(+new Date() / 1000) + 300,
+        fromAmount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals),
         fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         fromTokenDecimals: this.chooseFromAsset.decimals || 18,
         toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         toTokenDecimals: this.chooseToAsset.decimals || 18,
-        fromAmount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals),
         slippage: this.slippage,
         userAddr: this.fromAddress,
-        chainId: this.chooseFromAsset.nativeId || '',
-        rebateTo: REFERRER,
-        fee: '1000000000000000',
+        // rebateTo: REFERRER,
+        // fee: '1000000000000000',
+        // source: 'NABOX',
         rpc // 当前的rpc地址
       };
       const dodo = new Dodo();

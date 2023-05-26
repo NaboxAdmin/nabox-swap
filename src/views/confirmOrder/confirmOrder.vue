@@ -12,7 +12,7 @@
         </div>
       </div>
       <div v-if="orderInfo" class="order-info">
-        <div class="detail-info mt-4">{{ orderInfo && orderInfo.amountIn }} {{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</div>
+        <div class="detail-info mt-4">{{ orderInfo && orderInfo.amountIn | numberFormat }} {{ orderInfo && orderInfo.fromAsset && orderInfo.fromAsset.symbol }}</div>
         <div class="down-icon">
           <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"/><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"/></svg>
         </div>
@@ -83,7 +83,7 @@ import { ISWAP_VERSION, ISWAP_BRIDGE_VERSION } from '../Swap/util/swapConfig';
 import { encodeParameters } from '../Swap/util/iSwap';
 import Web3 from 'web3';
 import Dodo from '../Swap/util/Dodo';
-import NerveChannel, {senENULSTransaction} from '../Swap/util/Nerve';
+import NerveChannel, { senENULSTransaction } from '../Swap/util/Nerve';
 import { NTransfer, crossFee } from '@/api/api';
 import { getEquipmentNo, metaPathRecordHash, sendMetaPathTransaction } from '@/views/Swap/util/MetaPath';
 import Inch from '@/views/Swap/util/1inch';
@@ -203,21 +203,24 @@ export default {
             throw swapRes.data;
           }
         } else {
-          const transactionRes = await sendMetaPathTransaction(this.orderInfo);
-          if (transactionRes.hash) {
-            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
-            recordParams['hash'] = transactionRes.hash;
-            const res = await metaPathRecordHash(recordParams);
-            if (res.resCode == '100') {
-              this.$message({
-                type: 'success',
-                message: this.$t('tips.tips24'),
-                offset: 30,
-                duration: 1500
-              });
-              this.confirmLoading = false;
-              this.$emit('confirm');
-              // await this.recordHash(currentChannel.orderId, transactionRes.hash);
+          const res = await this.recordSameChainOrder();
+          if (res && res.code == 1000) {
+            const transactionRes = await sendMetaPathTransaction(this.orderInfo);
+            if (transactionRes.hash) {
+              this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: transactionRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+              recordParams['hash'] = transactionRes.hash;
+              const res = await metaPathRecordHash(recordParams);
+              if (res.resCode == '100') {
+                this.$message({
+                  type: 'success',
+                  message: this.$t('tips.tips24'),
+                  offset: 30,
+                  duration: 1500
+                });
+                this.confirmLoading = false;
+                this.$emit('confirm');
+                await this.recordSameChainHash(currentChannel.orderId, transactionRes.hash);
+              }
             }
           }
         }
@@ -788,7 +791,7 @@ export default {
       const { fromAsset, toAsset, amountIn, currentChannel, address, slippage } = this.orderInfo;
       const params = {
         orderId: '',
-        channel: currentChannel.channel,
+        channel: currentChannel.originalChannel || currentChannel.channel,
         swapType: '1',
         chain: this.fromNetwork,
         address,

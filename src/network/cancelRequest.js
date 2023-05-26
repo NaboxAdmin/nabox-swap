@@ -59,8 +59,11 @@ axios.interceptors.response.use(
 );
 
 export async function sendRequest(params) {
-  const { url, method = 'post', data, customUrl } = params;
+  const { url, method = 'post', data, customUrl, isDODO } = params;
   const baseUrl = customUrl;
+  if (isDODO) {
+    axios.defaults.headers.get['user-agent'] = 'DODO-Bey';
+  }
   const newData = method === 'post' ? { data: { ...data }} : { params: { ...data }};
   return new Promise((resolve, reject) => {
     axios({ url: baseUrl + url, method: method, ...newData }).then(
