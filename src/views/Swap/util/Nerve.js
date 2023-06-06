@@ -393,7 +393,6 @@ export default class NerveChannel {
             address: swapNulsAddress
           }]
         };
-        console.log(originCrossChainFee.toString(), '1231231');
         if (originCrossChainFee == 0) {
           delete transferInfo['nulsValueToOthers'];
         }

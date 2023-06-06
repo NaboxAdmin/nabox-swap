@@ -413,7 +413,6 @@ export default {
           this.amountMsg = '';
         }
       } else {
-        console.log(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], '123123123');
         const tempInfo = this.formatDecimals(this.userFarmInfo && this.userFarmInfo.userFarmInfo['1'], this.LpFarmInfo && this.LpFarmInfo.lpDecimals);
         if (Minus(tempInfo || 0, this.lpCount) < 0) {
           this.amountMsg = this.$t('tips.tips16');

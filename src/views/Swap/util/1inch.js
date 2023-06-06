@@ -3,7 +3,7 @@ import { divisionDecimals, Minus } from '@/api/util';
 import { ethers } from 'ethers';
 import { ETransfer } from '@/api/api';
 
-const inchBaseUrl = 'https://api.1inch.io/v4.0/';
+const inchBaseUrl = 'https://api-nabox.1inch.io/v5.0/'; // https://api-nabox.1inch.io/v5.0 https://api.1inch.io/v4.0/
 
 export default class Inch {
   constructor({ nativeId }) {
@@ -53,7 +53,7 @@ export default class Inch {
       data: params,
       customUrl: `${inchBaseUrl}${this.nativeId}`
     });
-    const baseAllowance = '10000';
+    const baseAllowance = '10';
     if (res && res.allowance) {
       return Minus(res.allowance, baseAllowance) < 0;
     }
@@ -99,7 +99,6 @@ export default class Inch {
         customUrl: `${inchBaseUrl}${this.nativeId}`
       });
       if (res.tx) {
-        console.log(divisionDecimals(res.tx.value, res.fromToken.decimals).toString(), 'divisionDecimals(res.tx.value, res.fromToken.decimals).toString()');
         const txData = await this.setGasLimit({
           from: address,
           to: res.tx.to,

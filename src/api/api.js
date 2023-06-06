@@ -892,9 +892,10 @@ export class ETransfer {
     const allowancePromise = contract.allowance(address, multySignAddress);
     return allowancePromise
       .then(allowance => {
-        const baseAllowance = '39600000000000000000000000000';
+        console.log(allowance === 0, '==allowance==');
+        // const baseAllowance = '39600000000000000000000000000';
         // 已授权额度小于baseAllowance，则需要授权
-        return Minus(baseAllowance, allowance) >= 0;
+        return allowance && allowance.toString() === '0';
       })
       .catch(e => {
         console.error('获取erc20资产授权额度失败' + e);

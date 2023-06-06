@@ -643,7 +643,6 @@ export default {
     },
     // 获取pool流动性信息
     async getLiquidityInfo(tempData, refresh = false) {
-      console.log(tempData, '1231231');
       if (!refresh) {
         this.availableLoading = true;
       }

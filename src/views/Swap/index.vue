@@ -1803,7 +1803,7 @@ export default {
         fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         amount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals || 0),
-        fee: '0.1'
+        fee: 0.1
       };
       return this.inch.get1inchRouteQuote(params);
     },
