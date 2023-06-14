@@ -64,13 +64,19 @@
           <input
             :placeholder="$t('vaults.vaults9')"
             v-model="lpCount"
-            @input="lpInput">
+            @input="lpCountDebounce">
           <span @click="maxCount">{{ $t("vaults.vaults6") }}</span>
         </div>
         <div v-if="amountMsg" class="text-red mt-2">{{ amountMsg }}</div>
         <div class="pop-btn d-flex align-items-center space-between mt-4">
           <div class="btn cursor-pointer" @click="showPop = false; lpCount=''; amountMsg=''">{{ $t("vaults.vaults7") }}</div>
-          <div class="btn btn_active cursor-pointer" @click="confirm">{{ $t("vaults.vaults8") }}</div>
+          <template>
+            <div v-if="needStakeAuth" class="btn btn_active cursor-pointer" @click="stakeApprove">
+              <span :class="{'mr-1': approveLoading}">{{ $t("vaults.over6") }}</span>
+              <Loading v-if="approveLoading" :is-active="false"/>
+            </div>
+            <div v-else class="btn btn_active cursor-pointer" @click="confirm">{{ $t("vaults.vaults8") }}</div>
+          </template>
         </div>
       </div>
     </PopUp>
@@ -78,11 +84,11 @@
 </template>
 
 <script>
-import { PopUp, FarmLoading } from '@/components';
+import { PopUp, FarmLoading, Loading } from '@/components';
 import Progress from './Progress';
 import Over from './Over';
 import { currentNet } from '@/config';
-import { divisionDecimals, Minus, timesDecimals, tofix, Times } from '@/api/util';
+import { divisionDecimals, Minus, timesDecimals, tofix, Times, debounce } from '@/api/util';
 import { ETransfer, NTransfer, getBatchLockedFarmInfo, getBatchERC20Balance } from '@/api/api';
 import { ethers } from 'ethers';
 import { txAbi } from '@/api/contractConfig';
@@ -98,8 +104,9 @@ currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default {
   name: 'Vaults',
-  components: { PopUp, Progress, Over, FarmLoading },
+  components: { PopUp, Progress, Over, FarmLoading, Loading },
   data() {
+    this.lpCountDebounce = debounce(this.lpInput, 800);
     return {
       checkList: [this.$t('vaults.vaults2'), this.$t('vaults.vaults3')],
       currentIndex: 0,
@@ -129,7 +136,9 @@ export default {
       approveLoading: false,
       approveList: [], // 授权列表
       firstRequest: true,
-      availableLoading: false
+      availableLoading: false,
+      getAllowanceTimer: null,
+      needStakeAuth: false
     };
   },
   computed: {
@@ -202,7 +211,7 @@ export default {
       if (this.timer) clearInterval(this.timer);
       this.timer = setInterval(() => {
         this.getFarmInfo(this.currentIndex === 0, true);
-      }, 10000);
+      }, 20000);
     },
     // 质押/退出质押
     async showClick({ type, farmHash, item }) {
@@ -261,14 +270,16 @@ export default {
       }
     },
     // 最大
-    maxCount() {
+    async maxCount() {
       if ((!this.assetsItem && !(this.assetsItem.balance)) || (!this.assetsItem && !(this.assetsItem.amount))) return false;
       // if (!this.assetsItem.balance) return false;
       if (this.vaultsType === 'increase') {
         this.lpCount = this.assetsItem && this.assetsItem.balance || 0;
         if (Minus(this.lpCount, 0) == '0') {
           this.amountMsg = this.$t('tips.tips18');
+          return;
         }
+        await this.getReceiveAuth();
       } else {
         this.lpCount = this.assetsItem && this.assetsItem.amount || 0;
         if (Minus(this.lpCount, 0) == '0') {
@@ -276,7 +287,7 @@ export default {
         }
       }
     },
-    lpInput() {
+    async lpInput() {
       if (this.vaultsType === 'increase') {
         if (Minus(this.assetsItem.balance, this.lpCount) < 0) {
           this.amountMsg = this.$t('tips.tips16');
@@ -286,6 +297,7 @@ export default {
           this.amountMsg = this.$t('tips.tips18');
         } else {
           this.amountMsg = '';
+          await this.getReceiveAuth();
         }
       } else {
         if (Minus(this.assetsItem.amount, this.lpCount) < 0) {
@@ -336,9 +348,7 @@ export default {
         const batchQueryContract = config[item.chain || 'BSC']['config'].multiCallAddress || '';
         const fromAddress = this.currentAccount['address'][item.chain] || this.currentAccount['address'][this.chainNameToId[item.chain] || 'BSC'] || this.currentAccount['address'][this.nativeId];
         const RPCUrl = config[item.chain || 'BSC']['apiUrl'];
-        console.log(fromAddress, '0xdeff0ee83ba00be152bcff88795f1577bf5be806');
         const tokenBalance = await getBatchERC20Balance([item.stakeToken && item.stakeToken.contractAddress || batchQueryContract, item.syrupToken && item.syrupToken.contractAddress || batchQueryContract], fromAddress, batchQueryContract, RPCUrl);
-        console.log(tokenBalance, 'tokenBalance');
         const stakedAsset = {
           ...tokenBalance[0],
           chainId: item.stakeToken && item.stakeToken.chainId,
@@ -354,11 +364,6 @@ export default {
           balance: divisionDecimals(tokenBalance[1].balance || 0, tokenBalance[1].decimals || 18)
         };
         item.needReceiveAuth = false;
-        if (this.firstRequest) {
-          item.needStakeAuth = await this.getReceiveAuth(stakedAsset, item.farmKey);
-        } else {
-          item.needStakeAuth = this.farmList[index] && this.farmList[index].needStakeAuth && await this.getReceiveAuth(stakedAsset, item.farmKey);
-        }
         const multicallAddress = config[this.fromNetwork].config.multiCallAddress;
         const tokens = await getBatchLockedFarmInfo(item.farmKey, item.pid, fromAddress, multicallAddress, RPCUrl);
         console.log(tokens, '==tokens==');
@@ -476,24 +481,47 @@ export default {
       }
     },
     // 获取领取的资产是否需要授权
-    async getReceiveAuth(syrupAsset, farmHash) {
-      const transfer = new ETransfer();
-      return await transfer.getERC20Allowance(
-        syrupAsset.contractAddress,
-        farmHash,
-        this.currentAccount.address[this.fromNetwork] || this.currentAccount.address[1] || this.currentAccount['address'][3]
-      );
+    async getReceiveAuth() {
+      try {
+        const transfer = new ETransfer();
+        const currentAsset = this.currentFarm.stakedAsset;
+        const currentAmount = timesDecimals(this.lpCount || 0, currentAsset.decimals || 18);
+        this.needStakeAuth = await transfer.getERC20Allowance(
+          currentAsset.contractAddress,
+          this.currentFarm.farmKey,
+          this.currentAccount.address[this.fromNetwork] || this.currentAccount.address[1] || this.currentAccount['address'][97],
+          currentAmount
+        );
+        if (!this.needStakeAuth && this.getAllowanceTimer) {
+          this.approveLoading = false;
+          this.clearGetAllowanceTimer();
+        }
+      } catch (e) {
+        console.error(e, 'error');
+      }
+    },
+    clearGetAllowanceTimer() {
+      if (!this.getAllowanceTimer) return;
+      clearInterval(this.getAllowanceTimer);
+      this.getAllowanceTimer = null;
+    },
+
+    setGetAllowanceTimer() {
+      this.getAllowanceTimer = setInterval(() => {
+        this.getReceiveAuth();
+      }, 3000);
     },
     // 质押资产授权
-    async stakeApprove({ farmHash, farm, index }) {
+    async stakeApprove() {
+      if (this.approveLoading) return false;
       this.showLoading = true;
       try {
         const transfer = new ETransfer();
-        const contractAddress = farm.stakedAsset.contractAddress;
+        const contractAddress = this.currentFarm.stakedAsset.contractAddress;
         const res = await transfer.approveERC20(
           contractAddress,
-          farmHash,
-          this.currentAccount.address[this.fromNetwork] || this.currentAccount.address[1] || this.currentAccount['address'][3]
+          this.currentFarm.farmKey,
+          this.currentAccount.address[this.fromNetwork] || this.currentAccount.address[1] || this.currentAccount['address'][97]
         );
         if (res.hash) {
           this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: res.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
@@ -503,9 +531,10 @@ export default {
             duration: 2000,
             offset: 30
           });
-          this.farmList[index].approveLoading = true;
-          const tempItem = this.farmList[index];
-          this.$set(this.farmList, index, tempItem);
+          this.approveLoading = true;
+          this.setGetAllowanceTimer();
+          // const tempItem = this.farmList[index];
+          // this.$set(this.farmList, index, tempItem);
         } else {
           this.$message({
             message: res.msg,
@@ -523,7 +552,7 @@ export default {
           offset: 30,
           duration: 2000
         });
-        this.showPop = false;
+        this.reset();
         this.showLoading = false;
       }
     },
@@ -531,6 +560,8 @@ export default {
       this.lpCount = '';
       this.showPop = false;
       this.amountMsg = '';
+      this.needStakeAuth = false;
+      this.approveLoading = false;
     }
   }
 };

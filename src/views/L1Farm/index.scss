@@ -188,6 +188,9 @@
   border-radius: 20px;
 }
 .btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 285px;
   height: 88px;
   line-height: 88px;

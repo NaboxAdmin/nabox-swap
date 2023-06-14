@@ -642,6 +642,7 @@ export default {
     // 查询异构链token资产授权情况
     async checkAssetAuthStatus() {
       try {
+        const currentAmount = timesDecimals(this.amountIn || 0, this.chooseFromAsset.decimals || 18);
         const contractAddress = this.chooseFromAsset.contractAddress;
         const authContractAddress = this.getAuthContractAddress();
         if (authContractAddress && this.chooseFromAsset.contractAddress && this.chainType === 2) {
@@ -649,7 +650,8 @@ export default {
           this.needAuth = await transfer.getERC20Allowance(
             contractAddress,
             authContractAddress,
-            this.fromAddress
+            this.fromAddress,
+            currentAmount
           );
         } else if (authContractAddress && this.chooseFromAsset.contractAddress && this.chainType === 3) {
           const transfer = new TronLink();
@@ -1263,7 +1265,7 @@ export default {
       }
       this.balanceTimer = setInterval(() => {
         this.getBalance(this.chooseFromAsset, false);
-      }, 8000);
+      }, 15000);
     },
     async amountInInput() {
       this.inputType = 'amountIn';

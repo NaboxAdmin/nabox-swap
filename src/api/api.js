@@ -885,17 +885,17 @@ export class ETransfer {
    * 查询erc20资产授权额度
    * @param contractAddress ERC20合约地址
    * @param multySignAddress 多签地址
+   * @param currentAmount 当前数量
    * @param address 账户eth地址
    */
-  async getERC20Allowance(contractAddress, multySignAddress, address) {
+  async getERC20Allowance(contractAddress, multySignAddress, address, currentAmount) {
+    console.log(contractAddress, multySignAddress, address, currentAmount, 'contractAddress, multySignAddress, address, currentAmount')
     const contract = new ethers.Contract(contractAddress, ERC20_ABI, this.provider);
     const allowancePromise = contract.allowance(address, multySignAddress);
     return allowancePromise
       .then(allowance => {
-        console.log(allowance === 0, '==allowance==');
-        // const baseAllowance = '39600000000000000000000000000';
-        // 已授权额度小于baseAllowance，则需要授权
-        return allowance && allowance.toString() === '0';
+        console.log(allowance.toString(), Minus(currentAmount || 0, allowance) >= 0, '==allowance==');
+        return Minus(currentAmount || 0, allowance) > 0 || Minus(currentAmount || 0, allowance) === 0;
       })
       .catch(e => {
         console.error('获取erc20资产授权额度失败' + e);

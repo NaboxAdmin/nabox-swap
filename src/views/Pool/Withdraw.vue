@@ -409,14 +409,17 @@ export default {
       const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       // const contractAddress = this.accountType.find(item => item.chain === this.fromNetwork).contractAddress;
       if (!this.addedLiquidityInfo.heterogeneousList || !this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork)) return false;
-      const contractAddress = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork).contractAddress;
+      const currentAsset = this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
+      const contractAddress = currentAsset.contractAddress;
+      const currentAmount = timesDecimals(this.withdrawCount || 0, currentAsset.decimals || 18);
       let needAuth;
       if (this.chainType === 2) {
         const transfer = new ETransfer();
         needAuth = await transfer.getERC20Allowance(
           contractAddress,
           authContractAddress,
-          this.fromAddress
+          this.fromAddress,
+          currentAmount
         );
       } else if (this.chainType === 3) {
         const tron = new TronLink();
@@ -556,6 +559,9 @@ export default {
           }
           this.orderId = res.data.orderId;
           this.requestLoading = false;
+          if (this.chainType !== 1) {
+            this.checkAssetAuthStatus();
+          }
         } else {
           this.$message({
             type: 'warning',
@@ -761,9 +767,6 @@ export default {
       }
       this.poolRate = this.liquidityInfo.total && tofix(Times(Division(this.addedLiquidityInfo['balance'], this.liquidityInfo.total), 100), 2, -1) || 0;
       this.availableLoading = false;
-      if (this.chainType !== 1) {
-        this.checkAssetAuthStatus();
-      }
     },
     // 确认
     async submit() {

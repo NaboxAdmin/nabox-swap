@@ -104,7 +104,7 @@
               <template>
                 <Loading v-if="firstLoading" class="mt-1"/>
                 <template v-else>
-                  <template v-if="!item.needStakeAuth">
+                  <template>
                     <div
                       :class="{ disabled_btn: !item.amount || item.amount == 0 }"
                       class="btn-item cursor-pointer"
@@ -113,13 +113,13 @@
                       class="btn-item cursor-pointer ml-3"
                       @click="showClick('increase', item.farmKey, item)">+</div>
                   </template>
-                  <div
-                    v-else
-                    class="item-btn size-30"
-                    @click="stakeApprove(item.farmKey, item, index)">
-                    <span :class="{'mr-1': item.approveLoading}">{{ $t("vaults.over6") }}</span>
-                    <Loading v-if="item.approveLoading" :is-active="false"/>
-                  </div>
+                  <!--                  <div-->
+                  <!--                    v-else-->
+                  <!--                    class="item-btn size-30"-->
+                  <!--                    @click="stakeApprove(item.farmKey, item, index)">-->
+                  <!--                    <span :class="{'mr-1': item.approveLoading}">{{ $t("vaults.over6") }}</span>-->
+                  <!--                    <Loading v-if="item.approveLoading" :is-active="false"/>-->
+                  <!--                  </div>-->
                 </template>
               </template>
             </div>

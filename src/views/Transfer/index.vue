@@ -101,7 +101,7 @@
           class="font-500 size-38 ml-12"
           placeholder="0"
           @input="accountInputDebounce">
-        <span class="size-28 text-primary" @click="maxAmount">{{ $t("transfer.transfer6") }}</span>
+        <span class="size-28 text-primary cursor-pointer" @click="maxAmount">{{ $t("transfer.transfer6") }}</span>
       </div>
       <div v-if="amountMsg" class="text-red mt-2 size-24">{{ amountMsg }}</div>
     </div>
@@ -301,11 +301,6 @@ export default {
       this.currentCoin = asset;
       this.crossInAuth = false;
       await this.getCurrentAssetInfo(false, asset);
-      if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== 'NULS') {
-        await this.checkCrossInAuthStatus();
-      } else {
-        this.crossInAuth = false;
-      }
     },
     // 获取当前支持的coinList
     async getTransferAsset() {
@@ -335,12 +330,6 @@ export default {
           }
           this.isMainAsset = config[tempNetwork].assetId === this.currentCoin.assetId && config[tempNetwork].chainId === this.currentCoin.chainId;
           await this.getCurrentAssetInfo(false, this.currentCoin);
-          // this.available = this.currentCoin.userBalance;
-          if (this.currentCoin && this.currentCoin.assetId === 0 && tempNetwork !== 'NULS') {
-            await this.checkCrossInAuthStatus();
-          } else {
-            this.crossInAuth = false;
-          }
           this.availableLoading = false;
           if (!this.toNerve) {
             const tempParams = this.transferAssets.map(item => ({
@@ -424,7 +413,7 @@ export default {
       }
     },
     // 点击最大
-    maxAmount() {
+    async maxAmount() {
       if (!this.available) return;
       this.maxClick = true;
       if (this.toNerve && this.fromNetwork === 'NULS' && this.currentCoin.symbol === 'NULS') {
@@ -443,6 +432,12 @@ export default {
           this.amount = this.transferCount;
         }
         this.checkTransferFee();
+      }
+      const tempNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
+      if (this.currentCoin && this.currentCoin.contractAddress && tempNetwork !== 'NULS') {
+        await this.checkCrossInAuthStatus();
+      } else {
+        this.crossInAuth = false;
       }
     },
     // 获取当前资产详情
@@ -515,7 +510,7 @@ export default {
       !this.toNerve && this.getMainAssetInfo();
     },
     // 输入转账
-    accountInput(e) {
+    async accountInput(e) {
       this.maxClick = false;
       if (this.fromNetwork === 'NULS') {
         this.getTransferFee();
@@ -531,6 +526,12 @@ export default {
         } else if (this.toNerve) {
           this.checkTransferFee();
         }
+        const tempNetwork = this.toNerve ? this.fromNetwork : 'NERVE';
+        if (this.currentCoin && this.currentCoin.contractAddress && tempNetwork !== 'NULS') {
+          await this.checkCrossInAuthStatus();
+        } else {
+          this.crossInAuth = false;
+        }
       }
     },
     // 查询异构链token资产授权情况
@@ -538,13 +539,15 @@ export default {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       const contractAddress = this.currentCoin.contractAddress;
+      const currentAmount = timesDecimals(this.transferCount || 0, this.currentCoin.decimals || 18);
       let needAuth;
       if (this.chainType === 2) {
         const transfer = new ETransfer();
         needAuth = await transfer.getERC20Allowance(
           contractAddress,
           authContractAddress,
-          this.fromAddress
+          this.fromAddress,
+          currentAmount
         );
       } else if (this.chainType === 3) {
         const tron = new TronLink();

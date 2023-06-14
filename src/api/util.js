@@ -711,7 +711,7 @@ export function setChainConfig(chainConfig) {
           decimals: item.mainAsset && item.mainAsset.decimals || '',
           hashLink: `${item.scanUrl}transaction/info?hash=`,
           addressLink: `${item.scanUrl}address/info?address=`,
-          symbol: item.mainAsset.symbol || '',
+          symbol: item.mainAsset && item.mainAsset.symbol || '',
           sort: item.sort,
           ropsten: `0x${Number(item.nativeId).toString(16)}`,
           homestead: `0x${Number(item.nativeId).toString(16)}`,

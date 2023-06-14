@@ -434,13 +434,15 @@ export default {
       const config = JSON.parse(sessionStorage.getItem('config'));
       const authContractAddress = config[this.fromNetwork]['config']['crossAddress'];
       const contractAddress = this.currentAsset.contractAddress;
+      const currentAmount = timesDecimals(this.joinCount || 0, this.currentAsset.decimals || 18);
       let needAuth;
       if (this.chainType === 2) {
         const transfer = new ETransfer();
         needAuth = await transfer.getERC20Allowance(
           contractAddress,
           authContractAddress,
-          this.fromAddress
+          this.fromAddress,
+          currentAmount
         );
       } else if (this.chainType === 3) {
         const tron = new TronLink();
@@ -573,6 +575,9 @@ export default {
           }
           this.orderId = res.data.orderId;
           this.requestLoading = false;
+          if (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS' && this.currentAsset.contractAddress) {
+            this.checkAssetAuthStatus();
+          }
         } else {
           throw res.data;
         }
@@ -677,9 +682,6 @@ export default {
       if (!this.currentAsset) {
         if (this.liquidityInfo.lpCoinList.length !== 0) {
           this.currentAsset = this.liquidityInfo.lpCoinList.find(item => item.chain === currentNetwork) || this.liquidityInfo.lpCoinList[0];
-          if (this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS' && this.currentAsset.contractAddress) {
-            this.checkAssetAuthStatus();
-          }
         }
       }
       !refresh && await this.getAssetInfo(this.currentAsset, false);
