@@ -103,7 +103,7 @@
           <div class="size-36 mb-2 text-center">{{ $t('swap.swap53') }}</div>
           <div class="input-cont">
             <input
-              :placeholder="$t('swap.swap52')"
+              :placeholder="$t('swap.swap56')"
               v-model="txHash">
           </div>
           <div class="size-24 mt-2 text-primary cursor-pointer" @click="toExplore(detailInfo && detailInfo.fromChain)">{{ $t('swap.swap55') }}</div>

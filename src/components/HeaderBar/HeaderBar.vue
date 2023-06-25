@@ -123,10 +123,10 @@
                   </template>
                   <div class="d-flex">
                     <template>
-                      <span v-if="orderType !== 1 && item.status !== 0">{{ item.createTime }}</span>
+                      <span v-if="orderType === 1 || orderType !== 1 && item.status !== 0">{{ item.createTime }}</span>
                       <span v-else class="size-24 text-danger">{{ $t('swap.swap51') }}</span>
                     </template>
-                    <span v-if="orderType !== 1 && item.status !== 0" class="status-icon">
+                    <span v-if="orderType === 1 || orderType !== 1 && item.status !== 0" class="status-icon">
                       <!--L1网络订单-->
                       <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
                       <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>

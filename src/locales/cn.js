@@ -129,10 +129,11 @@ const cn = {
     swap49: '兑换手续费',
     swap50: '有未完成交易',
     swap51: '交易未完成',
-    swap52: '未解析到交易哈希，点击补录',
+    swap52: '未解析到交易hash，点击补录',
     swap53: '补录hash',
     swap54: '粘贴',
-    swap55: '点击查询hash'
+    swap55: '点击查询hash',
+    swap56: '请输入交易hash'
   },
   transfer: {
     transfer1: '从',

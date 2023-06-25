@@ -132,7 +132,8 @@ const en = {
     swap52: 'Enter transaction hash',
     swap53: 'Enter Hash',
     swap54: 'Paste',
-    swap55: 'Click to query hash'
+    swap55: 'Click to query hash',
+    swap56: 'Enter transaction hash',
   },
   transfer: {
     transfer1: 'From',
