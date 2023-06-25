@@ -12,7 +12,7 @@ const nerve = require('nerve-sdk-js');
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default class NerveChannel {
-  constructor({ chooseFromAsset, chooseToAsset, swapPairInfo, swapPairTradeList, tokenPath }) {
+  constructor({ chooseFromAsset, chooseToAsset, swapPairInfo, swapPairTradeList, tokenPath, isFromMultiChainRouter, isToMultiChainRouter }) {
     console.log(chooseFromAsset, chooseToAsset, 'chooseFromAsset, chooseToAsset');
     const nerveSwapAssetList = JSON.parse(sessionStorage.getItem('nerveSwapAssetList'));
     const fromAssetKey = (chooseFromAsset && `${chooseFromAsset.chainId}-${chooseFromAsset.assetId}`) || '';
@@ -21,8 +21,8 @@ export default class NerveChannel {
     this.originalFromAsset = chooseFromAsset || {};
     this.originalToAsset = chooseToAsset || {};
     let tempFromAsset, tempToAsset;
-    this.checkFromAsset = chooseFromAsset && nerve.swap.checkStableToken(nerve.swap.token(chooseFromAsset.chainId, chooseFromAsset.assetId), swapPairTradeList || []) || {};
-    this.checkToAsset = chooseToAsset && nerve.swap.checkStableToken(nerve.swap.token(chooseToAsset.chainId, chooseToAsset.assetId), swapPairTradeList || []) || {};
+    this.checkFromAsset = isFromMultiChainRouter && chooseFromAsset && nerve.swap.checkStableToken(nerve.swap.token(chooseFromAsset.chainId, chooseFromAsset.assetId), swapPairTradeList || []) || {};
+    this.checkToAsset = isToMultiChainRouter && chooseToAsset && nerve.swap.checkStableToken(nerve.swap.token(chooseToAsset.chainId, chooseToAsset.assetId), swapPairTradeList || []) || {};
     if (this.checkFromAsset.success) {
       this.isFromAssetStable = true; // usdt->nvt
       tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === `${this.checkFromAsset.lpToken.chainId}-${this.checkFromAsset.lpToken.assetId}`);
@@ -245,6 +245,7 @@ export default class NerveChannel {
       );
       return nerve.deserializationTx(tx.hex);
     } else {
+      console.log('12322222')
       // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
       const key = fromAssetKey + '_' + toAssetKey;
       // TODO:替换tempPairInfo

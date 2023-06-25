@@ -3,6 +3,9 @@
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
       <div :class="!isDapp && 'swap-info'" class="p-4">
+        <div v-if="uncompletedOrderList.length" class="d-flex justify-content-end text-danger">
+          <span class="cursor-pointer" @click="checkOrderList">{{ $t('swap.swap50') }}({{ uncompletedOrderList.length }})</span>
+        </div>
         <div class="size-36 d-flex align-items-center space-between mb-3 pb-2 pt-2 b_E9EBF3">
           <span class="text-3a font-500">{{ $t('navBar.navBar5') }}{{ nerveChainAvailable }}</span>
           <span class="slippage-cont" @click="showSlippage=true">
@@ -399,7 +402,10 @@ export default {
       showTips: false,
       switchFlag: false,
       isBridge: false,
-      tokenPath: []
+      tokenPath: [],
+      isFromMultiChainRouter: false,
+      isToMultiChainRouter: false,
+      uncompletedOrderList: []
     };
   },
   computed: {
@@ -548,6 +554,7 @@ export default {
     if (this.chainType == 2) {
       this.inch = new Inch({ nativeId: this.nativeId });
     }
+    this.getOrderList();
     // setTimeout 0 不然获取不到地址
     this.setSwapAssetList();
     this.getSwapAddress();
@@ -559,6 +566,27 @@ export default {
     this.balanceTimer = null;
   },
   methods: {
+    async checkOrderList() {
+      this.$store.commit('changeShowOrderModal', true);
+      this.$store.commit('changeOrderTypeIndex', 3);
+    },
+    async getOrderList() {
+      try {
+        const params = {
+          address: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/tx/query',
+          data: params
+        });
+        if (res.code === 1000) {
+          this.uncompletedOrderList = res.data.filter(item => item.status === 0);
+        }
+      } catch (e) {
+        console.log(e, 'error');
+      }
+    },
     switchPlugin() {
       localStorage.removeItem('walletType');
       this.showTips = false;
@@ -920,7 +948,9 @@ export default {
         isFromLpAsset,
         nerveCrossSwap,
         isBridge,
-        tokenPath
+        tokenPath,
+        isFromMultiChainRouter,
+        isToMultiChainRouter
       } = this;
       const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
       const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
@@ -958,7 +988,9 @@ export default {
         tokenIndexList,
         nerveCrossSwap,
         isBridge,
-        tokenPath
+        tokenPath,
+        isFromMultiChainRouter,
+        isToMultiChainRouter
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
@@ -1047,7 +1079,7 @@ export default {
         sessionStorage.setItem('nerveSwapAssetList', JSON.stringify(tempList));
       }
       this.chooseFromAsset && this.chooseFromAsset.chain === this.fromNetwork && await this.getBalance(this.chooseFromAsset);
-      this.chooseFromAsset.chain === this.fromNetwork && this.refreshBalance();
+      this.chooseFromAsset && this.chooseFromAsset.chain === this.fromNetwork && this.refreshBalance();
     },
     _replaceBrowserHistory(fromAsset, toAsset) {
       const fromChain = fromAsset && fromAsset.chain;
@@ -1471,222 +1503,222 @@ export default {
     },
     // 获取当前支持的config
     async getChannelList() {
-      try {
-        if (this.chooseFromAsset.chain !== this.fromNetwork) return;
-        const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
-        this.showComputedLoading = true;
-        this.amountMsg = '';
-        // console.log(this.nativeId, this.nerveCrossSwap, 'this.nativeId')
-        // debugger;
-        console.log(this.channelConfigList, '==channelConfigList==');
-        const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
-          let currentConfig = {};
-          if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
-            currentConfig = await this.getDodoSwapRoute();
-            if (currentConfig) {
-              return {
-                icon: item.icon,
-                amount: this.amountIn,
-                channel: item.channel,
-                originalChannel: item.channel,
-                amountOut: currentConfig.resAmount,
-                minReceive: tofix(Times(currentConfig.resAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
-                impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
-                isBest: false,
-                isCurrent: false,
-                swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.resAmount),
-                approveAddress: currentConfig.targetApproveAddr || '',
-                transactionData: currentConfig.data,
-                transactionToAddress: currentConfig.to
-              };
-            }
-            return null;
-          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
-            currentConfig = await this.get1inchSwapRoute();
-            if (currentConfig) {
-              return {
-                icon: item.icon,
-                amount: this.amountIn,
-                channel: item.channel,
-                originalChannel: item.channel,
-                amountOut: currentConfig.toAmount,
-                minReceive: tofix(Times(currentConfig.toAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
-                isBest: false,
-                isCurrent: false,
-                swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.toAmount),
-                swapFee: Times(this.amountIn, 0.001),
-                feeSymbol: this.chooseFromAsset.symbol
-              };
-            }
-            return null;
-          } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap && this.chooseToAsset.chain === 'NERVE') {
-            currentConfig = await this.getNerveSwapRoute();
-            if (currentConfig) {
-              this.tokenPath = currentConfig.tokenPath || [];
-              return {
-                icon: item.icon,
-                amount: currentConfig.amountIn,
-                channel: item.channel,
-                originalChannel: item.channel,
-                amountOut: currentConfig.amountOut,
-                minReceive: tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
-                impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
-                isBest: false,
-                isCurrent: false,
-                swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
-                // swapFee: 1
-              };
-            }
-            return null;
-          } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && this.stableSwap && this.nerveChainStableSwap) {
-            let currentAsset;
-            if (this.isFromLpAsset) {
-              const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === this.chooseToAsset.channelInfo['NERVE'].pairAddress);
-              currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
-            } else if (this.isToLpAsset) {
-              const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === this.chooseFromAsset.channelInfo['NERVE'].pairAddress);
-              currentAsset = stableSwapAsset && stableSwapAsset.tokenLp || null;
-            } else {
-              const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
-              const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
-              currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
-            }
-            const limitMax = divisionDecimals(currentAsset && currentAsset.amount || 0, currentAsset && currentAsset.decimals || 18);
-            if (Minus(this.amountIn, limitMax) > 0) {
-              // this.amountMsg = `${this.$t('tips.tips4')}${limitMax}${this.chooseFromAsset.symbol}`;
-              return null;
-            }
+      // try {
+      if (this.chooseFromAsset.chain !== this.fromNetwork) return;
+      const isCross = this.chooseToAsset.chain !== this.chooseFromAsset.chain;
+      this.showComputedLoading = true;
+      this.amountMsg = '';
+      // console.log(this.nativeId, this.nerveCrossSwap, 'this.nativeId')
+      // debugger;
+      console.log(this.channelConfigList, '==channelConfigList==');
+      const tempChannelConfig = await Promise.all(this.channelConfigList.map(async item => {
+        let currentConfig = {};
+        if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
+          currentConfig = await this.getDodoSwapRoute();
+          if (currentConfig) {
             return {
               icon: item.icon,
-              amount: this.inputType === 'amountIn' ? this.amountIn : this.amountOut,
+              amount: this.amountIn,
               channel: item.channel,
               originalChannel: item.channel,
-              amountOut: this.inputType === 'amountOut' ? this.amountOut : this.amountIn,
+              amountOut: currentConfig.resAmount,
+              minReceive: tofix(Times(currentConfig.resAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+              impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
               isBest: false,
               isCurrent: false,
-              swapRate: this.computedSwapRate(false, 1, 1)
+              swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.resAmount),
+              approveAddress: currentConfig.targetApproveAddr || '',
+              transactionData: currentConfig.data,
+              transactionToAddress: currentConfig.to
             };
-          } else if (item.channel === 'NERVE' && this.stableSwap) {
-            currentConfig = await this._getNerveEstimateFeeInfo(this.isBridge && 3 || 2);
-            let contractFee; // 调用合约的费用 / 默认的费用
-            if (this.fromNetwork === 'NERVE') {
-              if (this.chooseToAsset.chain === 'NULS') {
-                contractFee = crossFee;
-              }
-            } else if (this.fromNetwork === 'NULS' && currentConfig) {
-              contractFee = Plus(crossFee, 0.001);
-              if (this.chooseFromAsset.contractAddress) {
-                contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
-              }
-            }
-            if (currentConfig) {
-              return {
-                icon: item.icon,
-                channel: item.channel,
-                originalChannel: item.channel,
-                amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
-                amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
-                minReceive: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
-                swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
-                crossChainFee: tofix(this.numberFormat(contractFee ? Plus(currentConfig.crossChainFee, contractFee) : currentConfig.crossChainFee, 6), 6, -1),
-                contractFee: contractFee || 0, // 调用合约消耗的gasFee
-                originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
-                isBest: false,
-                isCurrent: false,
-                orderId: currentConfig.orderId
-              };
-            }
-            return null;
-          } else if (item.channel === 'NERVE' && !this.stableSwap && this.nerveCrossSwap) {
-            if (this.inputType !== 'amountIn') {
-              return null;
-            }
-            currentConfig = await this._getNerveEstimateFeeInfo(1);
-            let contractFee;
-            if (this.fromNetwork === 'NERVE') {
-              if (this.chooseToAsset.chain === 'NULS') {
-                contractFee = crossFee;
-              }
-            } else if (this.fromNetwork === 'NULS' && currentConfig) {
-              contractFee = Plus(crossFee, 0.001);
-              if (this.chooseFromAsset.contractAddress) {
-                contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
-              }
-            }
-            if (currentConfig) {
-              return {
-                icon: item.icon,
-                channel: item.channel,
-                originalChannel: item.channel,
-                amount: this.inputType === 'amountIn' ? this.amountIn : currentConfig.swapSuccAmount,
-                amountOut: this.inputType === 'amountOut' ? this.amountOut : currentConfig.swapSuccAmount,
-                minReceive: tofix(Times(currentConfig.swapSuccAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
-                swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
-                crossChainFee: tofix(this.numberFormat(contractFee ? Plus(currentConfig.crossChainFee, contractFee) : currentConfig.crossChainFee, 6), 6, -1),
-                contractFee: contractFee || 0, // 调用合约消耗的gasFee
-                originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
-                isBest: false,
-                isCurrent: false,
-                orderId: currentConfig.orderId,
-                feeSymbol: this.chooseFromAsset.symbol
-              };
-            }
-            return null;
-          } else if (item.channel === 'NERVE' && (this.nativeId === 120 || this.nativeId === 119)) {
-            const currentConfig = await this._getENULSFeeInfo();
-            if (currentConfig) {
-              return {
-                icon: item.icon,
-                channel: item.channel,
-                originalChannel: item.channel,
-                amount: this.amountIn,
-                amountOut: this.amountIn,
-                minReceive: this.amountIn,
-                token0: currentConfig.token0,
-                token1: currentConfig.token1,
-                swapRate: this.computedSwapRate(false, this.amountIn, this.amountIn),
-                packSwap: true,
-                approveAddress: currentConfig.contractAddress
-              };
-            }
-            return null;
-          } else if (item.channel === 'MetaPath' && this.fromNetwork !== 'NERVE' && this.chooseToAsset && this.chooseToAsset.chain !== 'NERVE') {
-            const currentConfig = await this.getMetaPathEstimateFeeInfo();
-            if (currentConfig) {
-              return {
-                icon: currentConfig.logoUrl || item.icon,
-                channel: currentConfig.dex || item.channel,
-                originalChannel: item.channel,
-                isBest: false,
-                isCurrent: false,
-                amount: this.amountIn,
-                amountOut: currentConfig.receiveTokenAmount || currentConfig.toTokenAmount,
-                approveAddress: currentConfig.approveAddress || '',
-                minReceive: tofix(Times(currentConfig.receiveTokenAmount || currentConfig.toTokenAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
-                impact: currentConfig.impact || 0,
-                swapRate: this.computedSwapRate(isCross, this.amountIn, currentConfig.receiveTokenAmount || currentConfig.toTokenAmount),
-                feeSymbol: currentConfig.feeToken,
-                swapFee: this.formatFee(currentConfig, false) || 0,
-                dex: currentConfig.dex,
-                limitMin: currentConfig.depositMin || 0,
-                limitMax: currentConfig.depositMax || 999999,
-                crossChainFee: this.formatFee(currentConfig, true) || 0,
-                txData: currentConfig.txData || {},
-                orderId: currentConfig.orderId,
-                platformAddress: currentConfig.platformAddress || ''
-              };
-            }
-            return null;
           }
           return null;
-        }));
-        this.getChannelBool = true;
-        console.log(tempChannelConfig, 'tempChannelConfig');
-        // this.showComputedLoading = false;
-        return this.getBestPlatform(tempChannelConfig.filter(item => item));
-      } catch (e) {
-        console.error(e.message, 'error');
-      }
+        } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
+          currentConfig = await this.get1inchSwapRoute();
+          if (currentConfig) {
+            return {
+              icon: item.icon,
+              amount: this.amountIn,
+              channel: item.channel,
+              originalChannel: item.channel,
+              amountOut: currentConfig.toAmount,
+              minReceive: tofix(Times(currentConfig.toAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+              isBest: false,
+              isCurrent: false,
+              swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.toAmount),
+              swapFee: Times(this.amountIn, 0.001),
+              feeSymbol: this.chooseFromAsset.symbol
+            };
+          }
+          return null;
+        } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap && this.chooseToAsset.chain === 'NERVE') {
+          currentConfig = await this.getNerveSwapRoute();
+          if (currentConfig) {
+            this.tokenPath = currentConfig.tokenPath || [];
+            return {
+              icon: item.icon,
+              amount: currentConfig.amountIn,
+              channel: item.channel,
+              originalChannel: item.channel,
+              amountOut: currentConfig.amountOut,
+              minReceive: tofix(Times(currentConfig.amountOut, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+              impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
+              isBest: false,
+              isCurrent: false,
+              swapRate: this.computedSwapRate(false, currentConfig.amountIn, currentConfig.amountOut)
+              // swapFee: 1
+            };
+          }
+          return null;
+        } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && this.stableSwap && this.nerveChainStableSwap) {
+          let currentAsset;
+          if (this.isFromLpAsset) {
+            const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === this.chooseToAsset.channelInfo['NERVE'].pairAddress);
+            currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
+          } else if (this.isToLpAsset) {
+            const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === this.chooseFromAsset.channelInfo['NERVE'].pairAddress);
+            currentAsset = stableSwapAsset && stableSwapAsset.tokenLp || null;
+          } else {
+            const pariBool = this.chooseToAsset && this.chooseToAsset['channelInfo'] && this.chooseToAsset['channelInfo']['NERVE'];
+            const stableSwapAsset = this.nerveLimitInfo.find(item => item.pairAddress === (pariBool && this.chooseToAsset.channelInfo['NERVE'].pairAddress));
+            currentAsset = stableSwapAsset && stableSwapAsset.swapAssets.find(item => this.chooseToAsset.nerveChainId === item.nerveChainId && this.chooseToAsset.nerveAssetId === item.nerveAssetId) || null;
+          }
+          const limitMax = divisionDecimals(currentAsset && currentAsset.amount || 0, currentAsset && currentAsset.decimals || 18);
+          if (Minus(this.amountIn, limitMax) > 0) {
+            // this.amountMsg = `${this.$t('tips.tips4')}${limitMax}${this.chooseFromAsset.symbol}`;
+            return null;
+          }
+          return {
+            icon: item.icon,
+            amount: this.inputType === 'amountIn' ? this.amountIn : this.amountOut,
+            channel: item.channel,
+            originalChannel: item.channel,
+            amountOut: this.inputType === 'amountOut' ? this.amountOut : this.amountIn,
+            isBest: false,
+            isCurrent: false,
+            swapRate: this.computedSwapRate(false, 1, 1)
+          };
+        } else if (item.channel === 'NERVE' && this.stableSwap) {
+          currentConfig = await this._getNerveEstimateFeeInfo(this.isBridge && 3 || 2);
+          let contractFee; // 调用合约的费用 / 默认的费用
+          if (this.fromNetwork === 'NERVE') {
+            if (this.chooseToAsset.chain === 'NULS') {
+              contractFee = crossFee;
+            }
+          } else if (this.fromNetwork === 'NULS' && currentConfig) {
+            contractFee = Plus(crossFee, 0.001);
+            if (this.chooseFromAsset.contractAddress) {
+              contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
+            }
+          }
+          if (currentConfig) {
+            return {
+              icon: item.icon,
+              channel: item.channel,
+              originalChannel: item.channel,
+              amount: this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountOut, currentConfig.swapFee),
+              amountOut: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
+              minReceive: this.inputType === 'amountOut' ? this.amountOut : Minus(this.amountIn, currentConfig.swapFee).toString(),
+              swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
+              crossChainFee: tofix(this.numberFormat(contractFee ? Plus(currentConfig.crossChainFee, contractFee) : currentConfig.crossChainFee, 6), 6, -1),
+              contractFee: contractFee || 0, // 调用合约消耗的gasFee
+              originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+              isBest: false,
+              isCurrent: false,
+              orderId: currentConfig.orderId
+            };
+          }
+          return null;
+        } else if (item.channel === 'NERVE' && !this.stableSwap && this.nerveCrossSwap) {
+          if (this.inputType !== 'amountIn') {
+            return null;
+          }
+          currentConfig = await this._getNerveEstimateFeeInfo(1);
+          let contractFee;
+          if (this.fromNetwork === 'NERVE') {
+            if (this.chooseToAsset.chain === 'NULS') {
+              contractFee = crossFee;
+            }
+          } else if (this.fromNetwork === 'NULS' && currentConfig) {
+            contractFee = Plus(crossFee, 0.001);
+            if (this.chooseFromAsset.contractAddress) {
+              contractFee = await this.getContractCallData(currentConfig && currentConfig.swapFee);
+            }
+          }
+          if (currentConfig) {
+            return {
+              icon: item.icon,
+              channel: item.channel,
+              originalChannel: item.channel,
+              amount: this.inputType === 'amountIn' ? this.amountIn : currentConfig.swapSuccAmount,
+              amountOut: this.inputType === 'amountOut' ? this.amountOut : currentConfig.swapSuccAmount,
+              minReceive: tofix(Times(currentConfig.swapSuccAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+              swapFee: tofix(this.numberFormat(currentConfig.swapFee, 6), 6, -1),
+              crossChainFee: tofix(this.numberFormat(contractFee ? Plus(currentConfig.crossChainFee, contractFee) : currentConfig.crossChainFee, 6), 6, -1),
+              contractFee: contractFee || 0, // 调用合约消耗的gasFee
+              originCrossChainFee: tofix(this.numberFormat(currentConfig.crossChainFee, 6), 6, -1),
+              isBest: false,
+              isCurrent: false,
+              orderId: currentConfig.orderId,
+              feeSymbol: this.chooseFromAsset.symbol
+            };
+          }
+          return null;
+        } else if (item.channel === 'NERVE' && (this.nativeId === 120 || this.nativeId === 119)) {
+          const currentConfig = await this._getENULSFeeInfo();
+          if (currentConfig) {
+            return {
+              icon: item.icon,
+              channel: item.channel,
+              originalChannel: item.channel,
+              amount: this.amountIn,
+              amountOut: this.amountIn,
+              minReceive: this.amountIn,
+              token0: currentConfig.token0,
+              token1: currentConfig.token1,
+              swapRate: this.computedSwapRate(false, this.amountIn, this.amountIn),
+              packSwap: true,
+              approveAddress: currentConfig.contractAddress
+            };
+          }
+          return null;
+        } else if (item.channel === 'MetaPath' && this.fromNetwork !== 'NERVE' && this.chooseToAsset && this.chooseToAsset.chain !== 'NERVE') {
+          const currentConfig = await this.getMetaPathEstimateFeeInfo();
+          if (currentConfig) {
+            return {
+              icon: currentConfig.logoUrl || item.icon,
+              channel: currentConfig.dex || item.channel,
+              originalChannel: item.channel,
+              isBest: false,
+              isCurrent: false,
+              amount: this.amountIn,
+              amountOut: currentConfig.receiveTokenAmount || currentConfig.toTokenAmount,
+              approveAddress: currentConfig.approveAddress || '',
+              minReceive: tofix(Times(currentConfig.receiveTokenAmount || currentConfig.toTokenAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+              impact: currentConfig.impact || 0,
+              swapRate: this.computedSwapRate(isCross, this.amountIn, currentConfig.receiveTokenAmount || currentConfig.toTokenAmount),
+              feeSymbol: currentConfig.feeToken,
+              swapFee: this.formatFee(currentConfig, false) || 0,
+              dex: currentConfig.dex,
+              limitMin: currentConfig.depositMin || 0,
+              limitMax: currentConfig.depositMax || 999999,
+              crossChainFee: this.formatFee(currentConfig, true) || 0,
+              txData: currentConfig.txData || {},
+              orderId: currentConfig.orderId,
+              platformAddress: currentConfig.platformAddress || ''
+            };
+          }
+          return null;
+        }
+        return null;
+      }));
+      this.getChannelBool = true;
+      console.log(tempChannelConfig, 'tempChannelConfig');
+      // this.showComputedLoading = false;
+      return this.getBestPlatform(tempChannelConfig.filter(item => item));
+      // } catch (e) {
+      //   console.error(e.message, 'error');
+      // }
     },
     formatFee(currentConfig, isCrossFee) {
       if (currentConfig.dex === 'SWFT') {
@@ -1817,21 +1849,59 @@ export default {
       let tempFromAsset, tempToAsset;
       const checkFromAsset = nerve.swap.checkStableToken(nerve.swap.token(this.chooseFromAsset.chainId, this.chooseFromAsset.assetId), this.swapPairTradeList);
       const checkToAsset = nerve.swap.checkStableToken(nerve.swap.token(this.chooseToAsset.chainId, this.chooseToAsset.assetId), this.swapPairTradeList);
+      let multiChainChannelInfo, channelInfo;
+      let isFromMultiChainRouter = false;
+      let isToMultiChainRouter = false;
       if (checkFromAsset.success) {
-        tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === `${checkFromAsset.lpToken.chainId}-${checkFromAsset.lpToken.assetId}`);
+        console.log(checkFromAsset, '==checkFromAsset==');
+        isFromMultiChainRouter = true;
+        tempFromAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === `${checkFromAsset.lpToken.chainId}-${checkFromAsset.lpToken.assetId}`) || this.chooseFromAsset;
       } else {
         tempFromAsset = this.chooseFromAsset;
       }
       if (checkToAsset.success) {
+        isToMultiChainRouter = true;
         tempToAsset = nerveSwapAssetList.find(item => `${item.chainId}-${item.assetId}` === `${checkToAsset.lpToken.chainId}-${checkToAsset.lpToken.assetId}`);
       } else {
         tempToAsset = this.chooseToAsset;
       }
+      if (isToMultiChainRouter && isFromMultiChainRouter) return null;
+      if (isFromMultiChainRouter || isToMultiChainRouter) {
+        const data = {
+          chainId: tempFromAsset.nerveChainId,
+          assetId: tempFromAsset.nerveAssetId,
+          swapChainId: tempToAsset.nerveChainId,
+          swapAssetId: tempToAsset.nerveAssetId,
+          maxPairSize: 4
+        };
+        const res = await this.$request({
+          url: '/swap/nerve/route',
+          data
+        });
+        if (res.code === 1000) {
+          this.swapPairInfo = res.data;
+        } else {
+          this.swapPairInfo = [];
+        }
+        const nerveChannel = new NerveChannel({
+          chooseFromAsset: { ...this.chooseFromAsset, chainId: this.chooseFromAsset.nerveChainId, assetId: this.chooseFromAsset.nerveAssetId },
+          chooseToAsset: { ...this.chooseToAsset, chainId: this.chooseToAsset.nerveChainId, assetId: this.chooseToAsset.nerveAssetId },
+          swapPairInfo: this.swapPairInfo || [],
+          swapPairTradeList: this.swapPairTradeList,
+          isFromMultiChainRouter,
+          isToMultiChainRouter
+        });
+        if (this.inputType === 'amountIn') {
+          multiChainChannelInfo = nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn, this.swapPairTradeList);
+        } else {
+          multiChainChannelInfo = nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut, this.swapPairTradeList);
+        }
+      }
       const data = {
-        chainId: tempFromAsset.nerveChainId,
-        assetId: tempFromAsset.nerveAssetId,
-        swapChainId: tempToAsset.nerveChainId,
-        swapAssetId: tempToAsset.nerveAssetId,
+        chainId: this.chooseFromAsset.nerveChainId,
+        assetId: this.chooseFromAsset.nerveAssetId,
+        swapChainId: this.chooseToAsset.nerveChainId,
+        swapAssetId: this.chooseToAsset.nerveAssetId,
         maxPairSize: 4
       };
       const res = await this.$request({
@@ -1850,9 +1920,30 @@ export default {
         swapPairTradeList: this.swapPairTradeList
       });
       if (this.inputType === 'amountIn') {
-        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn, this.swapPairTradeList);
+        channelInfo = nerveChannel.getNerveChannelConfig(this.inputType, this.amountIn, this.swapPairTradeList);
       } else {
-        return nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut, this.swapPairTradeList);
+        channelInfo = nerveChannel.getNerveChannelConfig(this.inputType, this.amountOut, this.swapPairTradeList);
+      }
+      if (multiChainChannelInfo && channelInfo) {
+        if (Minus(multiChainChannelInfo.amountOut, channelInfo.amountOut) > 0) {
+          this.isFromMultiChainRouter = isFromMultiChainRouter;
+          this.isToMultiChainRouter = isToMultiChainRouter;
+          return multiChainChannelInfo;
+        } else {
+          this.isFromMultiChainRouter = false;
+          this.isToMultiChainRouter = false;
+          return channelInfo;
+        }
+      } else if (channelInfo) {
+        this.isFromMultiChainRouter = false;
+        this.isToMultiChainRouter = false;
+        return channelInfo;
+      } else if (multiChainChannelInfo) {
+        this.isFromMultiChainRouter = isFromMultiChainRouter;
+        this.isToMultiChainRouter = isToMultiChainRouter;
+        return multiChainChannelInfo;
+      } else {
+        return null;
       }
     },
     // 计算nuls合约资产需要的手续费

@@ -2,8 +2,7 @@
   <div
     :class="[show && 'show_pop', !customClass && 'defaultClass']"
     class="mask-cont"
-    @touchmove="touchmoveEvent"
-    @click.stop="maskClick">
+    @touchmove="touchmoveEvent">
     <div :class="[show && 'show-main', customClass && 'customClass']" @click.stop>
       <slot/>
     </div>

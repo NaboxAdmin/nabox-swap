@@ -49,6 +49,12 @@ export default {
     isMobile() {
       return /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
     },
+    showOrderModal() {
+      return this.$store.state.showOrderModal;
+    },
+    orderTypeIndex() {
+      return this.$store.state.orderTypeIndex;
+    },
     // 1:NULS系 2:以太坊系列 3:TRON
     chainType() {
       const network = this.$store.state.network;

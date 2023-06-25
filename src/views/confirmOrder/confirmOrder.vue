@@ -538,13 +538,15 @@ export default {
     // 发送nerveSwap交易
     async sendNerveSwapTransaction() {
       try {
-        const { toAsset, fromAsset, currentChannel, swapPairInfo, swapPairTradeList, tokenPath } = this.orderInfo;
+        const { toAsset, fromAsset, currentChannel, swapPairInfo, swapPairTradeList, tokenPath, isFromMultiChainRouter, isToMultiChainRouter } = this.orderInfo;
         const nerveChannel = new NerveChannel({
           chooseToAsset: toAsset,
           chooseFromAsset: fromAsset,
           swapPairInfo,
           swapPairTradeList,
-          tokenPath
+          tokenPath,
+          isFromMultiChainRouter,
+          isToMultiChainRouter
         });
         const tAssemble = await nerveChannel.sendNerveSwapTransaction(currentChannel, this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId], swapPairTradeList);
         const transfer = new NTransfer({ chain: 'NERVE' });
@@ -693,9 +695,10 @@ export default {
               txHash: res.hash,
               type: 'swap'
             };
-            const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-            hashList.push(params);
-            localStorage.setItem('hashList', JSON.stringify(hashList));
+            // @fixme 主网需要改回来
+            // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+            // hashList.push(params);
+            // localStorage.setItem('hashList', JSON.stringify(hashList));
             this.$message({
               type: 'success',
               message: this.$t('tips.tips24'),
@@ -706,10 +709,20 @@ export default {
             this.$emit('confirm');
             await this.recordHash(currentChannel.orderId, res.hash);
           } else {
-            throw res.msg;
+            this.confirmLoading = false;
+            this.$message({
+              type: 'warning',
+              message: this.errorHandling(res.data || res.msg),
+              offset: 30
+            });
           }
         } else {
-          throw swapRes.msg;
+          this.confirmLoading = false;
+          this.$message({
+            type: 'warning',
+            message: this.errorHandling(swapRes.data || swapRes.msg),
+            offset: 30
+          });
         }
       } catch (e) {
         console.error(e, 'error');
@@ -719,23 +732,38 @@ export default {
           message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
         });
+        await this.deleteOrder();
+      }
+    },
+    async deleteOrder() {
+      try {
+        const { currentChannel } = this.orderInfo;
+        const data = {
+          orderId: currentChannel && currentChannel.orderId
+        };
+        await this.$request({
+          url: '/swap/tx/delete',
+          data
+        });
+      } catch (e) {
+        console.error('Failed: ', e);
       }
     },
     // 记录一次交易hash
     async recordHash(orderId, hash) {
-      // TODO:测试
-      try {
-        const params = {
-          orderId,
-          txHash: hash
-        };
-        await this.$request({
-          url: '/swap/tx/hash/update',
-          data: params
-        });
-      } catch (e) {
-        console.log(e, 'error');
-      }
+      // @fixme 主网需要改回来
+      // try {
+      //   const params = {
+      //     orderId,
+      //     txHash: hash
+      //   };
+      //   await this.$request({
+      //     url: '/swap/tx/hash/update',
+      //     data: params
+      //   });
+      // } catch (e) {
+      //   console.log(e, 'error');
+      // }
     },
     // 记录一次交易hash
     async recordSameChainHash(orderId, hash) {

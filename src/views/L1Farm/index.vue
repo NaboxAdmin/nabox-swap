@@ -379,9 +379,9 @@ export default {
           lockNumbers: Minus(this.numberFormat(tofix(divisionDecimals(tokens[0].userInfo['3'] || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4), this.numberFormat(tofix(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4)),
           reward: this.numberFormat(tofix(divisionDecimals(tokens[3].pendingToken || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
           pendingReward: this.numberFormat(tofix(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), 4, -1), 4),
-          syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4),
-          stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals), item.stakeToken.usdPrice || 0), 4, -1), 4),
-          unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken.usdPrice || 0), 4, -1), 4)
+          syrupUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[4].pendingReward || 0, syrupAsset && syrupAsset.decimals), item.syrupToken && item.syrupToken.usdPrice || 0), 4, -1), 4),
+          stakeUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[0].userInfo['0'] || 0, stakedAsset && stakedAsset.decimals), item.stakeToken && item.stakeToken.usdPrice || 0), 4, -1), 4),
+          unlockUsdPrice: this.numberFormat(tofix(Times(divisionDecimals(tokens[2].unlockedToken || 0, syrupAsset && syrupAsset.decimals), item.syrupToken && item.syrupToken.usdPrice || 0), 4, -1), 4)
         };
       })));
       this.firstRequest = false;

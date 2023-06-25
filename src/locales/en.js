@@ -126,7 +126,13 @@ const en = {
     swap46: 'Processing transaction',
     swap47: 'The maximum exchange amount is ',
     swap48: 'Fee = Swap Fee + Token Transfer Fee',
-    swap49: 'Swap Fee'
+    swap49: 'Swap Fee',
+    swap50: 'Uncompleted Transaction',
+    swap51: 'Transaction Not Completed',
+    swap52: 'Enter transaction hash',
+    swap53: 'Enter Hash',
+    swap54: 'Paste',
+    swap55: 'Click to query hash'
   },
   transfer: {
     transfer1: 'From',

@@ -60,11 +60,11 @@
         @airdropClick="airdropClick"
         @l1FarmClick="l1FarmClick"
         @l2FarmClick="l2FarmClick"/>
-      <pop-up :prevent-boo="false" :show.sync="showAccount">
+      <pop-up :prevent-boo="false" :show.sync="$store.state.showOrderModal || showAccount">
         <div class="address-detail_pop">
           <div class="customer-p">
             <div class="icon-cont d-flex justify-content-end">
-              <span class="cursor-pointer" @click="showAccount=false">
+              <span class="cursor-pointer" @click="closeModal">
                 <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
               </span>
             </div>
@@ -121,23 +121,28 @@
                       <span v-if="orderType === 1" class="sign">{{ item.type }}</span>
                     </span>
                   </template>
-                  <span>{{ item.createTime }}</span>
-                  <span class="status-icon">
-                    <!--iswap订单-->
+                  <div class="d-flex">
                     <template>
-                      <i v-if="orderType === 3 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
-                      <i v-if="orderType === 3 && item.status < 3" class="el-icon-loading" style="color: #6EB6A9"/>
-                      <i v-if="orderType === 3 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
+                      <span v-if="orderType !== 1 && item.status !== 0">{{ item.createTime }}</span>
+                      <span v-else class="size-24 text-danger">{{ $t('swap.swap51') }}</span>
                     </template>
-                    <!--L1网络订单-->
-                    <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
-                    <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>
-                    <i v-if="orderType === 1 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>
-                    <!--L2网络订单-->
-                    <i v-if="orderType === 2 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
-                    <i v-if="orderType === 2 && item.status < 3" class="el-icon-loading" style="color: #6EB6A9"/>
-                    <i v-if="orderType === 2 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
-                  </span>
+                    <span v-if="orderType !== 1 && item.status !== 0" class="status-icon">
+                      <!--L1网络订单-->
+                      <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 1 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>
+                      <!--跨链/swap订单-->
+                      <i v-if="orderType === 2 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 2 && item.status < 3 && item.status !== 0" class="el-icon-loading" style="color: #6EB6A9"/>
+                      <i v-if="orderType === 2 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
+                      <!--添加/退出流动性订单-->
+                      <template>
+                        <i v-if="orderType === 3 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
+                        <i v-if="orderType === 3 && item.status < 3 && item.status !== 0" class="el-icon-loading" style="color: #6EB6A9"/>
+                        <i v-if="orderType === 3 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
+                      </template>
+                    </span>
+                  </div>
                 </div>
                 <div v-if="orderList.length === 0" class="text-center size-28 mb-3">{{ $t('modal.modal3') }}</div>
               </div>
@@ -199,7 +204,7 @@ export default {
       currentChain: this.$store.state.network, // 当前所选择的链
       showDropList: false, // 下拉菜单
       orderList: [], // 订单列表
-      orderType: 1, // 当前选择的订单类型
+      orderType: this.orderTypeIndex || 1, // 当前选择的订单类型
       // fromAddress: '',
       currentChainAsset: null, // 当前选择的链上的主资产信息
       nerveChainAsset: null, // nerve链上的主资产信息/L2
@@ -285,6 +290,18 @@ export default {
       immediate: true,
       deep: true
     },
+    '$store.state.orderTypeIndex': {
+      handler(val) {
+        this.orderType = val;
+        if (val === 2) {
+          this.getLiquidityOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
+        } else if (val === 3) {
+          this.getOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
+        }
+      },
+      immediate: true,
+      deep: true
+    },
     '$route.fullPath': {
       handler(val) {
         this.isSwap = window.location.href.indexOf('swap') > -1;
@@ -347,6 +364,10 @@ export default {
     }
   },
   methods: {
+    closeModal() {
+      this.showAccount = false;
+      this.$store.commit('changeShowOrderModal', false);
+    },
     logoClick() {
       if (this.$route.path !== '/swap') {
         this.$router.push('/');
@@ -454,6 +475,7 @@ export default {
     // 获取普通交易列表
     getTxList(switchType = true) {
       this.orderType = switchType && 1;
+      this.$store.commit('changeOrderTypeIndex', 1);
       this.orderLoading = false;
       const tempL1List = localStorage.getItem('tradeHashMap') && JSON.parse(localStorage.getItem('tradeHashMap'))[this.fromNetwork] || [];
       const tempL2List = localStorage.getItem('l2HashList') && JSON.parse(localStorage.getItem('l2HashList')) || [];
@@ -492,6 +514,7 @@ export default {
           this.orderLoading = true;
         });
         this.orderType = 3;
+        this.$store.commit('changeOrderTypeIndex', 3);
         const params = {
           address: val,
           chain: this.fromNetwork
@@ -521,6 +544,7 @@ export default {
           this.orderLoading = true;
         });
         this.orderType = 2;
+        this.$store.commit('changeOrderTypeIndex', 2);
         const params = {
           address: val,
           chain: this.fromNetwork
@@ -751,6 +775,7 @@ export default {
     },
     // 跳转查看当前的交易详情
     linkToUrl(hash, item) {
+      this.$store.commit('changeShowOrderModal', false);
       if (this.orderType === 1) {
         const chain = item.type === 'L2' ? 'NERVE' : this.currentChain;
         this.isMobile ? window.location.href = `${this.hashLinkList[chain]}${hash}` : window.open(`${this.hashLinkList[chain]}${hash}`);

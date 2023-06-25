@@ -16,7 +16,9 @@ export default new Vuex.Store({
     isSwap: false,
     nativeId: '',
     showWalletList: false,
-    wrongNetwork: false
+    wrongNetwork: false,
+    showOrderModal: false,
+    orderTypeIndex: 2
   },
   mutations: {
     changeNativeId(state, data) {
@@ -53,6 +55,12 @@ export default new Vuex.Store({
     },
     changeWrongNetwork(state, data) {
       state.wrongNetwork = data;
+    },
+    changeShowOrderModal(state, data) {
+      state.showOrderModal = data;
+    },
+    changeOrderTypeIndex(state, data) {
+      state.orderTypeIndex = data;
     }
   },
   getters: {

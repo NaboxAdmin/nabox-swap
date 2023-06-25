@@ -33,6 +33,7 @@ export default {
 }
 @media screen and (min-width: 1000px) {
   .layout-page {
+    position: relative;
     overflow: auto;
     max-width: 800px;
     &::-webkit-scrollbar {

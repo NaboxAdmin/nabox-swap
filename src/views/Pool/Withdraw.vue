@@ -852,9 +852,9 @@ export default {
                 txHash: res.hash,
                 type: 'lp'
               };
-              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-              hashList.push(params);
-              localStorage.setItem('hashList', JSON.stringify(hashList));
+              // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              // hashList.push(params);
+              // localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 type: 'success',
                 message: this.$t('tips.tips24'),
@@ -865,10 +865,20 @@ export default {
               this.reset();
               await this.recordHash(this.orderId, res.hash);
             } else {
-              throw res.msg;
+              this.$message({
+                message: this.errorHandling(res.data || res.msg),
+                type: 'warning',
+                duration: 2000,
+                offset: 30
+              });
             }
           } else {
-            throw orderRes.msg;
+            this.$message({
+              message: this.errorHandling(orderRes.data || orderRes.msg),
+              type: 'warning',
+              duration: 2000,
+              offset: 30
+            });
           }
         } else if (this.chainType === 2) {
           const transfer = new ETransfer();
@@ -891,9 +901,9 @@ export default {
                 txHash: res.hash,
                 type: 'lp'
               };
-              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-              hashList.push(params);
-              localStorage.setItem('hashList', JSON.stringify(hashList));
+              // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              // hashList.push(params);
+              // localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -905,7 +915,12 @@ export default {
               await this.recordHash(this.orderId, res.hash);
             }
           } else {
-            throw orderRes.msg;
+            this.$message({
+              message: this.errorHandling(orderRes.data || orderRes.msg),
+              type: 'warning',
+              duration: 2000,
+              offset: 30
+            });
           }
         } else if (this.chainType === 3) {
           const nerveChannel = new NerveChannel({});
@@ -929,9 +944,9 @@ export default {
                 txHash: res.hash,
                 type: 'lp'
               };
-              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-              hashList.push(params);
-              localStorage.setItem('hashList', JSON.stringify(hashList));
+              // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              // hashList.push(params);
+              // localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -943,7 +958,12 @@ export default {
               await this.recordHash(this.orderId, res.hash);
             }
           } else {
-            throw orderRes.msg;
+            this.$message({
+              message: this.errorHandling(orderRes.data || orderRes.msg),
+              type: 'warning',
+              duration: 2000,
+              offset: 30
+            });
           }
         }
       } catch (e) {
@@ -953,23 +973,37 @@ export default {
           offset: 30
         });
         this.withDrawLoading = false;
-        console.log(e);
+        console.error(e);
+        this.deleteOrder();
+      }
+    },
+    async deleteOrder() {
+      try {
+        const data = {
+          orderId: this.orderId
+        };
+        await this.$request({
+          url: '/swap/tx/delete',
+          data
+        });
+      } catch (e) {
+        console.error('Failed: ', e);
       }
     },
     // 记录一次交易hash
     async recordHash(orderId, hash) {
-      try {
-        const params = {
-          orderId,
-          txHash: hash
-        };
-        await this.$request({
-          url: '/swap/lp/tx/hash/update',
-          data: params
-        });
-      } catch (e) {
-        console.log(e, 'error');
-      }
+      // try {
+      //   const params = {
+      //     orderId,
+      //     txHash: hash
+      //   };
+      //   await this.$request({
+      //     url: '/swap/lp/tx/hash/update',
+      //     data: params
+      //   });
+      // } catch (e) {
+      //   console.log(e, 'error');
+      // }
     },
     // 获取当前选择撤出的资产余额
     async getChainAssetBalance(chain, assetList) {

@@ -1,6 +1,9 @@
 <template>
   <div :class="{ mobile_class: !isMobile }">
     <div class="pool-cont">
+      <div v-if="uncompletedOrderList.length" class="d-flex justify-content-end text-danger cursor-pointer mb-2">
+        <span class="cursor-pointer" @click="checkOrderList">{{ $t('swap.swap50') }}({{ uncompletedOrderList.length }})</span>
+      </div>
       <div class="title-cont bg-f0 size-26">
         <div class="title-text">{{ $t('tips.tips41') }}</div>
         <div class="tvl-cont">
@@ -87,7 +90,8 @@ export default {
       isStaked: false,
       searchVal: '',
       poolTvl: 0,
-      originalPoolList: []
+      originalPoolList: [],
+      uncompletedOrderList: []
     };
   },
   watch: {
@@ -151,6 +155,7 @@ export default {
     }
   },
   created() {
+    this.getLpOrderList();
     this.getLiquidityPoolList();
     if (this.poolTimer) {
       clearInterval(this.poolTimer);
@@ -167,6 +172,27 @@ export default {
     }
   },
   methods: {
+    async checkOrderList() {
+      this.$store.commit('changeShowOrderModal', true);
+      this.$store.commit('changeOrderTypeIndex', 2);
+    },
+    async getLpOrderList() {
+      try {
+        const params = {
+          address: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/lp/tx/query',
+          data: params
+        });
+        if (res.code === 1000) {
+          this.uncompletedOrderList = res.data.filter(item => item.status === 0);
+        }
+      } catch (e) {
+        console.log(e, 'error');
+      }
+    },
     optionClick(item) {
       if (this.fromNetwork !== 'NERVE' && item.supportNetwork.indexOf(this.fromNetwork) === -1) {
         return false;
