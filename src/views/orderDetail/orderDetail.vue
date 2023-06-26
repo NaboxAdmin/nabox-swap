@@ -48,13 +48,13 @@
           <div class="d-flex align-items-center space-between mt-4">
             <span class="text-aa">{{ $t('swap.swap42') }}</span>
             <div class="d-flex align-items-center justify-content-end">
-              <span class="ml-4" @click="copyOrderId(detailInfo && detailInfo.orderId)">{{ detailInfo && detailInfo.orderId && superLong(detailInfo && detailInfo.orderId) || '--' }}</span>
+              <span class="ml-4 cursor-pointer" @click="copyOrderId(detailInfo && detailInfo.orderId)">{{ detailInfo && detailInfo.orderId && superLong(detailInfo && detailInfo.orderId) || '--' }}</span>
             </div>
           </div>
           <div class="d-flex align-items-center space-between mt-4">
             <span class="text-aa">{{ detailInfo && detailInfo.platform === 'SWFT1' ? $t('order.order5') : $t('order.order8') }}</span>
             <template>
-              <span v-if="detailInfo && detailInfo.txHash" @click="copyOrderId(detailInfo && detailInfo.txHash)">
+              <span v-if="detailInfo && detailInfo.txHash" class="cursor-pointer" @click="copyOrderId(detailInfo && detailInfo.txHash)">
                 {{ detailInfo && detailInfo.platform === 'SWFT1' ? superLong(detailInfo.orderId) : superLong(detailInfo && detailInfo.txHash) }}
               </span>
               <span v-else class="text-danger cursor-pointer" @click="showPop=true">
