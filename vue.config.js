@@ -22,6 +22,7 @@ module.exports = {
     // else {
     //   config.plugins.push(new WebpackBundleAnalyzer());
     // }
+    config.devtool = false;
     config.performance = {
       maxAssetSize: 200000,
       maxEntrypointSize: 400000

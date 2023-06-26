@@ -283,6 +283,13 @@ export default {
           this.txHash = '';
           this.showPop = false;
           await this.getOrderDetail(this.detailInfo && this.detailInfo.orderId, this.orderType);
+        } else {
+          this.$message({
+            message: res.data || res.msg,
+            offset: 30,
+            type: 'warning'
+          });
+          await this.getOrderDetail(this.detailInfo && this.detailInfo.orderId, this.orderType);
         }
       } catch (e) {
         console.log(e, 'error');

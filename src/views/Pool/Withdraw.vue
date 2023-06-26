@@ -852,9 +852,9 @@ export default {
                 txHash: res.hash,
                 type: 'lp'
               };
-              // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-              // hashList.push(params);
-              // localStorage.setItem('hashList', JSON.stringify(hashList));
+              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              hashList.push(params);
+              localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 type: 'success',
                 message: this.$t('tips.tips24'),
@@ -901,9 +901,9 @@ export default {
                 txHash: res.hash,
                 type: 'lp'
               };
-              // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-              // hashList.push(params);
-              // localStorage.setItem('hashList', JSON.stringify(hashList));
+              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              hashList.push(params);
+              localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -944,9 +944,9 @@ export default {
                 txHash: res.hash,
                 type: 'lp'
               };
-              // const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
-              // hashList.push(params);
-              // localStorage.setItem('hashList', JSON.stringify(hashList));
+              const hashList = localStorage.getItem('hashList') && JSON.parse(localStorage.getItem('hashList')) || [];
+              hashList.push(params);
+              localStorage.setItem('hashList', JSON.stringify(hashList));
               this.$message({
                 message: this.$t('tips.tips10'),
                 type: 'success',
@@ -966,6 +966,7 @@ export default {
             });
           }
         }
+        this.withDrawLoading = false;
       } catch (e) {
         this.$message({
           message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
@@ -983,7 +984,7 @@ export default {
           orderId: this.orderId
         };
         await this.$request({
-          url: '/swap/tx/delete',
+          url: '/swap/lp/tx/delete',
           data
         });
       } catch (e) {
@@ -992,18 +993,18 @@ export default {
     },
     // 记录一次交易hash
     async recordHash(orderId, hash) {
-      // try {
-      //   const params = {
-      //     orderId,
-      //     txHash: hash
-      //   };
-      //   await this.$request({
-      //     url: '/swap/lp/tx/hash/update',
-      //     data: params
-      //   });
-      // } catch (e) {
-      //   console.log(e, 'error');
-      // }
+      try {
+        const params = {
+          orderId,
+          txHash: hash
+        };
+        await this.$request({
+          url: '/swap/lp/tx/hash/update',
+          data: params
+        });
+      } catch (e) {
+        console.log(e, 'error');
+      }
     },
     // 获取当前选择撤出的资产余额
     async getChainAssetBalance(chain, assetList) {
