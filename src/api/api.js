@@ -889,7 +889,6 @@ export class ETransfer {
    * @param address 账户eth地址
    */
   async getERC20Allowance(contractAddress, multySignAddress, address, currentAmount) {
-    console.log(contractAddress, multySignAddress, address, currentAmount, 'contractAddress, multySignAddress, address, currentAmount')
     const contract = new ethers.Contract(contractAddress, ERC20_ABI, this.provider);
     const allowancePromise = contract.allowance(address, multySignAddress);
     return allowancePromise
