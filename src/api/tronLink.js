@@ -314,7 +314,7 @@ class TronLinkApi {
     const mainAssetValue = timesDecimals(crossChainFee, 6);
     const isToken = !!contractAddress;
     const instance = await tronWeb.contract().at(multySignAddress);
-    return await instance.crossOutII(nerveAddress, amount_bigNumber, contractAddress || '0x0000000000000000000000000000000000000000', orderId).send({
+    return await instance.crossOutII(nerveAddress, isToken && amount_bigNumber || '0', contractAddress || '0x0000000000000000000000000000000000000000', orderId).send({
       callValue: isToken ? mainAssetValue : Plus(amount_bigNumber, mainAssetValue),
       shouldPollResponse: false
     });
