@@ -348,6 +348,7 @@ export default class NerveChannel {
   }
   // 发送nerve通道nerve => 异构链稳定币兑换交易
   async sendNerveCommonTransaction(params) {
+    console.log('==sendNerveCommonTransaction==');
     const {
       currentChannel,
       currentAccount,
@@ -431,7 +432,6 @@ export default class NerveChannel {
         currentAccount,
         toNetwork
       };
-      console.log(data, '213123data');
       inputsOutputs = await this.handleNulsCross(data);
     }
     const txHex = await transfer.getTxHex({

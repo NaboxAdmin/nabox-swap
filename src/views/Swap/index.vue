@@ -1948,7 +1948,7 @@ export default {
     },
     // 计算nuls合约资产需要的手续费
     async getContractCallData(swapFee) {
-      const transferAmount = swapFee && (this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountIn, swapFee || 0));
+      const transferAmount = swapFee && (this.inputType === 'amountIn' ? this.amountIn : Plus(this.amountIn, swapFee || 0)) || this.amountIn;
       const price = 25;
       const res = await getContractCallData(
         this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId],
