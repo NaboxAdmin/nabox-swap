@@ -143,11 +143,14 @@
 .sign {
   width: 130px;
   padding: 5px;
-  line-height: 1;
+  line-height: 1.2;
   background: #E7F2F0;
   border-radius: 4px;
   text-align: center;
   //line-height: 20px;
+  white-space: nowrap; /* 禁止换行 */
+  overflow: hidden; /* 隐藏溢出部分 */
+  text-overflow: ellipsis; /* 显示省略号 */
   font-size: 12px;
   color: #6EB6A9;
 }
