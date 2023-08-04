@@ -23,8 +23,10 @@
       justify-content: space-between;
       .icon-item {
         height: 50px;
+        flex-shrink: 0;
         width: 50px;
         border-radius: 50%;
+        overflow: hidden;
         img {
           height: 100%;
           width: 100%;
@@ -115,4 +117,7 @@ input::placeholder {
 }
 .h-16 {
   height: 16px;
+}
+.l-1 {
+  line-height: 1.3;
 }

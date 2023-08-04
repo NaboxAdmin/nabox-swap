@@ -23,7 +23,7 @@
                 </span>
                 <span :class="type==='assets' && 'space-between' || 'justify-content-center'" class="d-flex direction-column h-40">
                   <span class="text-3a font-500">{{ item.symbol }}</span>
-                  <span v-if="type==='assets'" class="sign size-16">{{ item.registerChain }}</span>
+                  <span v-if="type==='assets'" class="sign size-16 text-truncate_one">{{ item.registerChain }}</span>
                 </span>
               </div>
               <template>

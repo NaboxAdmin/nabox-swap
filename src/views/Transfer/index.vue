@@ -18,7 +18,7 @@
               <span class="icon-item">
                 <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
-              <span class="size-30 ml-12">{{ fromNetwork }}</span>
+              <span class="size-30 ml-12 text-truncate_one l-1">{{ fromNetwork }}</span>
             </div>
             <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId]) }}</div>
             <div class="drop_down">
@@ -30,7 +30,7 @@
               <span class="icon-item">
                 <img :src="getPicture('NERVE')" alt="">
               </span>
-              <span class="size-30 ml-12">NERVE</span>
+              <span class="size-30 ml-12 text-truncate_one l-1">NERVE</span>
             </div>
             <div class="size-28 ml-1 text-90">{{ superLong(nerveAddress) }}</div>
             <div class="drop_down">
@@ -45,7 +45,7 @@
               <span class="icon-item">
                 <img :src="currentChainInfo.icon" alt="" @error="pictureError">
               </span>
-              <span class="size-30 ml-12">{{ fromNetwork }}</span>
+              <span class="size-30 ml-12 text-truncate_one l-1">{{ fromNetwork }}</span>
             </div>
             <div class="size-30 text-90">{{ superLong(currentAccount['address'][fromNetwork] || currentAccount['address'][chainNameToId[fromNetwork]]) }}</div>
             <div class="drop_down">
@@ -57,7 +57,7 @@
               <span class="icon-item">
                 <img :src="getPicture('NERVE')" alt="">
               </span>
-              <span class="size-30 ml-12">NERVE</span>
+              <span class="size-30 ml-12 l-1 text-truncate_one">NERVE</span>
             </div>
             <div class="size-30 ml-1 text-90">{{ superLong(nerveAddress) }}</div>
             <div class="drop_down">
@@ -951,6 +951,7 @@ export default {
         }
       }
       this.transferInfo = transferInfo;
+      console.log(transferInfo, 'transferInfo')
       await this.initTransfer();
     },
     // 转账交易
@@ -1036,6 +1037,7 @@ export default {
     },
     // 组装异构链跨链转入交易
     async constructCrossInTx(crossInInfo, label) {
+      console.log(crossInInfo, 'crossInInfo')
       const transfer = new ETransfer();
       const fn = async() => await transfer.crossIn(crossInInfo);
       this.transactionInfo = {
