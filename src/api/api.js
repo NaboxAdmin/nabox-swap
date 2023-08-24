@@ -129,7 +129,6 @@ export async function getBatchERC20Balance(addresses, userAddress = '0x45ccf4b9f
         balance: instance.getEthBalance(userAddress)
       };
     });
-    console.log(tokens, 'tokens');
   }
   const [tokensRes] = await multicall.all([tokens]);
   return tokensRes;
@@ -210,7 +209,6 @@ export function validateAddress(address) {
 export function validateNerveAddress(address, network) {
   try {
     const addressValue = nerve.verifyAddress(address);
-    console.log(isBeta, addressValue, 'addressValue');
     if (isBeta && network === 'NULS') {
       return addressValue.chainId === 2;
     } else if (isBeta && network === 'NERVE') {
@@ -278,7 +276,6 @@ export class NTransfer {
       method: 'eth_sign',
       params: [signAddress, hash]
     });
-    // console.log(flat, 66, signAddress)
     flat = flat.slice(2); // 去掉0x
     const r = flat.slice(0, 64);
     const s = flat.slice(64, 128);
@@ -305,7 +302,6 @@ export class NTransfer {
   }
 
   async inputsOrOutputs(data) {
-    console.log(this.type, data, 'this.typethis.typethis.type');
     if (!this.type) {
       throw '获取交易类型失败';
     }
@@ -345,7 +341,6 @@ export class NTransfer {
     if (!nonce) throw localStorage.getItem('locale') === 'en' ? 'Failed to get the nonce value' : '获取nonce值失败';
     const config = JSON.parse(sessionStorage.getItem('config'));
     const mainAsset = config[this.chain];
-    console.log(mainAsset, 'mainAsset');
     if (mainAsset.chainId === transferInfo.assetsChainId && mainAsset.assetId === transferInfo.assetsId) {
       // 转账资产为本链主资产, 将手续费和转账金额合成一个input
       const newAmount = Plus(transferInfo.amount, transferInfo.fee).toFixed();
@@ -406,7 +401,6 @@ export class NTransfer {
   async crossChainTransaction(transferInfo) {
     const { inputs, outputs } = await this.transferTransaction(transferInfo);
     const CROSS_INFO = JSON.parse(sessionStorage.getItem('config'))['NULS'];
-    console.log(this.chain, '123');
     if (this.chain === 'NERVE') {
       // nerve资产跨链到nuls,要收取nuls手续费
       let isNULS = false;
@@ -425,8 +419,6 @@ export class NTransfer {
           assetsChainId: CROSS_INFO.chainId,
           assetsId: CROSS_INFO.assetId
         });
-        console.log('nonce*************');
-        console.log(nonce);
         if (!nonce) {
           return {
             success: false,

@@ -266,7 +266,6 @@ export default {
                 }
                 return ''; // 占位
               });
-              console.log(addresses, 'addresses');
               const tempAddress = addresses.filter(item => item);
               const addressIndex = addresses.map((item, index) => {
                 if (item) {

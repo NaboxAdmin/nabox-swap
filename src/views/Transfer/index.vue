@@ -409,7 +409,7 @@ export default {
           this.transferAssets = [];
         }
       } catch (e) {
-        console.log(e);
+        console.error(e);
       }
     },
     // 点击最大
@@ -605,7 +605,7 @@ export default {
         this.transferCount && await this.checkTransferFee();
       } catch (e) {
         this.showFeeLoading = false;
-        console.log(e, '计算手续费失败');
+        console.error(e, 'Fee Error');
       }
     },
     // 检查手续费
@@ -620,7 +620,6 @@ export default {
           decimals: NULS_INFO.decimal
         });
         const { value } = this.splitFeeSymbol(this.transferFee);
-        console.log(nulsBalance, value, 'nulsBalancenulsBalancenulsBalance');
         if (Minus(transferCount, available) > 0) {
           this.amountMsg = `${currentCoin.symbol} ${this.$t('tips.tips9')}`;
         } else if (this.isMainAsset && Minus(Plus(value || 0, this.transferCount), nulsBalance) > 0 || Minus(value || 0, nulsBalance) > 0) {
@@ -951,7 +950,6 @@ export default {
         }
       }
       this.transferInfo = transferInfo;
-      console.log(transferInfo, 'transferInfo')
       await this.initTransfer();
     },
     // 转账交易
@@ -1037,7 +1035,6 @@ export default {
     },
     // 组装异构链跨链转入交易
     async constructCrossInTx(crossInInfo, label) {
-      console.log(crossInInfo, 'crossInInfo')
       const transfer = new ETransfer();
       const fn = async() => await transfer.crossIn(crossInInfo);
       this.transactionInfo = {
@@ -1171,7 +1168,7 @@ export default {
         }
         this.transferLoading = false;
       } catch (e) {
-        console.log(e);
+        console.error(e);
         this.$message.warning({ message: e.message || e, offset: 30 });
         this.transferLoading = false;
       }

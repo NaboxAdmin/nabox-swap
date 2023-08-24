@@ -471,7 +471,7 @@ export default {
           await this.broadcastHex({ txHash: res.hash, amount });
         }
       } catch (e) {
-        console.log(e, 'e');
+        console.error(e, 'e');
         this.showLoading = false;
       }
     },
@@ -488,7 +488,6 @@ export default {
         amount,
         txHash
       };
-      console.log(params, 'params');
       const result = await this.$request({
         url: '/swap/vaults/add',
         data: params

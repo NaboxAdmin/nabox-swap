@@ -187,7 +187,6 @@ export default class NerveChannel {
       maxPairSize
     );
     if (res.tokenAmountIn.amount.toString() && Object.values(res).length) {
-      console.log(res.tokenAmountIn.amount.toString(), 'getBestTradeExactOut');
       return {
         path: res.path,
         tokenAmountIn: res.tokenAmountOut,
@@ -245,7 +244,6 @@ export default class NerveChannel {
       );
       return nerve.deserializationTx(tx.hex);
     } else {
-      console.log('12322222')
       // 币币交换资产路径，路径中最后一个资产，是用户要买进的资产
       const key = fromAssetKey + '_' + toAssetKey;
       // TODO:替换tempPairInfo
@@ -524,8 +522,6 @@ export default class NerveChannel {
         });
       }
     } else {
-      console.log(inputs, outputs, 'inputs, outputs');
-      console.log(originCrossChainFee.toString(), inputs, outputs, 'crossOutFeecrossOutFeecrossOutFee');
       const feeAmount = timesDecimals(originCrossChainFee, 8);
       if (assetsChainId === NerveChainId && assetsId === NerveAssetId) {
         const newNvtAmount = Plus(inputs[0].amount, feeAmount).toFixed();

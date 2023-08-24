@@ -34,7 +34,7 @@ export default class Inch {
       }
       return null;
     } catch (e) {
-      console.log(e);
+      console.error(e);
       return null;
     }
   }
@@ -109,7 +109,7 @@ export default class Inch {
         return await transfer.sendTransaction(txData);
       }
     } catch (e) {
-      console.log(e, 'error');
+      console.error(e, 'error');
       if (e && e.message.indexOf('status code 400') !== -1) {
         return {
           msg: 'insufficient funds'
