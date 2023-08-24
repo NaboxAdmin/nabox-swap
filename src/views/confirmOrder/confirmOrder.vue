@@ -455,6 +455,7 @@ export default {
         };
         const swapRes = await this.recordSwapOrder({ orderId: currentChannel.orderId }, type || isBridge && 3 || 2);
         if (swapRes.code === 1000) {
+          console.log(currentChannel.orderId, 'currentChannel.orderId')
           let res;
           if (this.chainType === 2) { // 异构链转到中间账户
             res = await nerveChannel.sendNerveBridgeTransaction(params);

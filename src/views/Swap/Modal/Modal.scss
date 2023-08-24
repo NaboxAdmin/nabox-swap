@@ -379,12 +379,30 @@
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
+  background-image: url("../../../assets/image/Base_grey.png");
+  &.active_image {
+    background-image: url("../../../assets/image/Base.png");
+  }
+}
+.nav-cont_28 {
+  width: 52px;
+  height: 52px;
+  background-size: 52px 52px;
+  background-image: url("../../../assets/image/Scroll_grey.png");
+  &.active_image {
+    background-image: url("../../../assets/image/Scroll.png");
+  }
+}
+.nav-cont_29 {
+  width: 52px;
+  height: 52px;
+  background-size: 52px 52px;
   background-image: url("../../../assets/image/NULS.png");
   &.active_image {
     background-image: url("../../../assets/image/NULS_active.png");
   }
 }
-.nav-cont_28 {
+.nav-cont_30 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;
@@ -393,7 +411,7 @@
     background-image: url("../../../assets/image/ENULS.png");
   }
 }
-.nav-cont_29 {
+.nav-cont_31 {
   width: 52px;
   height: 52px;
   background-size: 52px 52px;

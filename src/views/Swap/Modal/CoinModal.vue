@@ -98,7 +98,7 @@ export default {
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKTC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'zkSync', 'Linea', 'ETC', 'Fantom', 'Polygon zkEVM', 'EOSEVM', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'REI', 'KavaEVM', 'ETHW', 'NULS', 'ENULS', 'NERVE'],
+      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKTC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'zkSync', 'Linea', 'ETC', 'Fantom', 'Polygon zkEVM', 'EOSEVM', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'REI', 'KavaEVM', 'ETHW', 'Base', 'Scroll', 'NULS', 'ENULS', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -136,7 +136,7 @@ export default {
           if (this.modalType === 'receive') {
             this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKTC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'zkSync', 'Linea', 'ETC', 'Fantom', 'Polygon zkEVM', 'EOSEVM', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'REI', 'KavaEVM', 'ETHW', 'NULS', 'ENULS', 'NERVE'];
+            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKTC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'zkSync', 'Linea', 'ETC', 'Fantom', 'Polygon zkEVM', 'EOSEVM', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'REI', 'KavaEVM', 'ETHW', 'Base', 'Scroll', 'NULS', 'ENULS', 'NERVE'];
             if (this.assetList.length > 0 && this.fromNetwork === this.picList[this.currentIndex]) {
               this.setSwapAssetList(this.assetList);
             } else {
