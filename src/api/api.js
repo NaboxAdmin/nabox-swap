@@ -671,7 +671,8 @@ export class ETransfer {
       if (chain.chainType === 2) {
         RPC_URL[chain.chain] = {
           ropsten: chain.rpcUrl,
-          homestead: chain.rpcUrl
+          homestead: chain.rpcUrl,
+          goerli: chain.rpcUrl
         };
       }
     });

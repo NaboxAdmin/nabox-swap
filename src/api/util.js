@@ -554,7 +554,7 @@ export function assetSort(assets) {
   });
 }
 
-export const isBeta = ETHNET === 'ropsten';
+export const isBeta = (ETHNET === 'ropsten' || ETHNET === 'goerli');
 
 export const TRON = 'TRON';
 
@@ -714,6 +714,7 @@ export function setChainConfig(chainConfig) {
           symbol: item.mainAsset && item.mainAsset.symbol || '',
           sort: item.sort,
           ropsten: `0x${Number(item.nativeId).toString(16)}`,
+          goerli: `0x${Number(item.nativeId).toString(16)}`,
           homestead: `0x${Number(item.nativeId).toString(16)}`,
           nativeId: item.nativeId
         };
@@ -727,6 +728,7 @@ export function setChainConfig(chainConfig) {
           icon: item.icon,
           symbol: item.mainAsset && item.mainAsset.symbol || '',
           ropsten: `0x${Number(item.nativeId).toString(16)}`,
+          goerli: `0x${Number(item.nativeId).toString(16)}`,
           homestead: `0x${Number(item.nativeId).toString(16)}`,
           chainId: item.mainAsset && item.mainAsset && item.mainAsset.chainId || '',
           assetId: item.mainAsset && item.mainAsset.assetId || '',
@@ -749,6 +751,7 @@ export function setChainConfig(chainConfig) {
           icon: item.icon,
           symbol: item.mainAsset && item.mainAsset.symbol || '',
           ropsten: `0x${Number(item.nativeId).toString(16)}`,
+          goerli: `0x${Number(item.nativeId).toString(16)}`,
           homestead: `0x${Number(item.nativeId).toString(16)}`,
           chainId: item.mainAsset && item.mainAsset && item.mainAsset.chainId || '',
           assetId: item.mainAsset && item.mainAsset.assetId || '',

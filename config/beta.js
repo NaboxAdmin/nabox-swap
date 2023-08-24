@@ -4,7 +4,7 @@ export const currentNet = 'testnet';
 export const MAIN_INFO = { chainId: 5, assetId: 1, prefix: 'TNVT', symbol: 'NVT', decimal: 8, rpc: 'http://beta.public.nerve.network', batchRPC: 'http://beta.api.nerve.network/jsonrpc' };
 export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS', symbol: 'NULS', decimal: 8, rpc: 'http://beta.public1.nuls.io', batchRPC: ' http://beta.api.nuls.io/jsonrpc' };
 // ETH 网络信息 测试网:ropsten, 主网:homestead
-export const ETHNET = 'ropsten';
+export const ETHNET = 'goerli';
 
 export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'http://39.98.226.51:19001/nabox-api';
 
