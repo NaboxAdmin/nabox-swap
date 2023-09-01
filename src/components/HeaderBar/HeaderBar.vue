@@ -234,7 +234,6 @@ export default {
     },
     l1ChainList() {
       const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
-      // const tempList = tempSupportChainList.filter(chain => chain.label !== 'NULS' && chain.label !== 'NERVE');
       return tempSupportChainList.map(chain => ({
         chainId: chain[ETHNET],
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
@@ -294,9 +293,9 @@ export default {
       handler(val) {
         this.orderType = val;
         if (val === 2) {
-          this.getLiquidityOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
+          this.currentAccount && this.getLiquidityOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
         } else if (val === 3) {
-          this.getOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
+          this.currentAccount && this.getOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
         }
       },
       immediate: true,

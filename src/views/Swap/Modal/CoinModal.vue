@@ -2,8 +2,8 @@
   <div :class="{'show_modal': showModal}" class="mask-cont" @click="maskClick" @touchmove.prevent>
     <div :class="{'show_modal-cont': showModal}" class="modal-cont" @click.stop @touchmove.stop>
       <div class="header-cont size-36 font-500 mt-2">
-        {{ picList[currentIndex] }}
-        <div class="back-icon" @click="back">
+        {{ chainNameList[currentIndex] }}
+        <div class="back-icon cursor-pointer" @click="back">
           <svg t="1626400145141" class="icon" viewBox="0 0 1127 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1446" width="17" height="15"><path d="M1058.133333 443.733333H233.130667l326.997333-327.338666a68.266667 68.266667 0 0 0 0-96.256 68.266667 68.266667 0 0 0-96.256 0l-443.733333 443.733333a68.266667 68.266667 0 0 0 0 96.256l443.733333 443.733333a68.266667 68.266667 0 0 0 96.256-96.256L233.130667 580.266667H1058.133333a68.266667 68.266667 0 1 0 0-136.533334z" fill="#333333" p-id="1447"/></svg>
         </div>
       </div>
@@ -16,10 +16,13 @@
       <div class="search-result mt-2">
         <div v-if="modalType==='receive'" class="select-cont">
           <div
-            v-for="(item, index) in picList"
-            :class="['nav-cont_' + index, index===currentIndex && 'active_image']"
-            :key="item"
-            @click="navClick(item, index)"/>
+            v-for="(item, index) in chainList"
+            :key="item.nativeId"
+            :class="index===currentIndex && 'active-chain'"
+            class="choose-chain-list"
+            @click="navClick(item, index)">
+            <img :src="item.icon" alt="">
+          </div>
         </div>
         <div class="flex-1 position-relative">
           <div v-if="showLoading" class="text-center loading-contain">
@@ -30,7 +33,7 @@
               <span class="asset-item-icon">
                 <img :src="item.icon || getPicture(item.symbol) || pictureError" alt="">
               </span>
-              <span v-if="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && item.registerChain">{{ item.symbol }}{{ `(${item.registerChain})` }}</span>
+              <span v-if="(modalType==='receive' && chainNameList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && item.registerChain">{{ item.symbol }}{{ `(${item.registerChain})` }}</span>
               <span v-else>{{ item.symbol }}</span>
             </div>
           </div>
@@ -41,10 +44,10 @@
                   <span class="coin-icon">
                     <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" alt="">
                   </span>
-                  <span :class="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && 'space-between' || 'justify-content-center'" class="d-flex direction-column">
-                    <span v-if="(modalType==='receive' && picList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && item.registerChain" class="text-3a font-500 text-truncate w-150">{{ item.symbol }}{{ `(${item.registerChain})` }}</span>
+                  <span :class="(modalType==='receive' && chainNameList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && 'space-between' || 'justify-content-center'" class="d-flex direction-column">
+                    <span v-if="(modalType==='receive' && chainNameList[currentIndex] === 'NERVE' || modalType==='send' && fromNetwork === 'NERVE') && item.registerChain" class="text-3a font-500 text-truncate w-150">{{ item.symbol }}{{ `(${item.registerChain})` }}</span>
                     <span v-else class="text-3a font-500 text-truncate w-150">{{ item.symbol }}</span>
-                    <span v-if="!item.contractAddress && (fromNetwork === 'NERVE' || fromNetwork === 'NULS' || picList[currentIndex] === 'NERVE' || picList[currentIndex] === 'NULS')" class="text-90 size-24">{{ `${item.chainId}-${item.assetId}` }}</span>
+                    <span v-if="!item.contractAddress && (fromNetwork === 'NERVE' || fromNetwork === 'NULS' || chainNameList[currentIndex] === 'NERVE' || chainNameList[currentIndex] === 'NULS')" class="text-90 size-24">{{ `${item.chainId}-${item.assetId}` }}</span>
                     <span v-else class="text-90 size-24">{{ superLong(item.contractAddress) }} <span v-if="!userQuery && item.isCustom">{{ `(${$t('tips.tips74')})` }}</span></span>
                   </span>
                 </div>
@@ -68,7 +71,7 @@
 </template>
 
 <script>
-import { divisionDecimals, isBeta, tofix, TRON } from '@/api/util';
+import { divisionDecimals, isBeta, supportChainList, tofix, TRON } from '@/api/util';
 import { getBatchERC20Balance } from '@/api/api';
 import { TRON_TRX_ADDRESS } from '@/config';
 
@@ -94,11 +97,14 @@ export default {
     assetList: {
       type: Array,
       default: () => []
+    },
+    selectChain: {
+      type: String,
+      default: ''
     }
   },
   data() {
     return {
-      picList: ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKTC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'zkSync', 'Linea', 'ETC', 'Fantom', 'Polygon zkEVM', 'EOSEVM', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'REI', 'KavaEVM', 'ETHW', 'Base', 'Scroll', 'NULS', 'ENULS', 'NERVE'],
       currentIndex: 0,
       showCoinList: [],
       searchVal: '',
@@ -108,6 +114,16 @@ export default {
       userQuery: false,
       pinAsset: []
     };
+  },
+  computed: {
+    chainList() {
+      // console.log(tempSupportChainList, 'tempSupportChainList');
+      return supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+    },
+    chainNameList() {
+      const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
+      return tempSupportChainList.map(item => item.chain);
+    }
   },
   watch: {
     async searchVal(val) {
@@ -134,20 +150,19 @@ export default {
         if (val) {
           const chainConfig = Object.keys(JSON.parse(sessionStorage.getItem('config')));
           if (this.modalType === 'receive') {
-            this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item) === -1 ? 0 : this.picList.findIndex(item => this.fromNetwork === item);
+            this.currentIndex = this.chainNameList.findIndex(item => (this.selectChain || this.fromNetwork) === item) === -1 ? 0 : this.chainNameList.findIndex(item => (this.selectChain || this.fromNetwork) === item);
             // const tempConfig = sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || [];
-            this.picList = ['Ethereum', 'BSC', 'Polygon', 'Heco', 'OKTC', 'Avalanche', TRON, 'Harmony', 'KCC', 'Cronos', 'Arbitrum', 'zkSync', 'Linea', 'ETC', 'Fantom', 'Polygon zkEVM', 'EOSEVM', 'Optimism', 'IoTeX', 'Metis', 'Klaytn', 'Aurora', 'Gnosis', 'smartBCH', 'REI', 'KavaEVM', 'ETHW', 'Base', 'Scroll', 'NULS', 'ENULS', 'NERVE'];
-            if (this.assetList.length > 0 && this.fromNetwork === this.picList[this.currentIndex]) {
+            if (this.assetList.length > 0 && this.fromNetwork === this.chainNameList[this.currentIndex]) {
               this.setSwapAssetList(this.assetList);
             } else {
-              this.getSwapAssetList(this.picList[this.currentIndex]);
+              this.getSwapAssetList(this.chainNameList[this.currentIndex]);
             }
           } else {
-            if (this.picList.findIndex(item => item === this.fromNetwork) === -1) {
+            if (this.chainNameList.findIndex(item => item === this.fromNetwork) === -1) {
               this.currentIndex = chainConfig.findIndex(item => item === this.fromNetwork);
-              this.picList = chainConfig;
+              this.chainNameList = chainConfig;
             } else {
-              this.currentIndex = this.picList.findIndex(item => this.fromNetwork === item);
+              this.currentIndex = this.chainNameList.findIndex(item => this.fromNetwork === item);
             }
             if (this.assetList.length > 0) {
               this.setSwapAssetList(this.assetList);
@@ -191,10 +206,10 @@ export default {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0);
       });
       this.searchVal = '';
-      this.$emit('select', { coin, type: this.modalType, network: this.picList[this.currentIndex] });
+      this.$emit('select', { coin, type: this.modalType, network: this.chainNameList[this.currentIndex] });
     },
     importAsset(coin) {
-      this.$emit('importAsset', { coin, type: this.modalType, network: this.picList[this.currentIndex] });
+      this.$emit('importAsset', { coin, type: this.modalType, network: this.chainNameList[this.currentIndex] });
     },
     async searchAsset(val) {
       try {
@@ -223,7 +238,8 @@ export default {
       }
     },
     // 点击nav
-    async navClick(chain, i) {
+    async navClick(chainItem, i) {
+      console.log(chainItem);
       if (this.currentIndex === i) return false;
       this.$nextTick(() => {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0);
@@ -232,7 +248,7 @@ export default {
       this.currentIndex = i;
       this.showCoinList = [];
       this.allList = [];
-      await this.getSwapAssetList(chain);
+      await this.getSwapAssetList(chainItem && chainItem.chain);
     },
     async getSwapAssetList(chain) {
       try {
@@ -261,6 +277,7 @@ export default {
             data
           });
           if (res.code === 1000 && res.data.length > 0) {
+            console.log(res.data, 'res.data')
             const swapAssets = [...res.data, ...chainAsset];
             await this.setSwapAssetList(swapAssets);
           } else {
@@ -283,7 +300,7 @@ export default {
           if (!this.fromAsset && this.modalType === 'receive') {
             tempCoins = [];
           } else if (this.fromAsset && this.modalType === 'receive') {
-            if (this.picList[this.currentIndex] === this.fromNetwork) {
+            if ((this.chainNameList[this.currentIndex] && this.chainNameList[this.currentIndex]) === this.fromNetwork) {
               // tempCoins = tempCoins.filter(coin => coin.symbol !== this.fromAsset.symbol);
               if (this.fromAsset.contractAddress) {
                 tempCoins = tempCoins.map(coin => {
@@ -390,7 +407,7 @@ export default {
           }
           this.pinAsset = tempCoins.length && tempCoins.filter(item => item.recommend) || [];
           const tempList = tempCoins.length > 0 && tempCoins.sort((a, b) => a.symbol > b.symbol ? 1 : -1) || [];
-          const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.picList[this.currentIndex];
+          const tempNetwork = this.modalType === 'send' ? this.fromNetwork : this.chainNameList[this.currentIndex];
           this.showCoinList = [...tempList];
           this.allList = [...tempList];
           this.showLoading = false;
@@ -405,7 +422,7 @@ export default {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
             // TODO
-            const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]] || this.currentAccount['address'][this.chainNameToId[this.picList[this.currentIndex]]] || 'TFtN2JUP5Zi1i487oZKLK25sPBTTSdYMWy';
+            const fromAddress = this.currentAccount['address'][this.chainNameList[this.currentIndex]] || this.currentAccount['address'][this.chainNameToId[this.chainNameList[this.currentIndex]]] || 'TFtN2JUP5Zi1i487oZKLK25sPBTTSdYMWy';
             const addresses = this.allList.map(asset => {
               if (asset.contractAddress) {
                 return asset.contractAddress;
@@ -422,8 +439,8 @@ export default {
             const config = JSON.parse(sessionStorage.getItem('config'));
             const batchQueryContract = config[tempNetwork]['config'].multiCallAddress || '';
             // TODO
-            const fromAddress = this.currentAccount['address'][this.picList[this.currentIndex]] || this.currentAccount['address'][this.chainNameToId[this.picList[this.currentIndex]]];
-            const RPCUrl = config[this.picList[this.currentIndex]]['apiUrl'];
+            const fromAddress = this.currentAccount['address'][this.chainNameList[this.currentIndex]] || this.currentAccount['address'][this.chainNameToId[this.chainNameList[this.currentIndex]]];
+            const RPCUrl = config[this.chainNameList[this.currentIndex]]['apiUrl'];
             const addresses = this.allList.map(asset => {
               if (asset.contractAddress) {
                 return asset.contractAddress;

@@ -1,17 +1,18 @@
 import {
-  superLong,
+  Division,
   divisionDecimals,
-  tofix,
-  numberFormat,
   getCurrentAccount,
   getCurrentAccountIndex,
-  TRON,
-  isBeta
+  isBeta,
+  Minus,
+  numberFormat,
+  superLong,
+  tofix,
+  TRON
 } from '@/api/util';
 import moment from 'moment';
-import { Division, Minus } from '@/api/util';
-import { ETransfer } from '@/api/api';
-import { MAIN_INFO, NULS_INFO } from '@/config';
+import {ETransfer} from '@/api/api';
+import {MAIN_INFO, NULS_INFO} from '@/config';
 import TronLink from '@/api/tronLink';
 
 export default {
@@ -60,6 +61,9 @@ export default {
       const network = this.$store.state.network;
       const chainConfig = JSON.parse(sessionStorage.getItem('config'));
       return chainConfig[network] && chainConfig[network]['chainType'];
+    },
+    chainConfigMap() {
+      return JSON.parse(sessionStorage.getItem('config'));
     },
     chainNameToId() {
       let chainConfig;

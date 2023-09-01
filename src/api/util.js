@@ -695,7 +695,8 @@ export function setChainConfig(chainConfig) {
         config: configs,
         apiUrl: v.chainType === 3 ? v.psUrl : v.apiUrl,
         chainType: v.chainType,
-        nativeId: v.nativeId
+        nativeId: v.nativeId,
+        chainIcon: v.icon
       };
     });
     // chainType: 2 以太系
