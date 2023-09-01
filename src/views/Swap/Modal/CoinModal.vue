@@ -19,6 +19,7 @@
             v-for="(item, index) in chainList"
             :key="item.nativeId"
             :class="index===currentIndex && 'active-chain'"
+            :ref="(item.chain===selectChain || item.chain===fromNetwork) && 'hiddenElement'"
             class="choose-chain-list"
             @click="navClick(item, index)">
             <img :src="item.icon" alt="">
@@ -180,8 +181,16 @@ export default {
     this.$nextTick(() => {
       this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0);
     });
+    this.scrollToHiddenElement();
   },
   methods: {
+    scrollToHiddenElement() {
+      // 获取隐藏元素的引用
+      const hiddenElement = this.$refs.hiddenElement;
+      // 滚动容器以显示隐藏元素
+      if (!hiddenElement || !hiddenElement[0]) return;
+      hiddenElement[0].scrollIntoView({ behavior: 'smooth' });
+    },
     searchInput(event) {
       event.currentTarget.select();
     },
@@ -277,7 +286,7 @@ export default {
             data
           });
           if (res.code === 1000 && res.data.length > 0) {
-            console.log(res.data, 'res.data')
+            console.log(res.data, 'res.data');
             const swapAssets = [...res.data, ...chainAsset];
             await this.setSwapAssetList(swapAssets);
           } else {
