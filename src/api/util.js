@@ -705,7 +705,7 @@ export function setChainConfig(chainConfig) {
         return {
           ...item,
           label: item.chain,
-          value: item.chain,
+          value: item.chainName || item.chain,
           SwftChain: item.chain,
           chainId: item.mainAsset && item.mainAsset.chainId || '',
           assetId: item.mainAsset && item.mainAsset.assetId || '',
@@ -722,7 +722,7 @@ export function setChainConfig(chainConfig) {
       } else if (item.chainType === 2) {
         return {
           label: item.chain,
-          value: item.chain,
+          value: item.chainName || item.chain,
           chain: item.chain,
           chainName: item.chain,
           chainType: item.chainType,
@@ -745,7 +745,7 @@ export function setChainConfig(chainConfig) {
       } else if (item.chainType === 3) {
         return {
           label: item.chain,
-          value: item.chain,
+          value: item.chainName || item.chain,
           chain: item.chain,
           chainName: item.chain,
           chainType: item.chainType,
