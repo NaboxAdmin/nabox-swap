@@ -29,14 +29,14 @@
           <div v-if="showDropList" class="network-list size-28 d-flex direction-column">
             <span
               v-for="(item, index) in l1ChainList"
-              :class="{'active_chain': item.chainName === currentChain}"
+              :class="{'active_chain': item.chain === currentChain}"
               :key="index"
               class="mt-2 cursor-pointer d-flex align-items-center"
               @click="chainClick(item)">
               <span class="chain-icon mr-2">
                 <img :src="item.icon" alt="" @error="pictureError">
               </span>
-              {{ item.chainName }}
+              {{ item.chain }}
             </span>
           </div>
         </div>
@@ -239,6 +239,7 @@ export default {
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         icon: chain.icon,
         chainName: chain.value,
+        chain: chain.chain,
         nativeCurrency: {
           name: chain.value,
           symbol: chain.symbol,
@@ -432,10 +433,10 @@ export default {
             this.showTips = true;
             return;
           }
-          this.currentChain = tempChain.chainName;
-          replaceBrowserHistory('fromChain', tempChain.chainName);
-          this.$store.commit('changeNetwork', tempChain.chainName);
-          this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
+          this.currentChain = chain.chain;
+          replaceBrowserHistory('fromChain', chain.chain);
+          this.$store.commit('changeNetwork', chain.chain);
+          this.$emit('changeChainId', tempChain.chain === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
         } else if (tempChain.chainType === 2) {
           if (walletType === 'tronWeb') {
@@ -444,6 +445,7 @@ export default {
           }
           delete tempChain['icon'];
           delete tempChain['chainType'];
+          delete tempChain['chain'];
           if (tempChain.chainName !== 'Ethereum') {
             window[walletType] && await window[walletType].request({
               method: 'wallet_addEthereumChain',
@@ -462,7 +464,7 @@ export default {
           }
           this.showTips = true;
         }
-        replaceBrowserHistory('fromChain', tempChain.chainName);
+        replaceBrowserHistory('fromChain', chain.chain);
       } catch (e) {
         this.$message({
           message: e.message || e,

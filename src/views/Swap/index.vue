@@ -85,7 +85,7 @@
               <span class="chain-icon mr-2">
                 <img :src="item.icon" alt="" @error="pictureError">
               </span>
-              {{ item.chainName }}
+              {{ item.chain }}
             </span>
           </div>
         </div>
@@ -469,6 +469,7 @@ export default {
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         icon: chain.icon,
         chainName: chain.value,
+        chain: chain.chain,
         nativeCurrency: {
           name: chain.value,
           symbol: chain.symbol,
@@ -610,7 +611,7 @@ export default {
   },
   methods: {
     selectChainClick(chainItem) {
-      this.selectChain = chainItem.chainName;
+      this.selectChain = chainItem.chain;
       this.showChainList = false;
     },
     async checkOrderList() {
@@ -1191,7 +1192,7 @@ export default {
             this.showTips = true;
             return;
           }
-          this.$store.commit('changeNetwork', tempChain.chainName);
+          this.$store.commit('changeNetwork', chain.chain);
           this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
         } else if (tempChain.chainType === 2) {
@@ -1201,6 +1202,7 @@ export default {
           }
           delete tempChain['icon'];
           delete tempChain['chainType'];
+          delete tempChain['chain'];
           if (tempChain.chainName !== 'Ethereum') {
             window[walletType] && await window[walletType].request({
               method: 'wallet_addEthereumChain',
