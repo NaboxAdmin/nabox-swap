@@ -77,12 +77,13 @@
 
 <script>
 import NavBar from '@/components/NavBar/NavBar';
-import { timesDecimals } from '@/api/util';
+import { timesDecimals, Division } from '@/api/util';
 import Dodo from '../Swap/util/Dodo';
 import NerveChannel, { senENULSTransaction } from '../Swap/util/Nerve';
 import { NTransfer, crossFee } from '@/api/api';
 import { getEquipmentNo, metaPathRecordHash, sendMetaPathTransaction } from '@/views/Swap/util/MetaPath';
 import Inch from '@/views/Swap/util/1inch';
+import OKXChannel from "@/views/Swap/util/OKX";
 // import '../../views/Swap/util/stableTransfer-min'
 
 const ethers = require('ethers');
@@ -140,6 +141,9 @@ export default {
             break;
           case '1inch':
             await this._send1inchTransaction();
+            break;
+          case 'OKX':
+            await this._sendOKXTransaction();
             break;
           default:
             return false;
@@ -252,6 +256,50 @@ export default {
           type: 'warning',
           message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
           offset: 30
+        });
+      }
+    },
+    async _sendOKXTransaction() {
+      try {
+        const res = await this.recordSameChainOrder();
+        if (res && res.code == 1000) {
+          this.currentOrderId = res.data && res.data.orderId || '';
+          const { fromAsset, toAsset, amountIn, address, slippage } = this.orderInfo;
+          const params = {
+            chainId: this.nativeId,
+            fromTokenAddress: fromAsset.contractAddress || '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+            toTokenAddress: toAsset.contractAddress || '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+            amount: timesDecimals(amountIn, fromAsset.decimals || 18),
+            userWalletAddress: address,
+            slippage: Division(slippage, 100).toString(),
+            referrerAddress: '0xDDE4259700E27872e6A631B5361243139f5dB7b8',
+            feePercent: 0.1
+          };
+          console.log(params, 'params');
+          const txRes = await OKXChannel.sendOKXTransaction(params, fromAsset);
+          if (txRes && txRes.hash) {
+            this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: txRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
+            this.$message({
+              type: 'success',
+              message: this.$t('tips.tips24'),
+              offset: 30,
+              duration: 1500
+            });
+            this.confirmLoading = false;
+            this.$emit('confirm');
+            await this.recordSameChainHash(this.currentOrderId, txRes.hash);
+          } else {
+            throw txRes.msg;
+          }
+        } else {
+          throw res.msg;
+        }
+      } catch (e) {
+        console.error(e, 'error');
+        this.confirmLoading = false;
+        this.$message({
+          type: 'warning',
+          message: 'OKX router error:' + this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e)
         });
       }
     },

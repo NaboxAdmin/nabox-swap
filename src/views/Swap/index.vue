@@ -343,6 +343,7 @@ import TronLink from '@/api/tronLink';
 import { validateNerveAddress } from '@/api/api';
 import { getEquipmentNo, getMultiQuote } from '@/views/Swap/util/MetaPath';
 import Inch from './util/1inch';
+import OKXChannel from "@/views/Swap/util/OKX";
 
 const ethers = require('ethers');
 const nerve = require('nerve-sdk-js');
@@ -551,7 +552,7 @@ export default {
             this.limitMin = newVal.limitMin || 0.001;
             this.limitMax = newVal.limitMax || 1000000;
             await this.checkAssetAuthStatus();
-          } else if (newVal.channel === '1inch') {
+          } else if (newVal.channel === '1inch' || newVal.channel === 'OKX') {
             await this.checkInchAssetAuthStatus();
           }
           if (newVal.impact > 20) {
@@ -756,11 +757,20 @@ export default {
     },
     // 获取Inch资产授权
     async checkInchAssetAuthStatus() {
-      const params = {
-        tokenAddress: this.chooseFromAsset.contractAddress,
-        walletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
-      };
-      this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params) || false;
+      if (this.currentChannel.channel === '1inch') {
+        const params = {
+          tokenAddress: this.chooseFromAsset.contractAddress,
+          walletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
+        };
+        this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params) || false;
+      } else if (this.currentChannel.channel === 'OKX') {
+        const params = {
+          chainId: this.nativeId,
+          tokenContractAddress: this.chooseFromAsset.contractAddress,
+          userWalletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
+        };
+        this.needAuth = this.chooseFromAsset.contractAddress && await OKXChannel.getOKXAssetAllowance(params, timesDecimals(this.amountIn, this.chooseFromAsset.decimals)) || false;
+      }
       await this.checkChannelLimitInfo();
       if (this.inputType === 'amountIn') {
         this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, this.chooseToAsset.decimals || 6, -1), this.chooseToAsset.decimals || 6);
@@ -783,6 +793,17 @@ export default {
             tokenAddress: this.chooseFromAsset.contractAddress
           };
           const transactionData = await this.inch.get1inchApproveTransactionData(params);
+          res = await transfer.sendTransaction({
+            ...transactionData
+          });
+        } else if (this.currentChannel.channel === 'OKX') {
+          transfer = new ETransfer();
+          const params = {
+            chainId: this.nativeId,
+            tokenContractAddress: this.chooseFromAsset.contractAddress,
+            approveAmount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals)
+          };
+          const transactionData = await OKXChannel.getOKXApproveTransactionData(params);
           res = await transfer.sendTransaction({
             ...transactionData
           });
@@ -1406,6 +1427,7 @@ export default {
         }
         return channel.swap === true && channel.status === 1; //  && channel.channel === 'DODO'
       });
+      console.log(this.channelConfigList, 'this.channelConfigList')
     },
     // 查看当前nerve通道流动性
     checkLpBalance() {
@@ -1435,20 +1457,7 @@ export default {
     // 根据不同通道查询当前的限额
     async checkChannelLimitInfo() {
       if (this.stableSwap) {
-        if (this.currentChannel.channel === 'iSwap') {
-          const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-          const currentLimitMax = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax || limitAssetInfo.normalMax) : limitAssetInfo.normalMax;
-          const currentLimitMin = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.normalMin || limitAssetInfo.normalMin) : limitAssetInfo.normalMin;
-          if (Minus(this.amountIn, currentLimitMin) < 0) {
-            this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
-            this.showComputedLoading = false;
-          } else if (Minus(this.amountIn, currentLimitMax) > 0) {
-            this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
-            this.showComputedLoading = false;
-          } else {
-            await this.checkBalance();
-          }
-        } else if (this.currentChannel.channel === 'NERVE' && this.nerveChainStableSwap) {
+        if (this.currentChannel.channel === 'NERVE' && this.nerveChainStableSwap) {
           await this.checkBalance();
         } else if (this.currentChannel.channel === 'NERVE') {
           if (Minus(this.amountIn, 0.001) < 0) {
@@ -1587,7 +1596,7 @@ export default {
         console.log(this.channelConfigList, this.stableSwap, '==channelConfigList==');
         const tempChannelConfig = await Promise.allSettled(this.channelConfigList.map(async item => {
           let currentConfig = {};
-          if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
+          if (item.channel === 'DODO' && this.chainType === 2) {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
               return {
@@ -1607,7 +1616,8 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
+          } else if (item.channel === '1inch' && this.chainType === 2) {
+            console.log('11111111111111111111111111')
             currentConfig = await this.get1inchSwapRoute();
             if (currentConfig) {
               return {
@@ -1625,6 +1635,24 @@ export default {
               };
             }
             return null;
+          } else if (item.channel === 'OKX' && this.chainType === 2) {
+            currentConfig = await this.getOKXSwapRoute();
+            console.log(currentConfig, 'currentConfig');
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                amount: this.amountIn,
+                channel: item.channel,
+                originalChannel: item.channel,
+                amountOut: currentConfig.toAmount,
+                minReceive: tofix(Times(currentConfig.toAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+                isBest: false,
+                isCurrent: false,
+                swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.toAmount),
+                swapFee: Times(this.amountIn, 0.001),
+                feeSymbol: this.chooseFromAsset.symbol
+              };
+            }
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap && this.chooseToAsset.chain === 'NERVE') {
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
@@ -1915,6 +1943,16 @@ export default {
         fee: 0.1
       };
       return this.inch.get1inchRouteQuote(params);
+    },
+    async getOKXSwapRoute() {
+      const params = {
+        fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        amount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals || 0),
+        fee: 0.1,
+        chainId: this.nativeId
+      };
+      return await OKXChannel.getOKXChannelQuote(params, this.chooseToAsset.decimals);
     },
     // 获取nerve通道上面
     async getNerveSwapRoute() {
