@@ -46,7 +46,7 @@ export default class Inch {
    * @param params.walletAddress { string } 需要查询授权的用户地址
    * @returns {Promise<boolean>}
    */
-  async get1inchAssetAllowance(params) {
+  async get1inchAssetAllowance(params, baseAllowance = '10') {
     try {
       const res = await sendRequest({
         method: 'get',
@@ -54,7 +54,7 @@ export default class Inch {
         data: params,
         customUrl: `${inchBaseUrl}${this.nativeId}`
       });
-      const baseAllowance = '10';
+      // const baseAllowance = '10';
       if (res && res.allowance) {
         return Minus(res.allowance, baseAllowance) < 0;
       }

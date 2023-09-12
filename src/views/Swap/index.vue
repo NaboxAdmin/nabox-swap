@@ -436,7 +436,8 @@ export default {
       isToMultiChainRouter: false,
       uncompletedOrderList: [],
       selectChain: '',
-      showChainList: false
+      showChainList: false,
+      selectFlag: false
     };
   },
   computed: {
@@ -579,7 +580,7 @@ export default {
     },
     selectChain: {
       handler(newVal) {
-        if (newVal) {
+        if (newVal && this.selectFlag) {
           this.setSelectChainSwapAssetList(newVal);
         }
       },
@@ -612,6 +613,7 @@ export default {
   },
   methods: {
     selectChainClick(chainItem) {
+      this.selectFlag = true;
       this.selectChain = chainItem.chain;
       this.showChainList = false;
     },
@@ -763,7 +765,7 @@ export default {
           tokenAddress: this.chooseFromAsset.contractAddress,
           walletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
         };
-        this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params) || false;
+        this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params, timesDecimals(this.amountIn, this.chooseFromAsset.decimals)) || false;
       } else if (this.currentChannel.channel === 'OKX') {
         const params = {
           chainId: this.nativeId,
@@ -804,7 +806,9 @@ export default {
             tokenContractAddress: this.chooseFromAsset.contractAddress,
             approveAmount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals)
           };
-          const transactionData = await OKXChannel.getOKXApproveTransactionData(params);
+          const okx = new OKXChannel();
+          const transactionData = await okx.getOKXApproveTransactionData(params, this.fromAddress);
+          console.log(transactionData, 'transactionData')
           res = await transfer.sendTransaction({
             ...transactionData
           });
@@ -864,7 +868,7 @@ export default {
     },
 
     setGetAllowanceTimer() {
-      if (this.currentChannel.channel === '1inch') {
+      if (this.currentChannel.channel === '1inch' || this.currentChannel.channel === 'OKX') {
         this.getAllowanceTimer = setInterval(() => {
           this.checkInchAssetAuthStatus();
         }, 3000);
@@ -1118,7 +1122,7 @@ export default {
           tempToAsset = assetList.find(item => item.symbol === 'USDT') || assetList.find(item => item.symbol === 'USDC') || assetList[0] || null;
         }
         this._replaceBrowserHistory(this.chooseFromAsset, this.chooseToAsset);
-        await this.selectCoin({ coin: tempToAsset, type: 'receive' });
+        await this.selectCoin({ coin: tempToAsset, type: 'receive' }, true);
       } catch (e) {
         console.error(e, 'error');
       }
@@ -1259,8 +1263,12 @@ export default {
       localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
     },
     // 当前选择的币
-    async selectCoin({ coin, type }) {
-      this.showModal = false;
+    async selectCoin({ coin, type }, chainSelect) {
+      console.log(coin, type, chainSelect, 'coin')
+      if (!chainSelect) {
+        this.showModal = false;
+      }
+      this.selectFlag = !!chainSelect;
       this.showImportModal = false;
       switch (type) {
         case 'send':

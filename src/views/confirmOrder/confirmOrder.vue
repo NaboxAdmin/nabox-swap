@@ -276,7 +276,8 @@ export default {
             feePercent: 0.1
           };
           console.log(params, 'params');
-          const txRes = await OKXChannel.sendOKXTransaction(params, fromAsset);
+          const oxk = new OKXChannel();
+          const txRes = await oxk.sendOKXTransaction(params, fromAsset);
           if (txRes && txRes.hash) {
             this.formatArrayLength(this.fromNetwork, { type: 'L1', userAddress: this.fromAddress, chain: this.fromNetwork, txHash: txRes.hash, status: 0, createTime: this.formatTime(+new Date(), false), createTimes: +new Date() });
             this.$message({
