@@ -1627,7 +1627,6 @@ export default {
             }
             return null;
           } else if (item.channel === '1inch' && this.chainType === 2) {
-            console.log('11111111111111111111111111')
             currentConfig = await this.get1inchSwapRoute();
             if (currentConfig) {
               return {
@@ -1647,7 +1646,6 @@ export default {
             return null;
           } else if (item.channel === 'OKX' && this.chainType === 2) {
             currentConfig = await this.getOKXSwapRoute();
-            console.log(currentConfig, 'currentConfig');
             if (currentConfig) {
               return {
                 icon: item.icon,
