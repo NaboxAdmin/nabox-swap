@@ -1,7 +1,7 @@
-import {sendRequest} from '@/network/cancelRequest';
-import {Division, divisionDecimals, Minus} from '@/api/util';
-import {ethers} from "ethers";
-import {ETransfer} from "@/api/api";
+import { sendRequest } from '@/network/cancelRequest';
+import { Division, divisionDecimals, Minus } from '@/api/util';
+import { ethers } from 'ethers';
+import { ETransfer } from '@/api/api';
 
 const OKXBaseUrl = 'https://www.okx.com';
 
@@ -93,7 +93,7 @@ export default class OKXChannel {
           from: tx.from,
           to: tx.to,
           data: tx.data,
-          value: ethers.utils.parseEther(divisionDecimals(tx.value, fromAsset && fromAsset.decimals || 18)).toHexString()
+          value: ethers.utils.parseEther(divisionDecimals(tx.value || 0, fromAsset && fromAsset.decimals || 18)).toHexString()
         });
         const transfer = new ETransfer();
         return await transfer.sendTransaction(txData);

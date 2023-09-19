@@ -51,7 +51,7 @@ axios.interceptors.response.use(
   (error) => {
     removePendingRequest(error.config || {}); // 从pendingRequest对象中移除请求
     if (axios.isCancel(error)) {
-      console.log('已取消的重复请求：' + error.message);
+      console.log('cancel request：' + error.message);
     } else {
       // 添加异常处理
     }
@@ -69,14 +69,12 @@ function appendDataToURL(path, data) {
   return path + '?' + queryString;
 }
 
-
 export async function sendRequest(params) {
   const { url, method = 'post', data, customUrl, isDODO, isOKX = false, OKXApiKey = '99e1441f-b501-4f99-8a2b-95e7c5cb0878' } = params;
   const baseUrl = customUrl;
   if (isDODO) {
-    axios.defaults.headers.get['user-agent'] = 'DODO-Bey';
+    axios.defaults.headers.get['user-agent'] = 'DODO-nabox';
   }
-  console.log(isOKX, 'isOKX')
   if (isOKX) {
     axios.defaults.headers['OK-ACCESS-KEY'] = OKXApiKey || '';
     const currentTime = new Date();
@@ -86,13 +84,11 @@ export async function sendRequest(params) {
     axios.defaults.headers['OK-ACCESS-TIMESTAMP'] = utcTimeString || '';
     axios.defaults.headers['OK-ACCESS-SIGN'] = OKXSign || '';
     axios.defaults.headers['OK-ACCESS-PASSPHRASE'] = 'zhANG.18423208715' || '';
-    console.log(utcTimeString, 'utcTimeString');
   } else {
     delete axios.defaults.headers['OK-ACCESS-KEY'];
     delete axios.defaults.headers['OK-ACCESS-TIMESTAMP'];
     delete axios.defaults.headers['OK-ACCESS-SIGN'];
     delete axios.defaults.headers['OK-ACCESS-PASSPHRASE'];
-    console.log(axios.defaults.headers['OK-ACCESS-KEY'], 'axios.defaults.headers')
   }
   const newData = method === 'post' ? { data: { ...data }} : { params: { ...data }};
   return new Promise((resolve, reject) => {

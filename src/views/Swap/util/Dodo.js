@@ -1,6 +1,7 @@
 import { sendRequest } from '@/network/cancelRequest';
 import { ETransfer } from '@/api/api';
 import { ethers } from 'ethers';
+import { Division } from '@/api/util';
 
 export const apiKey = '8477c6932c9df6c5b8';
 const dodoBaseUrl = 'https://api.dodoex.io'; // https://route-api.dodoex.io/dodoapi(主网)
@@ -14,7 +15,7 @@ export default class Dodo {
     try {
       const res = await sendRequest({
         method: 'get',
-        url: '/route-service/developer/getdodoroute',
+        url: '/route-service/fee-route-widget/getdodoroute',
         data: params,
         customUrl: dodoBaseUrl,
         isDODO: true

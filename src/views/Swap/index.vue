@@ -9,7 +9,11 @@
         <div class="size-36 d-flex align-items-center space-between mb-3 pb-2 pt-2 b_E9EBF3">
           <span class="text-3a font-500">{{ $t('navBar.navBar5') }}{{ nerveChainAvailable }}</span>
           <span class="slippage-cont" @click="showSlippage=true">
-            <img src="@/assets/image/slippage.png" alt="">
+            <span class="size-28 text-wolun">{{ slippage }}%</span>
+            <span class="size-28 text-wolun ml-1 mr-1">{{ $t('swap.swap36') }}</span>
+            <span class="slippage-icon">
+              <img src="@/assets/image/slippage.png" alt="">
+            </span>
           </span>
         </div>
         <div class="d-flex align-items-center space-between text-90 size-28">
@@ -296,10 +300,27 @@
               <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
             </span>
           </div>
-          <div style="line-height: 24px" class="mt-4">{{ $t('tips.tips63') }}</div>
+          <div style="line-height: 1.5" class="mt-4">{{ $t('tips.tips63') }}</div>
           <div class="pop-btn d-flex align-items-center space-between mt-4">
             <div class="btn-pop cursor-pointer" @click="cancelClick">{{ $t("vaults.vaults7") }}</div>
             <div class="btn-pop btn_pop_active cursor-pointer" @click="switchPlugin">{{ $t("tips.tips64") }}</div>
+          </div>
+        </div>
+      </div>
+    </pop-modal>
+    <pop-modal :prevent-boo="false" :show.sync="showConfirmTips">
+      <div class="address-detail_pop">
+        <div class="customer-p4">
+          <div class="icon_pop-cont d-flex space-between">
+            <div class="font-500">{{ $t('tips.tips62') }}</div>
+            <span class="cursor-pointer" @click="showConfirmTips=false">
+              <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
+            </span>
+          </div>
+          <div style="line-height:1.5" class="mt-4">{{ $t('tips.tips78') }}</div>
+          <div class="pop-btn d-flex align-items-center space-between mt-4">
+            <div class="btn-pop cursor-pointer" @click="showConfirmTips=false">{{ $t("vaults.vaults7") }}</div>
+            <div class="btn-pop btn_pop_active cursor-pointer" @click="confirmSwap">{{ $t("tips.tips64") }}</div>
           </div>
         </div>
       </div>
@@ -325,7 +346,7 @@ import {
   timesDecimals,
   tofix,
   TRON,
-  MAIN_EVM_ADDRESS
+  MAIN_EVM_ADDRESS, REFERRER
 } from '@/api/util';
 import { crossFee, ETransfer, validateAddress } from '@/api/api';
 import {
@@ -398,6 +419,7 @@ export default {
       showApproveLoading: false,
       approvingLoading: false,
       slippage: localStorage.getItem('slippage') || 2, // 滑点
+      oldSlippage: localStorage.getItem('slippage') || 2, // 滑点
       fromAssetDex: null,
       toAssetDex: null,
       limitMin: '', // 最小限制
@@ -429,6 +451,7 @@ export default {
       showImportModal: false,
       importAssetInfo: {},
       showTips: false,
+      showConfirmTips: false,
       switchFlag: false,
       isBridge: false,
       tokenPath: [],
@@ -437,7 +460,8 @@ export default {
       uncompletedOrderList: [],
       selectChain: '',
       showChainList: false,
-      selectFlag: false
+      selectFlag: false,
+      swapFlag: false
     };
   },
   computed: {
@@ -651,6 +675,10 @@ export default {
     async closeModal() {
       if (this.slippageMsg) return;
       this.showSlippage = false;
+      if (this.oldSlippage !== this.slippage) {
+        this.oldSlippage = this.slippage;
+        await this.amountInInput();
+      }
     },
     async getNerveSwapPairTrade() {
       const config = JSON.parse(sessionStorage.getItem('config'));
@@ -703,10 +731,12 @@ export default {
     },
     // 滑点设置
     slippageInput() {
-      if (this.slippage && this.slippage > 0 && Minus(this.slippage, 100) < 0) {
+      if (this.slippage && this.slippage > 0 && Minus(50, this.slippage) > 0) {
         this.slippageMsg = '';
         this.currentIndex = this.slippageList.indexOf(this.slippage);
         localStorage.setItem('slippage', this.slippage);
+      } else if (this.slippage && !(Minus(50, this.slippage) > 0)) {
+        this.slippageMsg = this.$t('tips.tips77');
       } else {
         this.slippageMsg = this.$t('tips.tips31');
       }
@@ -994,9 +1024,19 @@ export default {
              fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && toAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) || isStableLpInfo ||
              false;
     },
+    confirmSwap() {
+      this.swapFlag = true;
+      this.showConfirmTips = false;
+      this.nextStep();
+      this.swapFlag = false;
+    },
     // 下一步
     nextStep() {
       if (!this.canNext) return false;
+      if (!this.swapFlag && (Minus(this.slippage, 10) > 0 || Minus(this.slippage, 10) == 0)) {
+        this.showConfirmTips = true;
+        return false;
+      }
       const {
         currentChannel,
         chooseFromAsset,
@@ -1068,6 +1108,7 @@ export default {
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
+      this.swapFlag = false;
       this.$store.commit('changeSwap', false);
     },
     // 获取nerve限额信息
@@ -1437,7 +1478,6 @@ export default {
         }
         return channel.swap === true && channel.status === 1; //  && channel.channel === 'DODO'
       });
-      console.log(this.channelConfigList, 'this.channelConfigList')
     },
     // 查看当前nerve通道流动性
     checkLpBalance() {
@@ -1614,6 +1654,8 @@ export default {
                 amount: this.amountIn,
                 channel: item.channel,
                 originalChannel: item.channel,
+                swapFee: currentConfig.additionalFeeAmount || '',
+                feeSymbol: this.chooseToAsset && this.chooseToAsset.symbol,
                 amountOut: currentConfig.resAmount,
                 minReceive: tofix(Times(currentConfig.resAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
                 impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
@@ -1931,12 +1973,11 @@ export default {
         fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         fromTokenDecimals: this.chooseFromAsset.decimals || 18,
         toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        toTokenDecimals: this.chooseToAsset.decimals || 18,
+        // toTokenDecimals: this.chooseToAsset.decimals || 18,
         slippage: this.slippage,
         userAddr: this.fromAddress,
-        // rebateTo: REFERRER,
-        // fee: '1000000000000000',
-        // source: 'NABOX',
+        rebateTo: REFERRER,
+        fee: '1000000000000000',
         rpc // 当前的rpc地址
       };
       const dodo = new Dodo();

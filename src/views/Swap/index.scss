@@ -360,11 +360,19 @@
 }
 
 .slippage-cont {
-  height: 40px;
-  width: 40px;
-  img {
-    height: 100%;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  background-color: #fbedc8;
+  .slippage-icon {
+    height: 40px;
+    width: 40px;
+    img {
+      height: 100%;
+      width: 100%;
+    }
   }
 }
 

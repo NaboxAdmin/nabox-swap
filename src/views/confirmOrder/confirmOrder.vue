@@ -64,7 +64,7 @@
             <span v-else-if="orderInfo && orderInfo.currentChannel.dex === 'Bridgers' || orderInfo.currentChannel.dex === 'Aggregator'" class="text-3a">{{ orderInfo && orderInfo.currentChannel.swapFee }}{{ orderInfo && orderInfo.fromAsset.symbol }}</span>
             <span v-else class="ml-4 text-3a">
               <span>{{ (orderInfo.currentChannel.swapFee || '0') | numberFormat }}</span>
-              <span>{{ orderInfo && orderInfo.fromAsset.symbol || 'USDT' }}</span>
+              <span>{{ orderInfo && (orderInfo.currentChannel.feeSymbol || orderInfo.fromAsset.symbol || 'USDT') }}</span>
             </span>
           </div>
         </div>
@@ -275,7 +275,6 @@ export default {
             referrerAddress: '0xDDE4259700E27872e6A631B5361243139f5dB7b8',
             feePercent: 0.1
           };
-          console.log(params, 'params');
           const oxk = new OKXChannel();
           const txRes = await oxk.sendOKXTransaction(params, fromAsset);
           if (txRes && txRes.hash) {

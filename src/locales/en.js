@@ -30,7 +30,7 @@ const en = {
     tips28: 'You can unlock your Nabox by staking NABOX-BUSD LP and you can check the unlocking speed of different amounts of LP through the calculator',
     tips29: 'Audit by',
     tips30: 'Harvest',
-    tips31: 'Please enter a number greater than 0 and less than 100',
+    tips31: 'Please enter a number greater than 0 and less than 50',
     tips32: 'Transaction',
     tips33: 'Cross-chain',
     tips34: 'Order timed out, please re-create order',
@@ -75,7 +75,9 @@ const en = {
     tips73: 'I understand the risks',
     tips74: 'Added by user',
     tips75: 'Switch to ',
-    tips76: ' for trade'
+    tips76: ' for trade',
+    tips77: 'The maximum slippage cannot exceed 50.',
+    tips78: 'Slippage protection exceeds 10%, do you confirm the redemption?'
   },
   swap: {
     swap1: 'From',
@@ -134,6 +136,7 @@ const en = {
     swap54: 'Paste',
     swap55: 'Click to query hash',
     swap56: 'Enter transaction hash',
+    swap57: 'slippage'
   },
   transfer: {
     transfer1: 'From',
