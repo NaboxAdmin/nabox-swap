@@ -730,7 +730,7 @@ export default {
     },
     // 滑点设置
     slippageInput() {
-      if (this.slippage && this.slippage > 0 && Minus(50, this.slippage) > 0) {
+      if (this.slippage && this.slippage > 0 && (Minus(this.slippage, 50) < 0 || Minus(this.slippage, 50) == 0)) {
         this.slippageMsg = '';
         this.currentIndex = this.slippageList.indexOf(this.slippage);
         localStorage.setItem('slippage', this.slippage);

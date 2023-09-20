@@ -76,7 +76,7 @@ const en = {
     tips74: 'Added by user',
     tips75: 'Switch to ',
     tips76: ' for trade',
-    tips77: 'The maximum slippage cannot exceed 50.',
+    tips77: 'The maximum slippage cannot exceed 50%.',
     tips78: 'Slippage protection exceeds 10%, do you confirm the redemption?'
   },
   swap: {
