@@ -16,6 +16,7 @@
     "bignumber.js": "^8.1.1",
     "compression-webpack-plugin": "^3.0.0",
     "copy-to-clipboard": "^3.1.0",
+    "crypto-js": "^4.1.1",
     "element-ui": "^2.4.5",
     "eth-multicall": "^1.4.0",
     "eth-sig-util": "^3.0.1",

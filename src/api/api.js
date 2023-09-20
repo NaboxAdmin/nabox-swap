@@ -933,7 +933,7 @@ export class ETransfer {
   getGasLimit(tx) {
     return this.provider.estimateGas(tx).then(gasLimit => {
       // const tempGasLimit = Times(gasLimit.toString(), 1.5).toString();
-      return gasLimit.mul(15).div(10);
+      return gasLimit.mul(12).div(10);
     });
   }
 

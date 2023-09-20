@@ -46,18 +46,22 @@ export default class Inch {
    * @param params.walletAddress { string } 需要查询授权的用户地址
    * @returns {Promise<boolean>}
    */
-  async get1inchAssetAllowance(params) {
-    const res = await sendRequest({
-      method: 'get',
-      url: '/approve/allowance',
-      data: params,
-      customUrl: `${inchBaseUrl}${this.nativeId}`
-    });
-    const baseAllowance = '10';
-    if (res && res.allowance) {
-      return Minus(res.allowance, baseAllowance) < 0;
+  async get1inchAssetAllowance(params, baseAllowance = '10') {
+    try {
+      const res = await sendRequest({
+        method: 'get',
+        url: '/approve/allowance',
+        data: params,
+        customUrl: `${inchBaseUrl}${this.nativeId}`
+      });
+      // const baseAllowance = '10';
+      if (res && res.allowance) {
+        return Minus(res.allowance, baseAllowance) < 0;
+      }
+      return true;
+    } catch (e) {
+      return true;
     }
-    return true;
   }
   /**
    * @desc 获取授权数据，发送授权交易

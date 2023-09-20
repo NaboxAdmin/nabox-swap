@@ -39,6 +39,15 @@ export async function request(params) {
   if (isTRON && !isBeta) {
     axios.defaults.headers.post['TRON-PRO-API-KEY'] = apiKey || '29bb955e-81b8-450d-ab45-1e0f641f19e0';
   }
+  if (axios.defaults.headers['OK-ACCESS-TIMESTAMP']) {
+    delete axios.defaults.headers['OK-ACCESS-KEY'];
+    delete axios.defaults.headers['OK-ACCESS-TIMESTAMP'];
+    delete axios.defaults.headers['OK-ACCESS-SIGN'];
+    delete axios.defaults.headers['OK-ACCESS-PASSPHRASE'];
+  }
+  if (axios.defaults.headers.get['user-agent']) {
+    delete axios.defaults.headers.get['user-agent'];
+  }
   return new Promise((resolve, reject) => {
     axios({ url: baseUrl + url, method: method, ...newData }).then(
       response => {

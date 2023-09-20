@@ -390,7 +390,7 @@ export default {
           const tempChainId = chainId.toString().startWith('0x') ? chainId : `0x${Number(chainId).toString(16)}`;
           const tempSupportChainList = supportChainList.length === 0 && sessionStorage.getItem('supportChainList') && JSON.parse(sessionStorage.getItem('supportChainList')) || supportChainList;
           const chain = tempSupportChainList.find(v => v[ETHNET] === tempChainId);
-          this.$store.commit('changeNetwork', chain && chain.value || 'NERVE');
+          this.$store.commit('changeNetwork', chain && chain.chain || 'NERVE');
           window.location.reload();
         }
       });

@@ -9,7 +9,11 @@
         <div class="size-36 d-flex align-items-center space-between mb-3 pb-2 pt-2 b_E9EBF3">
           <span class="text-3a font-500">{{ $t('navBar.navBar5') }}{{ nerveChainAvailable }}</span>
           <span class="slippage-cont" @click="showSlippage=true">
-            <img src="@/assets/image/slippage.png" alt="">
+            <span class="size-28 text-wolun">{{ slippage }}%</span>
+            <span class="size-28 text-wolun ml-1 mr-1">{{ $t('swap.swap36') }}</span>
+            <span class="slippage-icon">
+              <img src="@/assets/image/slippage.png" alt="">
+            </span>
           </span>
         </div>
         <div class="d-flex align-items-center space-between text-90 size-28">
@@ -85,7 +89,7 @@
               <span class="chain-icon mr-2">
                 <img :src="item.icon" alt="" @error="pictureError">
               </span>
-              {{ item.chainName }}
+              {{ item.chain }}
             </span>
           </div>
         </div>
@@ -296,10 +300,27 @@
               <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
             </span>
           </div>
-          <div style="line-height: 24px" class="mt-4">{{ $t('tips.tips63') }}</div>
+          <div style="line-height: 1.5" class="mt-4">{{ $t('tips.tips63') }}</div>
           <div class="pop-btn d-flex align-items-center space-between mt-4">
             <div class="btn-pop cursor-pointer" @click="cancelClick">{{ $t("vaults.vaults7") }}</div>
             <div class="btn-pop btn_pop_active cursor-pointer" @click="switchPlugin">{{ $t("tips.tips64") }}</div>
+          </div>
+        </div>
+      </div>
+    </pop-modal>
+    <pop-modal :prevent-boo="false" :show.sync="showConfirmTips">
+      <div class="address-detail_pop">
+        <div class="customer-p4">
+          <div class="icon_pop-cont d-flex space-between">
+            <div class="font-500">{{ $t('tips.tips62') }}</div>
+            <span class="cursor-pointer" @click="showConfirmTips=false">
+              <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
+            </span>
+          </div>
+          <div style="line-height:1.5" class="mt-4">{{ $t('tips.tips78') }}</div>
+          <div class="pop-btn d-flex align-items-center space-between mt-4">
+            <div class="btn-pop cursor-pointer" @click="showConfirmTips=false">{{ $t("vaults.vaults7") }}</div>
+            <div class="btn-pop btn_pop_active cursor-pointer" @click="confirmSwap">{{ $t("tips.tips64") }}</div>
           </div>
         </div>
       </div>
@@ -325,7 +346,7 @@ import {
   timesDecimals,
   tofix,
   TRON,
-  MAIN_EVM_ADDRESS
+  MAIN_EVM_ADDRESS, REFERRER
 } from '@/api/util';
 import { crossFee, ETransfer, validateAddress } from '@/api/api';
 import {
@@ -343,8 +364,8 @@ import TronLink from '@/api/tronLink';
 import { validateNerveAddress } from '@/api/api';
 import { getEquipmentNo, getMultiQuote } from '@/views/Swap/util/MetaPath';
 import Inch from './util/1inch';
+import OKXChannel from '@/views/Swap/util/OKX';
 
-const ethers = require('ethers');
 const nerve = require('nerve-sdk-js');
 // 测试环境
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -397,6 +418,7 @@ export default {
       showApproveLoading: false,
       approvingLoading: false,
       slippage: localStorage.getItem('slippage') || 2, // 滑点
+      oldSlippage: localStorage.getItem('slippage') || 2, // 滑点
       fromAssetDex: null,
       toAssetDex: null,
       limitMin: '', // 最小限制
@@ -428,6 +450,7 @@ export default {
       showImportModal: false,
       importAssetInfo: {},
       showTips: false,
+      showConfirmTips: false,
       switchFlag: false,
       isBridge: false,
       tokenPath: [],
@@ -435,7 +458,9 @@ export default {
       isToMultiChainRouter: false,
       uncompletedOrderList: [],
       selectChain: '',
-      showChainList: false
+      showChainList: false,
+      selectFlag: false,
+      swapFlag: false
     };
   },
   computed: {
@@ -469,6 +494,7 @@ export default {
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         icon: chain.icon,
         chainName: chain.value,
+        chain: chain.chain,
         nativeCurrency: {
           name: chain.value,
           symbol: chain.symbol,
@@ -551,7 +577,7 @@ export default {
             this.limitMin = newVal.limitMin || 0.001;
             this.limitMax = newVal.limitMax || 1000000;
             await this.checkAssetAuthStatus();
-          } else if (newVal.channel === '1inch') {
+          } else if (newVal.channel === '1inch' || newVal.channel === 'OKX') {
             await this.checkInchAssetAuthStatus();
           }
           if (newVal.impact > 20) {
@@ -577,7 +603,7 @@ export default {
     },
     selectChain: {
       handler(newVal) {
-        if (newVal) {
+        if (newVal && this.selectFlag) {
           this.setSelectChainSwapAssetList(newVal);
         }
       },
@@ -610,7 +636,8 @@ export default {
   },
   methods: {
     selectChainClick(chainItem) {
-      this.selectChain = chainItem.chainName;
+      this.selectFlag = true;
+      this.selectChain = chainItem.chain;
       this.showChainList = false;
     },
     async checkOrderList() {
@@ -647,6 +674,10 @@ export default {
     async closeModal() {
       if (this.slippageMsg) return;
       this.showSlippage = false;
+      if (this.oldSlippage !== this.slippage) {
+        this.oldSlippage = this.slippage;
+        await this.amountInInput();
+      }
     },
     async getNerveSwapPairTrade() {
       const config = JSON.parse(sessionStorage.getItem('config'));
@@ -661,7 +692,7 @@ export default {
     addressInput() {
       if (this.chooseToAsset && this.toAddress) {
         if (this.chooseToAsset.chain === 'NULS' && !validateNerveAddress(this.toAddress, 'NULS')) {
-          console.log('12312222', this.toAddress)
+          console.log('12312222', this.toAddress);
           this.addressError = this.$t('tips.tips59');
         } else if (this.chooseToAsset.chain === 'NERVE' && !validateNerveAddress(this.toAddress, 'NERVE')) {
           this.addressError = this.$t('tips.tips59');
@@ -699,10 +730,12 @@ export default {
     },
     // 滑点设置
     slippageInput() {
-      if (this.slippage && this.slippage > 0 && Minus(this.slippage, 100) < 0) {
+      if (this.slippage && this.slippage > 0 && (Minus(this.slippage, 50) < 0 || Minus(this.slippage, 50) == 0)) {
         this.slippageMsg = '';
         this.currentIndex = this.slippageList.indexOf(this.slippage);
         localStorage.setItem('slippage', this.slippage);
+      } else if (this.slippage && !(Minus(50, this.slippage) > 0)) {
+        this.slippageMsg = this.$t('tips.tips77');
       } else {
         this.slippageMsg = this.$t('tips.tips31');
       }
@@ -713,6 +746,7 @@ export default {
     slippageClick(item, index) {
       this.currentIndex = index;
       this.slippage = item;
+      this.slippageMsg = '';
       localStorage.setItem('slippage', this.slippage);
     },
     // 查询异构链token资产授权情况
@@ -756,11 +790,20 @@ export default {
     },
     // 获取Inch资产授权
     async checkInchAssetAuthStatus() {
-      const params = {
-        tokenAddress: this.chooseFromAsset.contractAddress,
-        walletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
-      };
-      this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params) || false;
+      if (this.currentChannel.channel === '1inch') {
+        const params = {
+          tokenAddress: this.chooseFromAsset.contractAddress,
+          walletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
+        };
+        this.needAuth = this.chooseFromAsset.contractAddress && await this.inch.get1inchAssetAllowance(params, timesDecimals(this.amountIn, this.chooseFromAsset.decimals)) || false;
+      } else if (this.currentChannel.channel === 'OKX') {
+        const params = {
+          chainId: this.nativeId,
+          tokenContractAddress: this.chooseFromAsset.contractAddress,
+          userWalletAddress: this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]
+        };
+        this.needAuth = this.chooseFromAsset.contractAddress && await OKXChannel.getOKXAssetAllowance(params, timesDecimals(this.amountIn, this.chooseFromAsset.decimals)) || false;
+      }
       await this.checkChannelLimitInfo();
       if (this.inputType === 'amountIn') {
         this.amountOut = this.currentChannel.amountOut < 0 ? '' : this.numberFormat(tofix(this.currentChannel.amountOut || 0, this.chooseToAsset.decimals || 6, -1), this.chooseToAsset.decimals || 6);
@@ -783,6 +826,19 @@ export default {
             tokenAddress: this.chooseFromAsset.contractAddress
           };
           const transactionData = await this.inch.get1inchApproveTransactionData(params);
+          res = await transfer.sendTransaction({
+            ...transactionData
+          });
+        } else if (this.currentChannel.channel === 'OKX') {
+          transfer = new ETransfer();
+          const params = {
+            chainId: this.nativeId,
+            tokenContractAddress: this.chooseFromAsset.contractAddress,
+            approveAmount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals)
+          };
+          const okx = new OKXChannel();
+          const transactionData = await okx.getOKXApproveTransactionData(params, this.fromAddress);
+          console.log(transactionData, 'transactionData');
           res = await transfer.sendTransaction({
             ...transactionData
           });
@@ -842,7 +898,7 @@ export default {
     },
 
     setGetAllowanceTimer() {
-      if (this.currentChannel.channel === '1inch') {
+      if (this.currentChannel.channel === '1inch' || this.currentChannel.channel === 'OKX') {
         this.getAllowanceTimer = setInterval(() => {
           this.checkInchAssetAuthStatus();
         }, 3000);
@@ -968,9 +1024,19 @@ export default {
              fromAsset.channelInfo && toAsset.channelInfo && fromAsset.channelInfo['NERVE'] && toAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress && toAsset.channelInfo['NERVE'].pairAddress && (fromAsset.channelInfo['NERVE'].pairAddress === toAsset.channelInfo['NERVE'].pairAddress) || isStableLpInfo ||
              false;
     },
+    confirmSwap() {
+      this.swapFlag = true;
+      this.showConfirmTips = false;
+      this.nextStep();
+      this.swapFlag = false;
+    },
     // 下一步
     nextStep() {
       if (!this.canNext) return false;
+      if (!this.swapFlag && (Minus(this.slippage, 10) > 0 || Minus(this.slippage, 10) == 0)) {
+        this.showConfirmTips = true;
+        return false;
+      }
       const {
         currentChannel,
         chooseFromAsset,
@@ -1042,6 +1108,7 @@ export default {
       };
       window.sessionStorage.setItem('swapInfo', JSON.stringify(tempParams));
       this.showOrderDetail = true;
+      this.swapFlag = false;
       this.$store.commit('changeSwap', false);
     },
     // 获取nerve限额信息
@@ -1096,7 +1163,7 @@ export default {
           tempToAsset = assetList.find(item => item.symbol === 'USDT') || assetList.find(item => item.symbol === 'USDC') || assetList[0] || null;
         }
         this._replaceBrowserHistory(this.chooseFromAsset, this.chooseToAsset);
-        await this.selectCoin({ coin: tempToAsset, type: 'receive' });
+        await this.selectCoin({ coin: tempToAsset, type: 'receive' }, true);
       } catch (e) {
         console.error(e, 'error');
       }
@@ -1191,7 +1258,7 @@ export default {
             this.showTips = true;
             return;
           }
-          this.$store.commit('changeNetwork', tempChain.chainName);
+          this.$store.commit('changeNetwork', chain.chain);
           this.$emit('changeChainId', tempChain.chainName === 'NERVE' && '0x-2' || '0x-1');
           window.location.reload();
         } else if (tempChain.chainType === 2) {
@@ -1201,6 +1268,7 @@ export default {
           }
           delete tempChain['icon'];
           delete tempChain['chainType'];
+          delete tempChain['chain'];
           if (tempChain.chainName !== 'Ethereum') {
             window[walletType] && await window[walletType].request({
               method: 'wallet_addEthereumChain',
@@ -1236,8 +1304,12 @@ export default {
       localStorage.setItem('localSwapAssetMap', JSON.stringify(localSwapAssetMap));
     },
     // 当前选择的币
-    async selectCoin({ coin, type }) {
-      this.showModal = false;
+    async selectCoin({ coin, type }, chainSelect) {
+      console.log(coin, type, chainSelect, 'coin');
+      if (!chainSelect) {
+        this.showModal = false;
+      }
+      this.selectFlag = !!chainSelect;
       this.showImportModal = false;
       switch (type) {
         case 'send':
@@ -1435,20 +1507,7 @@ export default {
     // 根据不同通道查询当前的限额
     async checkChannelLimitInfo() {
       if (this.stableSwap) {
-        if (this.currentChannel.channel === 'iSwap') {
-          const limitAssetInfo = this.bridgeLimitInfo.find(item => this.chooseFromAsset.symbol === item.symbol);
-          const currentLimitMax = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.biggerMax || limitAssetInfo.normalMax) : limitAssetInfo.normalMax;
-          const currentLimitMin = this.chooseFromAsset.symbol === (limitAssetInfo.symbol || 'USDT') ? (limitAssetInfo && limitAssetInfo.normalMin || limitAssetInfo.normalMin) : limitAssetInfo.normalMin;
-          if (Minus(this.amountIn, currentLimitMin) < 0) {
-            this.amountMsg = `${this.$t('tips.tips3')}${currentLimitMin}${this.chooseFromAsset.symbol}`;
-            this.showComputedLoading = false;
-          } else if (Minus(this.amountIn, currentLimitMax) > 0) {
-            this.amountMsg = `${this.$t('tips.tips4')}${currentLimitMax}${this.chooseFromAsset.symbol}`;
-            this.showComputedLoading = false;
-          } else {
-            await this.checkBalance();
-          }
-        } else if (this.currentChannel.channel === 'NERVE' && this.nerveChainStableSwap) {
+        if (this.currentChannel.channel === 'NERVE' && this.nerveChainStableSwap) {
           await this.checkBalance();
         } else if (this.currentChannel.channel === 'NERVE') {
           if (Minus(this.amountIn, 0.001) < 0) {
@@ -1587,7 +1646,7 @@ export default {
         console.log(this.channelConfigList, this.stableSwap, '==channelConfigList==');
         const tempChannelConfig = await Promise.allSettled(this.channelConfigList.map(async item => {
           let currentConfig = {};
-          if (item.channel === 'DODO' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
+          if (item.channel === 'DODO' && this.chainType === 2) {
             currentConfig = await this.getDodoSwapRoute();
             if (currentConfig) {
               return {
@@ -1595,6 +1654,8 @@ export default {
                 amount: this.amountIn,
                 channel: item.channel,
                 originalChannel: item.channel,
+                swapFee: currentConfig.additionalFeeAmount || '',
+                feeSymbol: this.chooseToAsset && this.chooseToAsset.symbol,
                 amountOut: currentConfig.resAmount,
                 minReceive: tofix(Times(currentConfig.resAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
                 impact: this.numberFormat(tofix(currentConfig.priceImpact, 4, -1) || 0, 4),
@@ -1607,7 +1668,7 @@ export default {
               };
             }
             return null;
-          } else if (item.channel === '1inch' && this.fromNetwork !== 'NERVE' && this.fromNetwork !== 'NULS') {
+          } else if (item.channel === '1inch' && this.chainType === 2) {
             currentConfig = await this.get1inchSwapRoute();
             if (currentConfig) {
               return {
@@ -1625,6 +1686,23 @@ export default {
               };
             }
             return null;
+          } else if (item.channel === 'OKX' && this.chainType === 2) {
+            currentConfig = await this.getOKXSwapRoute();
+            if (currentConfig) {
+              return {
+                icon: item.icon,
+                amount: this.amountIn,
+                channel: item.channel,
+                originalChannel: item.channel,
+                amountOut: currentConfig.toAmount,
+                minReceive: tofix(Times(currentConfig.toAmount, Division(Minus(100, !this.slippageMsg && this.slippage || '2'), 100)), this.chooseToAsset.decimals, -1),
+                isBest: false,
+                isCurrent: false,
+                swapRate: this.computedSwapRate(false, this.amountIn, currentConfig.toAmount),
+                swapFee: Times(this.amountIn, 0.001),
+                feeSymbol: this.chooseFromAsset.symbol
+              };
+            }
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap && this.chooseToAsset.chain === 'NERVE') {
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
@@ -1895,12 +1973,11 @@ export default {
         fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         fromTokenDecimals: this.chooseFromAsset.decimals || 18,
         toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        toTokenDecimals: this.chooseToAsset.decimals || 18,
+        // toTokenDecimals: this.chooseToAsset.decimals || 18,
         slippage: this.slippage,
         userAddr: this.fromAddress,
-        // rebateTo: REFERRER,
-        // fee: '1000000000000000',
-        // source: 'NABOX',
+        rebateTo: REFERRER,
+        fee: '1000000000000000',
         rpc // 当前的rpc地址
       };
       const dodo = new Dodo();
@@ -1915,6 +1992,16 @@ export default {
         fee: 0.1
       };
       return this.inch.get1inchRouteQuote(params);
+    },
+    async getOKXSwapRoute() {
+      const params = {
+        fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        amount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals || 0),
+        fee: 0.1,
+        chainId: this.nativeId
+      };
+      return await OKXChannel.getOKXChannelQuote(params, this.chooseToAsset.decimals);
     },
     // 获取nerve通道上面
     async getNerveSwapRoute() {
