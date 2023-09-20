@@ -75,6 +75,9 @@ export async function sendRequest(params) {
   if (isDODO) {
     axios.defaults.headers.get['user-agent'] = 'DODO-nabox';
   }
+  if (!isDODO) {
+    delete axios.defaults.headers.get['user-agent'];
+  }
   if (isOKX) {
     axios.defaults.headers['OK-ACCESS-KEY'] = OKXApiKey || '';
     const currentTime = new Date();

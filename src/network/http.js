@@ -45,6 +45,9 @@ export async function request(params) {
     delete axios.defaults.headers['OK-ACCESS-SIGN'];
     delete axios.defaults.headers['OK-ACCESS-PASSPHRASE'];
   }
+  if (axios.defaults.headers.get['user-agent']) {
+    delete axios.defaults.headers.get['user-agent'];
+  }
   return new Promise((resolve, reject) => {
     axios({ url: baseUrl + url, method: method, ...newData }).then(
       response => {

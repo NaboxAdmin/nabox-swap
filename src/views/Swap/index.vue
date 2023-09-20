@@ -364,9 +364,8 @@ import TronLink from '@/api/tronLink';
 import { validateNerveAddress } from '@/api/api';
 import { getEquipmentNo, getMultiQuote } from '@/views/Swap/util/MetaPath';
 import Inch from './util/1inch';
-import OKXChannel from "@/views/Swap/util/OKX";
+import OKXChannel from '@/views/Swap/util/OKX';
 
-const ethers = require('ethers');
 const nerve = require('nerve-sdk-js');
 // 测试环境
 currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
@@ -693,7 +692,7 @@ export default {
     addressInput() {
       if (this.chooseToAsset && this.toAddress) {
         if (this.chooseToAsset.chain === 'NULS' && !validateNerveAddress(this.toAddress, 'NULS')) {
-          console.log('12312222', this.toAddress)
+          console.log('12312222', this.toAddress);
           this.addressError = this.$t('tips.tips59');
         } else if (this.chooseToAsset.chain === 'NERVE' && !validateNerveAddress(this.toAddress, 'NERVE')) {
           this.addressError = this.$t('tips.tips59');
@@ -747,6 +746,7 @@ export default {
     slippageClick(item, index) {
       this.currentIndex = index;
       this.slippage = item;
+      this.slippageMsg = '';
       localStorage.setItem('slippage', this.slippage);
     },
     // 查询异构链token资产授权情况
@@ -838,7 +838,7 @@ export default {
           };
           const okx = new OKXChannel();
           const transactionData = await okx.getOKXApproveTransactionData(params, this.fromAddress);
-          console.log(transactionData, 'transactionData')
+          console.log(transactionData, 'transactionData');
           res = await transfer.sendTransaction({
             ...transactionData
           });
@@ -1305,7 +1305,7 @@ export default {
     },
     // 当前选择的币
     async selectCoin({ coin, type }, chainSelect) {
-      console.log(coin, type, chainSelect, 'coin')
+      console.log(coin, type, chainSelect, 'coin');
       if (!chainSelect) {
         this.showModal = false;
       }

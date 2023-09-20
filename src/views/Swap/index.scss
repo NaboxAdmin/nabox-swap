@@ -529,15 +529,15 @@
   z-index: 999;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   height: 520px;
-  overflow: auto;
+  overflow-y: scroll;
   .active_chain {
     color: #54b9aa;
   }
   &::-webkit-scrollbar {
     background-color: rgba(27,27,27,.4);
     border-radius: 20px;
-    width: 6px; // y轴滚动条宽度
-    height: 6px; // x轴滚动条高度
+    width: 6px !important; // y轴滚动条宽度
+    height: 6px !important; // x轴滚动条高度
   }
 
   &::-webkit-scrollbar-thumb {
