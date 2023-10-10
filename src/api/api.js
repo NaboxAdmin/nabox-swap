@@ -888,7 +888,7 @@ export class ETransfer {
     return allowancePromise
       .then(allowance => {
         console.log(allowance.toString(), Minus(currentAmount || 0, allowance) >= 0, '==allowance==');
-        return Minus(currentAmount || 0, allowance) > 0 || Minus(currentAmount || 0, allowance) === 0;
+        return Minus(currentAmount || 0, allowance || 0) > 0;
       })
       .catch(e => {
         console.error('获取erc20资产授权额度失败' + e);
