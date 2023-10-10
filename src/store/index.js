@@ -18,7 +18,7 @@ export default new Vuex.Store({
     showWalletList: false,
     wrongNetwork: false,
     showOrderModal: false,
-    orderTypeIndex: 2
+    orderTypeIndex: 1
   },
   mutations: {
     changeNativeId(state, data) {

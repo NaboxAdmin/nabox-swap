@@ -11,7 +11,7 @@
   transition: all .2s linear;
   visibility: hidden;
   opacity: 0;
-  z-index: 99;
+  z-index: 11199;
 }
 .show_pop {
   opacity: 1;
@@ -46,7 +46,7 @@
   margin-left: 43px;
   margin-top: 66px;
   .icon-cont {
-    margin-right: 22px;
+    margin-right: 12px;
     height: 31px;
     width: 33px;
     //transform: translateY(-5px);

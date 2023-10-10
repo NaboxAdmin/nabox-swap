@@ -3,7 +3,10 @@ import { divisionDecimals, Minus } from '@/api/util';
 import { ethers } from 'ethers';
 import { ETransfer } from '@/api/api';
 
-const inchBaseUrl = 'https://api-nabox.1inch.io/v5.0/'; // https://api-nabox.1inch.io/v5.0 https://api.1inch.io/v4.0/
+export const INCH_API_KEY = 'O8mncecXdkx2vDPV1P34JFK8V1vHDJ2u';
+
+// const inchBaseUrl = 'https://api-nabox.1inch.io/v5.0/'; // https://api-nabox.1inch.io/v5.0 https://api.1inch.io/v4.0/
+const inchBaseUrl = 'https://api.1inch.dev/swap/v5.2/'; // https://api-nabox.1inch.io/v5.0 https://api.1inch.io/v4.0/
 
 export default class Inch {
   constructor({ nativeId }) {
@@ -25,7 +28,8 @@ export default class Inch {
         method: 'get',
         url: '/quote',
         data: params,
-        customUrl: `${inchBaseUrl}${this.nativeId}`
+        customUrl: `${inchBaseUrl}${this.nativeId}`,
+        is1Inch: true
       });
       if (res && res.estimatedGas) {
         return {
@@ -52,7 +56,8 @@ export default class Inch {
         method: 'get',
         url: '/approve/allowance',
         data: params,
-        customUrl: `${inchBaseUrl}${this.nativeId}`
+        customUrl: `${inchBaseUrl}${this.nativeId}`,
+        is1Inch: true
       });
       // const baseAllowance = '10';
       if (res && res.allowance) {
@@ -74,7 +79,8 @@ export default class Inch {
       method: 'get',
       url: '/approve/transaction',
       data: params,
-      customUrl: `${inchBaseUrl}${this.nativeId}`
+      customUrl: `${inchBaseUrl}${this.nativeId}`,
+      is1Inch: true
     });
     return {
       ...res,
@@ -100,7 +106,8 @@ export default class Inch {
         method: 'get',
         url: '/swap',
         data: params,
-        customUrl: `${inchBaseUrl}${this.nativeId}`
+        customUrl: `${inchBaseUrl}${this.nativeId}`,
+        is1Inch: true
       });
       if (res.tx) {
         const txData = await this.setGasLimit({

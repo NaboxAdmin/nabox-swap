@@ -136,7 +136,8 @@ const en = {
     swap54: 'Paste',
     swap55: 'Click to query hash',
     swap56: 'Enter transaction hash',
-    swap57: 'slippage'
+    swap57: 'slippage',
+    swap58: 'Transactions'
   },
   transfer: {
     transfer1: 'From',
@@ -244,6 +245,22 @@ const en = {
     airdrop14: 'Calculator',
     airdrop15: 'Block',
     airdrop16: 'My Unlocked '
+  },
+  buy: {
+    buy1: 'Service Provider',
+    buy2: 'Price',
+    buy3: 'Quantity',
+    buy4: 'Estimated Quantity',
+    buy5: 'Network',
+    buy6: 'Select a Currency',
+    buy7: 'Please provide a valid address',
+    buy8: 'Reference Price',
+    buy9: 'Buy',
+    buy10: 'Buy',
+    buy11: 'Channel',
+    buy12: 'Buy Details',
+    buy13: 'Pay',
+    buy14: 'Get'
   }
 };
 

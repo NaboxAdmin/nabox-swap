@@ -49,17 +49,30 @@
       </div>
     </div>
     <div class="position-cont" />
+    <!--    <div v-if="$route.path==='/swap' || $route.path==='/buy'" class="tab-header-cont">-->
+    <!--      <span-->
+    <!--        :class="{'active': $route.path==='/swap', 'mr-3': true}"-->
+    <!--        class="size-36 text-3a cursor-pointer"-->
+    <!--        @click="$router.push('/swap')">{{ $t("navBar.navBar5") }}</span>-->
+    <!--      <span-->
+    <!--        :class="{'active': $route.path==='/buy', 'mr-3': true}"-->
+    <!--        class="size-36 text-3a cursor-pointer"-->
+    <!--        @click="$router.push('/buy')">{{ $t("buy.buy9") }}</span>-->
+    <!--      <div class="flex-1"/>-->
+    <!--    </div>-->
     <div :class="[(isVaults || isLiquidity) && 'bg-f0']" class="main-cont">
       <slot/>
       <Pop
         :show="showPop"
         @swapClick="swapClick"
+        @buyClick="buyClick"
         @transferClick="transferClick"
         @poolClick="poolClick"
         @vaultsClick="vaultsClick"
         @airdropClick="airdropClick"
         @l1FarmClick="l1FarmClick"
-        @l2FarmClick="l2FarmClick"/>
+        @l2FarmClick="l2FarmClick"
+        @transactionClick="transactionClick"/>
       <pop-up :prevent-boo="false" :show.sync="$store.state.showOrderModal || showAccount">
         <div class="address-detail_pop">
           <div class="customer-p">
@@ -100,54 +113,54 @@
               <div class="text-left mt-3 size-36 font-500">{{ (nerveChainAvailable || 0) | numFormatFixSix }} {{ nerveChainSymbol }}</div>
             </div>
           </div>
-          <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">
-            <span :class="{'active': orderType === 1}" class="cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
-            <span :class="{'active': orderType === 3}" class="ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('tips.tips40') }}</span>
-            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('navBar.navBar2') }}</span>
-            <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>-->
-          </div>
-          <div v-loading="orderLoading" class="customer-p pt-1">
-            <div class="order-list mt-3">
-              <div class="fix-cont">
-                <div
-                  v-for="item in orderList"
-                  :key="item.orderId"
-                  class="d-flex align-items-center mb-3 cursor-pointer space-between"
-                  @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">
-                  <template>
-                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ item.swapType == 3 ? $t("tips.tips33") : $t("navBar.navBar5") }}</span>
-                    <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">
-                      <span class="mr-1 m-width">{{ orderType!==2 && superLong(item.txHash) || superLong(item.orderId) }}</span>
-                      <span v-if="orderType === 1" class="sign">{{ item.type }}</span>
-                    </span>
-                  </template>
-                  <div class="d-flex">
-                    <template>
-                      <span v-if="orderType === 1 || orderType !== 1 && item.status !== 0">{{ item.createTime }}</span>
-                      <span v-else class="size-24 text-danger">{{ $t('swap.swap51') }}</span>
-                    </template>
-                    <span v-if="orderType === 1 || orderType !== 1 && item.status !== 0" class="status-icon">
-                      <!--L1网络订单-->
-                      <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>
-                      <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>
-                      <i v-if="orderType === 1 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>
-                      <!--跨链/swap订单-->
-                      <i v-if="orderType === 2 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
-                      <i v-if="orderType === 2 && item.status < 3 && item.status !== 0" class="el-icon-loading" style="color: #6EB6A9"/>
-                      <i v-if="orderType === 2 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
-                      <!--添加/退出流动性订单-->
-                      <template>
-                        <i v-if="orderType === 3 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>
-                        <i v-if="orderType === 3 && item.status < 3 && item.status !== 0" class="el-icon-loading" style="color: #6EB6A9"/>
-                        <i v-if="orderType === 3 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>
-                      </template>
-                    </span>
-                  </div>
-                </div>
-                <div v-if="orderList.length === 0" class="text-center size-28 mb-3">{{ $t('modal.modal3') }}</div>
-              </div>
-            </div>
-          </div>
+          <!--          <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">-->
+          <!--            <span :class="{'active': orderType === 1}" class="cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>-->
+          <!--            <span :class="{'active': orderType === 3}" class="ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('tips.tips40') }}</span>-->
+          <!--            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('navBar.navBar2') }}</span>-->
+          <!--            &lt;!&ndash;            <span :class="{'active': orderType === 2}" class="ml-3 cursor-pointer" @click="getL2OrderList(fromAddress)">L2{{ lang === 'cn' && $t("popUp.popUp5") || '' }}</span>&ndash;&gt;-->
+          <!--          </div>-->
+          <!--          <div v-loading="orderLoading" class="customer-p pt-1">-->
+          <!--            <div class="order-list mt-3">-->
+          <!--              <div class="fix-cont">-->
+          <!--                <div-->
+          <!--                  v-for="item in orderList"-->
+          <!--                  :key="item.orderId"-->
+          <!--                  class="d-flex align-items-center mb-3 cursor-pointer space-between"-->
+          <!--                  @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">-->
+          <!--                  <template>-->
+          <!--                    <span v-if="orderType===3" class="w-240 text-primary flex-1">{{ item.swapType == 3 ? $t("tips.tips33") : $t("navBar.navBar5") }}</span>-->
+          <!--                    <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">-->
+          <!--                      <span class="mr-1 m-width">{{ orderType!==2 && superLong(item.txHash) || superLong(item.orderId) }}</span>-->
+          <!--                      <span v-if="orderType === 1" class="sign">{{ item.type }}</span>-->
+          <!--                    </span>-->
+          <!--                  </template>-->
+          <!--                  <div class="d-flex">-->
+          <!--                    <template>-->
+          <!--                      <span v-if="orderType === 1 || orderType !== 1 && item.status !== 0">{{ item.createTime }}</span>-->
+          <!--                      <span v-else class="size-24 text-danger">{{ $t('swap.swap51') }}</span>-->
+          <!--                    </template>-->
+          <!--                    <span v-if="orderType === 1 || orderType !== 1 && item.status !== 0" class="status-icon">-->
+          <!--                      &lt;!&ndash;L1网络订单&ndash;&gt;-->
+          <!--                      <i v-if="orderType === 1 && item.status === 0" class="el-icon-loading" style="color: #6EB6A9"/>-->
+          <!--                      <i v-if="orderType === 1 && item.status === 1" class="el-icon-success" style="color: #6EB6A9"/>-->
+          <!--                      <i v-if="orderType === 1 && item.status === -1" class="el-icon-error" style="color: #eb7d62"/>-->
+          <!--                      &lt;!&ndash;跨链/swap订单&ndash;&gt;-->
+          <!--                      <i v-if="orderType === 2 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>-->
+          <!--                      <i v-if="orderType === 2 && item.status < 3 && item.status !== 0" class="el-icon-loading" style="color: #6EB6A9"/>-->
+          <!--                      <i v-if="orderType === 2 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>-->
+          <!--                      &lt;!&ndash;添加/退出流动性订单&ndash;&gt;-->
+          <!--                      <template>-->
+          <!--                        <i v-if="orderType === 3 && item.status === 3" class="el-icon-success" style="color: #6EB6A9"/>-->
+          <!--                        <i v-if="orderType === 3 && item.status < 3 && item.status !== 0" class="el-icon-loading" style="color: #6EB6A9"/>-->
+          <!--                        <i v-if="orderType === 3 && item.status === 4" class="el-icon-error" style="color: #eb7d62"/>-->
+          <!--                      </template>-->
+          <!--                    </span>-->
+          <!--                  </div>-->
+          <!--                </div>-->
+          <!--                <div v-if="orderList.length === 0" class="text-center size-28 mb-3">{{ $t('modal.modal3') }}</div>-->
+          <!--              </div>-->
+          <!--            </div>-->
+          <!--          </div>-->
         </div>
       </pop-up>
       <pop-up :prevent-boo="false" :show.sync="showTips">
@@ -290,18 +303,6 @@ export default {
       immediate: true,
       deep: true
     },
-    '$store.state.orderTypeIndex': {
-      handler(val) {
-        this.orderType = val;
-        if (val === 2) {
-          this.currentAccount && this.getLiquidityOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
-        } else if (val === 3) {
-          this.currentAccount && this.getOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
-        }
-      },
-      immediate: true,
-      deep: true
-    },
     '$route.fullPath': {
       handler(val) {
         this.isSwap = window.location.href.indexOf('swap') > -1;
@@ -419,7 +420,7 @@ export default {
     addressClick() {
       this.showAccount = true;
       this.showPop = false;
-      this.getTxList();
+      // this.getTxList();
     },
     async chainClick(chain) {
       try {
@@ -572,26 +573,26 @@ export default {
       try {
         // console.log('==getOrderStatus==');
         const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
-        const tempList = commonTxList.filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
-        let swapTxList; // 获取当前订单的状态
-        const params = {
-          address: val,
-          chain: this.fromNetwork
-        };
-        const res = await this.$request({
-          url: '/swap/tx/query',
-          data: params
-        });
-        const lpRes = await this.$request({
-          url: '/swap/lp/tx/query',
-          data: params
-        });
-        if (res.code === 1000) {
-          swapTxList = res.data.concat(lpRes.data || []);
-        } else {
-          swapTxList = [];
-        }
-        this.showLoading = tempList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
+        // const tempList = commonTxList.filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
+        // let swapTxList; // 获取当前订单的状态
+        // const params = {
+        //   address: val,
+        //   chain: this.fromNetwork
+        // };
+        // const res = await this.$request({
+        //   url: '/swap/tx/query',
+        //   data: params
+        // });
+        // const lpRes = await this.$request({
+        //   url: '/swap/lp/tx/query',
+        //   data: params
+        // });
+        // if (res.code === 1000) {
+        //   swapTxList = res.data.concat(lpRes.data || []);
+        // } else {
+        //   swapTxList = [];
+        // }
+        // this.showLoading = tempList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
       } catch (e) {
         console.log(e);
       }
@@ -747,7 +748,7 @@ export default {
         const tempL2Length = tempL2HashList.length;
         l2Length === tempL2Length && localStorage.setItem('l2HashList', JSON.stringify(formatL2List));
         l1Length === tempL1Length && localStorage.setItem('tradeHashMap', JSON.stringify(formatTradeHashMap));
-        this.orderType === 1 && this.getTxList();
+        // this.orderType === 1 && this.getTxList();
         return tempTxList;
       }
       return [];
@@ -792,6 +793,10 @@ export default {
       this.$emit('swapClick');
       this.showPop = false;
     },
+    buyClick() {
+      this.$emit('buyClick');
+      this.showPop = false;
+    },
     transferClick() {
       this.$emit('transferClick');
       this.showPop = false;
@@ -814,6 +819,10 @@ export default {
     },
     l2FarmClick() {
       this.$emit('l2FarmClick');
+      this.showPop = false;
+    },
+    transactionClick() {
+      this.$emit('transactionClick');
       this.showPop = false;
     },
     async initAssetInfo() {

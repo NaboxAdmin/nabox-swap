@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { INCH_API_KEY } from '@/views/Swap/util/1inch';
 
 const Qs = require('qs');
 const CryptoJS = require('crypto-js');
@@ -70,11 +71,20 @@ function appendDataToURL(path, data) {
 }
 
 export async function sendRequest(params) {
-  const { url, method = 'post', data, customUrl, isDODO, isOKX = false, OKXApiKey = '99e1441f-b501-4f99-8a2b-95e7c5cb0878' } = params;
+  const { url, method = 'post', data, customUrl, isDODO, isOKX = false, OKXApiKey = '99e1441f-b501-4f99-8a2b-95e7c5cb0878', is1Inch } = params;
   const baseUrl = customUrl;
   if (isDODO) {
     axios.defaults.headers.get['user-agent'] = 'DODO-nabox';
   }
+
+  if (is1Inch) {
+    axios.defaults.headers['Authorization'] = `Bearer ${INCH_API_KEY}`;
+  }
+
+  if (!is1Inch) {
+    delete axios.defaults.headers['Authorization'];
+  }
+
   if (!isDODO) {
     delete axios.defaults.headers.get['user-agent'];
   }

@@ -26,16 +26,15 @@ const mainRoutes = [{
       component: () => import('../views/Swap'),
       meta: {
         title: 'Swap'
-        // keepAlive: true
       }
     },
     {
-      path: '/buy',
-      name: 'buy',
-      component: () => import('../views/Buy'),
+      path: '/transactions',
+      name: 'transactions',
+      component: () => import('../views/Transactions'),
       meta: {
-        title: 'Buy'
-        // keepAlive: true
+        title: 'Transactions',
+        keepAlive: true
       }
     },
     {

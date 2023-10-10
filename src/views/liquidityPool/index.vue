@@ -173,8 +173,8 @@ export default {
   },
   methods: {
     async checkOrderList() {
-      this.$store.commit('changeShowOrderModal', true);
       this.$store.commit('changeOrderTypeIndex', 2);
+      this.$router.push('/transactions');
     },
     async getLpOrderList() {
       try {

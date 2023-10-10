@@ -1,9 +1,9 @@
 <template>
   <div class="buy-detail-cont">
-    <span class="text-3a size-30">购买</span>
+    <span class="text-3a size-30">{{ $t('buy.buy10') }}</span>
     <div class="d-flex align-items-center mt-16">
       <assetInput class="flex-1"/>
-      <span class="text-3a size-30 mr-2 ml-2">Buy</span>
+      <span class="text-3a size-30 mr-2 ml-2">{{ $t('buy.buy10') }}</span>
       <div class="coin-wrap">
         <coinItem/>
       </div>
@@ -13,7 +13,7 @@
       <img class="copy-icon" src="@/assets/svg/copyIcon.svg" alt="">
     </div>
     <div class="text-red size-26 mt-16">123123</div>
-    <div class="text-3a size-30 mt-48">渠道</div>
+    <div class="text-3a size-30 mt-48">{{ $t('buy.buy11') }}</div>
     <div class="channel-cont">
       <div :class="'active-channel'" class="channel-item">
         <div class="radio-item"/>
@@ -31,28 +31,64 @@
         </div>
       </div>
     </div>
-    <div class="text-3a size-30 mt-48">购买详情</div>
+    <div class="text-3a size-30 mt-48">{{ $t('buy.buy12') }}</div>
     <div class="buy-info">
       <div class="buy-info-item">
-        <span class="tag-title">123</span>
+        <span class="tag-title">{{ $t('buy.buy1') }}</span>
         <span class="tag-info">112323</span>
       </div>
       <div class="buy-info-item">
-        <span class="tag-title">123</span>
+        <span class="tag-title">{{ $t('buy.buy2') }}</span>
+        <span class="tag-info">112323<span class="tag-title">USD</span></span>
+      </div>
+      <div class="buy-info-item">
+        <span class="tag-title">{{ $t('buy.buy3') }}</span>
+        <span class="tag-info">112323<span class="tag-title">USD</span></span>
+      </div>
+      <div class="buy-info-item">
+        <span class="tag-title">{{ $t('buy.buy4') }}</span>
+        <span class="tag-info">112323<span class="tag-title">USD</span></span>
+      </div>
+      <div class="buy-info-item">
+        <span class="tag-title">{{ $t('buy.buy5') }}</span>
         <span class="tag-info">112323<span class="tag-title">USD</span></span>
       </div>
     </div>
+    <Button class="mt-8"/>
   </div>
 </template>
 
 <script>
 import assetInput from '@/views/Buy/component/assetInput';
 import coinItem from '@/views/Buy/component/coinItem';
+import Button from '@/views/Buy/component/button';
 export default {
   name: 'BuyDetail',
   components: {
     assetInput,
-    coinItem
+    coinItem,
+    Button
+  },
+  data() {
+    return {
+      showModal: false,
+      coinType: '',
+      payTokens: [],
+      payTypes: [],
+      showTokenList: [],
+      currentPayType: null,
+      currentGetToken: null,
+      currentOption: null,
+      errorMsg: '',
+      tokenAmount: '',
+      payAmount: '',
+      showComputedLoading: false
+    };
+  },
+  created() {
+    this.currentPayType = localStorage.getItem('CURRENT_PAY_TYPE') && JSON.pa;
+    this.currentGetToken = localStorage.getItem('CURRENT_TOKEN');
+    this.currentOption = localStorage.getItem('CURRENT_PAY_OPTION');
   }
 };
 </script>
@@ -71,6 +107,7 @@ export default {
     height: 96px;
     border: 1px solid #E6E9F0;
     border-radius: 20px;
+    overflow: hidden;
   }
   .address-input {
     display: flex;
@@ -107,6 +144,7 @@ export default {
       margin-top: 32px;
       display: flex;
       align-items: center;
+      cursor: pointer;
       .radio-item {
         height: 22px;
         width: 22px;
@@ -163,5 +201,8 @@ export default {
       }
     }
   }
+}
+.mt-8 {
+  margin-top: 80px;
 }
 </style>

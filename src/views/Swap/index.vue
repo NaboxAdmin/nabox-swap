@@ -641,8 +641,8 @@ export default {
       this.showChainList = false;
     },
     async checkOrderList() {
-      this.$store.commit('changeShowOrderModal', true);
       this.$store.commit('changeOrderTypeIndex', 3);
+      this.$router.push('/transactions');
     },
     async getOrderList() {
       try {
@@ -1986,8 +1986,8 @@ export default {
     async get1inchSwapRoute() {
       if (this.fromNetwork === TRON) return null;
       const params = {
-        fromTokenAddress: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        toTokenAddress: this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        src: this.chooseFromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        dst: '0x111111111117dc0aa78b770fa6a738034120c302' || this.chooseToAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         amount: timesDecimals(this.amountIn, this.chooseFromAsset.decimals || 0),
         fee: 0.1
       };

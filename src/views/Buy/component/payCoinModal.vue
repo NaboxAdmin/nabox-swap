@@ -1,3 +1,115 @@
+<template>
+  <div :class="{'show_modal': showModal}" class="mask-cont" @click="$emit('update:showModal', false)" @click.stop @touchmove.stop>
+    <div :class="{'show_modal-cont': showModal}" class="modal-cont" @click.stop @touchmove.stop>
+      <div class="header-cont size-36 font-500 mt-2">
+        {{ $t('modal.modal1') }}
+        <div class="back-icon" @click.stop="back">
+          <img src="@/assets/svg/exit.svg" alt="">
+        </div>
+      </div>
+      <div class="search-cont">
+        <span class="search-icon">
+          <img src="@/assets/image/search.png" alt="">
+        </span>
+        <input v-model="searchVal" :placeholder="$t('modal.modal2')" type="text" >
+      </div>
+      <div class="search-result">
+        <div v-if="showList.length > 0" class="coin-list">
+          <div v-for="(item, index) in showList" :key="index" class="list-item cursor-pointer">
+            <div class="d-flex align-items-center space-between pr-4 flex-1" @click="selectAsset(item)">
+              <div class="coin-item">
+                <span class="coin-icon">
+                  <img v-lazy="item.icon || getPicture(item.symbol) || pictureError" @error="pictureError">
+                </span>
+                <span :class="type==='assets' && 'space-between' || 'justify-content-center'" class="d-flex direction-column">
+                  <span v-if="type==='pay'" class="text-3a font-500">{{ item.fiatCurrency }}</span>
+                  <span v-else class="d-flex text-3a font-500">
+                    <span>{{ item.cryptoCurrency }}</span>
+                    <span class="text-90">-{{ item.cryptoCurrencyCode }}</span>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center text-90 flex-1 pt-4 size-28">{{ $t('modal.modal3') }}</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { Loading } from '@/components';
+
+export default {
+  name: 'PayCoinModal',
+  components: { Loading },
+  props: {
+    tokenList: {
+      type: Array,
+      default: () => []
+    },
+    showModal: {
+      type: Boolean,
+      default: false
+    },
+    type: {
+      type: String,
+      default: 'pay'
+    }
+  },
+  data() {
+    return {
+      searchVal: '',
+      allList: [],
+      showList: []
+    };
+  },
+  watch: {
+    tokenList: {
+      immediate: true,
+      deep: true,
+      handler(val) {
+        if (val) {
+          this.allList = val;
+          if (this.searchVal) {
+            this.showList = this.allList.filter(v => {
+              const search = val.toUpperCase();
+              const symbol = v.symbol.toUpperCase();
+              return symbol.indexOf(search) > -1;
+            });
+          } else {
+            this.showList = val;
+          }
+        }
+      }
+    },
+    searchVal(val) {
+      if (val) {
+        this.showList = this.allList.filter(v => {
+          const search = val.toUpperCase();
+          const symbol = v.symbol.toUpperCase();
+          return symbol.indexOf(search) > -1;
+        });
+      } else {
+        this.showList = this.allList;
+      }
+    }
+  },
+  methods: {
+    back() {
+      this.searchVal = '';
+      this.$emit('update:showModal', false);
+    },
+    selectAsset(asset) {
+      this.searchVal = '';
+      this.$emit('selectAsset', asset);
+    }
+  }
+};
+</script>
+
+<style scoped lang="scss">
 .mask-cont {
   //display: flex;
   //align-items: center;
@@ -37,11 +149,11 @@
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
     color: #3A3C44;
     .back-icon {
+      cursor: pointer;
       position: absolute;
-      left: 0;
+      right: 40px;
       top: 50%;
       transform: translateY(-50%);
       width: 34px;
@@ -115,7 +227,7 @@
         display: flex;
         align-items: center;
         height: 109px;
-        border-bottom: 1px solid #E9EBF3;
+        //border-bottom: 1px solid #E9EBF3;
         .coin-item {
           display: flex;
           align-items: center;
@@ -191,23 +303,8 @@
   font-size: 12px;
   color: #6EB6A9;
 }
-.size-16 {
-  font-size: 16px;
-}
 .h-40 {
   height: 70px;
 }
-.w-150 {
-  width: 250px;
-}
-.import-btn {
-  padding: 15px 25px;
-  background-color: #6EB6A9;
-  border-radius: 20px;
-  font-size: 26px;
-  color: #FFFFFF;
-  margin-right: 40px;
-}
-.disabled_btn {
-  background-color: #ABB1BA;
-}
+
+</style>

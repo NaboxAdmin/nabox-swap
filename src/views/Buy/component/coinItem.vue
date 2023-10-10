@@ -1,7 +1,7 @@
 <template>
-  <div class="coin-item">
-    <img class="asset_icon" src="" alt="">
-    <span class="asset-name">USDT</span>
+  <div v-if="assetItem" class="coin-item" @click="coinClick">
+    <img :src="assetItem && assetItem.icon || pictureError" class="asset_icon" alt="" @error="pictureError">
+    <span class="asset-name">{{ assetItem && (assetItem.fiatCurrency || assetItem.cryptoCurrency) || '' }}</span>
     <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
   </div>
 </template>
@@ -14,6 +14,11 @@ export default {
       type: Object,
       default: () => null
     }
+  },
+  methods: {
+    coinClick() {
+      this.$emit('click');
+    }
   }
 };
 </script>
@@ -25,6 +30,9 @@ export default {
   background-color: #f0f7f7;
   height: 100%;
   padding: 0 24px;
+  overflow: hidden;
+  cursor: pointer;
+  width: 224px;
   .asset-name {
     margin: 0 12px;
     max-width: 200px;
@@ -36,7 +44,6 @@ export default {
     flex-shrink: 0;
     height: 48px;
     width: 48px;
-    background-color: red;
     border-radius: 50%;
   }
   .drop_down_icon {

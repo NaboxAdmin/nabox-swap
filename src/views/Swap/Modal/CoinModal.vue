@@ -211,7 +211,6 @@ export default {
     // 选择发送资产
     selectCoin(coin) {
       if (this.userQuery || coin.isDisabled) return;
-      console.log(coin, 'coin')
       this.$nextTick(() => {
         this.$refs.coinLisCont && this.$refs.coinLisCont.scrollTo(0, 0);
       });

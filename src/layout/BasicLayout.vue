@@ -12,12 +12,14 @@
       @switchPlugin="walletType=''"
       @derivedAddress="derivedAddress"
       @swapClick="swapClick"
+      @buyClick="buyClick"
       @transferClick="transferClick"
       @vaultsClick="vaultsClick"
       @poolClick="poolClick"
       @airdropClick="airdropClick"
       @l1FarmClick="l1FarmClick"
-      @l2FarmClick="l2FarmClick">
+      @l2FarmClick="l2FarmClick"
+      @transactionClick="transactionClick">
       <div v-loading="loading" v-if="isDapp && (showSign || !address || !walletType)" class="connect-item">
         <div v-if="!walletType || !address" class="wallet-cont size-36 font-500">
           <div class="mb-3 font-bold">{{ $t("tips.tips12") }}</div>
@@ -43,7 +45,7 @@
 import { HeaderBar } from '../components';
 import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
 import nerve from 'nerve-sdk-js';
-import { supportChainList, getCurrentAccount, TRON } from '@/api/util';
+import { supportChainList, getCurrentAccount, TRON, FAT_PAY_PARTNER_ID } from '@/api/util';
 import MetaMask from '@/assets/image/metamask.svg';
 import Nabox from '@/assets/image/nabox_wallet.svg';
 import TrustWallet from '@/assets/image/trustwallet.svg';
@@ -578,6 +580,35 @@ export default {
       // this.showType = "Swap";
       this.$router.push({ path: '/swap' });
     },
+    async buyClick() {
+      try {
+        const nonce = Math.floor(Math.random() * 900000) + 100000;
+        const timestamp = Math.floor(new Date().getTime() / 1000);
+        const evmAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'];
+        const params = {
+          requestParam: {
+            nonce: nonce.toString(),
+            partnerId: FAT_PAY_PARTNER_ID,
+            timestamp: timestamp.toString(),
+            walletAddress: evmAddress
+            // walletAddressLocked: '1'
+          }
+        };
+        const res = await this.$request({
+          url: '/currency/fatpay/sign',
+          data: params
+        });
+        if (res.code === 1000) {
+          const encodedString = res.data;
+          const url = `https://ramp.fatpay.xyz/home?nonce=${nonce}&partnerId=${FAT_PAY_PARTNER_ID}&timestamp=${timestamp}&walletAddress=${evmAddress}&signature=${encodedString}`;
+          this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
+        }
+      } catch (e) {
+        console.log(e, 'error');
+        const url = `https://ramp.fatpay.xyz/home`;
+        this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
+      }
+    },
     transferClick() {
       this.showType = 'Transfer';
       this.$router.push({ path: '/transfer' });
@@ -601,6 +632,9 @@ export default {
     l2FarmClick() {
       this.showType = 'L2Farm';
       this.$router.push({ path: '/l2farm' });
+    },
+    transactionClick() {
+      this.$router.push({ path: '/transactions' });
     },
     crossOut() {
       if (this.isDapp) {

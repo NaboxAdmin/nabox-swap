@@ -136,7 +136,8 @@ const cn = {
     swap54: '粘贴',
     swap55: '点击查询hash',
     swap56: '请输入交易hash',
-    swap57: '滑点'
+    swap57: '滑点',
+    swap58: '交易记录'
   },
   transfer: {
     transfer1: '从',
@@ -244,6 +245,22 @@ const cn = {
     airdrop14: '计算器',
     airdrop15: '区块',
     airdrop16: '我已解锁的'
+  },
+  buy: {
+    buy1: '服务商',
+    buy2: '价格',
+    buy3: '数量',
+    buy4: '预估数量',
+    buy5: '网络',
+    buy6: '选择一种货币',
+    buy7: '请填写有效地址',
+    buy8: '参考价格',
+    buy9: '买',
+    buy10: '购买',
+    buy11: '渠道',
+    buy12: '购买详情',
+    buy13: '支付',
+    buy14: '获得'
   }
 };
 

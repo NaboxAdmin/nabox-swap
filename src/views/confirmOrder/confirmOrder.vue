@@ -311,12 +311,12 @@ export default {
           const inch = await new Inch({ nativeId: this.nativeId });
           const { fromAsset, toAsset, amountIn, address, slippage } = this.orderInfo;
           const params = {
-            fromTokenAddress: fromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-            toTokenAddress: toAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+            src: fromAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+            dst: toAsset.contractAddress || '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
             amount: timesDecimals(amountIn, fromAsset.decimals || 18),
-            fromAddress: address,
+            from: address,
             slippage,
-            referrerAddress: '0xDDE4259700E27872e6A631B5361243139f5dB7b8',
+            referrer: '0xDDE4259700E27872e6A631B5361243139f5dB7b8',
             fee: 0.1
           };
           const txRes = await inch.send1inchTransaction(params, address);
