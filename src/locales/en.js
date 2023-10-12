@@ -137,7 +137,14 @@ const en = {
     swap55: 'Click to query hash',
     swap56: 'Enter transaction hash',
     swap57: 'slippage',
-    swap58: 'Transactions'
+    swap58: 'Transactions',
+    swap59: 'Maximum Purchase Amount is ',
+    swap60: 'Minimum Purchase Amount is ',
+    swap61: 'Please enter a valid address.',
+    swap62: 'Reference Price',
+    swap63: 'Please enter the payment amount',
+    swap64: 'Select a currency',
+    swap65: 'Currency'
   },
   transfer: {
     transfer1: 'From',

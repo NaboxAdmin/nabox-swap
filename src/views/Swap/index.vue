@@ -1,13 +1,14 @@
 <template>
   <div :class="{ mobile_class: !isMobile }">
+    <Tab/>
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
-      <div :class="!isDapp && 'swap-info'" class="p-4">
+      <div :class="!isDapp && 'swap-info'" class="p-4 position-relative">
         <div v-if="uncompletedOrderList.length" class="d-flex justify-content-end text-danger">
           <span class="cursor-pointer" @click="checkOrderList">{{ $t('swap.swap50') }}({{ uncompletedOrderList.length }})</span>
         </div>
-        <div class="size-36 d-flex align-items-center space-between mb-3 pb-2 pt-2 b_E9EBF3">
-          <span class="text-3a font-500">{{ $t('navBar.navBar5') }}{{ nerveChainAvailable }}</span>
+        <div class="position-cont size-36 d-flex align-items-center space-between">
+          <span class="text-3a font-500"/>
           <span class="slippage-cont" @click="showSlippage=true">
             <span class="size-28 text-wolun">{{ slippage }}%</span>
             <span class="size-28 text-wolun ml-1 mr-1">{{ $t('swap.swap36') }}</span>
@@ -334,6 +335,7 @@ import ImportModal from '@/views/Swap/Modal/ImportModal';
 import PopUp from '@/components/PopUp/PopUp';
 import ConfirmOrder from '@/views/confirmOrder/confirmOrder';
 import Loading from '@/components/Loading/Loading';
+import Tab from '@/views/Swap/component/Tab';
 import {
   debounce,
   Division,
@@ -377,7 +379,8 @@ export default {
     'pop-modal': PopUp,
     ConfirmOrder,
     Loading,
-    ImportModal
+    ImportModal,
+    Tab
   },
   data() {
     this.amountInDebounce = debounce(this.amountInInput, 800);
@@ -692,7 +695,6 @@ export default {
     addressInput() {
       if (this.chooseToAsset && this.toAddress) {
         if (this.chooseToAsset.chain === 'NULS' && !validateNerveAddress(this.toAddress, 'NULS')) {
-          console.log('12312222', this.toAddress);
           this.addressError = this.$t('tips.tips59');
         } else if (this.chooseToAsset.chain === 'NERVE' && !validateNerveAddress(this.toAddress, 'NERVE')) {
           this.addressError = this.$t('tips.tips59');

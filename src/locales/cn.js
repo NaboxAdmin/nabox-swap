@@ -137,7 +137,14 @@ const cn = {
     swap55: '点击查询hash',
     swap56: '请输入交易hash',
     swap57: '滑点',
-    swap58: '交易记录'
+    swap58: '交易记录',
+    swap59: '最大购买金额为',
+    swap60: '最低购买金额为',
+    swap61: '请填写有效地址',
+    swap62: '参考价格',
+    swap63: '请输入支付金额',
+    swap64: '选择一种货币',
+    swap65: '货币'
   },
   transfer: {
     transfer1: '从',

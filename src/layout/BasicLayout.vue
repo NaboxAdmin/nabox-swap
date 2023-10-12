@@ -580,34 +580,8 @@ export default {
       // this.showType = "Swap";
       this.$router.push({ path: '/swap' });
     },
-    async buyClick() {
-      try {
-        const nonce = Math.floor(Math.random() * 900000) + 100000;
-        const timestamp = Math.floor(new Date().getTime() / 1000);
-        const evmAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'];
-        const params = {
-          requestParam: {
-            nonce: nonce.toString(),
-            partnerId: FAT_PAY_PARTNER_ID,
-            timestamp: timestamp.toString(),
-            walletAddress: evmAddress
-            // walletAddressLocked: '1'
-          }
-        };
-        const res = await this.$request({
-          url: '/currency/fatpay/sign',
-          data: params
-        });
-        if (res.code === 1000) {
-          const encodedString = res.data;
-          const url = `https://ramp.fatpay.xyz/home?nonce=${nonce}&partnerId=${FAT_PAY_PARTNER_ID}&timestamp=${timestamp}&walletAddress=${evmAddress}&signature=${encodedString}`;
-          this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
-        }
-      } catch (e) {
-        console.log(e, 'error');
-        const url = `https://ramp.fatpay.xyz/home`;
-        this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
-      }
+    buyClick() {
+      this.$router.push({ path: '/buy' });
     },
     transferClick() {
       this.showType = 'Transfer';

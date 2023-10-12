@@ -1,41 +1,45 @@
 <template>
-  <div class="buy-cont">
-    <span class="text-3a size-28 mt-48">{{ $t("buy.buy13") }}</span>
-    <assetInput
-      :asset-item="currentPayType"
-      class="mt-16"
-      @selectCoin="selectCoin('pay')"
-      @input="payAmountDebounce"
-    />
-    <div v-if="errorMsg" class="text-red mt-2 ml-2 size-28">{{ errorMsg }}</div>
-    <div class="change-cont">
-      <img src="@/assets/svg/change_icon.svg" alt="">
-    </div>
-    <span class="text-3a size-28 mt-48">{{ $t("buy.buy14") }}</span>
-    <assetInput
-      :disabled="true"
-      :asset-item="currentGetToken"
-      :input-value="tokenAmount"
-      class="mt-16"
-      @selectCoin="selectCoin('get')"
-    />
-    <div v-if="currentOption && currentOption.cryptoCurrencyUnitPrice" class="mt-2">
-      <span class="size-28">参考价格 </span>
-      <span class="text-1b size-28">1{{ currentOption.cryptoCurrency }}≈{{ currentOption.cryptoCurrencyUnitPrice }}{{ currentOption.fiatCurrency }}</span>
-    </div>
-    <template>
-      <div v-if="showComputedLoading" class="btn size-30 cursor-pointer opacity_btn mt-145">
-        <span>
-          {{ $t("swap.swap35") }}<span class="point_cont"/>
-        </span>
+  <div>
+    <Tab/>
+    <div class="buy-cont">
+      <span class="text-3a size-28 mt-48">{{ $t("buy.buy13") }}</span>
+      <assetInput
+        :asset-item="currentPayType"
+        :input-value="payAmount"
+        class="mt-16"
+        @selectCoin="selectCoin('pay')"
+        @input="payAmountDebounce"
+      />
+      <div v-if="errorMsg" class="text-red mt-2 ml-2 size-28">{{ errorMsg }}</div>
+      <div class="change-cont">
+        <img src="@/assets/svg/change_icon.svg" alt="">
       </div>
-      <div v-else :class="!canNext && 'opacity_btn'" class="btn cursor-pointer size-30 mt-145" @click="nextStep">{{ $t('swap.swap8') }}</div>
-    </template>
-    <payCoinModal
-      :show-modal.sync="showModal"
-      :token-list="showTokenList"
-      :type="coinType"
-      @selectAsset="selectAsset"/>
+      <span class="text-3a size-28 mt-48">{{ $t("buy.buy14") }}</span>
+      <assetInput
+        :disabled="true"
+        :asset-item="currentGetToken"
+        :input-value="tokenAmount"
+        class="mt-16"
+        @selectCoin="selectCoin('get')"
+      />
+      <div v-if="currentOption && currentOption.cryptoCurrencyUnitPrice" class="mt-2">
+        <span class="size-28">{{ $t('swap.swap62') }} </span>
+        <span class="text-1b size-28">1{{ currentOption.cryptoCurrency }}≈{{ currentOption.cryptoCurrencyUnitPrice }}{{ currentOption.fiatCurrency }}</span>
+      </div>
+      <template>
+        <div v-if="showComputedLoading" class="btn size-30 cursor-pointer opacity_btn mt-145">
+          <span>
+            {{ $t("swap.swap35") }}<span class="point_cont"/>
+          </span>
+        </div>
+        <div v-else :class="!canNext && 'opacity_btn'" class="btn cursor-pointer size-30 mt-145" @click="nextStep">{{ $t('swap.swap8') }}</div>
+      </template>
+      <payCoinModal
+        :show-modal.sync="showModal"
+        :token-list="showTokenList"
+        :type="coinType"
+        @selectAsset="selectAsset"/>
+    </div>
   </div>
 </template>
 
@@ -43,10 +47,11 @@
 import coinItem from '@/views/Buy/component/coinItem';
 import assetInput from '@/views/Buy/component/assetInput';
 import payCoinModal from '@/views/Buy/component/payCoinModal';
+import Tab from '@/views/Swap/component/Tab';
 import { debounce, Minus } from '@/api/util';
 export default {
   name: 'Buy',
-  components: { coinItem, assetInput, payCoinModal },
+  components: { coinItem, assetInput, payCoinModal, Tab },
   data() {
     this.payAmountDebounce = debounce(this.amountInput, 800);
     return {
@@ -79,6 +84,7 @@ export default {
         if (!amount || !this.currentPayType || !this.currentGetToken) {
           this.errorMsg = '';
           this.currentOption = null;
+          this.tokenAmount = '';
           return;
         }
         this.payAmount = amount;
@@ -102,8 +108,9 @@ export default {
       }
     },
     nextStep() {
+      if (!this.canNext) return;
       sessionStorage.setItem('CURRENT_TOKEN', JSON.stringify(this.currentGetToken));
-      sessionStorage.setItem('CURRENT_PAY_TYPE', JSON.stringify(this.currentGetToken));
+      sessionStorage.setItem('CURRENT_PAY_TYPE', JSON.stringify(this.currentPayType));
       sessionStorage.setItem('CURRENT_PAY_OPTION', JSON.stringify(this.currentOption));
       this.$router.push('/buyDetail');
     },
@@ -111,10 +118,10 @@ export default {
       const tempOption = this.currentPayType.paymentOptions[0];
       const { maxAmount, minAmount } = tempOption;
       if (Minus(amount, minAmount) < 0) {
-        this.errorMsg = `最低${minAmount}`;
+        this.errorMsg = `${this.$t('swap.swap60')}${minAmount}${this.currentPayType && this.currentPayType.fiatCurrency}`;
         return true;
       } else if (Minus(amount, maxAmount) > 0) {
-        this.errorMsg = `最大${maxAmount}`;
+        this.errorMsg = `${this.$t('swap.swap59')}${maxAmount}${this.currentPayType && this.currentPayType.fiatCurrency}`;
         return true;
       } else {
         this.errorMsg = '';
@@ -173,10 +180,19 @@ export default {
     selectAsset(asset) {
       if (this.coinType === 'pay') {
         this.currentPayType = asset;
+        this.showModal = false;
+        this.payAmount = '';
+        this.tokenAmount = '';
+        this.currentOption = null;
       } else {
-        this.currentGetToken = asset;
+        this.showModal = false;
+        console.log(asset.cryptoCurrencyCode, this.currentGetToken.cryptoCurrencyCode, 'asset.cryptoCurrencyCode')
+        if (asset.cryptoCurrencyCode !== this.currentGetToken.cryptoCurrencyCode) {
+          this.currentGetToken = asset;
+          this.currentOption = null;
+          this.payAmountDebounce(this.payAmount);
+        }
       }
-      this.showModal = false;
     },
     // 获取支持的token
     async getPayTokens() {
@@ -219,7 +235,7 @@ export default {
 <style scoped lang="scss">
 .buy-cont {
   margin-top: 48px;
-  padding: 16px;
+  padding: 0 32px;
   .pay-asset-const {
     display: flex;
     align-items: center;

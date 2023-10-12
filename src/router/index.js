@@ -29,6 +29,14 @@ const mainRoutes = [{
       }
     },
     {
+      path: '/buy',
+      name: 'buy',
+      component: () => import('../views/Buy'),
+      meta: {
+        title: 'Buy'
+      }
+    },
+    {
       path: '/transactions',
       name: 'transactions',
       component: () => import('../views/Transactions'),

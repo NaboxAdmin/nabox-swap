@@ -49,17 +49,6 @@
       </div>
     </div>
     <div class="position-cont" />
-    <!--    <div v-if="$route.path==='/swap' || $route.path==='/buy'" class="tab-header-cont">-->
-    <!--      <span-->
-    <!--        :class="{'active': $route.path==='/swap', 'mr-3': true}"-->
-    <!--        class="size-36 text-3a cursor-pointer"-->
-    <!--        @click="$router.push('/swap')">{{ $t("navBar.navBar5") }}</span>-->
-    <!--      <span-->
-    <!--        :class="{'active': $route.path==='/buy', 'mr-3': true}"-->
-    <!--        class="size-36 text-3a cursor-pointer"-->
-    <!--        @click="$router.push('/buy')">{{ $t("buy.buy9") }}</span>-->
-    <!--      <div class="flex-1"/>-->
-    <!--    </div>-->
     <div :class="[(isVaults || isLiquidity) && 'bg-f0']" class="main-cont">
       <slot/>
       <Pop

@@ -2,59 +2,84 @@
   <div class="buy-detail-cont">
     <span class="text-3a size-30">{{ $t('buy.buy10') }}</span>
     <div class="d-flex align-items-center mt-16">
-      <assetInput class="flex-1"/>
-      <span class="text-3a size-30 mr-2 ml-2">{{ $t('buy.buy10') }}</span>
+      <assetInput
+        :asset-item="currentPayType"
+        :input-value="payAmount"
+        :class="errorMsg && 'border-red'"
+        class="mt-16 flex-1"
+        @selectCoin="selectCoin('pay')"
+        @input="payAmountDebounce"
+      />
+      <span class="text-3a size-26 mr-2 ml-2">{{ $t('buy.buy10') }}</span>
       <div class="coin-wrap">
-        <coinItem/>
+        <coinItem :asset-item="currentGetToken" @click="selectCoin('get')"/>
       </div>
     </div>
-    <div class="address-input">
-      <input type="text">
-      <img class="copy-icon" src="@/assets/svg/copyIcon.svg" alt="">
+    <div v-if="errorMsg" class="text-red mt-2 size-26">{{ errorMsg }}</div>
+    <div :class="addressErrorMsg && 'border-red'" class="address-input">
+      <input
+        v-model="userWalletAddress"
+        class="size-28"
+        type="text"
+        @focus="addressFocus($event)"
+        @input="addressInput">
+      <img class="copy-icon" src="@/assets/svg/copyIcon.svg" alt="" @click="pasteClick">
     </div>
-    <div class="text-red size-26 mt-16">123123</div>
-    <div class="text-3a size-30 mt-48">{{ $t('buy.buy11') }}</div>
-    <div class="channel-cont">
-      <div :class="'active-channel'" class="channel-item">
-        <div class="radio-item"/>
-        <div class="channel-info d-flex">
-          <img class="channel-img" src="" alt="">
-          <div class="channel-detail d-flex direction-column flex-1">
-            <span class="text-3a size-30 font-500">Coinify</span>
-            <span class="text-90 size-24 mt-1">1.02USD</span>
-          </div>
-          <div class="pay-cont d-flex">
-            <div class="pay-item"/>
-            <div class="pay-item"/>
-            <div class="pay-item"/>
+    <div v-if="addressErrorMsg" class="text-red size-26 mt-16">{{ addressErrorMsg }}</div>
+    <div v-loading="showComputedLoading" class="position-relative">
+      <div/>
+      <div class="text-3a size-30 mt-48">{{ $t('buy.buy11') }}</div>
+      <div class="channel-cont">
+        <div :class="'active-channel'" class="channel-item">
+          <div class="radio-item"/>
+          <div class="channel-info d-flex">
+            <img class="channel-img" src="https://ramp.fatpay.xyz/favicon.png" alt="">
+            <div class="channel-detail d-flex direction-column flex-1">
+              <span class="text-3a size-30 font-500">{{ 'FaTPay' }}</span>
+              <span class="text-90 size-24 mt-1">{{ currentOption && currentOption.cryptoCurrencyAmount || '--' }}{{ currentOption && currentOption.cryptoCurrency }}</span>
+            </div>
+            <div v-if="currentPayType && currentPayType.paymentOptions" class="pay-cont d-flex">
+              <div v-for="item in currentPayType.paymentOptions" :key="item.name" class="pay-item">
+                <img :src="item.icon" alt="">
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      <div class="text-3a size-30 mt-48">{{ $t('buy.buy12') }}</div>
+      <div class="buy-info">
+        <div class="buy-info-item">
+          <span class="tag-title">{{ $t('buy.buy1') }}</span>
+          <span class="tag-info">FaTPay</span>
+        </div>
+        <div class="buy-info-item">
+          <span class="tag-title">{{ $t('buy.buy2') }}</span>
+          <span v-if="currentOption" class="tag-info">{{ currentOption.currencyAmount }}<span class="tag-title">{{ currentOption.fiatCurrency }}</span></span>
+          <span v-else>--</span>
+        </div>
+        <div class="buy-info-item">
+          <span class="tag-title">{{ $t('buy.buy3') }}</span>
+          <span v-if="currentOption" class="tag-info">1{{ currentOption.cryptoCurrency }}≈{{ currentOption.cryptoCurrencyUnitPrice }}<span class="tag-title">{{ currentOption.fiatCurrency }}</span></span>
+          <span v-else>--</span>
+        </div>
+        <div class="buy-info-item">
+          <span class="tag-title">{{ $t('buy.buy4') }}</span>
+          <span v-if="currentOption" class="tag-info">{{ currentOption.cryptoCurrencyAmount }}<span class="tag-title">{{ currentOption.cryptoCurrency }}</span></span>
+          <span v-else>--</span>
+        </div>
+        <div class="buy-info-item">
+          <span class="tag-title">{{ $t('buy.buy5') }}</span>
+          <span v-if="currentOption" class="tag-info">{{ currentOption.network }}</span>
+          <span v-else>--</span>
+        </div>
+      </div>
     </div>
-    <div class="text-3a size-30 mt-48">{{ $t('buy.buy12') }}</div>
-    <div class="buy-info">
-      <div class="buy-info-item">
-        <span class="tag-title">{{ $t('buy.buy1') }}</span>
-        <span class="tag-info">112323</span>
-      </div>
-      <div class="buy-info-item">
-        <span class="tag-title">{{ $t('buy.buy2') }}</span>
-        <span class="tag-info">112323<span class="tag-title">USD</span></span>
-      </div>
-      <div class="buy-info-item">
-        <span class="tag-title">{{ $t('buy.buy3') }}</span>
-        <span class="tag-info">112323<span class="tag-title">USD</span></span>
-      </div>
-      <div class="buy-info-item">
-        <span class="tag-title">{{ $t('buy.buy4') }}</span>
-        <span class="tag-info">112323<span class="tag-title">USD</span></span>
-      </div>
-      <div class="buy-info-item">
-        <span class="tag-title">{{ $t('buy.buy5') }}</span>
-        <span class="tag-info">112323<span class="tag-title">USD</span></span>
-      </div>
-    </div>
-    <Button class="mt-8"/>
+    <div :class="!canNext && 'opacity_btn'" class="btn cursor-pointer size-30 mt-145 mt-8" @click="nextStep">{{ $t('swap.swap8') }}</div>
+    <payCoinModal
+      :show-modal.sync="showModal"
+      :token-list="showTokenList"
+      :type="coinType"
+      @selectAsset="selectAsset"/>
   </div>
 </template>
 
@@ -62,14 +87,20 @@
 import assetInput from '@/views/Buy/component/assetInput';
 import coinItem from '@/views/Buy/component/coinItem';
 import Button from '@/views/Buy/component/button';
+import payCoinModal from '@/views/Buy/component/payCoinModal';
+import { debounce, FAT_PAY_PARTNER_ID, Minus, TRON } from '@/api/util';
+import { validateAddress, validateNerveAddress } from '@/api/api';
+import TronLink from '@/api/tronLink';
 export default {
   name: 'BuyDetail',
   components: {
     assetInput,
     coinItem,
-    Button
+    Button,
+    payCoinModal
   },
   data() {
+    this.payAmountDebounce = debounce(this.amountInput, 800);
     return {
       showModal: false,
       coinType: '',
@@ -80,15 +111,220 @@ export default {
       currentGetToken: null,
       currentOption: null,
       errorMsg: '',
+      addressErrorMsg: '',
       tokenAmount: '',
       payAmount: '',
-      showComputedLoading: false
+      showComputedLoading: false,
+      userWalletAddress: ''
     };
   },
+  computed: {
+    canNext() {
+      return !this.showComputedLoading && !this.errorMsg && !this.addressErrorMsg && this.currentOption && this.userWalletAddress;
+    }
+  },
   created() {
-    this.currentPayType = localStorage.getItem('CURRENT_PAY_TYPE') && JSON.pa;
-    this.currentGetToken = localStorage.getItem('CURRENT_TOKEN');
-    this.currentOption = localStorage.getItem('CURRENT_PAY_OPTION');
+    this.currentPayType = sessionStorage.getItem('CURRENT_PAY_TYPE') && JSON.parse(sessionStorage.getItem('CURRENT_PAY_TYPE')) || null;
+    this.currentGetToken = sessionStorage.getItem('CURRENT_TOKEN') && JSON.parse(sessionStorage.getItem('CURRENT_TOKEN')) || null;
+    this.currentOption = sessionStorage.getItem('CURRENT_PAY_OPTION') && JSON.parse(sessionStorage.getItem('CURRENT_PAY_OPTION')) || null;
+    this.payTokens = sessionStorage.getItem('GET_TOKENS') && JSON.parse(sessionStorage.getItem('GET_TOKENS')) || null;
+    this.payTypes = sessionStorage.getItem('PAY_TYPES') && JSON.parse(sessionStorage.getItem('PAY_TYPES')) || null;
+    setTimeout(() => {
+      this.payAmount = this.currentOption && this.currentOption.currencyAmount;
+      if (this.currentGetToken && this.currentGetToken.network === 'tron') {
+        this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['TRON'];
+      } else {
+        this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'] || '';
+      }
+    });
+  },
+  methods: {
+    async pasteClick() {
+      try {
+        const clipBoard = navigator.clipboard;
+        const text = await clipBoard.readText();
+        if (text) {
+          this.userWalletAddress = text;
+          this.addressInput();
+        }
+      } catch (error) {
+        console.error('Failed to read clipboard data:', error);
+      }
+    },
+    addressFocus(event) {
+      event.currentTarget.select();
+    },
+    addressInput() {
+      console.log(this.currentGetToken && this.userWalletAddress, 'this.currentGetToken && this.userWalletAddress');
+      if (this.currentGetToken && this.userWalletAddress) {
+        if (this.currentGetToken.network === 'NULS' && !validateNerveAddress(this.userWalletAddress, 'NULS')) {
+          this.addressErrorMsg = this.$t('swap.swap61');
+        } else if (this.currentGetToken.currentGetToken === 'NERVE' && !validateNerveAddress(this.userWalletAddress, 'NERVE')) {
+          this.addressErrorMsg = this.$t('swap.swap61');
+        } else if (this.currentGetToken.network === 'tron') {
+          const tron = new TronLink();
+          if (!tron.validAddress(this.userWalletAddress)) {
+            this.addressErrorMsg = this.$t('swap.swap61');
+          } else {
+            this.addressErrorMsg = '';
+          }
+        } else if (this.currentGetToken.network !== 'NULS' && this.currentGetToken.network !== 'NERVE' && this.currentGetToken.network !== 'tron' && !validateAddress(this.userWalletAddress)) {
+          this.addressErrorMsg = this.$t('swap.swap61');
+        } else {
+          this.addressErrorMsg = '';
+        }
+      } else if (!this.toAddress) {
+        this.addressErrorMsg = this.$t('swap.swap61');
+      } else {
+        this.addressErrorMsg = '';
+      }
+    },
+    async amountInput(amount) {
+      try {
+        if (!this.currentPayType || !this.currentGetToken) {
+          this.errorMsg = '';
+          return;
+        }
+        if (!amount) {
+          this.errorMsg = this.$t('swap.swap63');
+          return;
+        }
+        this.payAmount = amount || this.payAmount;
+        const limit = this.checkPayMethodLimit(amount || this.payAmount);
+        if (limit) return;
+        this.showComputedLoading = true;
+        const tempOption = this.currentPayType && this.currentPayType.paymentOptions;
+        const tempPriceOptions = await Promise.allSettled(tempOption.map(async item => {
+          const res = await this.getPaymentPrice(item.name);
+          if (res) {
+            return res;
+          }
+        }));
+        const priceOptions = tempPriceOptions.map(item => item.value);
+        this.currentOption = priceOptions && priceOptions[0];
+        this.tokenAmount = this.currentOption && this.currentOption.cryptoCurrencyAmount || '';
+        this.showComputedLoading = false;
+      } catch (e) {
+        console.error(e, 'error');
+        this.showComputedLoading = false;
+      }
+    },
+    async nextStep() {
+      if (!this.canNext) return;
+      sessionStorage.setItem('CURRENT_TOKEN', JSON.stringify(this.currentGetToken));
+      sessionStorage.setItem('CURRENT_PAY_TYPE', JSON.stringify(this.currentPayType));
+      sessionStorage.setItem('CURRENT_PAY_OPTION', JSON.stringify(this.currentOption));
+      try {
+        const nonce = Math.floor(Math.random() * 900000) + 100000;
+        const timestamp = Math.floor(new Date().getTime() / 1000);
+        const evmAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'];
+        const params = {
+          requestParam: {
+            nonce: nonce.toString(),
+            partnerId: FAT_PAY_PARTNER_ID,
+            timestamp: timestamp.toString(),
+            walletAddress: this.userWalletAddress || evmAddress
+            // walletAddressLocked: '1'
+          }
+        };
+        const res = await this.$request({
+          url: '/currency/fatpay/sign',
+          data: params
+        });
+        if (res.code === 1000) {
+          const encodedString = res.data;
+          const url = `https://ramp.fatpay.xyz/home?amount=${this.payAmount}&defaultFiatCurrency=${this.currentPayType.fiatCurrency}&defaultCurrency=${this.currentGetToken.cryptoCurrencyCode.toLocaleUpperCase()}&nonce=${nonce}&partnerId=${FAT_PAY_PARTNER_ID}&timestamp=${timestamp}&walletAddress=${this.userWalletAddress || evmAddress}&windowOpen=1&signature=${encodedString}`;
+          this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
+        }
+      } catch (e) {
+        console.log(e, 'error');
+        const url = `https://ramp.fatpay.xyz/home`;
+        this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
+      }
+    },
+    checkPayMethodLimit(amount) {
+      const tempOption = this.currentPayType.paymentOptions[0];
+      const { maxAmount, minAmount } = tempOption;
+      if (Minus(amount, minAmount) < 0) {
+        this.errorMsg = `${this.$t('swap.swap60')}${minAmount}${this.currentPayType && this.currentPayType.fiatCurrency}`;
+        return true;
+      } else if (Minus(amount, maxAmount) > 0) {
+        this.errorMsg = `${this.$t('swap.swap59')}${maxAmount}${this.currentPayType && this.currentPayType.fiatCurrency}`;
+        return true;
+      } else {
+        this.errorMsg = '';
+      }
+      return false;
+    },
+    getBestOption(options) {
+      const tempList = options.reduce((p, v) => Minus(p.minReceive || 0, v.minReceive || 0) < 0 ? v : p);
+      this.channelConfigList = options.map(item => {
+        if (item.channel === tempList.channel) {
+          return {
+            ...item,
+            isBest: true,
+            isChoose: true
+          };
+        }
+        return {
+          ...item,
+          isBest: false,
+          isChoose: false
+        };
+      });
+      console.log(this.channelConfigList, '==channelConfigList==');
+      return this.channelConfigList.reduce((p, v) => Minus(p.minReceive || 0, v.minReceive || 0) < 0 ? v : p);
+    },
+    async getPaymentPrice(payType) {
+      const params = {
+        fiatCurrency: this.currentPayType.fiatCurrency,
+        currencyAmount: this.payAmount,
+        cryptoCurrencyCode: this.currentGetToken.cryptoCurrencyCode,
+        payment: payType
+      };
+      try {
+        const res = await this.$request({
+          url: '/currency/fatpay/price',
+          data: params
+        });
+        if (res.code === 1000) {
+          return res.data;
+        }
+        return null;
+      } catch (e) {
+        console.error(e, 'error');
+        return null;
+      }
+    },
+    selectCoin(type) {
+      this.coinType = type;
+      this.showModal = true;
+      if (type === 'pay') {
+        this.showTokenList = this.payTypes;
+      } else {
+        this.showTokenList = this.payTokens;
+      }
+    },
+    selectAsset(asset) {
+      if (this.coinType === 'pay') {
+        this.currentPayType = asset;
+        this.showModal = false;
+        this.payAmount = '';
+        this.currentOption = null;
+      } else {
+        this.showModal = false;
+        if (asset.cryptoCurrencyCode !== this.currentGetToken.cryptoCurrencyCode) {
+          this.currentGetToken = asset;
+          if (this.currentGetToken && this.currentGetToken.network === 'tron') {
+            this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['TRON'];
+          } else {
+            this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'] || '';
+          }
+          this.addressErrorMsg = '';
+          this.payAmountDebounce(this.payAmount);
+        }
+      }
+    }
   }
 };
 </script>
@@ -103,7 +339,7 @@ export default {
 .buy-detail-cont {
   padding: 60px 32px 32px 32px;
   .coin-wrap {
-    width: 200px;
+    //width: 200px;
     height: 96px;
     border: 1px solid #E6E9F0;
     border-radius: 20px;
@@ -113,7 +349,7 @@ export default {
     display: flex;
     align-items: center;
     margin-top: 24px;
-    padding: 0 24px 0 32px;
+    padding: 0 24px 0 24px;
     border: 1px solid #E6E9F0;
     border-radius: 20px;
     height: 96px;
@@ -134,6 +370,7 @@ export default {
       height: 28px;
       width: 28px;
       cursor: pointer;
+      margin-left: 15px;
     }
   }
   .channel-cont {
@@ -158,7 +395,6 @@ export default {
           height: 64px;
           width: 64px;
           border-radius: 50%;
-          background-color: red;
         }
         .channel-detail {
           margin-left: 12px;
@@ -169,11 +405,14 @@ export default {
         .pay-cont {
           align-items: center;
           .pay-item {
-            height: 30px;
+            height: 45px;
             width: 45px;
-            background-color: red;
-            border-radius: 8px;
+            border-radius: 50%;
             margin-left: 10px;
+            img {
+              height: 100%;
+              width: 100%;
+            }
           }
         }
       }
@@ -204,5 +443,22 @@ export default {
 }
 .mt-8 {
   margin-top: 80px;
+}
+.border-red {
+  border: 1px solid red !important;
+}
+/deep/ .el-loading-spinner .path {
+  stroke: #53b8a9;
+}
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 98px;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 98px;
+  background: #53b8a9;
+  border-radius: 20px;
 }
 </style>

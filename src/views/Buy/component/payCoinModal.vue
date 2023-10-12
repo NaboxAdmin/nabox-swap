@@ -2,7 +2,7 @@
   <div :class="{'show_modal': showModal}" class="mask-cont" @click="$emit('update:showModal', false)" @click.stop @touchmove.stop>
     <div :class="{'show_modal-cont': showModal}" class="modal-cont" @click.stop @touchmove.stop>
       <div class="header-cont size-36 font-500 mt-2">
-        {{ $t('modal.modal1') }}
+        {{ $t('swap.swap64') }}
         <div class="back-icon" @click.stop="back">
           <img src="@/assets/svg/exit.svg" alt="">
         </div>

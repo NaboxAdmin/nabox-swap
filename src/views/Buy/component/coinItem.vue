@@ -1,8 +1,14 @@
 <template>
-  <div v-if="assetItem" class="coin-item" @click="coinClick">
-    <img :src="assetItem && assetItem.icon || pictureError" class="asset_icon" alt="" @error="pictureError">
-    <span class="asset-name">{{ assetItem && (assetItem.fiatCurrency || assetItem.cryptoCurrency) || '' }}</span>
-    <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
+  <div class="coin-item" @click="coinClick">
+    <template v-if="assetItem">
+      <img :src="assetItem && assetItem.icon || pictureError" class="asset_icon" alt="" @error="pictureError">
+      <span class="asset-name">{{ assetItem && (assetItem.fiatCurrency || assetItem.cryptoCurrency) || '' }}</span>
+      <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
+    </template>
+    <div v-else class="w-160 d-flex align-items-center space-between">
+      <span class="flex-1 size-28 w-150 text-90">{{ $t('swap.swap65') }}</span>
+      <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
+    </div>
   </div>
 </template>
 
@@ -32,10 +38,10 @@ export default {
   padding: 0 24px;
   overflow: hidden;
   cursor: pointer;
-  width: 224px;
+  width: 160px;
   .asset-name {
     margin: 0 12px;
-    max-width: 200px;
+    max-width: 80px;
     width: 100%;
     color: #333;
     font-size: 30px;
@@ -50,5 +56,8 @@ export default {
     width: 16px;
     height: 10px;
   }
+}
+.w-160 {
+  width: 160px;
 }
 </style>

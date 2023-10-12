@@ -32,12 +32,15 @@ export default {
     };
   },
   watch: {
-    inputValue(val) {
-      if (val) {
-        this.payAmount = val;
-      } else {
-        this.payAmount = '';
-      }
+    inputValue: {
+      handler(val) {
+        if (val) {
+          this.payAmount = val;
+        } else {
+          this.payAmount = '';
+        }
+      },
+      deep: true
     }
   },
   methods: {
