@@ -3,16 +3,17 @@
     <span class="text-3a size-30">{{ $t('buy.buy10') }}</span>
     <div class="d-flex align-items-center mt-16">
       <assetInput
+        :type="'pay'"
         :asset-item="currentPayType"
         :input-value="payAmount"
         :class="errorMsg && 'border-red'"
-        class="mt-16 flex-1"
+        class="flex-1"
         @selectCoin="selectCoin('pay')"
         @input="payAmountDebounce"
       />
       <span class="text-3a size-26 mr-2 ml-2">{{ $t('buy.buy10') }}</span>
       <div class="coin-wrap">
-        <coinItem :asset-item="currentGetToken" @click="selectCoin('get')"/>
+        <coinItem :type="'get'" :asset-item="currentGetToken" @click="selectCoin('get')"/>
       </div>
     </div>
     <div v-if="errorMsg" class="text-red mt-2 size-26">{{ errorMsg }}</div>
@@ -36,7 +37,7 @@
             <img class="channel-img" src="https://ramp.fatpay.xyz/favicon.png" alt="">
             <div class="channel-detail d-flex direction-column flex-1">
               <span class="text-3a size-30 font-500">{{ 'FaTPay' }}</span>
-              <span class="text-90 size-24 mt-1">{{ currentOption && currentOption.cryptoCurrencyAmount || '--' }}{{ currentOption && currentOption.cryptoCurrency }}</span>
+              <span class="text-90 size-24 mt-1">{{ currentOption && currentOption.cryptoCurrencyUnitPrice || '--' }}{{ currentOption && currentOption.fiatCurrency }}</span>
             </div>
             <div v-if="currentPayType && currentPayType.paymentOptions" class="pay-cont d-flex">
               <div v-for="item in currentPayType.paymentOptions" :key="item.name" class="pay-item">
@@ -53,12 +54,12 @@
           <span class="tag-info">FaTPay</span>
         </div>
         <div class="buy-info-item">
-          <span class="tag-title">{{ $t('buy.buy2') }}</span>
+          <span class="tag-title">{{ $t('buy.buy3') }}</span>
           <span v-if="currentOption" class="tag-info">{{ currentOption.currencyAmount }}<span class="tag-title">{{ currentOption.fiatCurrency }}</span></span>
           <span v-else>--</span>
         </div>
         <div class="buy-info-item">
-          <span class="tag-title">{{ $t('buy.buy3') }}</span>
+          <span class="tag-title">{{ $t('buy.buy2') }}</span>
           <span v-if="currentOption" class="tag-info">1{{ currentOption.cryptoCurrency }}≈{{ currentOption.cryptoCurrencyUnitPrice }}<span class="tag-title">{{ currentOption.fiatCurrency }}</span></span>
           <span v-else>--</span>
         </div>
@@ -80,6 +81,29 @@
       :token-list="showTokenList"
       :type="coinType"
       @selectAsset="selectAsset"/>
+    <pop-up :prevent-boo="false" :show.sync="showTips">
+      <div class="address-detail_pop">
+        <div class="customer-p4">
+          <div class="icon-cont d-flex space-between">
+            <div class="font-500">{{ $t('buy.buy15') }}</div>
+            <span class="cursor-pointer" @click="showTips=false">
+              <svg t="1626838971768" class="icon" viewBox="0 0 1025 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1604" width="14" height="14"><path d="M602.476163 514.068707l403.54275-403.54275A64.199983 64.199983 0 0 0 913.937795 19.178553l-403.54275 403.54275L110.154008 19.178553A64.199983 64.199983 0 0 0 18.806604 110.525957l403.54275 403.54275-403.54275 403.54275A64.199983 64.199983 0 0 0 110.154008 1004.923434l403.54275-403.54275 403.54275 403.54275a64.199983 64.199983 0 0 0 90.61369-90.613691z" fill="#333333" p-id="1605"/></svg>
+            </span>
+          </div>
+          <div style="line-height: 24px" class="mt-4 size-28">{{ $t('buy.buy17') }}</div>
+          <div class="d-flex flex-1 mt-3 align-items-center cursor-pointer" @click="isChoose = !isChoose">
+            <template>
+              <span class="radio-cont">
+                <img v-if="!isChoose" src="@/assets/image/nochoose.svg" alt="">
+                <img v-else src="@/assets/image/choose.svg" alt="">
+              </span>
+            </template>
+            <span class="text-primary size-14">{{ $t('buy.buy16') }}</span>
+          </div>
+          <div :class="!isChoose && 'opacity_btn'" class="btn cursor-pointer mt-2" @click="confirmLink">{{ $t('pool.join4') }}</div>
+        </div>
+      </div>
+    </pop-up>
   </div>
 </template>
 
@@ -88,6 +112,7 @@ import assetInput from '@/views/Buy/component/assetInput';
 import coinItem from '@/views/Buy/component/coinItem';
 import Button from '@/views/Buy/component/button';
 import payCoinModal from '@/views/Buy/component/payCoinModal';
+import PopUp from '@/components/PopUp/PopUp';
 import { debounce, FAT_PAY_PARTNER_ID, Minus, TRON } from '@/api/util';
 import { validateAddress, validateNerveAddress } from '@/api/api';
 import TronLink from '@/api/tronLink';
@@ -97,7 +122,8 @@ export default {
     assetInput,
     coinItem,
     Button,
-    payCoinModal
+    payCoinModal,
+    PopUp
   },
   data() {
     this.payAmountDebounce = debounce(this.amountInput, 800);
@@ -115,7 +141,9 @@ export default {
       tokenAmount: '',
       payAmount: '',
       showComputedLoading: false,
-      userWalletAddress: ''
+      userWalletAddress: '',
+      showTips: false,
+      isChoose: false
     };
   },
   computed: {
@@ -139,6 +167,39 @@ export default {
     });
   },
   methods: {
+    async confirmLink() {
+      try {
+        const nonce = Math.floor(Math.random() * 900000) + 100000;
+        const timestamp = Math.floor(new Date().getTime() / 1000);
+        const evmAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'];
+        const params = {
+          requestParam: {
+            nonce: nonce.toString(),
+            partnerId: FAT_PAY_PARTNER_ID,
+            timestamp: timestamp.toString(),
+            walletAddress: this.userWalletAddress || evmAddress
+            // walletAddressLocked: '1'
+          }
+        };
+        const res = await this.$request({
+          url: '/currency/fatpay/sign',
+          data: params
+        });
+        if (res.code === 1000) {
+          const encodedString = res.data;
+          const url = `https://ramp.fatpay.xyz/home?amount=${this.payAmount}&defaultFiatCurrency=${this.currentPayType.fiatCurrency}&defaultCurrency=${this.currentGetToken.cryptoCurrencyCode.toLocaleUpperCase()}&nonce=${nonce}&partnerId=${FAT_PAY_PARTNER_ID}&timestamp=${timestamp}&walletAddress=${this.userWalletAddress || evmAddress}&windowOpen=1&signature=${encodedString}`;
+          this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
+        }
+        this.showTips = false;
+        this.isChoose = false;
+      } catch (e) {
+        console.log(e, 'error');
+        const url = `https://ramp.fatpay.xyz/home`;
+        this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
+        this.showTips = false;
+        this.isChoose = false;
+      }
+    },
     async pasteClick() {
       try {
         const clipBoard = navigator.clipboard;
@@ -214,33 +275,7 @@ export default {
       sessionStorage.setItem('CURRENT_TOKEN', JSON.stringify(this.currentGetToken));
       sessionStorage.setItem('CURRENT_PAY_TYPE', JSON.stringify(this.currentPayType));
       sessionStorage.setItem('CURRENT_PAY_OPTION', JSON.stringify(this.currentOption));
-      try {
-        const nonce = Math.floor(Math.random() * 900000) + 100000;
-        const timestamp = Math.floor(new Date().getTime() / 1000);
-        const evmAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'];
-        const params = {
-          requestParam: {
-            nonce: nonce.toString(),
-            partnerId: FAT_PAY_PARTNER_ID,
-            timestamp: timestamp.toString(),
-            walletAddress: this.userWalletAddress || evmAddress
-            // walletAddressLocked: '1'
-          }
-        };
-        const res = await this.$request({
-          url: '/currency/fatpay/sign',
-          data: params
-        });
-        if (res.code === 1000) {
-          const encodedString = res.data;
-          const url = `https://ramp.fatpay.xyz/home?amount=${this.payAmount}&defaultFiatCurrency=${this.currentPayType.fiatCurrency}&defaultCurrency=${this.currentGetToken.cryptoCurrencyCode.toLocaleUpperCase()}&nonce=${nonce}&partnerId=${FAT_PAY_PARTNER_ID}&timestamp=${timestamp}&walletAddress=${this.userWalletAddress || evmAddress}&windowOpen=1&signature=${encodedString}`;
-          this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
-        }
-      } catch (e) {
-        console.log(e, 'error');
-        const url = `https://ramp.fatpay.xyz/home`;
-        this.isMobile ? window.location.href = `${url}` : window.open(`${url}`);
-      }
+      this.showTips = true;
     },
     checkPayMethodLimit(amount) {
       const tempOption = this.currentPayType.paymentOptions[0];
@@ -310,6 +345,7 @@ export default {
         this.currentPayType = asset;
         this.showModal = false;
         this.payAmount = '';
+        this.errorMsg = '';
         this.currentOption = null;
       } else {
         this.showModal = false;
@@ -460,5 +496,28 @@ export default {
   line-height: 98px;
   background: #53b8a9;
   border-radius: 20px;
+}
+.address-detail_pop {
+  //padding: 40px 40px 60px 40px;
+  z-index: 120;
+  padding-bottom: 40px;
+  background-color: #FFFFFF;
+  width: 670px;
+  font-size: 32px;
+  border-radius: 20px;
+}
+.customer-p4 {
+  padding: 40px 40px 0 40px;
+}
+.radio-cont {
+  width: 26px;
+  height: 26px;
+  //border: 1px solid #AAB2C9;
+  border-radius: 4px;
+  margin-right: 13px;
+  img {
+    height: 100%;
+    width: 100%;
+  }
 }
 </style>

@@ -2,7 +2,7 @@
   <div :class="{'show_modal': showModal}" class="mask-cont" @click="$emit('update:showModal', false)" @click.stop @touchmove.stop>
     <div :class="{'show_modal-cont': showModal}" class="modal-cont" @click.stop @touchmove.stop>
       <div class="header-cont size-36 font-500 mt-2">
-        {{ $t('swap.swap64') }}
+        <span>{{ type === 'pay' ? $t('swap.swap64') : $t('swap.swap67') }}</span>
         <div class="back-icon" @click.stop="back">
           <img src="@/assets/svg/exit.svg" alt="">
         </div>
@@ -11,7 +11,7 @@
         <span class="search-icon">
           <img src="@/assets/image/search.png" alt="">
         </span>
-        <input v-model="searchVal" :placeholder="$t('modal.modal2')" type="text" >
+        <input v-model="searchVal" :placeholder="type === 'pay' ? $t('modal.modal4') : $t('modal.modal5')" type="text" >
       </div>
       <div class="search-result">
         <div v-if="showList.length > 0" class="coin-list">
@@ -75,8 +75,8 @@ export default {
           if (this.searchVal) {
             this.showList = this.allList.filter(v => {
               const search = val.toUpperCase();
-              const symbol = v.symbol.toUpperCase();
-              return symbol.indexOf(search) > -1;
+              const currency = this.type === 'pay' ? v.fiatCurrency.toUpperCase() : v.cryptoCurrency.toUpperCase();
+              return currency.indexOf(search) > -1;
             });
           } else {
             this.showList = val;
@@ -88,8 +88,8 @@ export default {
       if (val) {
         this.showList = this.allList.filter(v => {
           const search = val.toUpperCase();
-          const symbol = v.symbol.toUpperCase();
-          return symbol.indexOf(search) > -1;
+          const currency = this.type === 'pay' ? v.fiatCurrency.toUpperCase() : v.cryptoCurrency.toUpperCase();
+          return currency.indexOf(search) > -1;
         });
       } else {
         this.showList = this.allList;

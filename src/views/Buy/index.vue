@@ -4,6 +4,7 @@
     <div class="buy-cont">
       <span class="text-3a size-28 mt-48">{{ $t("buy.buy13") }}</span>
       <assetInput
+        :type="'pay'"
         :asset-item="currentPayType"
         :input-value="payAmount"
         class="mt-16"
@@ -16,6 +17,7 @@
       </div>
       <span class="text-3a size-28 mt-48">{{ $t("buy.buy14") }}</span>
       <assetInput
+        :type="'get'"
         :disabled="true"
         :asset-item="currentGetToken"
         :input-value="tokenAmount"
@@ -183,10 +185,10 @@ export default {
         this.showModal = false;
         this.payAmount = '';
         this.tokenAmount = '';
+        this.errorMsg = '';
         this.currentOption = null;
       } else {
         this.showModal = false;
-        console.log(asset.cryptoCurrencyCode, this.currentGetToken.cryptoCurrencyCode, 'asset.cryptoCurrencyCode')
         if (asset.cryptoCurrencyCode !== this.currentGetToken.cryptoCurrencyCode) {
           this.currentGetToken = asset;
           this.currentOption = null;

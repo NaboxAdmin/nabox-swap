@@ -6,7 +6,7 @@
       <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
     </template>
     <div v-else class="w-160 d-flex align-items-center space-between">
-      <span class="flex-1 size-28 w-150 text-90">{{ $t('swap.swap65') }}</span>
+      <span class="flex-1 size-28 w-150 text-90">{{ type === 'pay' ? $t('swap.swap65') : $t('swap.swap66') }}</span>
       <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
     </div>
   </div>
@@ -19,6 +19,10 @@ export default {
     assetItem: {
       type: Object,
       default: () => null
+    },
+    type: {
+      type: String,
+      default: ''
     }
   },
   methods: {

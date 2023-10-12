@@ -1,7 +1,7 @@
 <template>
   <div class="pay-asset-const">
     <input :disabled="disabled" v-model="payAmount" placeholder="0" type="number" @input="payAmountInput">
-    <coinItem :asset-item="assetItem" @click="selectCoin"/>
+    <coinItem :type="type" :asset-item="assetItem" @click="selectCoin"/>
   </div>
 </template>
 
@@ -24,6 +24,10 @@ export default {
     inputValue: {
       type: String,
       default: ''
+    },
+    type: {
+      type: String,
+      default: 'pay'
     }
   },
   data() {

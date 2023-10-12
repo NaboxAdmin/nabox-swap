@@ -144,7 +144,9 @@ const en = {
     swap62: 'Reference Price',
     swap63: 'Please enter the payment amount',
     swap64: 'Select a currency',
-    swap65: 'Currency'
+    swap65: 'Currency',
+    swap66: 'Token',
+    swap67: 'Select a token'
   },
   transfer: {
     transfer1: 'From',
@@ -200,7 +202,9 @@ const en = {
   modal: {
     modal1: 'Select',
     modal2: 'Search by name or contract address',
-    modal3: 'No data'
+    modal3: 'No data',
+    modal4: 'Search Currency',
+    modal5: 'Search Token'
   },
   popUp: {
     popUp1: 'Transfer in ',
@@ -267,7 +271,10 @@ const en = {
     buy11: 'Channel',
     buy12: 'Buy Details',
     buy13: 'Pay',
-    buy14: 'Get'
+    buy14: 'Get',
+    buy15: 'Disclaimer',
+    buy16: 'I have read and agreed',
+    buy17: 'You are about to leave the SwapBox website and redirect to a third-party platform. Users shall visit and use this third-party website at your own risk. We are not responsible for any contents, products, services or other inquiries on the external website. Please contact the customer service of the third-party website for help if you encounter any problems when using the services provided by this website.'
   }
 };
 
