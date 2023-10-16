@@ -2,7 +2,7 @@
   <div class="coin-item" @click="coinClick">
     <template v-if="assetItem">
       <img :src="assetItem && assetItem.icon || pictureError" class="asset_icon" alt="" @error="pictureError">
-      <span class="asset-name">{{ assetItem && (assetItem.fiatCurrency || assetItem.cryptoCurrency) || '' }}</span>
+      <span class="asset-name text-truncate">{{ assetItem && (assetItem.fiatCurrency || assetItem.cryptoCurrency) || '' }}</span>
       <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
     </template>
     <div v-else class="w-160 d-flex align-items-center space-between">
@@ -42,11 +42,10 @@ export default {
   padding: 0 24px;
   overflow: hidden;
   cursor: pointer;
-  width: 160px;
+  width: 170px;
   .asset-name {
+    flex: 1;
     margin: 0 12px;
-    max-width: 80px;
-    width: 100%;
     color: #333;
     font-size: 30px;
   }

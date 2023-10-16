@@ -209,7 +209,6 @@ export function validateAddress(address) {
 export function validateNerveAddress(address, network) {
   try {
     const addressValue = nerve.verifyAddress(address);
-    console.log(addressValue, 'addressValue')
     if (isBeta && network === 'NULS') {
       return addressValue.chainId === 2;
     } else if (isBeta && network === 'NERVE') {

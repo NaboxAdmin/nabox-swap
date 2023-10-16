@@ -93,7 +93,7 @@
           <div style="line-height: 24px" class="mt-4 size-28">{{ $t('buy.buy17') }}</div>
           <div class="d-flex flex-1 mt-3 align-items-center cursor-pointer" @click="isChoose = !isChoose">
             <template>
-              <span class="radio-cont">
+              <span class="radio-cont d-flex align-items-center">
                 <img v-if="!isChoose" src="@/assets/image/nochoose.svg" alt="">
                 <img v-else src="@/assets/image/choose.svg" alt="">
               </span>
@@ -161,6 +161,8 @@ export default {
       this.payAmount = this.currentOption && this.currentOption.currencyAmount;
       if (this.currentGetToken && this.currentGetToken.network === 'tron') {
         this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['TRON'];
+      } else if (this.currentGetToken && this.currentGetToken.network === 'nuls') {
+        this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['NULS'];
       } else {
         this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'] || '';
       }
@@ -216,11 +218,10 @@ export default {
       event.currentTarget.select();
     },
     addressInput() {
-      console.log(this.currentGetToken && this.userWalletAddress, 'this.currentGetToken && this.userWalletAddress');
       if (this.currentGetToken && this.userWalletAddress) {
-        if (this.currentGetToken.network === 'NULS' && !validateNerveAddress(this.userWalletAddress, 'NULS')) {
+        if (this.currentGetToken.network === 'nuls' && !validateNerveAddress(this.userWalletAddress, 'NULS')) {
           this.addressErrorMsg = this.$t('swap.swap61');
-        } else if (this.currentGetToken.currentGetToken === 'NERVE' && !validateNerveAddress(this.userWalletAddress, 'NERVE')) {
+        } else if (this.currentGetToken.network === 'NERVE' && !validateNerveAddress(this.userWalletAddress, 'NERVE')) {
           this.addressErrorMsg = this.$t('swap.swap61');
         } else if (this.currentGetToken.network === 'tron') {
           const tron = new TronLink();
@@ -353,6 +354,8 @@ export default {
           this.currentGetToken = asset;
           if (this.currentGetToken && this.currentGetToken.network === 'tron') {
             this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['TRON'];
+          } else if (this.currentGetToken && this.currentGetToken.network === 'nuls') {
+            this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['NULS'];
           } else {
             this.userWalletAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'] || '';
           }
