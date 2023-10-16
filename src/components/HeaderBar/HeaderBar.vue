@@ -150,6 +150,7 @@
           <!--              </div>-->
           <!--            </div>-->
           <!--          </div>-->
+          <div class="text-center pt-3 size-28 text-primary cursor-pointer" @click="$router.push('/transactions'); showAccount=false">{{ $t('swap.swap58') }}</div>
         </div>
       </pop-up>
       <pop-up :prevent-boo="false" :show.sync="showTips">
@@ -560,28 +561,28 @@ export default {
     },
     async getOrderStatus(val) {
       try {
-        // console.log('==getOrderStatus==');
+        console.log('==getOrderStatus==');
         const commonTxList = await this.getTxStatus(); // 获取当前订单的状态
-        // const tempList = commonTxList.filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
-        // let swapTxList; // 获取当前订单的状态
-        // const params = {
-        //   address: val,
-        //   chain: this.fromNetwork
-        // };
-        // const res = await this.$request({
-        //   url: '/swap/tx/query',
-        //   data: params
-        // });
-        // const lpRes = await this.$request({
-        //   url: '/swap/lp/tx/query',
-        //   data: params
-        // });
-        // if (res.code === 1000) {
-        //   swapTxList = res.data.concat(lpRes.data || []);
-        // } else {
-        //   swapTxList = [];
-        // }
-        // this.showLoading = tempList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
+        const tempList = commonTxList.filter(item => item.userAddress === this.fromAddress && (item.chain === this.fromNetwork || item.chain === 'NERVE'));
+        let swapTxList; // 获取当前订单的状态
+        const params = {
+          address: val,
+          chain: this.fromNetwork
+        };
+        const res = await this.$request({
+          url: '/swap/tx/query',
+          data: params
+        });
+        const lpRes = await this.$request({
+          url: '/swap/lp/tx/query',
+          data: params
+        });
+        if (res.code === 1000) {
+          swapTxList = res.data.concat(lpRes.data || []);
+        } else {
+          swapTxList = [];
+        }
+        this.showLoading = tempList.some(item => item.status === 0) || swapTxList.some(item => item.status < 3);
       } catch (e) {
         console.log(e);
       }
