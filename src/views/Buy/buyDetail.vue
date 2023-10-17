@@ -230,12 +230,12 @@ export default {
           } else {
             this.addressErrorMsg = '';
           }
-        } else if (this.currentGetToken.network !== 'NULS' && this.currentGetToken.network !== 'NERVE' && this.currentGetToken.network !== 'tron' && !validateAddress(this.userWalletAddress)) {
+        } else if (this.currentGetToken.network !== 'nuls' && this.currentGetToken.network !== 'tron' && !validateAddress(this.userWalletAddress)) {
           this.addressErrorMsg = this.$t('swap.swap61');
         } else {
           this.addressErrorMsg = '';
         }
-      } else if (!this.toAddress) {
+      } else if (!this.userWalletAddress) {
         this.addressErrorMsg = this.$t('swap.swap61');
       } else {
         this.addressErrorMsg = '';

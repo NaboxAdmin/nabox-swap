@@ -50,7 +50,7 @@ import coinItem from '@/views/Buy/component/coinItem';
 import assetInput from '@/views/Buy/component/assetInput';
 import payCoinModal from '@/views/Buy/component/payCoinModal';
 import Tab from '@/views/Swap/component/Tab';
-import { debounce, Minus } from '@/api/util';
+import {debounce, Minus, replaceBrowserHistory} from '@/api/util';
 export default {
   name: 'Buy',
   components: { coinItem, assetInput, payCoinModal, Tab },
@@ -182,6 +182,7 @@ export default {
     selectAsset(asset) {
       if (this.coinType === 'pay') {
         this.currentPayType = asset;
+        replaceBrowserHistory('currency', asset && asset.fiatCurrency);
         this.showModal = false;
         this.payAmount = '';
         this.tokenAmount = '';
@@ -189,8 +190,10 @@ export default {
         this.currentOption = null;
       } else {
         this.showModal = false;
+        this.tokenAmount = '';
         if (asset.cryptoCurrencyCode !== this.currentGetToken.cryptoCurrencyCode) {
           this.currentGetToken = asset;
+          replaceBrowserHistory('token', asset && asset.cryptoCurrencyCode);
           this.currentOption = null;
           this.payAmountDebounce(this.payAmount);
         }
@@ -203,10 +206,15 @@ export default {
           method: 'get',
           url: '/currency/fatpay/tokens'
         });
-        console.log(res, 'res');
         if (res.code === 1000 && res.data) {
           this.payTokens = res.data;
-          this.currentGetToken = res.data && res.data[0];
+          if (this.$route.query.token) {
+            const tempCurrentGetToken = res.data.find(item => item.cryptoCurrencyCode === this.$route.query.token);
+            this.currentGetToken = tempCurrentGetToken || res.data && res.data[0];
+          } else {
+            this.currentGetToken = res.data && res.data[0];
+          }
+          replaceBrowserHistory('token', this.currentGetToken && this.currentGetToken.cryptoCurrencyCode);
           sessionStorage.setItem('GET_TOKENS', JSON.stringify(this.payTokens));
         }
       } catch (e) {
@@ -220,10 +228,15 @@ export default {
           method: 'get',
           url: '/currency/fatpay/type'
         });
-        console.log(res, 'res');
         if (res.code === 1000 && res.data) {
           this.payTypes = res.data;
-          this.currentPayType = res.data && res.data[0];
+          if (this.$route.query.currency) {
+            const tempCurrentPayType = res.data.find(item => item.fiatCurrency === this.$route.query.currency);
+            this.currentPayType = tempCurrentPayType || res.data && res.data[0];
+          } else {
+            this.currentPayType = res.data && res.data[0];
+          }
+          replaceBrowserHistory('currency', this.currentPayType && this.currentPayType.fiatCurrency);
           sessionStorage.setItem('PAY_TYPES', JSON.stringify(this.payTypes));
         }
       } catch (e) {

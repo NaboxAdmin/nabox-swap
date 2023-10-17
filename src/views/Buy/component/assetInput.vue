@@ -92,6 +92,7 @@ export default {
     }
     &:disabled {
       cursor: not-allowed;
+      color: #3A3C44;
     }
   }
 }
