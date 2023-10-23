@@ -1,8 +1,8 @@
 <template>
   <div :class="{ mobile_class: !isMobile }">
-    <Tab/>
     <div v-loading="showApproveLoading" v-if="showApproveLoading" class="position-fixed_loading"/>
     <div v-loading="showLoading" v-if="!showOrderDetail" :class="!isDapp && 'p-3'" class="swap-cont">
+      <Tab/>
       <div :class="!isDapp && 'swap-info'" class="p-4 position-relative">
         <div v-if="uncompletedOrderList.length" class="d-flex justify-content-end text-danger">
           <span class="cursor-pointer" @click="checkOrderList">{{ $t('swap.swap50') }}({{ uncompletedOrderList.length }})</span>
