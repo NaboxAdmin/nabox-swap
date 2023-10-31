@@ -15,7 +15,7 @@
   height: 132px;
   padding: 0 30px;
   //background-color: #F0F3F3;
-  border: 1px solid #6EB6A9;
+  border: 1px solid #5622CE;
   border-radius: 20px;
   .coin-cont {
     width: 206px;
@@ -59,12 +59,12 @@
 }
 .sign {
   margin-left: 13px;
-  padding: 3px 6px;
-  background: #E7F2F0;
+  padding: 5px 8px;
+  background: #5622CE1A;
   border-radius: 6px;
   text-align: center;
   line-height: 26px;
-  color: #6EB6A9;
+  color: #5622CE;
   img {
     height: 36px;
     width: 36px;
@@ -79,11 +79,11 @@
 }
 .sign-small {
   padding: 4px 8px;
-  background: #E7F2F0;
+  background: #5622CE1A;
   border-radius: 4px;
   text-align: center;
   line-height: 26px;
-  color: #6EB6A9;
+  color: #5622CE;
 }
 .icon-cont {
   height: 10px;
@@ -147,7 +147,7 @@
   color: #FFFFFF;
   text-align: center;
   line-height: 98px;
-  background: #53b8a9;
+  background: #5622CE;
   border-radius: 20px;
 }
 .btn_disable {
@@ -233,11 +233,11 @@
       line-height: 72px;
       text-align: center;
       &.active_slippage {
-        background-color: #6EB6A9;
+        background-color: #5622CE;
         color: #FFFFFF;
       }
       &.active_slippage_input {
-        border: 1px solid #6EB6A9;
+        border: 1px solid #5622CE;
       }
       &:last-child {
         width: 188px;
@@ -376,7 +376,7 @@
   padding: 10px 20px;
   border-radius: 30px;
   cursor: pointer;
-  background-color: #fbedc8;
+  background-color: #5622CE1A;
   .slippage-icon {
     height: 40px;
     width: 40px;
@@ -542,10 +542,10 @@
   height: 520px;
   overflow-y: scroll;
   .active_chain {
-    color: #54b9aa;
+    color: #5622CE;
   }
   &::-webkit-scrollbar {
-    background-color: rgba(27,27,27,.4);
+    background-color: #5622CE;
     border-radius: 20px;
     width: 6px !important; // y轴滚动条宽度
     height: 6px !important; // x轴滚动条高度
@@ -553,7 +553,7 @@
 
   &::-webkit-scrollbar-thumb {
     border-radius: 20px; // 滚动条的圆角
-    background: #6EB6A9; // 滚动条的背景颜色
+    background: #5622CE; // 滚动条的背景颜色
   }
 
   &::-webkit-scrollbar-track {

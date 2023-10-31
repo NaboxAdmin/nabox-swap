@@ -25,7 +25,7 @@
         <div class="order-info">
           <div class="detail-info mt-2">{{ detailInfo && detailInfo.amount | numberFormat }} {{ detailInfo && detailInfo.symbol || '--' }}</div>
           <div class="down-icon">
-            <svg t="1626399197531" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1100" width="20" height="20"><path d="M512 512m-512 0a512 512 0 1 0 1024 0 512 512 0 1 0-1024 0Z" fill="#31B6A9" p-id="1101"/><path d="M753.408 527.616a36.608 36.608 0 0 0-51.2-3.84l-153.6 132.608V288a36.352 36.352 0 0 0-72.704 0v368.384l-153.6-132.608a36.608 36.608 0 1 0-47.616 55.296l213.76 184.576a41.728 41.728 0 0 0 9.728 5.632h2.048a41.472 41.472 0 0 0 11.264 1.792 41.472 41.472 0 0 0 11.264-1.792h2.048a41.728 41.728 0 0 0 9.728-5.632l213.76-184.576a36.608 36.608 0 0 0 5.12-51.456z" fill="#FFFFFF" p-id="1102"/></svg>
+            <img src="@/assets/svg/swap_to.svg" alt="">
           </div>
           <div class="detail-info mt-2">{{ orderType == 2 && detailInfo && detailInfo.succAmount || (detailInfo && detailInfo.swapSuccAmount || '--') | numberFormat }} {{ detailInfo && detailInfo.swapSymbol }}</div>
         </div>

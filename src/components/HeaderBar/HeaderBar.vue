@@ -3,7 +3,7 @@
     <!-- :style="{'background-color': headerColor}"-->
     <div class="header-cont">
       <div class="logo-cont cursor-pointer" @click="logoClick">
-        <img src="@/assets/image/SwapBox.svg" alt="">
+        <img src="@/assets/image/CrossSwap.svg" alt="">
       </div>
       <div class="address-cont d-flex align-items-center">
         <div v-if="!showConnect && !showSign && address && walletType" class="address-detail pl-2 pr-2">
@@ -14,13 +14,13 @@
                 <img v-lazy="currentChainInfo && currentChainInfo.icon || getPicture(fromNetwork)" v-if="!isL2Farm" alt="" @error="pictureError">
                 <img v-lazy="getPicture('NERVE')" v-else alt="" @error="pictureError">
               </span>
-              <div v-if="(!isL2Farm)" class="icon-drop ml-2">
-                <img src="../../assets/image/drop_down_active.png" alt="">
+              <div v-if="(!isL2Farm)" class="icon-drop ml-2 mr-2">
+                <img src="@/assets/svg/drop_down_cross.svg" alt="">
               </div>
             </div>
-            <div class="space-cont"/>
+            <!--            <div class="space-cont"/>-->
             <div class="d-flex" @click="addressClick">
-              <span class="text-90 size-30 cursor-pointer mr-1 text-primary">{{ superLong(!isL2Farm && address || nerveAddress) }}</span>
+              <span class="size-30 cursor-pointer mr-1 text-3a">{{ superLong(!isL2Farm && address || nerveAddress) }}</span>
               <span v-if="showLoading" class="box_loading">
                 <img src="@/assets/image/loading.svg" alt="">
               </span>
@@ -72,7 +72,7 @@
             </div>
             <div class="account-cont mt-4">
               <div class="account-info_pop">
-                <span class="size-32 flex-1"><span class="font-500">L1: </span>{{ superLong(address) }}</span>
+                <span class="size-32 flex-1"><span class="font-500"/>{{ superLong(address) }}</span>
                 <div>
                   <span class="icon_pop ml-4 cursor-pointer" @click.stop="toBrowser(fromNetwork, address)">
                     <svg t="1626845948779" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2998" width="16" height="16"><path d="M971.034483 576.264828a52.965517 52.965517 0 0 0-52.965517 52.965517v271.183448a17.655172 17.655172 0 0 1-17.655173 17.655173h-776.827586a17.655172 17.655172 0 0 1-17.655173-17.655173v-776.827586a17.655172 17.655172 0 0 1 17.655173-17.655173h270.830345a52.965517 52.965517 0 0 0 0-105.931034H123.586207A123.586207 123.586207 0 0 0 0 123.586207v776.827586A123.586207 123.586207 0 0 0 123.586207 1024h776.827586a123.586207 123.586207 0 0 0 123.586207-123.586207v-271.183448a52.965517 52.965517 0 0 0-52.965517-52.965517z" fill="#656A7D" p-id="2999"/><path d="M953.37931 0h-233.754482a52.965517 52.965517 0 0 0 0 105.931034h123.586206L462.212414 486.929655a52.965517 52.965517 0 0 0 37.428965 90.394483 53.318621 53.318621 0 0 0 37.428966-15.536552L918.068966 180.788966v123.586206a52.965517 52.965517 0 0 0 105.931034 0V70.62069a70.62069 70.62069 0 0 0-70.62069-70.62069z" fill="#656A7D" p-id="3000"/></svg>
@@ -87,20 +87,20 @@
               </div>
               <div class="text-left mt-3 size-36 font-500">{{ (currentChainAvailable || 0) | numFormatFixSix }} {{ currentChainSymbol }}</div>
             </div>
-            <div class="account-cont mt-4">
-              <div class="account-info_pop">
-                <span class="size-32"><span class="font-500">L2: </span><span class="size-32">{{ currentAccount && superLong(currentAccount.address.NERVE) || '' }}</span></span>
-                <div class="d-flex align-items-center">
-                  <span class="icon_pop ml-4 cursor-pointer" @click="toBrowser('NERVE', currentAccount.address.NERVE)">
-                    <svg t="1626845948779" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2998" width="16" height="16"><path d="M971.034483 576.264828a52.965517 52.965517 0 0 0-52.965517 52.965517v271.183448a17.655172 17.655172 0 0 1-17.655173 17.655173h-776.827586a17.655172 17.655172 0 0 1-17.655173-17.655173v-776.827586a17.655172 17.655172 0 0 1 17.655173-17.655173h270.830345a52.965517 52.965517 0 0 0 0-105.931034H123.586207A123.586207 123.586207 0 0 0 0 123.586207v776.827586A123.586207 123.586207 0 0 0 123.586207 1024h776.827586a123.586207 123.586207 0 0 0 123.586207-123.586207v-271.183448a52.965517 52.965517 0 0 0-52.965517-52.965517z" fill="#656A7D" p-id="2999"/><path d="M953.37931 0h-233.754482a52.965517 52.965517 0 0 0 0 105.931034h123.586206L462.212414 486.929655a52.965517 52.965517 0 0 0 37.428965 90.394483 53.318621 53.318621 0 0 0 37.428966-15.536552L918.068966 180.788966v123.586206a52.965517 52.965517 0 0 0 105.931034 0V70.62069a70.62069 70.62069 0 0 0-70.62069-70.62069z" fill="#656A7D" p-id="3000"/></svg>
-                  </span>
-                  <span class="icon_pop ml-4 cursor-pointer" @click.stop="copy(currentAccount.address.NERVE)">
-                    <svg t="1626840038256" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2793" width="16" height="16"><path d="M637.631045 268.991045h-519.641791A117.683582 117.683582 0 0 0 0 386.368955v519.641791a117.989254 117.989254 0 0 0 117.683582 117.989254h519.641791a117.683582 117.683582 0 0 0 117.377911-117.683582v-519.641791a117.37791 117.37791 0 0 0-117.072239-117.683582z m25.676418 637.325373a25.98209 25.98209 0 0 1-25.676418 25.982089h-519.641791a25.98209 25.98209 0 0 1-26.287761-25.982089v-519.641791a25.98209 25.98209 0 0 1 25.982089-25.676418h519.641791a25.98209 25.98209 0 0 1 25.676418 25.676418z" fill="#656A7D" p-id="2794"/><path d="M906.316418 0H404.403582a117.989254 117.989254 0 0 0-117.683582 117.683582v28.733134h91.701493v-28.733134a25.98209 25.98209 0 0 1 25.982089-25.982089h501.912836a25.98209 25.98209 0 0 1 25.982089 25.982089v501.912836a25.98209 25.98209 0 0 1-25.982089 25.982089h-28.733134v91.701493h28.733134a117.989254 117.989254 0 0 0 117.683582-117.683582V117.683582A117.989254 117.989254 0 0 0 906.316418 0z" fill="#656A7D" p-id="2795"/></svg>
-                  </span>
-                </div>
-              </div>
-              <div class="text-left mt-3 size-36 font-500">{{ (nerveChainAvailable || 0) | numFormatFixSix }} {{ nerveChainSymbol }}</div>
-            </div>
+            <!--            <div class="account-cont mt-4">-->
+            <!--              <div class="account-info_pop">-->
+            <!--                <span class="size-32"><span class="font-500">L2: </span><span class="size-32">{{ currentAccount && superLong(currentAccount.address.NERVE) || '' }}</span></span>-->
+            <!--                <div class="d-flex align-items-center">-->
+            <!--                  <span class="icon_pop ml-4 cursor-pointer" @click="toBrowser('NERVE', currentAccount.address.NERVE)">-->
+            <!--                    <svg t="1626845948779" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2998" width="16" height="16"><path d="M971.034483 576.264828a52.965517 52.965517 0 0 0-52.965517 52.965517v271.183448a17.655172 17.655172 0 0 1-17.655173 17.655173h-776.827586a17.655172 17.655172 0 0 1-17.655173-17.655173v-776.827586a17.655172 17.655172 0 0 1 17.655173-17.655173h270.830345a52.965517 52.965517 0 0 0 0-105.931034H123.586207A123.586207 123.586207 0 0 0 0 123.586207v776.827586A123.586207 123.586207 0 0 0 123.586207 1024h776.827586a123.586207 123.586207 0 0 0 123.586207-123.586207v-271.183448a52.965517 52.965517 0 0 0-52.965517-52.965517z" fill="#656A7D" p-id="2999"/><path d="M953.37931 0h-233.754482a52.965517 52.965517 0 0 0 0 105.931034h123.586206L462.212414 486.929655a52.965517 52.965517 0 0 0 37.428965 90.394483 53.318621 53.318621 0 0 0 37.428966-15.536552L918.068966 180.788966v123.586206a52.965517 52.965517 0 0 0 105.931034 0V70.62069a70.62069 70.62069 0 0 0-70.62069-70.62069z" fill="#656A7D" p-id="3000"/></svg>-->
+            <!--                  </span>-->
+            <!--                  <span class="icon_pop ml-4 cursor-pointer" @click.stop="copy(currentAccount.address.NERVE)">-->
+            <!--                    <svg t="1626840038256" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2793" width="16" height="16"><path d="M637.631045 268.991045h-519.641791A117.683582 117.683582 0 0 0 0 386.368955v519.641791a117.989254 117.989254 0 0 0 117.683582 117.989254h519.641791a117.683582 117.683582 0 0 0 117.377911-117.683582v-519.641791a117.37791 117.37791 0 0 0-117.072239-117.683582z m25.676418 637.325373a25.98209 25.98209 0 0 1-25.676418 25.982089h-519.641791a25.98209 25.98209 0 0 1-26.287761-25.982089v-519.641791a25.98209 25.98209 0 0 1 25.982089-25.676418h519.641791a25.98209 25.98209 0 0 1 25.676418 25.676418z" fill="#656A7D" p-id="2794"/><path d="M906.316418 0H404.403582a117.989254 117.989254 0 0 0-117.683582 117.683582v28.733134h91.701493v-28.733134a25.98209 25.98209 0 0 1 25.982089-25.982089h501.912836a25.98209 25.98209 0 0 1 25.982089 25.982089v501.912836a25.98209 25.98209 0 0 1-25.982089 25.982089h-28.733134v91.701493h28.733134a117.989254 117.989254 0 0 0 117.683582-117.683582V117.683582A117.989254 117.989254 0 0 0 906.316418 0z" fill="#656A7D" p-id="2795"/></svg>-->
+            <!--                  </span>-->
+            <!--                </div>-->
+            <!--              </div>-->
+            <!--              <div class="text-left mt-3 size-36 font-500">{{ (nerveChainAvailable || 0) | numFormatFixSix }} {{ nerveChainSymbol }}</div>-->
+            <!--            </div>-->
           </div>
           <!--          <div class="tab_bar d-flex align-items-center size-30 mt-5 ml-4">-->
           <!--            <span :class="{'active': orderType === 1}" class="cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>-->
@@ -150,7 +150,7 @@
           <!--              </div>-->
           <!--            </div>-->
           <!--          </div>-->
-          <div class="text-center pt-3 size-28 text-primary cursor-pointer" @click="$router.push('/transactions'); showAccount=false">{{ $t('swap.swap58') }}</div>
+          <div class="text-center pt-3 size-28 text-cross cursor-pointer" @click="$router.push('/transactions'); showAccount=false">{{ $t('swap.swap58') }}</div>
         </div>
       </pop-up>
       <pop-up :prevent-boo="false" :show.sync="showTips">

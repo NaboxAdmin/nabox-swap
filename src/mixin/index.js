@@ -14,6 +14,7 @@ import moment from 'moment';
 import {ETransfer} from '@/api/api';
 import {MAIN_INFO, NULS_INFO} from '@/config';
 import TronLink from '@/api/tronLink';
+import nullImg from '@/assets/svg/null_asset.svg';
 
 export default {
   data() {
@@ -148,7 +149,7 @@ export default {
       return `${baseUrl}${suffix}.png`;
     },
     pictureError(e) {
-      e.target.src = 'https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NULL.png';
+      e.target.src = nullImg;
     },
     superLong(str, len = 5) {
       return superLong(str, len);

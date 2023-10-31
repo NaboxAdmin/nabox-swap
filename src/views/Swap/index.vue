@@ -10,8 +10,8 @@
         <div class="position-cont size-36 d-flex align-items-center space-between">
           <span class="text-3a font-500"/>
           <span class="slippage-cont" @click="showSlippage=true">
-            <span class="size-28 text-wolun">{{ slippage }}%</span>
-            <span class="size-28 text-wolun ml-1 mr-1">{{ $t('swap.swap36') }}</span>
+            <span class="size-28 text-cross">{{ slippage }}%</span>
+            <span class="size-28 text-cross ml-1 mr-1">{{ $t('swap.swap36') }}</span>
             <span class="slippage-icon">
               <img src="@/assets/image/slippage.png" alt="">
             </span>
@@ -63,13 +63,13 @@
               placeholder="0"
               @input="amountInDebounce"
               @focus="amountFocus($event)">
-            <span class="text-primary size-28 cursor-pointer" @click="maxAmount">{{ $t("swap.swap3") }}</span>
+            <span class="text-cross size-28 cursor-pointer" @click="maxAmount">{{ $t("swap.swap3") }}</span>
           </div>
         </div>
         <div v-if="amountMsg" class="text-red mt-2 ml-2 size-28">{{ amountMsg }}</div>
         <div class="down-icon" @click="switchAssetClick">
-          <img v-if="switchAsset" src="@/assets/image/switch.png" alt="">
-          <img v-else src="@/assets/image/swap.png" alt="">
+          <img v-if="switchAsset" src="@/assets/svg/swap_switch.svg" alt="">
+          <img v-else src="@/assets/svg/swap_to.svg" alt="">
         </div>
         <div class="d-flex mt-05 align-items-center space-between text-90 size-28 position-relative">
           <div class="d-flex align-items-center cursor-pointer">
@@ -77,7 +77,7 @@
             <span v-if="chooseToAsset" class="size-20 sign d-flex align-items-center" @click.stop="showChainList=!showChainList">
               <img :src="chainConfigMap && chainConfigMap[selectChain || chooseToAsset.chain].chainIcon" alt="">
               <span>{{ selectChain || chooseToAsset.chain }}</span>
-              <img src="@/assets/svg/drop_down_active.svg" alt="">
+              <img src="@/assets/svg/drop_down_cross.svg" alt="">
             </span>
           </div>
           <div v-if="showChainList" class="network-list size-28 d-flex direction-column">
@@ -1943,7 +1943,7 @@ export default {
       const params = {
         channel: 'NERVE',
         // platform: '',
-        platform: platform || 'NABOX',
+        platform: platform || 'CrossSwap',
         swapType: type || 2,
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,

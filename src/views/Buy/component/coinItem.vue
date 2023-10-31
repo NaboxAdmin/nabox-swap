@@ -3,11 +3,11 @@
     <template v-if="assetItem">
       <img :src="assetItem && assetItem.icon || pictureError" class="asset_icon" alt="" @error="pictureError">
       <span class="asset-name text-truncate">{{ assetItem && (assetItem.fiatCurrency || assetItem.cryptoCurrency) || '' }}</span>
-      <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
+      <img class="drop_down_icon" src="@/assets/svg/drop_down_cross.svg" alt="">
     </template>
     <div v-else class="w-160 d-flex align-items-center space-between">
       <span class="flex-1 size-28 w-150 text-90">{{ type === 'pay' ? $t('swap.swap65') : $t('swap.swap66') }}</span>
-      <img class="drop_down_icon" src="@/assets/svg/drop_down_active.svg" alt="">
+      <img class="drop_down_icon" src="@/assets/svg/drop_down_cross.svg" alt="">
     </div>
   </div>
 </template>
@@ -37,7 +37,7 @@ export default {
 .coin-item {
   display: flex;
   align-items: center;
-  background-color: #f0f7f7;
+  background-color: #5622CE1A;
   height: 100%;
   padding: 0 24px;
   overflow: hidden;

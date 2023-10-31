@@ -29,14 +29,14 @@ export default {
   }
   .active {
     position: relative;
-    color: #1BD0AA;
+    color: #5622CE;
     //font-weight: bold;
     &:after {
       content: '';
       position: absolute;
       width: 30px;
       height: 4px;
-      background: #1BD0AA;
+      background: #5622CE;
       border-radius: 1.5px;
       left: 50%;
       bottom: -3px;

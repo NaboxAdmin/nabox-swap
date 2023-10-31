@@ -15,8 +15,8 @@
             class="d-flex align-items-center mb-3 cursor-pointer space-between"
             @click="linkToUrl(item.fromHash || item.txHash || item.hash, item)">
             <template>
-              <span v-if="orderType===3" class="w-240 text-primary flex-1 size-28">{{ item.swapType == 3 ? $t("tips.tips33") : $t("navBar.navBar5") }}</span>
-              <span v-else class="w-240 text-primary flex-1 d-flex align-items-center">
+              <span v-if="orderType===3" class="w-240 text-cross flex-1 size-28">{{ item.swapType == 3 ? $t("tips.tips33") : $t("navBar.navBar5") }}</span>
+              <span v-else class="w-240 text-cross flex-1 d-flex align-items-center">
                 <span class="mr-1 m-width size-28">{{ orderType!==2 && superLong(item.txHash) || superLong(item.orderId) }}</span>
                 <span v-if="orderType === 1" class="sign">{{ item.type }}</span>
               </span>
@@ -194,14 +194,14 @@ export default {
   }
   .active {
     position: relative;
-    color: #1BD0AA;
+    color: #5622CE;
     //font-weight: bold;
     &:after {
       content: '';
       position: absolute;
       width: 30px;
       height: 4px;
-      background: #1BD0AA;
+      background: #5622CE;
       border-radius: 1.5px;
       left: 50%;
       bottom: -3px;
@@ -231,10 +231,10 @@ export default {
   font-size: 16px;
   //margin-left: 13px;
   padding: 5px 11px;
-  background: #E7F2F0;
+  background: #5622CE1A;
   border-radius: 4px;
   text-align: center;
   //line-height: 26px;
-  color: #6EB6A9;
+  color: #5622CE;
 }
 </style>

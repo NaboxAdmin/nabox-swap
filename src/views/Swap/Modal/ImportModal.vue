@@ -104,7 +104,7 @@ export default {
   //height: 220px;
   margin-right: 40px;
   padding: 50px 40px;
-  background: #FEF6E5;
+  background: #5622CE1A;
   border-radius: 20px;
   color: #F3AD41;
   font-size: 30px;
@@ -140,7 +140,7 @@ export default {
   }
 }
 .text-6e {
-  color: #6EB6A9;
+  color: #5622CE;
 }
 .confirm-cont {
   margin-top: 70px;

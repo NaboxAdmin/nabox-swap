@@ -12,7 +12,7 @@
   .logo-cont {
     //height: 60px;
     height: 68.3px;
-    width: 90px;
+    width: 60px;
     //border-radius: 50%;
     //background-color: #FFFFFF;
     img {
@@ -36,9 +36,9 @@
     justify-content: space-between;
     min-width: 200px;
     height: 62px;
-    background: #F0F7F7;
+    background: #5622CE1A;
     border-radius: 31px;
-    color: #5fbdaf;
+    color: #3A3C44;
     .icon-drop {
       img {
         width: 15px;
@@ -61,7 +61,7 @@
       height: 520px;
       overflow: auto;
       .active_chain {
-        color: #54b9aa;
+        color: #5622CE;
       }
       &::-webkit-scrollbar {
         background-color: rgba(27,27,27,.4);
@@ -72,7 +72,7 @@
 
       &::-webkit-scrollbar-thumb {
         border-radius: 20px; // 滚动条的圆角
-        background: #6EB6A9; // 滚动条的背景颜色
+        background: #5622CE; // 滚动条的背景颜色
       }
 
       &::-webkit-scrollbar-track {

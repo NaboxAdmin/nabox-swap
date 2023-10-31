@@ -1,3 +1,5 @@
+import zhLocale from 'element-ui/lib/locale/lang/zh-CN';
+
 const cn = {
   tips: {
     tips1: '未检测到Metamask',
@@ -275,7 +277,8 @@ const cn = {
     buy15: '免责声明',
     buy16: '我已知晓并同意',
     buy17: '您即将离开 SwapBox网站并跳转到第三方平台。用户应自行承担访问和使用该第三方网站的风险。我们不对外部网站上的任何内容、产品、服务或其他查询负责。如果您在使用此网站提供的服务时遇到任何问题，请联系第三方网站客服寻求帮助。'
-  }
+  },
+  ...zhLocale
 };
 
 export default cn;

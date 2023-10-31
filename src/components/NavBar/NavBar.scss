@@ -17,7 +17,7 @@
   padding-top: var(--top) !important; /* 兼容非刘海屏 */
   padding-top: calc(constant(safe-area-inset-top) + var(--top)) !important; /* 标准留海屏 */
   padding-top: calc(env(safe-area-inset-top) + var(--top)) !important; /* 兼容 ios11 */
-  background-color: #6EB6A9;
+  background-color: #5622CE;
   .back-icon {
     position: absolute;
     left: 40px;

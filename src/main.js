@@ -6,10 +6,15 @@ import { post, request } from './network/http';
 import './api/rem';
 import 'normalize.css'; // 初始化css
 import messages from './locales';
+import ElementUi from 'element-ui';
 import { isBeta, setChainConfig } from './api/util';
 import globalMixin from './mixin';
 import { localChainConfig } from '@/config';
 import VueLazyLoad from 'vue-lazyload';
+import './assets/scss/element-variables.scss';
+import enLocale from 'element-ui/lib/locale/lang/en';
+
+Vue.use(ElementUi, { locale: enLocale });
 
 const development = process.env.NODE_ENV === 'development';
 Vue.config.devtools = development;
@@ -26,7 +31,6 @@ Vue.use(VueLazyLoad, {
 if (!development) {
   console.log = () => {};
 }
-
 // 国际化
 const locale = localStorage.getItem('locale') ? localStorage.getItem('locale') : store.state.lang;
 const i18n = new VueI18n({

@@ -98,7 +98,7 @@
                 <img v-else src="@/assets/image/choose.svg" alt="">
               </span>
             </template>
-            <span class="text-primary size-14">{{ $t('buy.buy16') }}</span>
+            <span class="text-cross size-14">{{ $t('buy.buy16') }}</span>
           </div>
           <div :class="!isChoose && 'opacity_btn'" class="btn cursor-pointer mt-2" @click="confirmLink">{{ $t('pool.join4') }}</div>
         </div>
@@ -171,6 +171,7 @@ export default {
   methods: {
     async confirmLink() {
       try {
+        if (!this.isChoose) return;
         const nonce = Math.floor(Math.random() * 900000) + 100000;
         const timestamp = Math.floor(new Date().getTime() / 1000);
         const evmAddress = this.currentAccount && this.currentAccount['address'] && this.currentAccount['address']['1'] || this.currentAccount['address']['BSC'] || this.currentAccount['address']['97'];
@@ -456,10 +457,10 @@ export default {
         }
       }
       &.active-channel {
-        border: 1px solid #1BD0AA;
+        border: 1px solid #5622CE;
         .radio-item {
-          border: 1px solid #1BD0AA;
-          background-color: #1BD0AA;
+          border: 1px solid #5622CE;
+          background-color: #5622CE;
         }
       }
     }
@@ -487,7 +488,7 @@ export default {
   border: 1px solid red !important;
 }
 /deep/ .el-loading-spinner .path {
-  stroke: #53b8a9;
+  stroke: #5622CE;
 }
 .btn {
   display: flex;
@@ -497,7 +498,7 @@ export default {
   color: #FFFFFF;
   text-align: center;
   line-height: 98px;
-  background: #53b8a9;
+  background: #5622CE;
   border-radius: 20px;
 }
 .address-detail_pop {

@@ -42,7 +42,7 @@ export default {
     }
   }
   .cont_shadow {
-    border: 2px solid #6eb6a9;
+    //border: 2px solid #6eb6a9;
     height: 1560px;
     box-shadow: 0 3px 29px 0 #f2f3f5;
   }

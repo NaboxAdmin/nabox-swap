@@ -13,7 +13,7 @@
       />
       <div v-if="errorMsg" class="text-red mt-2 ml-2 size-28">{{ errorMsg }}</div>
       <div class="change-cont">
-        <img src="@/assets/svg/change_icon.svg" alt="">
+        <img src="@/assets/svg/change_icon_cross.svg" alt="">
       </div>
       <span class="text-3a size-28 mt-48">{{ $t("buy.buy14") }}</span>
       <assetInput
@@ -26,7 +26,7 @@
       />
       <div v-if="currentOption && currentOption.cryptoCurrencyUnitPrice" class="mt-2">
         <span class="size-28">{{ $t('swap.swap62') }} </span>
-        <span class="text-1b size-28">1{{ currentOption.cryptoCurrency }}≈{{ currentOption.cryptoCurrencyUnitPrice }}{{ currentOption.fiatCurrency }}</span>
+        <span class="text-cross size-28">1{{ currentOption.cryptoCurrency }}≈{{ currentOption.cryptoCurrencyUnitPrice }}{{ currentOption.fiatCurrency }}</span>
       </div>
       <template>
         <div v-if="showComputedLoading" class="btn size-30 cursor-pointer opacity_btn mt-145">
@@ -298,7 +298,7 @@ export default {
   color: #FFFFFF;
   text-align: center;
   line-height: 98px;
-  background: #53b8a9;
+  background: #5622CE;
   border-radius: 20px;
 }
 .mt-145 {

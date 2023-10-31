@@ -2,14 +2,7 @@
   --top: 40px;
   height: 100%;
   width: 100%;
-  //height: 100vh;
-  //width: 100vw;
-  //position: fixed;
-  //top: 0;
-  //left: 0;
-  //right: 0;
-  //bottom: 0;
-  background-color: #6EB6A9;
+  background-color: #5622CE;
   padding-top: var(--top) !important; /* 兼容非刘海屏 */
   padding-top: calc(constant(safe-area-inset-top) + var(--top)) !important; /* 标准留海屏 */
   padding-top: calc(env(safe-area-inset-top) + var(--top)) !important; /* 兼容 ios11 */
@@ -17,12 +10,6 @@
   padding-bottom: calc(env(safe-area-inset-bottom) + 30px) !important;
 }
 .main-cont_mobile {
-  //position: fixed;
-  //top: 0;
-  //left: 0;
-  //right: 0;
-  //bottom: 0;
-  //height: calc(100vh - 0px);
   height: 100vh;
   overflow-y: auto;
 }
@@ -128,7 +115,7 @@
       text-align: center;
       line-height: 98px;
       font-weight: bold;
-      background-color: #eef7f7;
+      background-color: #5622CE1A;
     }
     .down-icon {
       height: 40px;
@@ -155,11 +142,11 @@
     .sign {
       margin-left: 13px;
       padding: 8px 11px;
-      background: #E7F2F0;
+      background: #5622CE1A;
       border-radius: 4px;
       text-align: center;
       line-height: 26px;
-      color: #6EB6A9;
+      color: #5622CE;
     }
     .btn {
       height: 98px;
@@ -167,7 +154,7 @@
       color: #FFFFFF;
       text-align: center;
       line-height: 98px;
-      background: #53b8a9;
+      background: #5622CE;
       border-radius: 20px;
     }
   }

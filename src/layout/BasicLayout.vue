@@ -757,7 +757,7 @@ export default {
   font-size: 30px;
   color: #FFFFFF;
   text-align: center;
-  background-color: #6EB6A9;
+  background-color: #5622CE;
   border-radius: 20px;
   margin-top: 100px;
 }
@@ -774,7 +774,7 @@ export default {
       border-radius: 40px;
       border: 2px solid transparent;
       &:hover {
-        border: 2px solid #6EB6A9;
+        border: 2px solid #5622CE;
       }
       .icon-cont {
         height: 55px;

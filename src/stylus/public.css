@@ -429,6 +429,10 @@
   color: #F7B500 !important;
 }
 
+.text-cross {
+  color: #5622CE !important;
+}
+
 .text-decoration {
   text-decoration: line-through;
 }

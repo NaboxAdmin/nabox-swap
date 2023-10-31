@@ -1,3 +1,5 @@
+import enLocale from 'element-ui/lib/locale/lang/en';
+
 const en = {
   tips: {
     tips1: 'Metamask not detected',
@@ -275,7 +277,8 @@ const en = {
     buy15: 'Disclaimer',
     buy16: 'I have read and agreed',
     buy17: 'You are about to leave the SwapBox website and redirect to a third-party platform. Users shall visit and use this third-party website at your own risk. We are not responsible for any contents, products, services or other inquiries on the external website. Please contact the customer service of the third-party website for help if you encounter any problems when using the services provided by this website.'
-  }
+  },
+  ...enLocale
 };
 
 export default en;
