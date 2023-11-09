@@ -169,7 +169,7 @@ export default {
     linkToUrl(hash, item) {
       this.$store.commit('changeShowOrderModal', false);
       if (this.orderType === 1) {
-        const chain = item.type === 'L2' ? 'NERVE' : this.currentChain;
+        const chain = item.type === 'L2' ? 'NERVE' : this.fromNetwork;
         this.isMobile ? window.location.href = `${this.hashLinkList[chain]}${hash}` : window.open(`${this.hashLinkList[chain]}${hash}`);
       } else {
         this.toOrderDetail(item);

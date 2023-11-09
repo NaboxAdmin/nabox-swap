@@ -420,8 +420,8 @@ export default {
       getAllowanceTimer: null,
       showApproveLoading: false,
       approvingLoading: false,
-      slippage: localStorage.getItem('slippage') || 2, // 滑点
-      oldSlippage: localStorage.getItem('slippage') || 2, // 滑点
+      slippage: localStorage.getItem('slippage') || 0.1, // 滑点
+      oldSlippage: localStorage.getItem('slippage') || 0.1, // 滑点
       fromAssetDex: null,
       toAssetDex: null,
       limitMin: '', // 最小限制
@@ -883,7 +883,7 @@ export default {
         this.approvingLoading = true;
         this.showApproveLoading = false;
       } catch (e) {
-        console.log(e, 'error');
+        console.error(e, 'error');
         this.$message({
           type: 'warning',
           message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),

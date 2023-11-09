@@ -13,12 +13,8 @@ const mainRoutes = [{
   },
   children: [
     // {
-    //     path:'/index',
-    //     name:'index',
-    //     component:() => import('../views/index/index'),
-    //     meta: {
-    //         title:'首页'
-    //     }
+    //   path: '*',
+    //   redirect: '/swap'
     // },
     {
       path: '/swap',
@@ -52,14 +48,6 @@ const mainRoutes = [{
       meta: {
         title: 'BuyDetail'
         // keepAlive: true
-      }
-    },
-    {
-      path: '/transfer',
-      name: 'transfer',
-      component: () => import('../views/Transfer'),
-      meta: {
-        title: 'Transfer'
       }
     },
     {
@@ -128,7 +116,7 @@ const mainRoutes = [{
   ]
 }, {
   path: '*',
-  redirect: '/404'
+  redirect: '/swap'
 }];
 
 const router = new VueRouter({

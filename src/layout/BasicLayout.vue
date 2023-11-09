@@ -434,7 +434,7 @@ export default {
         let account, pub;
         if (this.walletType === 'tronWeb') {
           const tron = new TronLinkApi();
-          const message = 'Generate L2 Address';
+          const message = 'Confirm to Connect Wallet';
           pub = await tron.getPubBySign(message);
           const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
           const addressMap = {};
@@ -462,7 +462,7 @@ export default {
             };
           } else {
             const jsonRpcSigner = this.provider.getSigner();
-            const message = 'Generate L2 Address';
+            const message = 'Confirm to Connect Wallet';
             const signature = await jsonRpcSigner.signMessage(message);
 
             // @FIXME 测试signMessage
