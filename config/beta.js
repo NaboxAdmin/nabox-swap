@@ -2,7 +2,7 @@
 export const IS_DEV = process.env.NODE_ENV === 'development';
 export const currentNet = 'testnet';
 export const MAIN_INFO = { chainId: 5, assetId: 1, prefix: 'TNVT', symbol: 'NVT', decimal: 8, rpc: 'http://beta.public.nerve.network', batchRPC: 'http://beta.api.nerve.network/jsonrpc' };
-export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS', symbol: 'NULS', decimal: 8, rpc: 'http://beta.public1.nuls.io', batchRPC: ' http://beta.api.nuls.io/jsonrpc' };
+export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS', symbol: 'NULS', decimal: 8, rpc: 'http://beta.public1.nuls.io', batchRPC: 'http://149.129.251.238:18004/jsonrpc' };
 // ETH 网络信息 测试网:ropsten, 主网:homestead
 export const ETHNET = 'goerli';
 

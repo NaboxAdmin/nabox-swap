@@ -238,7 +238,9 @@ export default {
         contractAddress
       }];
       const params = [NULS_INFO.chainId, this.currentAccount['address']['NULS'], tempParams];
-      const url = NULS_INFO.batchRPC;
+      const chainConfig = JSON.parse(sessionStorage.getItem('config'));
+      const currentConfig = chainConfig['NULS'];
+      const url = currentConfig.apiUrl;
       const res = await this.$post(url, 'getBalanceList', params);
       if (res.result && res.result.length !== 0) {
         const tempAsset = res.result[0];
