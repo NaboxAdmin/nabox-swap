@@ -37,12 +37,10 @@ export default class NerveChannel {
       this.isToAssetStable = false;
       tempToAsset = chooseToAsset;
     }
-    console.log(this.checkToAsset, 'tempToAsset');
     this.chooseFromAsset = tempFromAsset;
     this.chooseToAsset = tempToAsset;
     this.storeSwapPairInfo = {};
     this.tokenPath = tokenPath || [];
-    console.log(swapPairInfo, 'swapPairInfo');
     swapPairInfo && this.getStoreSwapPairInfo(swapPairInfo);
   }
   // 计算兑换的数量
@@ -50,7 +48,6 @@ export default class NerveChannel {
     const assetKey = this.generateAssetKey();
     // const tempPairInfo = tempStorePairInfo[assetKey];
     const tempPairInfo = this.storeSwapPairInfo[assetKey];
-    console.log(tempPairInfo, 'tempPairInfo')
     const pairs = Object.values(tempPairInfo);
     const nerveSwapAssetList = JSON.parse(sessionStorage.getItem('nerveSwapAssetList'));
     const fromDecimals = type === 'amountIn' ? this.chooseFromAsset.decimals : this.chooseToAsset.decimals;
@@ -125,7 +122,6 @@ export default class NerveChannel {
       }
     }
     this.storeSwapPairInfo[key] = pairsInfo;
-    console.log(this.storeSwapPairInfo, '12312321');
   }
   // 获取nerve链上兑换的配置
   getNerveChannelConfig(type, amount, swapPairTradeList) {
@@ -545,7 +541,6 @@ export default class NerveChannel {
         });
       }
     }
-    console.log(inputs, outputs);
     return { inputs, outputs };
   }
   // 特殊处理nuls跨链, 合约资产前面已经处理了， 转到nerve中转地址

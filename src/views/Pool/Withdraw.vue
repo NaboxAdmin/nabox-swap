@@ -975,6 +975,7 @@ export default {
         });
         this.withDrawLoading = false;
         console.error(e);
+        this.reset();
         this.deleteOrder();
       }
     },

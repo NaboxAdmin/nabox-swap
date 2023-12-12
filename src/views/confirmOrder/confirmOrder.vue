@@ -470,7 +470,7 @@ export default {
           offset: 30
         });
       }
-    },
+    }, // Cannot read properties of undefined (reading 'toHexString')
     // 发送nerve稳定币兑换交易
     async sendNerveBridgeTransaction(type) {
       try {
@@ -570,12 +570,25 @@ export default {
       } catch (e) {
         console.error(e, 'error');
         this.confirmLoading = false;
-        this.$message({
-          type: 'warning',
-          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
-          offset: 30
-        });
-        await this.deleteOrder();
+        // @fixme 兼容防止抛出下面的错误取消了订单
+        // Cannot read properties of undefined (reading 'toHexString')
+        if (this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e).indexOf("reading 'toHexString'") === -1) {
+          this.$message({
+            type: 'warning',
+            message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
+            offset: 30
+          });
+          await this.deleteOrder();
+        } else {
+          this.$message({
+            type: 'success',
+            message: this.$t('tips.tips24'),
+            offset: 30,
+            duration: 1500
+          });
+          this.confirmLoading = false;
+          this.$emit('confirm');
+        }
       }
     },
     async deleteOrder() {
@@ -624,7 +637,6 @@ export default {
     },
     // 记录到nabox后台
     async recordSwapOrder(res, type) {
-      console.log(type, 'type');
       const { fromAsset, toAsset, amountIn, currentChannel, address, toAddress, slippage, stableSwap } = this.orderInfo;
       const { platform } = this.$route.query;
       const naboxParams = {
@@ -677,7 +689,6 @@ export default {
         slippage,
         pairAddress: ''
       };
-      console.log(params, 'params');
       return await this.$request({
         url: '/swap/tx/save',
         data: params

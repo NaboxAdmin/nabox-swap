@@ -1007,6 +1007,7 @@ export default {
     isStableSwap(fromAsset, toAsset) {
       this.nerveChainStableSwap = fromAsset.chain === 'NERVE' && toAsset.chain === 'NERVE';
       this.nerveCrossSwap = !!(fromAsset.nerveChainId && fromAsset.nerveAssetId && toAsset.nerveChainId && toAsset.nerveAssetId) && fromAsset.chain !== toAsset.chain;
+      console.log(this.nerveCrossSwap, 'nerveCrossSwap');
       let isStableLpInfo;
       if (fromAsset.channelInfo && fromAsset.channelInfo['NERVE'] && fromAsset.channelInfo['NERVE'].pairAddress) {
         const currentPairIno = this.swapPairTradeList.find(item => item.address === fromAsset.channelInfo['NERVE'].pairAddress);
@@ -1476,7 +1477,7 @@ export default {
         if (this.crossTransaction && !this.stableSwap) {
           return channel.crossSwap === true && channel.status === 1;
         } else if (this.crossTransaction && this.stableSwap) {
-          return this.checkLpBalance() && channel.channel === 'NERVE' && channel.bridge === true && channel.status === 1 || this.isBridge && channel.channel === 'NERVE' && channel.bridge === true && channel.status === 1 || channel.channel !== 'NERVE' && channel.bridge === true && channel.status === 1;
+          return channel.channel === 'NERVE' && channel.bridge === true && channel.status === 1 || this.isBridge && channel.channel === 'NERVE' && channel.bridge === true && channel.status === 1 || channel.channel !== 'NERVE' && channel.bridge === true && channel.status === 1;
         }
         return channel.swap === true && channel.status === 1; //  && channel.channel === 'DODO'
       });
@@ -1484,6 +1485,7 @@ export default {
     // 查看当前nerve通道流动性
     checkLpBalance() {
       if (this.chooseFromAsset && this.chooseToAsset) {
+        console.log(this.chooseFromAsset, this.chooseToAsset, 'this.chooseFromAsset && this.chooseToAsset')
         const pairAddress = this.chooseFromAsset.channelInfo && this.chooseFromAsset.channelInfo['NERVE'] && this.chooseFromAsset.channelInfo['NERVE'].pairAddress || '';
         const swapAssets = pairAddress && this.nerveLimitInfo.find(item => item.pairAddress === pairAddress).swapAssets || [];
         const swapMap = {};

@@ -1,5 +1,5 @@
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
-const WebpackBundleAnalyzer = require('webpack-bundle-analyzer');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const productionGzipExtensions = ['js', 'css'];
 const path = require('path');
 const shell = require('shelljs');
@@ -59,17 +59,22 @@ module.exports = {
       'vuex': 'Vuex',
       'element-ui': 'ELEMENT',
       'vant': 'vant',
-      'ethers': 'ethers',
+      // 'ethers': 'ethers',
       'web3': 'Web3',
       'vue-i18n': 'VueI18n',
       'moment': 'moment'
     };
+    config.plugins.push(
+      new NodePolyfillPlugin({
+        excludeAliases: ['console']
+      })
+    );
   },
   devServer: {
     port: 8001,
     host: '0.0.0.0',
     compress: true,
-    disableHostCheck: true, // webpack4.0 开启热更新
+    // disableHostCheck: true, // webpack4.0 开启热更新
     https: false, // https: {type:Boolean}
     open: true, // 配置自动启动浏览器
     proxy: { // 配置跨域处理

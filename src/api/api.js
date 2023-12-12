@@ -1,6 +1,6 @@
 import nuls from 'nuls-sdk-js';
 import nerve from 'nerve-sdk-js';
-import { ethers } from 'ethers';
+import * as ethers from 'ethers';
 import { htmlEncode, isBeta, Minus, Plus, timesDecimals } from './util';
 import { post, request } from '@/network/http';
 import { ETHNET, MAIN_INFO, NULS_INFO } from '@/config';
@@ -687,21 +687,6 @@ export class ETransfer {
     }
   }
 
-  decodeData(data) {
-    /* const commonTransferABI = ["function transfer(address recipient, uint256 amount)"] // eth等链发起的交易
-    // CROSS_OUT_ABI nerve链发起的跨链转入交易
-    const ABI = fromNerve ? CROSS_OUT_ABI : commonTransferABI
-    const iface = new ethers.utils.Interface(ABI);  */
-    const iface = new ethers.utils.Interface(['function transfer(address recipient, uint256 amount)']);
-    const txInfo = iface.parseTransaction({ data });
-    // const decode = iface.functions["transfer(address,uint256)"].decode(data);
-    // const decode = iface.decodeFunctionData("transfer(address,uint)", data);
-    if (txInfo) {
-      return { to: txInfo.args[0], amount: txInfo.args[1].toString() };
-    }
-    return null;
-  }
-
   formatEther(value) {
     return ethers.utils.formatEther(value);
   }
@@ -722,8 +707,8 @@ export class ETransfer {
     if (contractAddress) {
       // token 转入
       const numberOfTokens = ethers.utils.parseUnits(numbers, decimals);
-      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      const data = iface.functions.crossOut.encode([nerveAddress, numberOfTokens, contractAddress]);
+      const contract = new ethers.Contract(multySignAddress, CROSS_OUT_ABI, this.provider);
+      const data = contract.interface.encodeFunctionData('crossOut', [nerveAddress, numberOfTokens, contractAddress]);
       transactionParameters = {
         to: multySignAddress,
         from: fromAddress, // 验证合约调用需要from,必传
@@ -732,8 +717,8 @@ export class ETransfer {
       };
     } else {
       const amount = ethers.utils.parseEther(numbers);
-      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      const data = iface.functions.crossOut.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
+      const contract = new ethers.Contract(multySignAddress, CROSS_OUT_ABI, this.provider);
+      const data = contract.interface.encodeFunctionData('crossOut', [nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
       transactionParameters = {
         to: multySignAddress,
         value: amount,
@@ -758,9 +743,8 @@ export class ETransfer {
       // token 转入
       const numberOfTokens = ethers.utils.parseUnits(numbers, decimals);
       const mainAssetValue = ethers.utils.parseEther(crossChainFee);
-      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      console.log(iface, 'iface');
-      const data = iface.functions.crossOutII.encode([nerveAddress, numberOfTokens, contractAddress, orderId]);
+      const contract = new ethers.Contract(multySignAddress, CROSS_OUT_ABI, this.provider);
+      const data = contract.interface.encodeFunctionData('crossOutII', [nerveAddress, numberOfTokens, contractAddress, orderId]);
       transactionParameters = await this.setGasLimit({
         from: fromAddress,
         to: multySignAddress,
@@ -770,8 +754,8 @@ export class ETransfer {
     } else {
       const allNumber = Plus(crossChainFee, numbers).toString();
       const amount = ethers.utils.parseEther(allNumber);
-      const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-      const data = iface.functions.crossOutII.encode([nerveAddress, '0', '0x0000000000000000000000000000000000000000', orderId]);
+      const contract = new ethers.Contract(multySignAddress, CROSS_OUT_ABI, this.provider);
+      const data = contract.interface.encodeFunctionData('crossOutII', [nerveAddress, '0', '0x0000000000000000000000000000000000000000', orderId]);
       transactionParameters = await this.setGasLimit({
         from: fromAddress,
         to: multySignAddress,
@@ -886,18 +870,18 @@ export class ETransfer {
     const allowancePromise = contract.allowance(address, multySignAddress);
     return allowancePromise
       .then(allowance => {
-        console.log(allowance.toString(), Minus(currentAmount || 0, allowance) >= 0, '==allowance==');
-        return Minus(currentAmount || 0, allowance || 0) > 0;
+        console.log(allowance.toString(), Minus(currentAmount || 0, allowance.toString() || 0) > 0, '==allowance==');
+        return Minus(currentAmount || 0, allowance.toString() || 0) > 0;
       })
       .catch(e => {
-        console.error('获取erc20资产授权额度失败' + e);
+        console.error('Get Allowance Failed' + e);
         return true;
       });
   }
 
   async approveERC20(contractAddress, multySignAddress, address) {
-    const iface = new ethers.utils.Interface(ERC20_ABI);
-    const data = iface.functions.approve.encode([multySignAddress, new ethers.utils.BigNumber('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')]);
+    const contract = new ethers.Contract(multySignAddress, ERC20_ABI, this.provider);
+    const data = contract.interface.encodeFunctionData('approve', [multySignAddress, ethers.BigNumber.from('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')]);
     const gasLimit = await this.getGasLimit({
       to: contractAddress,
       from: address,
@@ -918,7 +902,7 @@ export class ETransfer {
       console.error('failed approveERC20' + failed);
       return { success: false, msg: 'failed approveERC20' + failed };
     }
-    delete transactionParameters.from; // etherjs 4.0 from参数无效 报错
+    delete transactionParameters.from;
     return this.sendTransaction(transactionParameters);
   }
   // 获取手续费
@@ -961,9 +945,9 @@ export class ETransfer {
     const gasPrice = await this.getWithdrawGas();
     let gasLimit;
     if (isToken) {
-      gasLimit = new ethers.utils.BigNumber('210000');
+      gasLimit = ethers.BigNumber.from('210000');
     } else {
-      gasLimit = new ethers.utils.BigNumber('190000');
+      gasLimit = ethers.BigNumber.from('190000');
     }
     const nvtUSDBig = ethers.utils.parseUnits(nvtUSD, 6);
     const ethUSDBig = ethers.utils.parseUnits(heterogeneousChainUSD, 6);
@@ -997,9 +981,9 @@ export class ETransfer {
     const gasPrice = await this.getWithdrawGas();
     let gasLimit;
     if (isToken) {
-      gasLimit = this.chain === 'Arbitrum' ? new ethers.utils.BigNumber('4000000') : new ethers.utils.BigNumber('210000');
+      gasLimit = this.chain === 'Arbitrum' ? ethers.BigNumber.from('4000000') : ethers.BigNumber.from('210000');
     } else {
-      gasLimit = this.chain === 'Arbitrum' ? new ethers.utils.BigNumber('4000000') : new ethers.utils.BigNumber('190000');
+      gasLimit = this.chain === 'Arbitrum' ? ethers.BigNumber.from('4000000') : ethers.BigNumber.from('190000');
     }
     if (isMainAsset) {
       return this.formatEthers(gasLimit.mul(gasPrice), feeDecimals);

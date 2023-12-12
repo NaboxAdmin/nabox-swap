@@ -629,7 +629,6 @@ export default {
       }
     },
     switchNetwork(address) {
-      console.log(address, 'address ');
       // 连接插件时如果是nuls、nerve设置network为nuls/nerve
       if (!address.startsWith('0x')) {
         let network;

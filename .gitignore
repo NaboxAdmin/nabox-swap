@@ -26,5 +26,4 @@ yarn-error.log*
 *.pub
 *.zip
 /artifacts
-yarn.lock
 .bash_profile

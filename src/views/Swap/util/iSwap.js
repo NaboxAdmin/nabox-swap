@@ -179,8 +179,6 @@ export default class ISwap {
       ethers.utils.hexDataSlice(hexData, 4)
     );
 
-    console.log(decode, decode[1].toString(), decode[2].toString(), 'decode');
-
     const transactionParameters = await this.setGasLimit({
       from,
       to: this.iSwapContractAddress,
