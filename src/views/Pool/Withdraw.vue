@@ -503,7 +503,6 @@ export default {
     },
     async withdrawInput() {
       try {
-        const currentPollTotal = this.liquidityInfo.lpCoinList.find(item => item.chain === this.currentWithdrawAssetInfo.chain).balance || 0;
         if (!this.withdrawCount) {
           this.amountMsg = '';
           this.requestLoading = true;
@@ -513,6 +512,7 @@ export default {
           this.amountMsg = this.$t('tips.tips54');
           return false;
         }
+        const currentPollTotal = this.liquidityInfo.lpCoinList.find(item => item.chain === this.currentWithdrawAssetInfo.chain).balance || 0;
         this.computedFeeLoading = true;
         const heterAsset = this.addedLiquidityInfo.heterogeneousList && this.addedLiquidityInfo.heterogeneousList.find(item => item.chainName === this.fromNetwork);
         const params = {
@@ -969,7 +969,7 @@ export default {
         this.withDrawLoading = false;
       } catch (e) {
         this.$message({
-          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
+          message: this.errorHandling(e.reason || e.data && e.data.message || e.value && e.value.message || e.message || e),
           type: 'warning',
           offset: 30
         });

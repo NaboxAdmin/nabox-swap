@@ -6,7 +6,7 @@ export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS', symbol: 'NUL
 // ETH 网络信息 测试网:ropsten, 主网:homestead
 export const ETHNET = 'goerli';
 
-export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : 'http://39.98.226.51:19001/nabox-api';
+export const SWAP_BOX_API_URL = IS_DEV ? '/nabox-api' : ' https://beta.serviceapi.nabox.io/nabox-api';
 
 export const TRON_MULTI_CALL_ADDRESS = 'TCmNMtJQiPpSKiGuXUj4vcJAGKqJstmsBD';
 

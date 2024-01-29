@@ -999,7 +999,7 @@ export default {
         this.confirmLoading = false;
         console.error(e);
         this.$message({
-          message: this.errorHandling(e.data && e.data.message || e.value && e.value.message || e.message || e),
+          message: this.errorHandling(e.reason || e.data && e.data.message || e.value && e.value.message || e.message || e),
           type: 'warning',
           duration: 2000,
           offset: 30
