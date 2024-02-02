@@ -3,7 +3,7 @@
     <div class="tab-header-cont">
       <span :class="{'active': orderType === 1}" class="tab-item cursor-pointer" @click="getTxList()">{{ $t('tips.tips32') }}</span>
       <span :class="{'active': orderType === 3}" class="tab-item ml-3 cursor-pointer" @click="getOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('tips.tips40') }}</span>
-      <span :class="{'active': orderType === 2}" class="tab-item ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('navBar.navBar2') }}</span>
+      <!--      <span :class="{'active': orderType === 2}" class="tab-item ml-3 cursor-pointer" @click="getLiquidityOrderList(currentAccount['address'][fromNetwork] || currentAccount['address'][nativeId])">{{ $t('navBar.navBar2') }}</span>-->
       <div class="flex-1"/>
     </div>
     <div v-loading="orderLoading" class="customer-p pt-1">
@@ -78,7 +78,7 @@ export default {
       handler(val) {
         this.orderType = val;
         if (val === 2) {
-          this.currentAccount && this.getLiquidityOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
+          // this.currentAccount && this.getLiquidityOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
         } else if (val === 3) {
           this.currentAccount && this.getOrderList(this.currentAccount['address'][this.fromNetwork] || this.currentAccount['address'][this.nativeId]);
         }

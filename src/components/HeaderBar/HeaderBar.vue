@@ -573,12 +573,12 @@ export default {
           url: '/swap/tx/query',
           data: params
         });
-        const lpRes = await this.$request({
-          url: '/swap/lp/tx/query',
-          data: params
-        });
+        // const lpRes = await this.$request({
+        //   url: '/swap/lp/tx/query',
+        //   data: params
+        // });
         if (res.code === 1000) {
-          swapTxList = res.data.concat(lpRes.data || []);
+          swapTxList = res.data.concat([]);
         } else {
           swapTxList = [];
         }
