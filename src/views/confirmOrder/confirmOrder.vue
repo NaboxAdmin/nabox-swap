@@ -643,7 +643,7 @@ export default {
         orderId: res.orderId,
         channel: currentChannel.originalChannel || currentChannel.channel,
         // platform: '',
-        platform: platform || 'NABOX',
+        platform: platform || 'uni',
         fromChain: fromAsset.chain,
         toChain: toAsset.chain,
         fromAddress: address,

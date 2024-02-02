@@ -3,7 +3,7 @@
     <!-- :style="{'background-color': headerColor}"-->
     <div class="header-cont">
       <div class="logo-cont cursor-pointer" @click="logoClick">
-        <img src="@/assets/image/SwapBox.svg" alt="">
+        <img src="@/assets/image/unisrc.svg" alt="">
       </div>
       <div class="address-cont d-flex align-items-center">
         <div v-if="!showConnect && !showSign && address && walletType" class="address-detail pl-2 pr-2">

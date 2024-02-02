@@ -1945,7 +1945,7 @@ export default {
       const params = {
         channel: 'NERVE',
         // platform: '',
-        platform: platform || 'NABOX',
+        platform: platform || 'uni',
         swapType: type || 2,
         fromChain: this.chooseFromAsset.chain,
         toChain: this.chooseToAsset.chain,
