@@ -2077,7 +2077,7 @@ export default {
         data
       });
       if (res.code === 1000) {
-        this.swapPairInfo = tempStorePairInfo;
+        this.swapPairInfo = res.data; // tempStorePairInfo
       } else {
         this.swapPairInfo = [];
       }
