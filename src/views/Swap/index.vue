@@ -367,6 +367,7 @@ import { validateNerveAddress } from '@/api/api';
 import { getEquipmentNo, getMultiQuote } from '@/views/Swap/util/MetaPath';
 import Inch from './util/1inch';
 import OKXChannel from '@/views/Swap/util/OKX';
+import {tempStorePairInfo} from "@/views/Swap/util/tempData";
 
 const nerve = require('nerve-sdk-js');
 // 测试环境
@@ -1647,7 +1648,7 @@ export default {
         this.amountMsg = '';
         // console.log(this.nativeId, this.nerveCrossSwap, 'this.nativeId')
         // debugger;
-        console.log(this.channelConfigList, this.stableSwap, '==channelConfigList==');
+        console.log(this.channelConfigList, this.stableSwap, this.chainType, '==channelConfigList==');
         const tempChannelConfig = await Promise.allSettled(this.channelConfigList.map(async item => {
           let currentConfig = {};
           if (item.channel === 'DODO' && this.chainType === 2) {
@@ -1708,6 +1709,7 @@ export default {
               };
             }
           } else if (this.fromNetwork === 'NERVE' && item.channel === 'NERVE' && !this.stableSwap && this.chooseToAsset.chain === 'NERVE') {
+            console.log('111')
             currentConfig = await this.getNerveSwapRoute();
             if (currentConfig) {
               this.tokenPath = currentConfig.tokenPath || [];
@@ -2075,7 +2077,7 @@ export default {
         data
       });
       if (res.code === 1000) {
-        this.swapPairInfo = res.data;
+        this.swapPairInfo = tempStorePairInfo;
       } else {
         this.swapPairInfo = [];
       }
