@@ -216,14 +216,6 @@ export default {
       } else {
         this.walletType = localStorage.getItem('walletType');
       }
-      if (!tempData && !localStorage.getItem('hackBoolean')) {
-        localStorage.removeItem('accountList');
-        localStorage.setItem('hackBoolean', 'true');
-      }
-      if (this.isMobile && localStorage.getItem('walletType') && localStorage.getItem('walletType') === 'NaboxWallet') {
-        localStorage.setItem('walletType', 'ethereum');
-        this.walletType = 'ethereum';
-      }
       console.log(tempData, '==_naboxAccount==');
       const config = sessionStorage.getItem('config') && JSON.parse(sessionStorage.getItem('config')) || [];
       if (tempData && Object.keys(config).length === Object.keys(tempData.addressDict).length) {
@@ -245,8 +237,8 @@ export default {
           localStorage.setItem('walletType', 'tronWeb');
           this.walletType = 'tronWeb';
         } else {
-          localStorage.setItem('walletType', 'ethereum');
-          this.walletType = 'ethereum';
+          localStorage.setItem('walletType', 'NaboxWallet');
+          this.walletType = 'NaboxWallet';
         }
         localStorage.setItem('accountList', JSON.stringify(accountList));
       }
@@ -398,7 +390,7 @@ export default {
       });
     },
     async connectProvider(provider) {
-      const tempProvider = this.isMobile && provider !== 'tronWeb' ? 'ethereum' : provider;
+      const tempProvider = provider !== 'tronWeb' && (window[provider] && provider || 'ethereum') || provider;
       if (!window[tempProvider]) {
         this.$message({ message: this.$t('tips.tips55'), type: 'warning' });
         return;
