@@ -183,7 +183,6 @@ class TronLinkApi {
     }
     const output = '0x' + constantResult[0];
     const result = tronWeb.utils.abi.decodeParamsV2ByABI(funABI, output);
-    console.log(result, 'result');
     if (!result || result.length == 0) {
       return;
     }
@@ -196,7 +195,6 @@ class TronLinkApi {
   }
 
   async getTrxBalance(address) {
-    // console.log(address, '8777');
     const tronWeb = this.getTronWeb();
     const balance = await tronWeb.trx.getBalance(address);
     return divisionDecimals(balance, 6);
@@ -261,6 +259,7 @@ class TronLinkApi {
       parameter,
       tronWeb.address.toHex(this.selectedAddress)
     );
+    console.log(tx, '==TRON tx==');
     const signedTx = await tronWeb.trx.sign(tx.transaction);
     return await tronWeb.trx.sendRawTransaction(signedTx);
   }

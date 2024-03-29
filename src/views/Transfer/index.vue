@@ -675,7 +675,6 @@ export default {
           decimals: MAIN_INFO.decimal
         });
       }
-      console.log(this.currentFeeAsset, 'currentFeeAsset');
       const feeChainBalance = !this.toNerve && this.currentFeeAsset.balance || 0;
       if (this.toNerve) {
         if (isMainAsset) {

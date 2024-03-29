@@ -241,6 +241,7 @@ export default {
         chainId: chain[ETHNET],
         rpcUrls: chain.rpcUrl ? [chain.rpcUrl] : [],
         icon: chain.icon,
+        NULSNerveChainId: chain?.chainId,
         chainName: chain.value,
         chain: chain.chain,
         nativeCurrency: {
@@ -424,11 +425,20 @@ export default {
             this.showTips = true;
             return;
           }
-          this.currentChain = chain.chain;
-          replaceBrowserHistory('fromChain', chain.chain);
-          this.$store.commit('changeNetwork', chain.chain);
-          this.$emit('changeChainId', tempChain.chain === 'NERVE' && '0x-2' || '0x-1');
-          window.location.reload();
+          if (walletType === 'NaboxWallet') {
+            window[walletType] && await window['nabox'].switchChain({ chainId: chain?.NULSNerveChainId });
+            this.currentChain = chain.chain;
+            replaceBrowserHistory('fromChain', chain.chain);
+            this.$store.commit('changeNetwork', chain.chain);
+            this.$emit('changeChainId', tempChain.chain === 'NERVE' && '0x-2' || '0x-1');
+            window.location.reload();
+          } else {
+            this.currentChain = chain.chain;
+            replaceBrowserHistory('fromChain', chain.chain);
+            this.$store.commit('changeNetwork', chain.chain);
+            this.$emit('changeChainId', tempChain.chain === 'NERVE' && '0x-2' || '0x-1');
+            window.location.reload();
+          }
         } else if (tempChain.chainType === 2) {
           if (walletType === 'tronWeb') {
             this.showTips = true;
@@ -437,6 +447,7 @@ export default {
           delete tempChain['icon'];
           delete tempChain['chainType'];
           delete tempChain['chain'];
+          delete tempChain['NULSNerveChainId'];
           if (tempChain.chainName !== 'Ethereum') {
             window[walletType] && await window[walletType].request({
               method: 'wallet_addEthereumChain',

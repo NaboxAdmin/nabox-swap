@@ -13,7 +13,6 @@ currentNet === 'mainnet' ? nerve.mainnet() : nerve.testnet();
 
 export default class NerveChannel {
   constructor({ chooseFromAsset, chooseToAsset, swapPairInfo, swapPairTradeList, tokenPath, isFromMultiChainRouter, isToMultiChainRouter }) {
-    console.log(chooseFromAsset, chooseToAsset, 'chooseFromAsset, chooseToAsset');
     const nerveSwapAssetList = JSON.parse(sessionStorage.getItem('nerveSwapAssetList'));
     const fromAssetKey = (chooseFromAsset && `${chooseFromAsset.chainId}-${chooseFromAsset.assetId}`) || '';
     const swapPairTradeInfo = swapPairTradeList && swapPairTradeList.find(item => Object.keys(item.groupCoin).indexOf(fromAssetKey) !== -1) || null;
